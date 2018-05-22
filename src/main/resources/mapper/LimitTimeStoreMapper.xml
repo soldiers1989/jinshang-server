@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_activity.LimitTimeStoreMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_activity.bean.LimitTimeStore" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="limittimeid" property="limittimeid" jdbcType="BIGINT" />
+    <result column="pdid" property="pdid" jdbcType="BIGINT" />
+    <result column="pdno" property="pdno" jdbcType="VARCHAR" />
+    <result column="originalprice" property="originalprice" jdbcType="NUMERIC" />
+    <result column="limitprice" property="limitprice" jdbcType="NUMERIC" />
+    <result column="storenum" property="storenum" jdbcType="NUMERIC" />
+    <result column="salesnum" property="salesnum" jdbcType="NUMERIC" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, limittimeid, pdid, pdno, originalprice, limitprice, storenum, salesnum
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_activity.bean.LimitTimeStoreExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from limittimestore
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from limittimestore
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from limittimestore
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_activity.bean.LimitTimeStoreExample" >
+    delete from limittimestore
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_activity.bean.LimitTimeStore" >
+    insert into limittimestore (id, limittimeid, pdid, 
+      pdno, originalprice, limitprice, 
+      storenum, salesnum)
+    values (#{id,jdbcType=BIGINT}, #{limittimeid,jdbcType=BIGINT}, #{pdid,jdbcType=BIGINT}, 
+      #{pdno,jdbcType=VARCHAR}, #{originalprice,jdbcType=NUMERIC}, #{limitprice,jdbcType=NUMERIC}, 
+      #{storenum,jdbcType=NUMERIC}, #{salesnum,jdbcType=NUMERIC})
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_activity.bean.LimitTimeStore" >
+    insert into limittimestore
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="limittimeid != null" >
+        limittimeid,
+      </if>
+      <if test="pdid != null" >
+        pdid,
+      </if>
+      <if test="pdno != null" >
+        pdno,
+      </if>
+      <if test="originalprice != null" >
+        originalprice,
+      </if>
+      <if test="limitprice != null" >
+        limitprice,
+      </if>
+      <if test="storenum != null" >
+        storenum,
+      </if>
+      <if test="salesnum != null" >
+        salesnum,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="limittimeid != null" >
+        #{limittimeid,jdbcType=BIGINT},
+      </if>
+      <if test="pdid != null" >
+        #{pdid,jdbcType=BIGINT},
+      </if>
+      <if test="pdno != null" >
+        #{pdno,jdbcType=VARCHAR},
+      </if>
+      <if test="originalprice != null" >
+        #{originalprice,jdbcType=NUMERIC},
+      </if>
+      <if test="limitprice != null" >
+        #{limitprice,jdbcType=NUMERIC},
+      </if>
+      <if test="storenum != null" >
+        #{storenum,jdbcType=NUMERIC},
+      </if>
+      <if test="salesnum != null" >
+        #{salesnum,jdbcType=NUMERIC},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_activity.bean.LimitTimeStoreExample" resultType="java.lang.Integer" >
+    select count(*) from limittimestore
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update limittimestore
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.limittimeid != null" >
+        limittimeid = #{record.limittimeid,jdbcType=BIGINT},
+      </if>
+      <if test="record.pdid != null" >
+        pdid = #{record.pdid,jdbcType=BIGINT},
+      </if>
+      <if test="record.pdno != null" >
+        pdno = #{record.pdno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.originalprice != null" >
+        originalprice = #{record.originalprice,jdbcType=NUMERIC},
+      </if>
+      <if test="record.limitprice != null" >
+        limitprice = #{record.limitprice,jdbcType=NUMERIC},
+      </if>
+      <if test="record.storenum != null" >
+        storenum = #{record.storenum,jdbcType=NUMERIC},
+      </if>
+      <if test="record.salesnum != null" >
+        salesnum = #{record.salesnum,jdbcType=NUMERIC},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update limittimestore
+    set id = #{record.id,jdbcType=BIGINT},
+      limittimeid = #{record.limittimeid,jdbcType=BIGINT},
+      pdid = #{record.pdid,jdbcType=BIGINT},
+      pdno = #{record.pdno,jdbcType=VARCHAR},
+      originalprice = #{record.originalprice,jdbcType=NUMERIC},
+      limitprice = #{record.limitprice,jdbcType=NUMERIC},
+      storenum = #{record.storenum,jdbcType=NUMERIC},
+      salesnum = #{record.salesnum,jdbcType=NUMERIC}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_activity.bean.LimitTimeStore" >
+    update limittimestore
+    <set >
+      <if test="limittimeid != null" >
+        limittimeid = #{limittimeid,jdbcType=BIGINT},
+      </if>
+      <if test="pdid != null" >
+        pdid = #{pdid,jdbcType=BIGINT},
+      </if>
+      <if test="pdno != null" >
+        pdno = #{pdno,jdbcType=VARCHAR},
+      </if>
+      <if test="originalprice != null" >
+        originalprice = #{originalprice,jdbcType=NUMERIC},
+      </if>
+      <if test="limitprice != null" >
+        limitprice = #{limitprice,jdbcType=NUMERIC},
+      </if>
+      <if test="storenum != null" >
+        storenum = #{storenum,jdbcType=NUMERIC},
+      </if>
+      <if test="salesnum != null" >
+        salesnum = #{salesnum,jdbcType=NUMERIC},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_activity.bean.LimitTimeStore" >
+    update limittimestore
+    set limittimeid = #{limittimeid,jdbcType=BIGINT},
+      pdid = #{pdid,jdbcType=BIGINT},
+      pdno = #{pdno,jdbcType=VARCHAR},
+      originalprice = #{originalprice,jdbcType=NUMERIC},
+      limitprice = #{limitprice,jdbcType=NUMERIC},
+      storenum = #{storenum,jdbcType=NUMERIC},
+      salesnum = #{salesnum,jdbcType=NUMERIC}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

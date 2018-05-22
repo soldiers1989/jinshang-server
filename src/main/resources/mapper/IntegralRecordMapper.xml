@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_admin.mod_inte.IntegralRecordMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_admin.mod_inte.bean.IntegralRecord" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="memberid" property="memberid" jdbcType="BIGINT" />
+    <result column="orderid" property="orderid" jdbcType="BIGINT" />
+    <result column="membername" property="membername" jdbcType="VARCHAR" />
+    <result column="scope" property="scope" jdbcType="NUMERIC" />
+    <result column="type" property="type" jdbcType="SMALLINT" />
+    <result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="registerid" property="registerid" jdbcType="BIGINT" />
+    <result column="registername" property="registername" jdbcType="VARCHAR" />
+    <result column="registertime" property="registertime" jdbcType="TIMESTAMP" />
+    <result column="registerscope" property="registerscope" jdbcType="NUMERIC" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, memberid, orderid, membername, scope, type, createtime, remark, registerid, registername, 
+    registertime, registerscope
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_admin.mod_inte.bean.IntegralRecordExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from integralrecord
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from integralrecord
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from integralrecord
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_admin.mod_inte.bean.IntegralRecordExample" >
+    delete from integralrecord
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_admin.mod_inte.bean.IntegralRecord" >
+    insert into integralrecord (id, memberid, orderid, 
+      membername, scope, type, 
+      createtime, remark, registerid, 
+      registername, registertime, registerscope
+      )
+    values (#{id,jdbcType=BIGINT}, #{memberid,jdbcType=BIGINT}, #{orderid,jdbcType=BIGINT}, 
+      #{membername,jdbcType=VARCHAR}, #{scope,jdbcType=NUMERIC}, #{type,jdbcType=SMALLINT}, 
+      #{createtime,jdbcType=TIMESTAMP}, #{remark,jdbcType=VARCHAR}, #{registerid,jdbcType=BIGINT}, 
+      #{registername,jdbcType=VARCHAR}, #{registertime,jdbcType=TIMESTAMP}, #{registerscope,jdbcType=NUMERIC}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_admin.mod_inte.bean.IntegralRecord" >
+    insert into integralrecord
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="memberid != null" >
+        memberid,
+      </if>
+      <if test="orderid != null" >
+        orderid,
+      </if>
+      <if test="membername != null" >
+        membername,
+      </if>
+      <if test="scope != null" >
+        scope,
+      </if>
+      <if test="type != null" >
+        type,
+      </if>
+      <if test="createtime != null" >
+        createtime,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="registerid != null" >
+        registerid,
+      </if>
+      <if test="registername != null" >
+        registername,
+      </if>
+      <if test="registertime != null" >
+        registertime,
+      </if>
+      <if test="registerscope != null" >
+        registerscope,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="memberid != null" >
+        #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="orderid != null" >
+        #{orderid,jdbcType=BIGINT},
+      </if>
+      <if test="membername != null" >
+        #{membername,jdbcType=VARCHAR},
+      </if>
+      <if test="scope != null" >
+        #{scope,jdbcType=NUMERIC},
+      </if>
+      <if test="type != null" >
+        #{type,jdbcType=SMALLINT},
+      </if>
+      <if test="createtime != null" >
+        #{createtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="registerid != null" >
+        #{registerid,jdbcType=BIGINT},
+      </if>
+      <if test="registername != null" >
+        #{registername,jdbcType=VARCHAR},
+      </if>
+      <if test="registertime != null" >
+        #{registertime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="registerscope != null" >
+        #{registerscope,jdbcType=NUMERIC},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_admin.mod_inte.bean.IntegralRecordExample" resultType="java.lang.Integer" >
+    select count(*) from integralrecord
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update integralrecord
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.memberid != null" >
+        memberid = #{record.memberid,jdbcType=BIGINT},
+      </if>
+      <if test="record.orderid != null" >
+        orderid = #{record.orderid,jdbcType=BIGINT},
+      </if>
+      <if test="record.membername != null" >
+        membername = #{record.membername,jdbcType=VARCHAR},
+      </if>
+      <if test="record.scope != null" >
+        scope = #{record.scope,jdbcType=NUMERIC},
+      </if>
+      <if test="record.type != null" >
+        type = #{record.type,jdbcType=SMALLINT},
+      </if>
+      <if test="record.createtime != null" >
+        createtime = #{record.createtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.remark != null" >
+        remark = #{record.remark,jdbcType=VARCHAR},
+      </if>
+      <if test="record.registerid != null" >
+        registerid = #{record.registerid,jdbcType=BIGINT},
+      </if>
+      <if test="record.registername != null" >
+        registername = #{record.registername,jdbcType=VARCHAR},
+      </if>
+      <if test="record.registertime != null" >
+        registertime = #{record.registertime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.registerscope != null" >
+        registerscope = #{record.registerscope,jdbcType=NUMERIC},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update integralrecord
+    set id = #{record.id,jdbcType=BIGINT},
+      memberid = #{record.memberid,jdbcType=BIGINT},
+      orderid = #{record.orderid,jdbcType=BIGINT},
+      membername = #{record.membername,jdbcType=VARCHAR},
+      scope = #{record.scope,jdbcType=NUMERIC},
+      type = #{record.type,jdbcType=SMALLINT},
+      createtime = #{record.createtime,jdbcType=TIMESTAMP},
+      remark = #{record.remark,jdbcType=VARCHAR},
+      registerid = #{record.registerid,jdbcType=BIGINT},
+      registername = #{record.registername,jdbcType=VARCHAR},
+      registertime = #{record.registertime,jdbcType=TIMESTAMP},
+      registerscope = #{record.registerscope,jdbcType=NUMERIC}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_admin.mod_inte.bean.IntegralRecord" >
+    update integralrecord
+    <set >
+      <if test="memberid != null" >
+        memberid = #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="orderid != null" >
+        orderid = #{orderid,jdbcType=BIGINT},
+      </if>
+      <if test="membername != null" >
+        membername = #{membername,jdbcType=VARCHAR},
+      </if>
+      <if test="scope != null" >
+        scope = #{scope,jdbcType=NUMERIC},
+      </if>
+      <if test="type != null" >
+        type = #{type,jdbcType=SMALLINT},
+      </if>
+      <if test="createtime != null" >
+        createtime = #{createtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="registerid != null" >
+        registerid = #{registerid,jdbcType=BIGINT},
+      </if>
+      <if test="registername != null" >
+        registername = #{registername,jdbcType=VARCHAR},
+      </if>
+      <if test="registertime != null" >
+        registertime = #{registertime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="registerscope != null" >
+        registerscope = #{registerscope,jdbcType=NUMERIC},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_admin.mod_inte.bean.IntegralRecord" >
+    update integralrecord
+    set memberid = #{memberid,jdbcType=BIGINT},
+      orderid = #{orderid,jdbcType=BIGINT},
+      membername = #{membername,jdbcType=VARCHAR},
+      scope = #{scope,jdbcType=NUMERIC},
+      type = #{type,jdbcType=SMALLINT},
+      createtime = #{createtime,jdbcType=TIMESTAMP},
+      remark = #{remark,jdbcType=VARCHAR},
+      registerid = #{registerid,jdbcType=BIGINT},
+      registername = #{registername,jdbcType=VARCHAR},
+      registertime = #{registertime,jdbcType=TIMESTAMP},
+      registerscope = #{registerscope,jdbcType=NUMERIC}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_advertis.AdvertisingPlaceMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_advertis.bean.AdvertisingPlace" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="position" property="position" jdbcType="VARCHAR" />
+    <result column="describe" property="describe" jdbcType="VARCHAR" />
+    <result column="advtype" property="advtype" jdbcType="VARCHAR" />
+    <result column="showtype" property="showtype" jdbcType="VARCHAR" />
+    <result column="gettag" property="gettag" jdbcType="VARCHAR" />
+    <result column="stop" property="stop" jdbcType="SMALLINT" />
+    <result column="weight" property="weight" jdbcType="REAL" />
+    <result column="height" property="height" jdbcType="REAL" />
+    <result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, position, describe, advtype, showtype, gettag, stop, weight, height, createtime
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_advertis.bean.AdvertisingPlaceExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from advertisingplace
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select
+    <include refid="Base_Column_List" />
+    from advertisingplace
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from advertisingplace
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_advertis.bean.AdvertisingPlaceExample" >
+    delete from advertisingplace
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_advertis.bean.AdvertisingPlace" >
+    insert into advertisingplace (id, position, describe,
+      advtype, showtype, gettag, 
+      stop, weight, height, createtime
+      )
+    values (#{id,jdbcType=BIGINT}, #{position,jdbcType=VARCHAR}, #{describe,jdbcType=VARCHAR},
+      #{advtype,jdbcType=VARCHAR}, #{showtype,jdbcType=VARCHAR}, #{gettag,jdbcType=VARCHAR}, 
+      #{stop,jdbcType=SMALLINT}, #{weight,jdbcType=REAL}, #{height,jdbcType=REAL}, #{createtime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_advertis.bean.AdvertisingPlace" >
+    insert into advertisingplace
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="position != null" >
+        position,
+      </if>
+      <if test="describe != null" >
+        describe,
+      </if>
+      <if test="advtype != null" >
+        advtype,
+      </if>
+      <if test="showtype != null" >
+        showtype,
+      </if>
+      <if test="gettag != null" >
+        gettag,
+      </if>
+      <if test="stop != null" >
+        stop,
+      </if>
+      <if test="weight != null" >
+        weight,
+      </if>
+      <if test="height != null" >
+        height,
+      </if>
+      <if test="createtime != null" >
+        createtime,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="position != null" >
+        #{position,jdbcType=VARCHAR},
+      </if>
+      <if test="describe != null" >
+        #{describe,jdbcType=VARCHAR},
+      </if>
+      <if test="advtype != null" >
+        #{advtype,jdbcType=VARCHAR},
+      </if>
+      <if test="showtype != null" >
+        #{showtype,jdbcType=VARCHAR},
+      </if>
+      <if test="gettag != null" >
+        #{gettag,jdbcType=VARCHAR},
+      </if>
+      <if test="stop != null" >
+        #{stop,jdbcType=SMALLINT},
+      </if>
+      <if test="weight != null" >
+        #{weight,jdbcType=REAL},
+      </if>
+      <if test="height != null" >
+        #{height,jdbcType=REAL},
+      </if>
+      <if test="createtime != null" >
+        #{createtime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_advertis.bean.AdvertisingPlaceExample" resultType="java.lang.Integer" >
+    select count(*) from advertisingplace
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update advertisingplace
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.position != null" >
+        position = #{record.position,jdbcType=VARCHAR},
+      </if>
+      <if test="record.describe != null" >
+        describe = #{record.describe,jdbcType=VARCHAR},
+      </if>
+      <if test="record.advtype != null" >
+        advtype = #{record.advtype,jdbcType=VARCHAR},
+      </if>
+      <if test="record.showtype != null" >
+        showtype = #{record.showtype,jdbcType=VARCHAR},
+      </if>
+      <if test="record.gettag != null" >
+        gettag = #{record.gettag,jdbcType=VARCHAR},
+      </if>
+      <if test="record.stop != null" >
+        stop = #{record.stop,jdbcType=SMALLINT},
+      </if>
+      <if test="record.weight != null" >
+        weight = #{record.weight,jdbcType=REAL},
+      </if>
+      <if test="record.height != null" >
+        height = #{record.height,jdbcType=REAL},
+      </if>
+      <if test="record.createtime != null" >
+        createtime = #{record.createtime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update advertisingplace
+    set id = #{record.id,jdbcType=BIGINT},
+      position = #{record.position,jdbcType=VARCHAR},
+    describe = #{record.describe,jdbcType=VARCHAR},
+      advtype = #{record.advtype,jdbcType=VARCHAR},
+      showtype = #{record.showtype,jdbcType=VARCHAR},
+      gettag = #{record.gettag,jdbcType=VARCHAR},
+      stop = #{record.stop,jdbcType=SMALLINT},
+      weight = #{record.weight,jdbcType=REAL},
+      height = #{record.height,jdbcType=REAL},
+      createtime = #{record.createtime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_advertis.bean.AdvertisingPlace" >
+    update advertisingplace
+    <set >
+      <if test="position != null" >
+        position = #{position,jdbcType=VARCHAR},
+      </if>
+      <if test="describe != null" >
+        describe = #{describe,jdbcType=VARCHAR},
+      </if>
+      <if test="advtype != null" >
+        advtype = #{advtype,jdbcType=VARCHAR},
+      </if>
+      <if test="showtype != null" >
+        showtype = #{showtype,jdbcType=VARCHAR},
+      </if>
+      <if test="gettag != null" >
+        gettag = #{gettag,jdbcType=VARCHAR},
+      </if>
+      <if test="stop != null" >
+        stop = #{stop,jdbcType=SMALLINT},
+      </if>
+      <if test="weight != null" >
+        weight = #{weight,jdbcType=REAL},
+      </if>
+      <if test="height != null" >
+        height = #{height,jdbcType=REAL},
+      </if>
+      <if test="createtime != null" >
+        createtime = #{createtime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_advertis.bean.AdvertisingPlace" >
+    update advertisingplace
+    set position = #{position,jdbcType=VARCHAR},
+      describe = #{describe,jdbcType=VARCHAR},
+      advtype = #{advtype,jdbcType=VARCHAR},
+      showtype = #{showtype,jdbcType=VARCHAR},
+      gettag = #{gettag,jdbcType=VARCHAR},
+      stop = #{stop,jdbcType=SMALLINT},
+      weight = #{weight,jdbcType=REAL},
+      height = #{height,jdbcType=REAL},
+      createtime = #{createtime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

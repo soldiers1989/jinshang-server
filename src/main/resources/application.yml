@@ -1,0 +1,230 @@
+
+var:
+  server: 120.27.226.95
+#  server: 192.168.1.112
+  appName: jinshang-server
+
+server:
+  context-path: /${var.appName}
+  port: 8080
+spring:
+  application:
+    name: ${var.appName}
+  profiles:
+    active: dev
+  main:
+    web-environment: true
+  http:
+    multipart:
+      enabled: false
+  redis:
+    host: ${var.server}
+    port: 6379
+    password: 503149
+    database: 1
+  session:
+    store-type: redis
+  jackson:
+    time-zone: GMT+8
+  aop:
+    auto: true
+    proxy-target-class: true
+  cache:
+    type: redis
+
+
+  devtools:
+      restart:
+        enabled: true
+
+#  kafka:
+#    consumer:
+#      group-id: project.${var.appName}
+#      bootstrap-servers: ${var.server}:9092
+#      enable-auto-commit: true
+#    producer:
+#      bootstrap-servers: ${var.server}:9092
+#      acks: all
+#eureka:
+#  client:
+#    serviceUrl:
+#      defaultZone: http://${var.server}:10000/eureka/
+
+logging:
+  file: /root/${var.appName}/console.log
+  level:
+      project.jinshang: debug
+      mizuki.project.core: info
+
+
+
+
+project:
+  projectStaticPre: http://
+  staticResVersion: 1.0.0
+  projectDomain: http://120.27.226.95/jinshang-server
+  projectDomainMain: http://www.jinshang9.com
+  projectPath: /root/${var.appName}
+  iconfontPath: http://
+  forceNginxHttps: true
+
+mybatis:
+  pgsql1:
+    url: jdbc:postgresql://${var.server}:5432/jinshang
+#    username: postgres
+#    password: huaxu
+
+mod:
+  sms_dayu:
+    accessKey: LTAIJkBUMwwBJ5ur
+    accessKeySecret: mvFFxILHpMj62iEcuU6B4tahXykV9q
+    signName: 紧商网
+    templateCode: SMS_133972264
+  oss_ali:
+    accessKey: LTAIJkBUMwwBJ5ur
+    accessKeySecret: mvFFxILHpMj62iEcuU6B4tahXykV9q
+    endpoint: http://oss-cn-hangzhou.aliyuncs.com
+    bucketName: jinshang-hz
+    arn: acs:ram::1700049709813846:role/ossapp
+    region: oss-cn-hangzhou
+  wechat:
+    pay:
+      appId: wx6eb2a1213254a1df
+      mchId: 1404137702
+      mchKey: ideD329DEDiom093l4dx94elkjo5Dv63
+      subAppId:
+      subMchId:
+      keyPath: /root/jinshang-server/wx/apiclient_cert.p12
+#      keyPath: /Users/ycj/Downloads/WEIXINcert/apiclient_cert.p12
+    login:  #微信登录web端
+      appId: wx3e4de0fae28317d3
+      appSecret: d9515d90025aac05da85c8e05acd9652
+      accsstokenUrl: https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code
+      wxinfoUrl: https://api.weixin.qq.com/sns/userinfo?access_token=ACCESS_TOKEN&openid=OPENID
+      wapAppId: wx6eb2a1213254a1df #微信公众号
+      wapAppSecret: e349883ee40b7521390f07f5158c164f
+
+  middleware:
+#    serverurl: http://new.jinshang9.com/jinshang-middleware-test
+    serverurl: http://www.jinshang9.com/jinshang-middleware
+    aozhanurl: http://www.jinshang9.com/aozhan-middleware
+
+pagehelper:
+  reasonable: false
+  support-methods-arguments: true
+  helper-dialect: postgresql
+  params: count=countSql
+
+
+
+shop:
+  self-support:
+    id: 8095|5623|109|107  #自营店id
+  productstore-check:
+    id: 109   #库存盘点卖家id
+  orders-syn:
+    id: 107|108|109|8095|5623 #订单推送商家id
+  aozhan-syn:
+      id: 6700
+  jinshang-store-url: http://122.224.247.86:18080/GwallServices/httpService?appkey=app_wms&service=subGetOrderFullLinkInfo&format=Json&secret=null&encrypt=0&content={%22orderCode%22:%22#orderno#-jinshang%22}
+  aozhan-store-url: http://120.27.226.95/aozhan-middleware/aoZhan/selectOrderOperatingStatus?orderNo=#orderno#
+
+#文件上传路径
+upload:
+  dir:
+    moduleIcon: /Users/wyh/Downloads
+
+   # moduleIcon: /Users/jacky/Downloads/
+
+---
+
+spring:
+  profiles: dev
+  # 为了测试用区别 eureka service
+  application:
+    name: ${var.appName}-dev
+  redis:
+      host: ${var.server}
+      port: 6379
+      password: 503149
+      database: 8
+
+logging:
+  file: logs/console.log
+
+  level:
+    project.jinshang: debug
+    mizuki.project.core: info
+
+
+mybatis:
+  pgsql1:
+    url: jdbc:postgresql://${var.server}:5432/jinshang-dev4 #snap20180330
+    username: admin_jinshang_dev
+    password: admin04131
+
+mod:
+  wechat:
+    pay:
+      keyPath: /root/docker-app/jinshang-server/wx/apiclient_cert.p12
+  middleware:
+#    serverurl: http://new.jinshang9.com/jinshang-middleware-test
+#    serverurl: 192.168.1.123:9292/jinshang-middleware-dev
+    aozhanurl: http://47.98.222.182:9090/aozhan-middleware-test
+#    aozhanurl: http://localhost:9090/aozhan-middleware-test
+
+shop:
+  self-support:
+    id: 8095|5623|109|107  #自营店id
+  productstore-check:
+    id: 109   #库存盘点卖家id
+  orders-syn:
+    id: 107|108|109|8095|5623 #订单推送商家id
+  aozhan-syn:
+      id: 17944|6700
+  jinshang-store-url: http://122.224.247.86:18080/GwallServices/httpService?appkey=app_wms&service=subGetOrderFullLinkInfo&format=Json&secret=null&encrypt=0&content={%22orderCode%22:%22#orderno#-jinshang%22}
+  aozhan-store-url: http://47.98.222.182/aozhan-middleware/aoZhan/selectOrderOperatingStatus?orderNo=#orderno#
+  #aozhan-store-url: http://120.27.226.95/aozhan-middleware/aoZhan/selectOrderOperatingStatus?orderNo=#orderno#
+---
+server:
+  context-path: /${var.appName}
+  port: 8080
+
+spring:
+  profiles: test
+  # 为了测试用区别 eureka service
+  application:
+    name: ${var.appName}-test
+  redis:
+    host: ${var.server}
+    port: 6379
+    password: 503149
+    database: 5
+
+
+shop:
+  self-support:
+    id: 8095|5623|109|107  #自营店id
+  productstore-check:
+    id: 109   #库存盘点卖家id
+  orders-syn:
+    id: 107|108|109|8095|5623 #订单推送商家id
+  aozhan-syn:
+    id: 17944
+  jinshang-store-url: http://122.224.247.86:18080/GwallServices/httpService?appkey=app_wms&service=subGetOrderFullLinkInfo&format=Json&secret=null&encrypt=0&content={%22orderCode%22:%22#orderno#-jinshang%22}
+  aozhan-store-url: http://47.98.222.182/aozhan-middleware-test/aoZhan/selectOrderOperatingStatus?orderNo=#orderno#
+
+mod:
+  middleware:
+    #    serverurl: http://new.jinshang9.com/jinshang-middleware-test
+    serverurl:
+#    aozhanurl: http://47.100.32.131/aozhan-middleware-test
+    aozhanurl: http://47.98.222.182/aozhan-middleware-test
+
+
+
+mybatis:
+  pgsql1:
+    url: jdbc:postgresql://${var.server}:5432/jinshang-dev4
+    username: admin_jinshang_dev
+    password: admin04131

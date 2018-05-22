@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_bankaccount.BankAccountMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_bankaccount.bean.BankAccount" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="memberid" property="memberid" jdbcType="BIGINT" />
+    <result column="bankaccountname" property="bankaccountname" jdbcType="VARCHAR" />
+    <result column="bankaccountnumber" property="bankaccountnumber" jdbcType="VARCHAR" />
+    <result column="bankname" property="bankname" jdbcType="VARCHAR" />
+    <result column="bankusername" property="bankusername" jdbcType="VARCHAR" />
+    <result column="taxregistrationcertificate" property="taxregistrationcertificate" jdbcType="VARCHAR" />
+    <result column="isdefault" property="isdefault" jdbcType="SMALLINT" />
+    <result column="batype" property="batype" jdbcType="SMALLINT" />
+    <result column="id_card" property="idCard" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, memberid, bankaccountname, bankaccountnumber, bankname, bankusername, taxregistrationcertificate, 
+    isdefault, batype, id_card
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_bankaccount.bean.BankAccountExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from bankaccount
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from bankaccount
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from bankaccount
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_bankaccount.bean.BankAccountExample" >
+    delete from bankaccount
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_bankaccount.bean.BankAccount" >
+    insert into bankaccount (memberid, bankaccountname,
+      bankaccountnumber, bankname, bankusername, 
+      taxregistrationcertificate, isdefault, 
+      batype, id_card)
+    values (#{memberid,jdbcType=BIGINT}, #{bankaccountname,jdbcType=VARCHAR},
+      #{bankaccountnumber,jdbcType=VARCHAR}, #{bankname,jdbcType=VARCHAR}, #{bankusername,jdbcType=VARCHAR}, 
+      #{taxregistrationcertificate,jdbcType=VARCHAR}, #{isdefault,jdbcType=SMALLINT}, 
+      #{batype,jdbcType=SMALLINT}, #{idCard,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_bankaccount.bean.BankAccount" >
+    insert into bankaccount
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="memberid != null" >
+        memberid,
+      </if>
+      <if test="bankaccountname != null" >
+        bankaccountname,
+      </if>
+      <if test="bankaccountnumber != null" >
+        bankaccountnumber,
+      </if>
+      <if test="bankname != null" >
+        bankname,
+      </if>
+      <if test="bankusername != null" >
+        bankusername,
+      </if>
+      <if test="taxregistrationcertificate != null" >
+        taxregistrationcertificate,
+      </if>
+      <if test="isdefault != null" >
+        isdefault,
+      </if>
+      <if test="batype != null" >
+        batype,
+      </if>
+      <if test="idCard != null" >
+        id_card,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="memberid != null" >
+        #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="bankaccountname != null" >
+        #{bankaccountname,jdbcType=VARCHAR},
+      </if>
+      <if test="bankaccountnumber != null" >
+        #{bankaccountnumber,jdbcType=VARCHAR},
+      </if>
+      <if test="bankname != null" >
+        #{bankname,jdbcType=VARCHAR},
+      </if>
+      <if test="bankusername != null" >
+        #{bankusername,jdbcType=VARCHAR},
+      </if>
+      <if test="taxregistrationcertificate != null" >
+        #{taxregistrationcertificate,jdbcType=VARCHAR},
+      </if>
+      <if test="isdefault != null" >
+        #{isdefault,jdbcType=SMALLINT},
+      </if>
+      <if test="batype != null" >
+        #{batype,jdbcType=SMALLINT},
+      </if>
+      <if test="idCard != null" >
+        #{idCard,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_bankaccount.bean.BankAccountExample" resultType="java.lang.Integer" >
+    select count(*) from bankaccount
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update bankaccount
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.memberid != null" >
+        memberid = #{record.memberid,jdbcType=BIGINT},
+      </if>
+      <if test="record.bankaccountname != null" >
+        bankaccountname = #{record.bankaccountname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.bankaccountnumber != null" >
+        bankaccountnumber = #{record.bankaccountnumber,jdbcType=VARCHAR},
+      </if>
+      <if test="record.bankname != null" >
+        bankname = #{record.bankname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.bankusername != null" >
+        bankusername = #{record.bankusername,jdbcType=VARCHAR},
+      </if>
+      <if test="record.taxregistrationcertificate != null" >
+        taxregistrationcertificate = #{record.taxregistrationcertificate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isdefault != null" >
+        isdefault = #{record.isdefault,jdbcType=SMALLINT},
+      </if>
+      <if test="record.batype != null" >
+        batype = #{record.batype,jdbcType=SMALLINT},
+      </if>
+      <if test="record.idCard != null" >
+        id_card = #{record.idCard,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update bankaccount
+    set id = #{record.id,jdbcType=BIGINT},
+      memberid = #{record.memberid,jdbcType=BIGINT},
+      bankaccountname = #{record.bankaccountname,jdbcType=VARCHAR},
+      bankaccountnumber = #{record.bankaccountnumber,jdbcType=VARCHAR},
+      bankname = #{record.bankname,jdbcType=VARCHAR},
+      bankusername = #{record.bankusername,jdbcType=VARCHAR},
+      taxregistrationcertificate = #{record.taxregistrationcertificate,jdbcType=VARCHAR},
+      isdefault = #{record.isdefault,jdbcType=SMALLINT},
+      batype = #{record.batype,jdbcType=SMALLINT},
+      id_card = #{record.idCard,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_bankaccount.bean.BankAccount" >
+    update bankaccount
+    <set >
+      <if test="memberid != null" >
+        memberid = #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="bankaccountname != null" >
+        bankaccountname = #{bankaccountname,jdbcType=VARCHAR},
+      </if>
+      <if test="bankaccountnumber != null" >
+        bankaccountnumber = #{bankaccountnumber,jdbcType=VARCHAR},
+      </if>
+      <if test="bankname != null" >
+        bankname = #{bankname,jdbcType=VARCHAR},
+      </if>
+      <if test="bankusername != null" >
+        bankusername = #{bankusername,jdbcType=VARCHAR},
+      </if>
+      <if test="taxregistrationcertificate != null" >
+        taxregistrationcertificate = #{taxregistrationcertificate,jdbcType=VARCHAR},
+      </if>
+      <if test="isdefault != null" >
+        isdefault = #{isdefault,jdbcType=SMALLINT},
+      </if>
+      <if test="batype != null" >
+        batype = #{batype,jdbcType=SMALLINT},
+      </if>
+      <if test="idCard != null" >
+        id_card = #{idCard,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_bankaccount.bean.BankAccount" >
+    update bankaccount
+    set memberid = #{memberid,jdbcType=BIGINT},
+      bankaccountname = #{bankaccountname,jdbcType=VARCHAR},
+      bankaccountnumber = #{bankaccountnumber,jdbcType=VARCHAR},
+      bankname = #{bankname,jdbcType=VARCHAR},
+      bankusername = #{bankusername,jdbcType=VARCHAR},
+      taxregistrationcertificate = #{taxregistrationcertificate,jdbcType=VARCHAR},
+      isdefault = #{isdefault,jdbcType=SMALLINT},
+      batype = #{batype,jdbcType=SMALLINT},
+      id_card = #{idCard,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

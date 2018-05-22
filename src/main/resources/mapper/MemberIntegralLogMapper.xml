@@ -1,0 +1,238 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_member.MemberIntegralLogMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_member.bean.MemberIntegralLog" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="memberid" property="memberid" jdbcType="BIGINT" />
+    <result column="source" property="source" jdbcType="VARCHAR" />
+    <result column="integrals" property="integrals" jdbcType="INTEGER" />
+    <result column="totalscore" property="totalscore" jdbcType="INTEGER" />
+    <result column="creatdate" property="creatdate" jdbcType="TIMESTAMP" />
+    <result column="remake" property="remake" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, memberid, source, integrals, totalscore, creatdate, remake
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_member.bean.MemberIntegralLogExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from memberintegrallog
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from memberintegrallog
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from memberintegrallog
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_member.bean.MemberIntegralLog" >
+    insert into memberintegrallog (memberid, source,
+      integrals, totalscore, creatdate, 
+      remake)
+    values (#{memberid,jdbcType=BIGINT}, #{source,jdbcType=VARCHAR},
+      #{integrals,jdbcType=INTEGER}, #{totalscore,jdbcType=INTEGER}, #{creatdate,jdbcType=TIMESTAMP}, 
+      #{remake,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_member.bean.MemberIntegralLog" >
+    insert into memberintegrallog
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="memberid != null" >
+        memberid,
+      </if>
+      <if test="source != null" >
+        source,
+      </if>
+      <if test="integrals != null" >
+        integrals,
+      </if>
+      <if test="totalscore != null" >
+        totalscore,
+      </if>
+      <if test="creatdate != null" >
+        creatdate,
+      </if>
+      <if test="remake != null" >
+        remake,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="memberid != null" >
+        #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="source != null" >
+        #{source,jdbcType=VARCHAR},
+      </if>
+      <if test="integrals != null" >
+        #{integrals,jdbcType=INTEGER},
+      </if>
+      <if test="totalscore != null" >
+        #{totalscore,jdbcType=INTEGER},
+      </if>
+      <if test="creatdate != null" >
+        #{creatdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="remake != null" >
+        #{remake,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_member.bean.MemberIntegralLogExample" resultType="java.lang.Integer" >
+    select count(*) from memberintegrallog
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update memberintegrallog
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.memberid != null" >
+        memberid = #{record.memberid,jdbcType=BIGINT},
+      </if>
+      <if test="record.source != null" >
+        source = #{record.source,jdbcType=VARCHAR},
+      </if>
+      <if test="record.integrals != null" >
+        integrals = #{record.integrals,jdbcType=INTEGER},
+      </if>
+      <if test="record.totalscore != null" >
+        totalscore = #{record.totalscore,jdbcType=INTEGER},
+      </if>
+      <if test="record.creatdate != null" >
+        creatdate = #{record.creatdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.remake != null" >
+        remake = #{record.remake,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update memberintegrallog
+    set id = #{record.id,jdbcType=BIGINT},
+      memberid = #{record.memberid,jdbcType=BIGINT},
+      source = #{record.source,jdbcType=VARCHAR},
+      integrals = #{record.integrals,jdbcType=INTEGER},
+      totalscore = #{record.totalscore,jdbcType=INTEGER},
+      creatdate = #{record.creatdate,jdbcType=TIMESTAMP},
+      remake = #{record.remake,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_member.bean.MemberIntegralLog" >
+    update memberintegrallog
+    <set >
+      <if test="memberid != null" >
+        memberid = #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="source != null" >
+        source = #{source,jdbcType=VARCHAR},
+      </if>
+      <if test="integrals != null" >
+        integrals = #{integrals,jdbcType=INTEGER},
+      </if>
+      <if test="totalscore != null" >
+        totalscore = #{totalscore,jdbcType=INTEGER},
+      </if>
+      <if test="creatdate != null" >
+        creatdate = #{creatdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="remake != null" >
+        remake = #{remake,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_member.bean.MemberIntegralLog" >
+    update memberintegrallog
+    set memberid = #{memberid,jdbcType=BIGINT},
+      source = #{source,jdbcType=VARCHAR},
+      integrals = #{integrals,jdbcType=INTEGER},
+      totalscore = #{totalscore,jdbcType=INTEGER},
+      creatdate = #{creatdate,jdbcType=TIMESTAMP},
+      remake = #{remake,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

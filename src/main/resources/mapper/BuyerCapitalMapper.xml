@@ -1,0 +1,639 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_cash.BuyerCapitalMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_cash.bean.BuyerCapital" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="orderno" property="orderno" jdbcType="VARCHAR" />
+    <result column="tradeno" property="tradeno" jdbcType="VARCHAR" />
+    <result column="capitaltype" property="capitaltype" jdbcType="SMALLINT" />
+    <result column="capital" property="capital" jdbcType="NUMERIC" />
+    <result column="paytype" property="paytype" jdbcType="SMALLINT" />
+    <result column="memberid" property="memberid" jdbcType="BIGINT" />
+    <result column="tradetime" property="tradetime" jdbcType="TIMESTAMP" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="rechargenumber" property="rechargenumber" jdbcType="VARCHAR" />
+    <result column="rechargeperform" property="rechargeperform" jdbcType="SMALLINT" />
+    <result column="presentationnumber" property="presentationnumber" jdbcType="VARCHAR" />
+    <result column="rechargestate" property="rechargestate" jdbcType="SMALLINT" />
+    <result column="account" property="account" jdbcType="VARCHAR" />
+    <result column="operation" property="operation" jdbcType="VARCHAR" />
+    <result column="verify" property="verify" jdbcType="VARCHAR" />
+    <result column="alias" property="alias" jdbcType="VARCHAR" />
+    <result column="bankname" property="bankname" jdbcType="VARCHAR" />
+    <result column="banknamealias" property="banknamealias" jdbcType="VARCHAR" />
+    <result column="bankaccountname" property="bankaccountname" jdbcType="VARCHAR" />
+    <result column="withdrawtype" property="withdrawtype" jdbcType="SMALLINT" />
+    <result column="transactionobj" property="transactionobj" jdbcType="VARCHAR" />
+    <result column="outbillstate" property="outbillstate" jdbcType="SMALLINT" />
+    <result column="successtime" property="successtime" jdbcType="TIMESTAMP" />
+    <result column="isbackcredit" property="isbackcredit" jdbcType="SMALLINT" />
+    <result column="billcreateid" property="billcreateid" jdbcType="BIGINT" />
+    <result column="sellerid" property="sellerid" jdbcType="BIGINT" />
+    <result column="allpay" property="allpay" jdbcType="NUMERIC" />
+    <result column="membermark" property="membermark" jdbcType="VARCHAR" />
+    <result column="validatemark" property="validatemark" jdbcType="VARCHAR" />
+    <result column="operatetime" property="operatetime" jdbcType="TIMESTAMP" />
+    <result column="transactionid" property="transactionid" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, orderno, tradeno, capitaltype, capital, paytype, memberid, tradetime, remark, 
+    rechargenumber, rechargeperform, presentationnumber, rechargestate, account, operation, 
+    verify, alias, bankname, banknamealias, bankaccountname, withdrawtype, transactionobj, 
+    outbillstate, successtime, isbackcredit, billcreateid, sellerid, allpay, membermark, 
+    validatemark, operatetime, transactionid
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_cash.bean.BuyerCapitalExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from buyercapital
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from buyercapital
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from buyercapital
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_cash.bean.BuyerCapitalExample" >
+    delete from buyercapital
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_cash.bean.BuyerCapital" >
+    insert into buyercapital (id, orderno, tradeno, 
+      capitaltype, capital, paytype, 
+      memberid, tradetime, remark, 
+      rechargenumber, rechargeperform, presentationnumber, 
+      rechargestate, account, operation, 
+      verify, alias, bankname, 
+      banknamealias, bankaccountname, withdrawtype, 
+      transactionobj, outbillstate, successtime, 
+      isbackcredit, billcreateid, sellerid, 
+      allpay, membermark, validatemark, 
+      operatetime, transactionid)
+    values (#{id,jdbcType=BIGINT}, #{orderno,jdbcType=VARCHAR}, #{tradeno,jdbcType=VARCHAR}, 
+      #{capitaltype,jdbcType=SMALLINT}, #{capital,jdbcType=NUMERIC}, #{paytype,jdbcType=SMALLINT}, 
+      #{memberid,jdbcType=BIGINT}, #{tradetime,jdbcType=TIMESTAMP}, #{remark,jdbcType=VARCHAR}, 
+      #{rechargenumber,jdbcType=VARCHAR}, #{rechargeperform,jdbcType=SMALLINT}, #{presentationnumber,jdbcType=VARCHAR}, 
+      #{rechargestate,jdbcType=SMALLINT}, #{account,jdbcType=VARCHAR}, #{operation,jdbcType=VARCHAR}, 
+      #{verify,jdbcType=VARCHAR}, #{alias,jdbcType=VARCHAR}, #{bankname,jdbcType=VARCHAR}, 
+      #{banknamealias,jdbcType=VARCHAR}, #{bankaccountname,jdbcType=VARCHAR}, #{withdrawtype,jdbcType=SMALLINT}, 
+      #{transactionobj,jdbcType=VARCHAR}, #{outbillstate,jdbcType=SMALLINT}, #{successtime,jdbcType=TIMESTAMP}, 
+      #{isbackcredit,jdbcType=SMALLINT}, #{billcreateid,jdbcType=BIGINT}, #{sellerid,jdbcType=BIGINT}, 
+      #{allpay,jdbcType=NUMERIC}, #{membermark,jdbcType=VARCHAR}, #{validatemark,jdbcType=VARCHAR}, 
+      #{operatetime,jdbcType=TIMESTAMP}, #{transactionid,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_cash.bean.BuyerCapital" >
+    insert into buyercapital
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="orderno != null" >
+        orderno,
+      </if>
+      <if test="tradeno != null" >
+        tradeno,
+      </if>
+      <if test="capitaltype != null" >
+        capitaltype,
+      </if>
+      <if test="capital != null" >
+        capital,
+      </if>
+      <if test="paytype != null" >
+        paytype,
+      </if>
+      <if test="memberid != null" >
+        memberid,
+      </if>
+      <if test="tradetime != null" >
+        tradetime,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="rechargenumber != null" >
+        rechargenumber,
+      </if>
+      <if test="rechargeperform != null" >
+        rechargeperform,
+      </if>
+      <if test="presentationnumber != null" >
+        presentationnumber,
+      </if>
+      <if test="rechargestate != null" >
+        rechargestate,
+      </if>
+      <if test="account != null" >
+        account,
+      </if>
+      <if test="operation != null" >
+        operation,
+      </if>
+      <if test="verify != null" >
+        verify,
+      </if>
+      <if test="alias != null" >
+        alias,
+      </if>
+      <if test="bankname != null" >
+        bankname,
+      </if>
+      <if test="banknamealias != null" >
+        banknamealias,
+      </if>
+      <if test="bankaccountname != null" >
+        bankaccountname,
+      </if>
+      <if test="withdrawtype != null" >
+        withdrawtype,
+      </if>
+      <if test="transactionobj != null" >
+        transactionobj,
+      </if>
+      <if test="outbillstate != null" >
+        outbillstate,
+      </if>
+      <if test="successtime != null" >
+        successtime,
+      </if>
+      <if test="isbackcredit != null" >
+        isbackcredit,
+      </if>
+      <if test="billcreateid != null" >
+        billcreateid,
+      </if>
+      <if test="sellerid != null" >
+        sellerid,
+      </if>
+      <if test="allpay != null" >
+        allpay,
+      </if>
+      <if test="membermark != null" >
+        membermark,
+      </if>
+      <if test="validatemark != null" >
+        validatemark,
+      </if>
+      <if test="operatetime != null" >
+        operatetime,
+      </if>
+      <if test="transactionid != null" >
+        transactionid,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="orderno != null" >
+        #{orderno,jdbcType=VARCHAR},
+      </if>
+      <if test="tradeno != null" >
+        #{tradeno,jdbcType=VARCHAR},
+      </if>
+      <if test="capitaltype != null" >
+        #{capitaltype,jdbcType=SMALLINT},
+      </if>
+      <if test="capital != null" >
+        #{capital,jdbcType=NUMERIC},
+      </if>
+      <if test="paytype != null" >
+        #{paytype,jdbcType=SMALLINT},
+      </if>
+      <if test="memberid != null" >
+        #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="tradetime != null" >
+        #{tradetime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="rechargenumber != null" >
+        #{rechargenumber,jdbcType=VARCHAR},
+      </if>
+      <if test="rechargeperform != null" >
+        #{rechargeperform,jdbcType=SMALLINT},
+      </if>
+      <if test="presentationnumber != null" >
+        #{presentationnumber,jdbcType=VARCHAR},
+      </if>
+      <if test="rechargestate != null" >
+        #{rechargestate,jdbcType=SMALLINT},
+      </if>
+      <if test="account != null" >
+        #{account,jdbcType=VARCHAR},
+      </if>
+      <if test="operation != null" >
+        #{operation,jdbcType=VARCHAR},
+      </if>
+      <if test="verify != null" >
+        #{verify,jdbcType=VARCHAR},
+      </if>
+      <if test="alias != null" >
+        #{alias,jdbcType=VARCHAR},
+      </if>
+      <if test="bankname != null" >
+        #{bankname,jdbcType=VARCHAR},
+      </if>
+      <if test="banknamealias != null" >
+        #{banknamealias,jdbcType=VARCHAR},
+      </if>
+      <if test="bankaccountname != null" >
+        #{bankaccountname,jdbcType=VARCHAR},
+      </if>
+      <if test="withdrawtype != null" >
+        #{withdrawtype,jdbcType=SMALLINT},
+      </if>
+      <if test="transactionobj != null" >
+        #{transactionobj,jdbcType=VARCHAR},
+      </if>
+      <if test="outbillstate != null" >
+        #{outbillstate,jdbcType=SMALLINT},
+      </if>
+      <if test="successtime != null" >
+        #{successtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="isbackcredit != null" >
+        #{isbackcredit,jdbcType=SMALLINT},
+      </if>
+      <if test="billcreateid != null" >
+        #{billcreateid,jdbcType=BIGINT},
+      </if>
+      <if test="sellerid != null" >
+        #{sellerid,jdbcType=BIGINT},
+      </if>
+      <if test="allpay != null" >
+        #{allpay,jdbcType=NUMERIC},
+      </if>
+      <if test="membermark != null" >
+        #{membermark,jdbcType=VARCHAR},
+      </if>
+      <if test="validatemark != null" >
+        #{validatemark,jdbcType=VARCHAR},
+      </if>
+      <if test="operatetime != null" >
+        #{operatetime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="transactionid != null" >
+        #{transactionid,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_cash.bean.BuyerCapitalExample" resultType="java.lang.Integer" >
+    select count(*) from buyercapital
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update buyercapital
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.orderno != null" >
+        orderno = #{record.orderno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.tradeno != null" >
+        tradeno = #{record.tradeno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.capitaltype != null" >
+        capitaltype = #{record.capitaltype,jdbcType=SMALLINT},
+      </if>
+      <if test="record.capital != null" >
+        capital = #{record.capital,jdbcType=NUMERIC},
+      </if>
+      <if test="record.paytype != null" >
+        paytype = #{record.paytype,jdbcType=SMALLINT},
+      </if>
+      <if test="record.memberid != null" >
+        memberid = #{record.memberid,jdbcType=BIGINT},
+      </if>
+      <if test="record.tradetime != null" >
+        tradetime = #{record.tradetime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.remark != null" >
+        remark = #{record.remark,jdbcType=VARCHAR},
+      </if>
+      <if test="record.rechargenumber != null" >
+        rechargenumber = #{record.rechargenumber,jdbcType=VARCHAR},
+      </if>
+      <if test="record.rechargeperform != null" >
+        rechargeperform = #{record.rechargeperform,jdbcType=SMALLINT},
+      </if>
+      <if test="record.presentationnumber != null" >
+        presentationnumber = #{record.presentationnumber,jdbcType=VARCHAR},
+      </if>
+      <if test="record.rechargestate != null" >
+        rechargestate = #{record.rechargestate,jdbcType=SMALLINT},
+      </if>
+      <if test="record.account != null" >
+        account = #{record.account,jdbcType=VARCHAR},
+      </if>
+      <if test="record.operation != null" >
+        operation = #{record.operation,jdbcType=VARCHAR},
+      </if>
+      <if test="record.verify != null" >
+        verify = #{record.verify,jdbcType=VARCHAR},
+      </if>
+      <if test="record.alias != null" >
+        alias = #{record.alias,jdbcType=VARCHAR},
+      </if>
+      <if test="record.bankname != null" >
+        bankname = #{record.bankname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.banknamealias != null" >
+        banknamealias = #{record.banknamealias,jdbcType=VARCHAR},
+      </if>
+      <if test="record.bankaccountname != null" >
+        bankaccountname = #{record.bankaccountname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.withdrawtype != null" >
+        withdrawtype = #{record.withdrawtype,jdbcType=SMALLINT},
+      </if>
+      <if test="record.transactionobj != null" >
+        transactionobj = #{record.transactionobj,jdbcType=VARCHAR},
+      </if>
+      <if test="record.outbillstate != null" >
+        outbillstate = #{record.outbillstate,jdbcType=SMALLINT},
+      </if>
+      <if test="record.successtime != null" >
+        successtime = #{record.successtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.isbackcredit != null" >
+        isbackcredit = #{record.isbackcredit,jdbcType=SMALLINT},
+      </if>
+      <if test="record.billcreateid != null" >
+        billcreateid = #{record.billcreateid,jdbcType=BIGINT},
+      </if>
+      <if test="record.sellerid != null" >
+        sellerid = #{record.sellerid,jdbcType=BIGINT},
+      </if>
+      <if test="record.allpay != null" >
+        allpay = #{record.allpay,jdbcType=NUMERIC},
+      </if>
+      <if test="record.membermark != null" >
+        membermark = #{record.membermark,jdbcType=VARCHAR},
+      </if>
+      <if test="record.validatemark != null" >
+        validatemark = #{record.validatemark,jdbcType=VARCHAR},
+      </if>
+      <if test="record.operatetime != null" >
+        operatetime = #{record.operatetime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.transactionid != null" >
+        transactionid = #{record.transactionid,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update buyercapital
+    set id = #{record.id,jdbcType=BIGINT},
+      orderno = #{record.orderno,jdbcType=VARCHAR},
+      tradeno = #{record.tradeno,jdbcType=VARCHAR},
+      capitaltype = #{record.capitaltype,jdbcType=SMALLINT},
+      capital = #{record.capital,jdbcType=NUMERIC},
+      paytype = #{record.paytype,jdbcType=SMALLINT},
+      memberid = #{record.memberid,jdbcType=BIGINT},
+      tradetime = #{record.tradetime,jdbcType=TIMESTAMP},
+      remark = #{record.remark,jdbcType=VARCHAR},
+      rechargenumber = #{record.rechargenumber,jdbcType=VARCHAR},
+      rechargeperform = #{record.rechargeperform,jdbcType=SMALLINT},
+      presentationnumber = #{record.presentationnumber,jdbcType=VARCHAR},
+      rechargestate = #{record.rechargestate,jdbcType=SMALLINT},
+      account = #{record.account,jdbcType=VARCHAR},
+      operation = #{record.operation,jdbcType=VARCHAR},
+      verify = #{record.verify,jdbcType=VARCHAR},
+      alias = #{record.alias,jdbcType=VARCHAR},
+      bankname = #{record.bankname,jdbcType=VARCHAR},
+      banknamealias = #{record.banknamealias,jdbcType=VARCHAR},
+      bankaccountname = #{record.bankaccountname,jdbcType=VARCHAR},
+      withdrawtype = #{record.withdrawtype,jdbcType=SMALLINT},
+      transactionobj = #{record.transactionobj,jdbcType=VARCHAR},
+      outbillstate = #{record.outbillstate,jdbcType=SMALLINT},
+      successtime = #{record.successtime,jdbcType=TIMESTAMP},
+      isbackcredit = #{record.isbackcredit,jdbcType=SMALLINT},
+      billcreateid = #{record.billcreateid,jdbcType=BIGINT},
+      sellerid = #{record.sellerid,jdbcType=BIGINT},
+      allpay = #{record.allpay,jdbcType=NUMERIC},
+      membermark = #{record.membermark,jdbcType=VARCHAR},
+      validatemark = #{record.validatemark,jdbcType=VARCHAR},
+      operatetime = #{record.operatetime,jdbcType=TIMESTAMP},
+      transactionid = #{record.transactionid,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_cash.bean.BuyerCapital" >
+    update buyercapital
+    <set >
+      <if test="orderno != null" >
+        orderno = #{orderno,jdbcType=VARCHAR},
+      </if>
+      <if test="tradeno != null" >
+        tradeno = #{tradeno,jdbcType=VARCHAR},
+      </if>
+      <if test="capitaltype != null" >
+        capitaltype = #{capitaltype,jdbcType=SMALLINT},
+      </if>
+      <if test="capital != null" >
+        capital = #{capital,jdbcType=NUMERIC},
+      </if>
+      <if test="paytype != null" >
+        paytype = #{paytype,jdbcType=SMALLINT},
+      </if>
+      <if test="memberid != null" >
+        memberid = #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="tradetime != null" >
+        tradetime = #{tradetime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="rechargenumber != null" >
+        rechargenumber = #{rechargenumber,jdbcType=VARCHAR},
+      </if>
+      <if test="rechargeperform != null" >
+        rechargeperform = #{rechargeperform,jdbcType=SMALLINT},
+      </if>
+      <if test="presentationnumber != null" >
+        presentationnumber = #{presentationnumber,jdbcType=VARCHAR},
+      </if>
+      <if test="rechargestate != null" >
+        rechargestate = #{rechargestate,jdbcType=SMALLINT},
+      </if>
+      <if test="account != null" >
+        account = #{account,jdbcType=VARCHAR},
+      </if>
+      <if test="operation != null" >
+        operation = #{operation,jdbcType=VARCHAR},
+      </if>
+      <if test="verify != null" >
+        verify = #{verify,jdbcType=VARCHAR},
+      </if>
+      <if test="alias != null" >
+        alias = #{alias,jdbcType=VARCHAR},
+      </if>
+      <if test="bankname != null" >
+        bankname = #{bankname,jdbcType=VARCHAR},
+      </if>
+      <if test="banknamealias != null" >
+        banknamealias = #{banknamealias,jdbcType=VARCHAR},
+      </if>
+      <if test="bankaccountname != null" >
+        bankaccountname = #{bankaccountname,jdbcType=VARCHAR},
+      </if>
+      <if test="withdrawtype != null" >
+        withdrawtype = #{withdrawtype,jdbcType=SMALLINT},
+      </if>
+      <if test="transactionobj != null" >
+        transactionobj = #{transactionobj,jdbcType=VARCHAR},
+      </if>
+      <if test="outbillstate != null" >
+        outbillstate = #{outbillstate,jdbcType=SMALLINT},
+      </if>
+      <if test="successtime != null" >
+        successtime = #{successtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="isbackcredit != null" >
+        isbackcredit = #{isbackcredit,jdbcType=SMALLINT},
+      </if>
+      <if test="billcreateid != null" >
+        billcreateid = #{billcreateid,jdbcType=BIGINT},
+      </if>
+      <if test="sellerid != null" >
+        sellerid = #{sellerid,jdbcType=BIGINT},
+      </if>
+      <if test="allpay != null" >
+        allpay = #{allpay,jdbcType=NUMERIC},
+      </if>
+      <if test="membermark != null" >
+        membermark = #{membermark,jdbcType=VARCHAR},
+      </if>
+      <if test="validatemark != null" >
+        validatemark = #{validatemark,jdbcType=VARCHAR},
+      </if>
+      <if test="operatetime != null" >
+        operatetime = #{operatetime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="transactionid != null" >
+        transactionid = #{transactionid,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_cash.bean.BuyerCapital" >
+    update buyercapital
+    set orderno = #{orderno,jdbcType=VARCHAR},
+      tradeno = #{tradeno,jdbcType=VARCHAR},
+      capitaltype = #{capitaltype,jdbcType=SMALLINT},
+      capital = #{capital,jdbcType=NUMERIC},
+      paytype = #{paytype,jdbcType=SMALLINT},
+      memberid = #{memberid,jdbcType=BIGINT},
+      tradetime = #{tradetime,jdbcType=TIMESTAMP},
+      remark = #{remark,jdbcType=VARCHAR},
+      rechargenumber = #{rechargenumber,jdbcType=VARCHAR},
+      rechargeperform = #{rechargeperform,jdbcType=SMALLINT},
+      presentationnumber = #{presentationnumber,jdbcType=VARCHAR},
+      rechargestate = #{rechargestate,jdbcType=SMALLINT},
+      account = #{account,jdbcType=VARCHAR},
+      operation = #{operation,jdbcType=VARCHAR},
+      verify = #{verify,jdbcType=VARCHAR},
+      alias = #{alias,jdbcType=VARCHAR},
+      bankname = #{bankname,jdbcType=VARCHAR},
+      banknamealias = #{banknamealias,jdbcType=VARCHAR},
+      bankaccountname = #{bankaccountname,jdbcType=VARCHAR},
+      withdrawtype = #{withdrawtype,jdbcType=SMALLINT},
+      transactionobj = #{transactionobj,jdbcType=VARCHAR},
+      outbillstate = #{outbillstate,jdbcType=SMALLINT},
+      successtime = #{successtime,jdbcType=TIMESTAMP},
+      isbackcredit = #{isbackcredit,jdbcType=SMALLINT},
+      billcreateid = #{billcreateid,jdbcType=BIGINT},
+      sellerid = #{sellerid,jdbcType=BIGINT},
+      allpay = #{allpay,jdbcType=NUMERIC},
+      membermark = #{membermark,jdbcType=VARCHAR},
+      validatemark = #{validatemark,jdbcType=VARCHAR},
+      operatetime = #{operatetime,jdbcType=TIMESTAMP},
+      transactionid = #{transactionid,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

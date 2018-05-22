@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_purchase.PurchaseProductMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_purchase.bean.PurchaseProduct" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="purchaseid" property="purchaseid" jdbcType="BIGINT" />
+    <result column="pdname" property="pdname" jdbcType="VARCHAR" />
+    <result column="pdno" property="pdno" jdbcType="VARCHAR" />
+    <result column="pdid" property="pdid" jdbcType="VARCHAR" />
+    <result column="standard" property="standard" jdbcType="BIGINT" />
+    <result column="unit" property="unit" jdbcType="VARCHAR" />
+    <result column="num" property="num" jdbcType="NUMERIC" />
+    <result column="price" property="price" jdbcType="NUMERIC" />
+    <result column="allpay" property="allpay" jdbcType="NUMERIC" />
+    <result column="brand" property="brand" jdbcType="VARCHAR" />
+    <result column="sale" property="sale" jdbcType="NUMERIC" />
+    <result column="batchno" property="batchno" jdbcType="VARCHAR" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="storename" property="storename" jdbcType="VARCHAR" />
+    <result column="supplyid" property="supplyid" jdbcType="BIGINT" />
+    <result column="memberid" property="memberid" jdbcType="BIGINT" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, purchaseid, pdname, pdno, pdid, standard, unit, num, price, allpay, brand, sale,
+    batchno, remark, storename, supplyid, memberid
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_purchase.bean.PurchaseProductExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from purchaseproduct
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select
+    <include refid="Base_Column_List" />
+    from purchaseproduct
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from purchaseproduct
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_purchase.bean.PurchaseProductExample" >
+    delete from purchaseproduct
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_purchase.bean.PurchaseProduct" >
+    insert into purchaseproduct (id, purchaseid, pdname,
+    pdno, pdid, standard,
+    unit, num, price, allpay,
+    brand, sale, batchno,
+    remark, storename, supplyid,
+    memberid)
+    values (#{id,jdbcType=BIGINT}, #{purchaseid,jdbcType=BIGINT}, #{pdname,jdbcType=VARCHAR},
+    #{pdno,jdbcType=VARCHAR}, #{pdid,jdbcType=VARCHAR}, #{standard,jdbcType=BIGINT},
+    #{unit,jdbcType=VARCHAR}, #{num,jdbcType=NUMERIC}, #{price,jdbcType=NUMERIC}, #{allpay,jdbcType=NUMERIC},
+    #{brand,jdbcType=VARCHAR}, #{sale,jdbcType=NUMERIC}, #{batchno,jdbcType=VARCHAR},
+    #{remark,jdbcType=VARCHAR}, #{storename,jdbcType=VARCHAR}, #{supplyid,jdbcType=BIGINT},
+    #{memberid,jdbcType=BIGINT})
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_purchase.bean.PurchaseProduct" >
+    insert into purchaseproduct
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="purchaseid != null" >
+        purchaseid,
+      </if>
+      <if test="pdname != null" >
+        pdname,
+      </if>
+      <if test="pdno != null" >
+        pdno,
+      </if>
+      <if test="pdid != null" >
+        pdid,
+      </if>
+      <if test="standard != null" >
+        standard,
+      </if>
+      <if test="unit != null" >
+        unit,
+      </if>
+      <if test="num != null" >
+        num,
+      </if>
+      <if test="price != null" >
+        price,
+      </if>
+      <if test="allpay != null" >
+        allpay,
+      </if>
+      <if test="brand != null" >
+        brand,
+      </if>
+      <if test="sale != null" >
+        sale,
+      </if>
+      <if test="batchno != null" >
+        batchno,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="storename != null" >
+        storename,
+      </if>
+      <if test="supplyid != null" >
+        supplyid,
+      </if>
+      <if test="memberid != null" >
+        memberid,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="purchaseid != null" >
+        #{purchaseid,jdbcType=BIGINT},
+      </if>
+      <if test="pdname != null" >
+        #{pdname,jdbcType=VARCHAR},
+      </if>
+      <if test="pdno != null" >
+        #{pdno,jdbcType=VARCHAR},
+      </if>
+      <if test="pdid != null" >
+        #{pdid,jdbcType=VARCHAR},
+      </if>
+      <if test="standard != null" >
+        #{standard,jdbcType=BIGINT},
+      </if>
+      <if test="unit != null" >
+        #{unit,jdbcType=VARCHAR},
+      </if>
+      <if test="num != null" >
+        #{num,jdbcType=NUMERIC},
+      </if>
+      <if test="price != null" >
+        #{price,jdbcType=NUMERIC},
+      </if>
+      <if test="allpay != null" >
+        #{allpay,jdbcType=NUMERIC},
+      </if>
+      <if test="brand != null" >
+        #{brand,jdbcType=VARCHAR},
+      </if>
+      <if test="sale != null" >
+        #{sale,jdbcType=NUMERIC},
+      </if>
+      <if test="batchno != null" >
+        #{batchno,jdbcType=VARCHAR},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="storename != null" >
+        #{storename,jdbcType=VARCHAR},
+      </if>
+      <if test="supplyid != null" >
+        #{supplyid,jdbcType=BIGINT},
+      </if>
+      <if test="memberid != null" >
+        #{memberid,jdbcType=BIGINT},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_purchase.bean.PurchaseProductExample" resultType="java.lang.Integer" >
+    select count(*) from purchaseproduct
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update purchaseproduct
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.purchaseid != null" >
+        purchaseid = #{record.purchaseid,jdbcType=BIGINT},
+      </if>
+      <if test="record.pdname != null" >
+        pdname = #{record.pdname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pdno != null" >
+        pdno = #{record.pdno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pdid != null" >
+        pdid = #{record.pdid,jdbcType=VARCHAR},
+      </if>
+      <if test="record.standard != null" >
+        standard = #{record.standard,jdbcType=BIGINT},
+      </if>
+      <if test="record.unit != null" >
+        unit = #{record.unit,jdbcType=VARCHAR},
+      </if>
+      <if test="record.num != null" >
+        num = #{record.num,jdbcType=NUMERIC},
+      </if>
+      <if test="record.price != null" >
+        price = #{record.price,jdbcType=NUMERIC},
+      </if>
+      <if test="record.allpay != null" >
+        allpay = #{record.allpay,jdbcType=NUMERIC},
+      </if>
+      <if test="record.brand != null" >
+        brand = #{record.brand,jdbcType=VARCHAR},
+      </if>
+      <if test="record.sale != null" >
+        sale = #{record.sale,jdbcType=NUMERIC},
+      </if>
+      <if test="record.batchno != null" >
+        batchno = #{record.batchno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.remark != null" >
+        remark = #{record.remark,jdbcType=VARCHAR},
+      </if>
+      <if test="record.storename != null" >
+        storename = #{record.storename,jdbcType=VARCHAR},
+      </if>
+      <if test="record.supplyid != null" >
+        supplyid = #{record.supplyid,jdbcType=BIGINT},
+      </if>
+      <if test="record.memberid != null" >
+        memberid = #{record.memberid,jdbcType=BIGINT},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update purchaseproduct
+    set id = #{record.id,jdbcType=BIGINT},
+    purchaseid = #{record.purchaseid,jdbcType=BIGINT},
+    pdname = #{record.pdname,jdbcType=VARCHAR},
+    pdno = #{record.pdno,jdbcType=VARCHAR},
+    pdid = #{record.pdid,jdbcType=VARCHAR},
+    standard = #{record.standard,jdbcType=BIGINT},
+    unit = #{record.unit,jdbcType=VARCHAR},
+    num = #{record.num,jdbcType=NUMERIC},
+    price = #{record.price,jdbcType=NUMERIC},
+    allpay = #{record.allpay,jdbcType=NUMERIC},
+    brand = #{record.brand,jdbcType=VARCHAR},
+    sale = #{record.sale,jdbcType=NUMERIC},
+    batchno = #{record.batchno,jdbcType=VARCHAR},
+    remark = #{record.remark,jdbcType=VARCHAR},
+    storename = #{record.storename,jdbcType=VARCHAR},
+    supplyid = #{record.supplyid,jdbcType=BIGINT},
+    memberid = #{record.memberid,jdbcType=BIGINT}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_purchase.bean.PurchaseProduct" >
+    update purchaseproduct
+    <set >
+      <if test="purchaseid != null" >
+        purchaseid = #{purchaseid,jdbcType=BIGINT},
+      </if>
+      <if test="pdname != null" >
+        pdname = #{pdname,jdbcType=VARCHAR},
+      </if>
+      <if test="pdno != null" >
+        pdno = #{pdno,jdbcType=VARCHAR},
+      </if>
+      <if test="pdid != null" >
+        pdid = #{pdid,jdbcType=VARCHAR},
+      </if>
+      <if test="standard != null" >
+        standard = #{standard,jdbcType=BIGINT},
+      </if>
+      <if test="unit != null" >
+        unit = #{unit,jdbcType=VARCHAR},
+      </if>
+      <if test="num != null" >
+        num = #{num,jdbcType=NUMERIC},
+      </if>
+      <if test="price != null" >
+        price = #{price,jdbcType=NUMERIC},
+      </if>
+      <if test="allpay != null" >
+        allpay = #{allpay,jdbcType=NUMERIC},
+      </if>
+      <if test="brand != null" >
+        brand = #{brand,jdbcType=VARCHAR},
+      </if>
+      <if test="sale != null" >
+        sale = #{sale,jdbcType=NUMERIC},
+      </if>
+      <if test="batchno != null" >
+        batchno = #{batchno,jdbcType=VARCHAR},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="storename != null" >
+        storename = #{storename,jdbcType=VARCHAR},
+      </if>
+      <if test="supplyid != null" >
+        supplyid = #{supplyid,jdbcType=BIGINT},
+      </if>
+      <if test="memberid != null" >
+        memberid = #{memberid,jdbcType=BIGINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_purchase.bean.PurchaseProduct" >
+    update purchaseproduct
+    set purchaseid = #{purchaseid,jdbcType=BIGINT},
+    pdname = #{pdname,jdbcType=VARCHAR},
+    pdno = #{pdno,jdbcType=VARCHAR},
+    pdid = #{pdid,jdbcType=VARCHAR},
+    standard = #{standard,jdbcType=BIGINT},
+    unit = #{unit,jdbcType=VARCHAR},
+    num = #{num,jdbcType=NUMERIC},
+    price = #{price,jdbcType=NUMERIC},
+    allpay = #{allpay,jdbcType=NUMERIC},
+    brand = #{brand,jdbcType=VARCHAR},
+    sale = #{sale,jdbcType=NUMERIC},
+    batchno = #{batchno,jdbcType=VARCHAR},
+    remark = #{remark,jdbcType=VARCHAR},
+    storename = #{storename,jdbcType=VARCHAR},
+    supplyid = #{supplyid,jdbcType=BIGINT},
+    memberid = #{memberid,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

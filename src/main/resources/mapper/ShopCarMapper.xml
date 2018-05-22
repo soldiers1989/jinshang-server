@@ -1,0 +1,513 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_product.ShopCarMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_product.bean.ShopCar" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="memberid" property="memberid" jdbcType="BIGINT" />
+    <result column="saleid" property="saleid" jdbcType="BIGINT" />
+    <result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
+    <result column="pdid" property="pdid" jdbcType="BIGINT" />
+    <result column="pdno" property="pdno" jdbcType="VARCHAR" />
+    <result column="pdnumber" property="pdnumber" jdbcType="NUMERIC" />
+    <result column="storeid" property="storeid" jdbcType="BIGINT" />
+    <result column="delivertime" property="delivertime" jdbcType="VARCHAR" />
+    <result column="price" property="price" jdbcType="NUMERIC" />
+    <result column="unit" property="unit" jdbcType="VARCHAR" />
+    <result column="frightmode" property="frightmode" jdbcType="BIGINT" />
+    <result column="ismailornot" property="ismailornot" jdbcType="SMALLINT" />
+    <result column="storename" property="storename" jdbcType="VARCHAR" />
+    <result column="partpay" property="partpay" jdbcType="NUMERIC" />
+    <result column="yupay" property="yupay" jdbcType="NUMERIC" />
+    <result column="allpay" property="allpay" jdbcType="NUMERIC" />
+    <result column="protype" property="protype" jdbcType="SMALLINT" />
+    <result column="producttype" property="producttype" jdbcType="SMALLINT" />
+    <result column="attrjson" property="attrjson" jdbcType="VARCHAR" />
+    <result column="viewnum" property="viewnum" jdbcType="NUMERIC" />
+    <result column="viewunit" property="viewunit" jdbcType="VARCHAR" />
+    <result column="isonline" property="isonline" jdbcType="SMALLINT" />
+    <result column="limitid" property="limitid" jdbcType="BIGINT" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, memberid, saleid, createtime, pdid, pdno, pdnumber, storeid, delivertime, price,
+    unit, frightmode, ismailornot, storename, partpay, yupay, allpay, protype, producttype,
+    attrjson, viewnum, viewunit, isonline, limitid
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_product.bean.ShopCarExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from shopcar
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select
+    <include refid="Base_Column_List" />
+    from shopcar
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from shopcar
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_product.bean.ShopCarExample" >
+    delete from shopcar
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_product.bean.ShopCar" >
+    insert into shopcar (id, memberid, saleid,
+    createtime, pdid, pdno,
+    pdnumber, storeid, delivertime,
+    price, unit, frightmode,
+    ismailornot, storename, partpay,
+    yupay, allpay, protype,
+    producttype, attrjson, viewnum,
+    viewunit, isonline, limitid
+    )
+    values (#{id,jdbcType=BIGINT}, #{memberid,jdbcType=BIGINT}, #{saleid,jdbcType=BIGINT},
+    #{createtime,jdbcType=TIMESTAMP}, #{pdid,jdbcType=BIGINT}, #{pdno,jdbcType=VARCHAR},
+    #{pdnumber,jdbcType=NUMERIC}, #{storeid,jdbcType=BIGINT}, #{delivertime,jdbcType=VARCHAR},
+    #{price,jdbcType=NUMERIC}, #{unit,jdbcType=VARCHAR}, #{frightmode,jdbcType=BIGINT},
+    #{ismailornot,jdbcType=SMALLINT}, #{storename,jdbcType=VARCHAR}, #{partpay,jdbcType=NUMERIC},
+    #{yupay,jdbcType=NUMERIC}, #{allpay,jdbcType=NUMERIC}, #{protype,jdbcType=SMALLINT},
+    #{producttype,jdbcType=SMALLINT}, #{attrjson,jdbcType=VARCHAR}, #{viewnum,jdbcType=NUMERIC},
+    #{viewunit,jdbcType=VARCHAR}, #{isonline,jdbcType=SMALLINT}, #{limitid,jdbcType=BIGINT}
+    )
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_product.bean.ShopCar" >
+    insert into shopcar
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="memberid != null" >
+        memberid,
+      </if>
+      <if test="saleid != null" >
+        saleid,
+      </if>
+      <if test="createtime != null" >
+        createtime,
+      </if>
+      <if test="pdid != null" >
+        pdid,
+      </if>
+      <if test="pdno != null" >
+        pdno,
+      </if>
+      <if test="pdnumber != null" >
+        pdnumber,
+      </if>
+      <if test="storeid != null" >
+        storeid,
+      </if>
+      <if test="delivertime != null" >
+        delivertime,
+      </if>
+      <if test="price != null" >
+        price,
+      </if>
+      <if test="unit != null" >
+        unit,
+      </if>
+      <if test="frightmode != null" >
+        frightmode,
+      </if>
+      <if test="ismailornot != null" >
+        ismailornot,
+      </if>
+      <if test="storename != null" >
+        storename,
+      </if>
+      <if test="partpay != null" >
+        partpay,
+      </if>
+      <if test="yupay != null" >
+        yupay,
+      </if>
+      <if test="allpay != null" >
+        allpay,
+      </if>
+      <if test="protype != null" >
+        protype,
+      </if>
+      <if test="producttype != null" >
+        producttype,
+      </if>
+      <if test="attrjson != null" >
+        attrjson,
+      </if>
+      <if test="viewnum != null" >
+        viewnum,
+      </if>
+      <if test="viewunit != null" >
+        viewunit,
+      </if>
+      <if test="isonline != null" >
+        isonline,
+      </if>
+      <if test="limitid != null" >
+        limitid,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="memberid != null" >
+        #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="saleid != null" >
+        #{saleid,jdbcType=BIGINT},
+      </if>
+      <if test="createtime != null" >
+        #{createtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="pdid != null" >
+        #{pdid,jdbcType=BIGINT},
+      </if>
+      <if test="pdno != null" >
+        #{pdno,jdbcType=VARCHAR},
+      </if>
+      <if test="pdnumber != null" >
+        #{pdnumber,jdbcType=NUMERIC},
+      </if>
+      <if test="storeid != null" >
+        #{storeid,jdbcType=BIGINT},
+      </if>
+      <if test="delivertime != null" >
+        #{delivertime,jdbcType=VARCHAR},
+      </if>
+      <if test="price != null" >
+        #{price,jdbcType=NUMERIC},
+      </if>
+      <if test="unit != null" >
+        #{unit,jdbcType=VARCHAR},
+      </if>
+      <if test="frightmode != null" >
+        #{frightmode,jdbcType=BIGINT},
+      </if>
+      <if test="ismailornot != null" >
+        #{ismailornot,jdbcType=SMALLINT},
+      </if>
+      <if test="storename != null" >
+        #{storename,jdbcType=VARCHAR},
+      </if>
+      <if test="partpay != null" >
+        #{partpay,jdbcType=NUMERIC},
+      </if>
+      <if test="yupay != null" >
+        #{yupay,jdbcType=NUMERIC},
+      </if>
+      <if test="allpay != null" >
+        #{allpay,jdbcType=NUMERIC},
+      </if>
+      <if test="protype != null" >
+        #{protype,jdbcType=SMALLINT},
+      </if>
+      <if test="producttype != null" >
+        #{producttype,jdbcType=SMALLINT},
+      </if>
+      <if test="attrjson != null" >
+        #{attrjson,jdbcType=VARCHAR},
+      </if>
+      <if test="viewnum != null" >
+        #{viewnum,jdbcType=NUMERIC},
+      </if>
+      <if test="viewunit != null" >
+        #{viewunit,jdbcType=VARCHAR},
+      </if>
+      <if test="isonline != null" >
+        #{isonline,jdbcType=SMALLINT},
+      </if>
+      <if test="limitid != null" >
+        #{limitid,jdbcType=BIGINT},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_product.bean.ShopCarExample" resultType="java.lang.Integer" >
+    select count(*) from shopcar
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update shopcar
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.memberid != null" >
+        memberid = #{record.memberid,jdbcType=BIGINT},
+      </if>
+      <if test="record.saleid != null" >
+        saleid = #{record.saleid,jdbcType=BIGINT},
+      </if>
+      <if test="record.createtime != null" >
+        createtime = #{record.createtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.pdid != null" >
+        pdid = #{record.pdid,jdbcType=BIGINT},
+      </if>
+      <if test="record.pdno != null" >
+        pdno = #{record.pdno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pdnumber != null" >
+        pdnumber = #{record.pdnumber,jdbcType=NUMERIC},
+      </if>
+      <if test="record.storeid != null" >
+        storeid = #{record.storeid,jdbcType=BIGINT},
+      </if>
+      <if test="record.delivertime != null" >
+        delivertime = #{record.delivertime,jdbcType=VARCHAR},
+      </if>
+      <if test="record.price != null" >
+        price = #{record.price,jdbcType=NUMERIC},
+      </if>
+      <if test="record.unit != null" >
+        unit = #{record.unit,jdbcType=VARCHAR},
+      </if>
+      <if test="record.frightmode != null" >
+        frightmode = #{record.frightmode,jdbcType=BIGINT},
+      </if>
+      <if test="record.ismailornot != null" >
+        ismailornot = #{record.ismailornot,jdbcType=SMALLINT},
+      </if>
+      <if test="record.storename != null" >
+        storename = #{record.storename,jdbcType=VARCHAR},
+      </if>
+      <if test="record.partpay != null" >
+        partpay = #{record.partpay,jdbcType=NUMERIC},
+      </if>
+      <if test="record.yupay != null" >
+        yupay = #{record.yupay,jdbcType=NUMERIC},
+      </if>
+      <if test="record.allpay != null" >
+        allpay = #{record.allpay,jdbcType=NUMERIC},
+      </if>
+      <if test="record.protype != null" >
+        protype = #{record.protype,jdbcType=SMALLINT},
+      </if>
+      <if test="record.producttype != null" >
+        producttype = #{record.producttype,jdbcType=SMALLINT},
+      </if>
+      <if test="record.attrjson != null" >
+        attrjson = #{record.attrjson,jdbcType=VARCHAR},
+      </if>
+      <if test="record.viewnum != null" >
+        viewnum = #{record.viewnum,jdbcType=NUMERIC},
+      </if>
+      <if test="record.viewunit != null" >
+        viewunit = #{record.viewunit,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isonline != null" >
+        isonline = #{record.isonline,jdbcType=SMALLINT},
+      </if>
+      <if test="record.limitid != null" >
+        limitid = #{record.limitid,jdbcType=BIGINT},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update shopcar
+    set id = #{record.id,jdbcType=BIGINT},
+    memberid = #{record.memberid,jdbcType=BIGINT},
+    saleid = #{record.saleid,jdbcType=BIGINT},
+    createtime = #{record.createtime,jdbcType=TIMESTAMP},
+    pdid = #{record.pdid,jdbcType=BIGINT},
+    pdno = #{record.pdno,jdbcType=VARCHAR},
+    pdnumber = #{record.pdnumber,jdbcType=NUMERIC},
+    storeid = #{record.storeid,jdbcType=BIGINT},
+    delivertime = #{record.delivertime,jdbcType=VARCHAR},
+    price = #{record.price,jdbcType=NUMERIC},
+    unit = #{record.unit,jdbcType=VARCHAR},
+    frightmode = #{record.frightmode,jdbcType=BIGINT},
+    ismailornot = #{record.ismailornot,jdbcType=SMALLINT},
+    storename = #{record.storename,jdbcType=VARCHAR},
+    partpay = #{record.partpay,jdbcType=NUMERIC},
+    yupay = #{record.yupay,jdbcType=NUMERIC},
+    allpay = #{record.allpay,jdbcType=NUMERIC},
+    protype = #{record.protype,jdbcType=SMALLINT},
+    producttype = #{record.producttype,jdbcType=SMALLINT},
+    attrjson = #{record.attrjson,jdbcType=VARCHAR},
+    viewnum = #{record.viewnum,jdbcType=NUMERIC},
+    viewunit = #{record.viewunit,jdbcType=VARCHAR},
+    isonline = #{record.isonline,jdbcType=SMALLINT},
+    limitid = #{record.limitid,jdbcType=BIGINT}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_product.bean.ShopCar" >
+    update shopcar
+    <set >
+      <if test="memberid != null" >
+        memberid = #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="saleid != null" >
+        saleid = #{saleid,jdbcType=BIGINT},
+      </if>
+      <if test="createtime != null" >
+        createtime = #{createtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="pdid != null" >
+        pdid = #{pdid,jdbcType=BIGINT},
+      </if>
+      <if test="pdno != null" >
+        pdno = #{pdno,jdbcType=VARCHAR},
+      </if>
+      <if test="pdnumber != null" >
+        pdnumber = #{pdnumber,jdbcType=NUMERIC},
+      </if>
+      <if test="storeid != null" >
+        storeid = #{storeid,jdbcType=BIGINT},
+      </if>
+      <if test="delivertime != null" >
+        delivertime = #{delivertime,jdbcType=VARCHAR},
+      </if>
+      <if test="price != null" >
+        price = #{price,jdbcType=NUMERIC},
+      </if>
+      <if test="unit != null" >
+        unit = #{unit,jdbcType=VARCHAR},
+      </if>
+      <if test="frightmode != null" >
+        frightmode = #{frightmode,jdbcType=BIGINT},
+      </if>
+      <if test="ismailornot != null" >
+        ismailornot = #{ismailornot,jdbcType=SMALLINT},
+      </if>
+      <if test="storename != null" >
+        storename = #{storename,jdbcType=VARCHAR},
+      </if>
+      <if test="partpay != null" >
+        partpay = #{partpay,jdbcType=NUMERIC},
+      </if>
+      <if test="yupay != null" >
+        yupay = #{yupay,jdbcType=NUMERIC},
+      </if>
+      <if test="allpay != null" >
+        allpay = #{allpay,jdbcType=NUMERIC},
+      </if>
+      <if test="protype != null" >
+        protype = #{protype,jdbcType=SMALLINT},
+      </if>
+      <if test="producttype != null" >
+        producttype = #{producttype,jdbcType=SMALLINT},
+      </if>
+      <if test="attrjson != null" >
+        attrjson = #{attrjson,jdbcType=VARCHAR},
+      </if>
+      <if test="viewnum != null" >
+        viewnum = #{viewnum,jdbcType=NUMERIC},
+      </if>
+      <if test="viewunit != null" >
+        viewunit = #{viewunit,jdbcType=VARCHAR},
+      </if>
+      <if test="isonline != null" >
+        isonline = #{isonline,jdbcType=SMALLINT},
+      </if>
+      <if test="limitid != null" >
+        limitid = #{limitid,jdbcType=BIGINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_product.bean.ShopCar" >
+    update shopcar
+    set memberid = #{memberid,jdbcType=BIGINT},
+    saleid = #{saleid,jdbcType=BIGINT},
+    createtime = #{createtime,jdbcType=TIMESTAMP},
+    pdid = #{pdid,jdbcType=BIGINT},
+    pdno = #{pdno,jdbcType=VARCHAR},
+    pdnumber = #{pdnumber,jdbcType=NUMERIC},
+    storeid = #{storeid,jdbcType=BIGINT},
+    delivertime = #{delivertime,jdbcType=VARCHAR},
+    price = #{price,jdbcType=NUMERIC},
+    unit = #{unit,jdbcType=VARCHAR},
+    frightmode = #{frightmode,jdbcType=BIGINT},
+    ismailornot = #{ismailornot,jdbcType=SMALLINT},
+    storename = #{storename,jdbcType=VARCHAR},
+    partpay = #{partpay,jdbcType=NUMERIC},
+    yupay = #{yupay,jdbcType=NUMERIC},
+    allpay = #{allpay,jdbcType=NUMERIC},
+    protype = #{protype,jdbcType=SMALLINT},
+    producttype = #{producttype,jdbcType=SMALLINT},
+    attrjson = #{attrjson,jdbcType=VARCHAR},
+    viewnum = #{viewnum,jdbcType=NUMERIC},
+    viewunit = #{viewunit,jdbcType=VARCHAR},
+    isonline = #{isonline,jdbcType=SMALLINT},
+    limitid = #{limitid,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

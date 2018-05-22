@@ -1,0 +1,73 @@
+﻿卖家权限表：
+
+商品管理  :
+    商品发布：postgoods
+   出售商品：salegoods
+    仓库商品 ：housegoods
+   待上架商品：onlinegoods
+    违规下架：illegalgoods
+   待审核商品：aduitgoods
+    已拒绝商品：refusegoods
+   品牌列表:gradelist
+   库存报警:housepolice     //隐藏了
+   商品库:librarygoods      
+   定时上架商品:timegoods   //隐藏了
+   下架商品：downGood    //新增
+
+交易管理:
+    评价管理:Evaluation
+    物流工具:logistics
+    发货设置 :delivery
+    订单管理 :order
+    发货设置 : deliveryset
+    退货处理 :backgoods
+    异议处理 : yiyi
+    限时购 :Limited
+     诱惑区 :Temptationarea    //隐藏了
+      抽奖区:Lottery          //隐藏了
+     买就送 : Gift          //隐藏了
+
+
+账户管理:
+     管理员 :admin
+     权限组 :roles
+     操作日志 :operate
+     收货地址管理:Shippingaddress
+      银行账户管理 : bankaccount
+      店铺信息 :  ship
+       账户安全管理 : Accountsecurity   //隐藏了
+       减价设置:   Pricesetting
+
+
+
+客服管理：
+         客服登录: service         //隐藏了
+         全部咨询:consulting         //隐藏了
+         咨询管理:Managementconsulting //隐藏了
+
+
+资产中心：
+     我的账户 : Myaccount
+     对账单:accountstatements       //隐藏了
+      我的开票 ;  myinvoice
+
+
+客户关系管理：
+       销售登记表 : Salesregister    //隐藏了
+       客服关系表 :  servicestatement  //隐藏了
+       意向登记表: Intentregister   //隐藏了
+       售后回访  :  returnvisit    //隐藏了
+
+采购管理：
+       对账单 :  buystatements     //隐藏了
+      供应商管理 ;  supplier        //隐藏了
+      采购记录  ;procurementrecord   //隐藏了
+      采购提醒  :  procurement       //隐藏了
+
+销售管理：
+        线下客户管理 :   Offlinecustomer   //隐藏了
+        线下订单管理 : Offlineorders     //隐藏了
+        第三方平台管理 :  thirdparty     //隐藏了
+        领料单  : Materialrequisition    //隐藏了
+        销售报表 :  Salesreports         //隐藏了
+

@@ -1,0 +1,77 @@
+group 'project.jinshang.jinshang-server'
+version '1.0-SNAPSHOT'
+
+buildscript {
+    repositories {
+        maven{ url 'http://maven.aliyun.com/nexus/content/groups/public/'}
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.8.RELEASE")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
+
+springBoot {
+    executable = true
+}
+
+repositories {
+    maven{ url 'http://maven.aliyun.com/nexus/content/groups/public/'}
+    maven{ url 'http://www.leadtotech.com:10001/repository/maven-releases/'}
+    mavenCentral()
+}
+
+ext {
+    springCloudVersion = 'Dalston.SR2'
+}
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+    }
+}
+
+dependencies {
+    compile fileTree(dir:'libs',include:['*.jar'])
+    compile group: 'mizuki.project.rest.core',name: 'rest-core-main',version: '0.0.8',changing:true
+
+    compile group: 'org.postgresql', name: 'postgresql', version: '42.0.0'
+//    compile('org.springframework.cloud:spring-cloud-starter-eureka')
+
+// https://mvnrepository.com/artifact/ch.qos.logback/logback-classic
+//    testCompile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
+
+    //分页插件
+    compile group: 'com.github.pagehelper', name: 'pagehelper', version: '5.1.2'
+    compile group: 'com.github.pagehelper', name: 'pagehelper-spring-boot-starter', version: '1.2.3'
+
+    //图片验证码
+    compile group: 'com.github.penggle', name: 'kaptcha', version: '2.3.2'
+
+    compile group: 'com.google.code.gson', name: 'gson', version: '2.8.2'
+
+    //二维码
+    compile group: 'net.glxn.qrgen', name: 'javase', version: '2.0'
+
+    compile group: 'jdom', name: 'jdom', version: '1.1'
+    compile("org.springframework.boot:spring-boot-devtools")
+
+    compile group: 'org.springframework.data', name: 'spring-data-redis', version: '1.8.9.RELEASE'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-redis', version: '1.4.7.RELEASE'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-cache', version: '1.5.9.RELEASE'
+    
+    //poi
+    compile group: 'org.apache.poi', name: 'poi', version: '3.17'
+    compile group: 'org.apache.poi', name: 'poi-ooxml', version: '3.17'
+
+    // https://mvnrepository.com/artifact/com.github.binarywang/weixin-java-pay
+    compile group: 'com.github.binarywang', name: 'weixin-java-pay', version: '2.9.0'
+
+    // https://mvnrepository.com/artifact/com.alibaba/druid
+    compile group: 'com.alibaba', name: 'druid', version: '1.1.9'
+
+
+}

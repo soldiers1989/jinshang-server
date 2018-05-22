@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_product.AreaCostMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_product.bean.AreaCost" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="temid" property="temid" jdbcType="BIGINT" />
+    <result column="province" property="province" jdbcType="VARCHAR" />
+    <result column="city" property="city" jdbcType="VARCHAR" />
+    <result column="perkilogramcost" property="perkilogramcost" jdbcType="NUMERIC" />
+    <result column="defaultfreight" property="defaultfreight" jdbcType="NUMERIC" />
+    <result column="defaultcost" property="defaultcost" jdbcType="NUMERIC" />
+    <result column="perkilogramadded" property="perkilogramadded" jdbcType="NUMERIC" />
+    <result column="selectarea" property="selectarea" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, temid, province, city, perkilogramcost, defaultfreight, defaultcost, perkilogramadded, 
+    selectarea
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_product.bean.AreaCostExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from areacost
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from areacost
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from areacost
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_product.bean.AreaCostExample" >
+    delete from areacost
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_product.bean.AreaCost" >
+    insert into areacost ( temid, province,
+      city, perkilogramcost, defaultfreight, 
+      defaultcost, perkilogramadded, selectarea
+      )
+    values (#{temid,jdbcType=BIGINT}, #{province,jdbcType=VARCHAR},
+      #{city,jdbcType=VARCHAR}, #{perkilogramcost,jdbcType=NUMERIC}, #{defaultfreight,jdbcType=NUMERIC}, 
+      #{defaultcost,jdbcType=NUMERIC}, #{perkilogramadded,jdbcType=NUMERIC}, #{selectarea,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_product.bean.AreaCost" >
+    insert into areacost
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="temid != null" >
+        temid,
+      </if>
+      <if test="province != null" >
+        province,
+      </if>
+      <if test="city != null" >
+        city,
+      </if>
+      <if test="perkilogramcost != null" >
+        perkilogramcost,
+      </if>
+      <if test="defaultfreight != null" >
+        defaultfreight,
+      </if>
+      <if test="defaultcost != null" >
+        defaultcost,
+      </if>
+      <if test="perkilogramadded != null" >
+        perkilogramadded,
+      </if>
+      <if test="selectarea != null" >
+        selectarea,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="temid != null" >
+        #{temid,jdbcType=BIGINT},
+      </if>
+      <if test="province != null" >
+        #{province,jdbcType=VARCHAR},
+      </if>
+      <if test="city != null" >
+        #{city,jdbcType=VARCHAR},
+      </if>
+      <if test="perkilogramcost != null" >
+        #{perkilogramcost,jdbcType=NUMERIC},
+      </if>
+      <if test="defaultfreight != null" >
+        #{defaultfreight,jdbcType=NUMERIC},
+      </if>
+      <if test="defaultcost != null" >
+        #{defaultcost,jdbcType=NUMERIC},
+      </if>
+      <if test="perkilogramadded != null" >
+        #{perkilogramadded,jdbcType=NUMERIC},
+      </if>
+      <if test="selectarea != null" >
+        #{selectarea,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_product.bean.AreaCostExample" resultType="java.lang.Integer" >
+    select count(*) from areacost
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update areacost
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.temid != null" >
+        temid = #{record.temid,jdbcType=BIGINT},
+      </if>
+      <if test="record.province != null" >
+        province = #{record.province,jdbcType=VARCHAR},
+      </if>
+      <if test="record.city != null" >
+        city = #{record.city,jdbcType=VARCHAR},
+      </if>
+      <if test="record.perkilogramcost != null" >
+        perkilogramcost = #{record.perkilogramcost,jdbcType=NUMERIC},
+      </if>
+      <if test="record.defaultfreight != null" >
+        defaultfreight = #{record.defaultfreight,jdbcType=NUMERIC},
+      </if>
+      <if test="record.defaultcost != null" >
+        defaultcost = #{record.defaultcost,jdbcType=NUMERIC},
+      </if>
+      <if test="record.perkilogramadded != null" >
+        perkilogramadded = #{record.perkilogramadded,jdbcType=NUMERIC},
+      </if>
+      <if test="record.selectarea != null" >
+        selectarea = #{record.selectarea,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update areacost
+    set id = #{record.id,jdbcType=BIGINT},
+      temid = #{record.temid,jdbcType=BIGINT},
+      province = #{record.province,jdbcType=VARCHAR},
+      city = #{record.city,jdbcType=VARCHAR},
+      perkilogramcost = #{record.perkilogramcost,jdbcType=NUMERIC},
+      defaultfreight = #{record.defaultfreight,jdbcType=NUMERIC},
+      defaultcost = #{record.defaultcost,jdbcType=NUMERIC},
+      perkilogramadded = #{record.perkilogramadded,jdbcType=NUMERIC},
+      selectarea = #{record.selectarea,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_product.bean.AreaCost" >
+    update areacost
+    <set >
+      <if test="temid != null" >
+        temid = #{temid,jdbcType=BIGINT},
+      </if>
+      <if test="province != null" >
+        province = #{province,jdbcType=VARCHAR},
+      </if>
+      <if test="city != null" >
+        city = #{city,jdbcType=VARCHAR},
+      </if>
+      <if test="perkilogramcost != null" >
+        perkilogramcost = #{perkilogramcost,jdbcType=NUMERIC},
+      </if>
+      <if test="defaultfreight != null" >
+        defaultfreight = #{defaultfreight,jdbcType=NUMERIC},
+      </if>
+      <if test="defaultcost != null" >
+        defaultcost = #{defaultcost,jdbcType=NUMERIC},
+      </if>
+      <if test="perkilogramadded != null" >
+        perkilogramadded = #{perkilogramadded,jdbcType=NUMERIC},
+      </if>
+      <if test="selectarea != null" >
+        selectarea = #{selectarea,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_product.bean.AreaCost" >
+    update areacost
+    set temid = #{temid,jdbcType=BIGINT},
+      province = #{province,jdbcType=VARCHAR},
+      city = #{city,jdbcType=VARCHAR},
+      perkilogramcost = #{perkilogramcost,jdbcType=NUMERIC},
+      defaultfreight = #{defaultfreight,jdbcType=NUMERIC},
+      defaultcost = #{defaultcost,jdbcType=NUMERIC},
+      perkilogramadded = #{perkilogramadded,jdbcType=NUMERIC},
+      selectarea = #{selectarea,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

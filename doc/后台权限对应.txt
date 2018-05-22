@@ -1,0 +1,87 @@
+﻿后台权限：
+
+商品管理  Commodityanagement
+分类管理  ClassificationManagement
+品牌管理  BrandManagement
+评价管理  ManagementConsulting
+材质管理  MaterialManagement
+品名管理  IdentityManagement
+紧固件产品库  Productlibrary
+公共数据管理  PublicDataManagement
+计费分类管理  BillingClassificationManagement      //删掉了
+价格利率设置(财务)  FinancePriceRateSetting         //隐藏了
+价格利率设置(运营)  OperationPriceRateSetting       //隐藏了
+供货价格(财务)  	FinanceSupplyPrice          //隐藏了
+供货价格(运营)		OperationSupplyPrice        //隐藏了
+
+订单管理  orderManagement
+开票管理  invoiceManagement
+退货处理   returnManagement
+异议处理  		ObjectionHandling
+支付方式 		Payment
+快递单模板  	ExpressDelivery                      //隐藏了
+交易设置  		TradeSetting         
+发票管理  		Invoice
+运费模板管理    freight                              //隐藏了
+
+会员管理  		MemberManagement
+服务商管理  	ServiceProviderManagement             //隐藏了
+会员积分  		MemberIntegral
+积分规则  		IntegralRules
+会员等级  		MembershipGrade
+预付款管理  	AdvancePaymentManagement
+充值提现审核 	RechargeReview
+标签管理  		LabelManagement
+资金明细  		FinancialDetails
+销售明细  		SalesSubsidiary               //隐藏了
+会员营销  		AffiliateMarketing            //隐藏了
+授信管理		CreditManagement
+
+商家管理  BusinessManagement
+商家等级  Businesslevel
+开店申请  Openshop
+开票管理  applyinvoice
+商家账单  Merchantsbills                              //隐藏了
+仓库管理  Warehousemanagement                              //新增的
+
+站点设置  		SiteSetting
+首页楼层  Homefloor
+展示类目 Displaycategory                               //隐藏了
+广告位  advertising
+广告管理 AdvertisingManagement
+活动推荐  toprecommended
+文章分类  Docclass
+文章管理  docManagement
+网站导航 Sitenavigation
+系统文章 systemArticle                                    //隐藏了
+站内信  insideletter                                      //隐藏了
+
+管理员管理 Administratoradministration
+部门管理 departmentManagement               
+后台菜单  Backgroundmenu                                      //隐藏了
+卖家端菜单 Sellermenu                                         //隐藏了
+操作日志管理 Operation
+分组管理  Groupmanagement                                     //隐藏了
+
+限时购  		Limited
+诱惑区  		Temptation area                       //隐藏了
+买就送  		Gift                                    //隐藏了
+抽奖		Lottery                                      //隐藏了
+
+库存查询  Inventoryquery                                     //隐藏了
+
+成交统计 dealTotal                                           //隐藏了
+流量统计 trafficTotal
+结算统计  settlementTotal                                      //隐藏了
+会员统计  memberTotal
+购买率统计 Purchaserate                                        //隐藏了
+订单统计 orderTotal                                        //新增
+
+受理员 creditaccept//新增
+业务员 creditsales//新增
+录入员 creditwritein//新增
+复核员 creditcheck//新增
+
+
+
+近义词管理 Synonyms

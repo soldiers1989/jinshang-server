@@ -1,0 +1,718 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_product.OrderProductBackMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_product.bean.OrderProductBack" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="orderno" property="orderno" jdbcType="VARCHAR" />
+    <result column="orderpdid" property="orderpdid" jdbcType="BIGINT" />
+    <result column="backtype" property="backtype" jdbcType="SMALLINT" />
+    <result column="backno" property="backno" jdbcType="VARCHAR" />
+    <result column="backmoney" property="backmoney" jdbcType="NUMERIC" />
+    <result column="pdno" property="pdno" jdbcType="VARCHAR" />
+    <result column="pdid" property="pdid" jdbcType="BIGINT" />
+    <result column="pdname" property="pdname" jdbcType="VARCHAR" />
+    <result column="state" property="state" jdbcType="SMALLINT" />
+    <result column="logisticsno" property="logisticsno" jdbcType="VARCHAR" />
+    <result column="logisticscompany" property="logisticscompany" jdbcType="VARCHAR" />
+    <result column="returnbackreason" property="returnbackreason" jdbcType="VARCHAR" />
+    <result column="pic" property="pic" jdbcType="VARCHAR" />
+    <result column="backaddress" property="backaddress" jdbcType="VARCHAR" />
+    <result column="backexplain" property="backexplain" jdbcType="VARCHAR" />
+    <result column="province" property="province" jdbcType="VARCHAR" />
+    <result column="city" property="city" jdbcType="VARCHAR" />
+    <result column="area" property="area" jdbcType="VARCHAR" />
+    <result column="orderid" property="orderid" jdbcType="BIGINT" />
+    <result column="memberid" property="memberid" jdbcType="BIGINT" />
+    <result column="sellerid" property="sellerid" jdbcType="BIGINT" />
+    <result column="storeid" property="storeid" jdbcType="BIGINT" />
+    <result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
+    <result column="pdnum" property="pdnum" jdbcType="NUMERIC" />
+    <result column="code" property="code" jdbcType="VARCHAR" />
+    <result column="membername" property="membername" jdbcType="VARCHAR" />
+    <result column="isreceivegoods" property="isreceivegoods" jdbcType="SMALLINT" />
+    <result column="sellname" property="sellname" jdbcType="VARCHAR" />
+    <result column="sellernotagree" property="sellernotagree" jdbcType="VARCHAR" />
+    <result column="adminreason" property="adminreason" jdbcType="VARCHAR" />
+    <result column="contact" property="contact" jdbcType="VARCHAR" />
+    <result column="contactphone" property="contactphone" jdbcType="VARCHAR" />
+    <result column="dissidencetime" property="dissidencetime" jdbcType="TIMESTAMP" />
+    <result column="adminstate" property="adminstate" jdbcType="SMALLINT" />
+    <result column="producttype" property="producttype" jdbcType="SMALLINT" />
+    <result column="limitid" property="limitid" jdbcType="BIGINT" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, orderno, orderpdid, backtype, backno, backmoney, pdno, pdid, pdname, state, logisticsno,
+    logisticscompany, returnbackreason, pic, backaddress, backexplain, province, city,
+    area, orderid, memberid, sellerid, storeid, createtime, pdnum, code, membername,
+    isreceivegoods, sellname, sellernotagree, adminreason, contact, contactphone, dissidencetime,
+    adminstate, producttype, limitid
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_product.bean.OrderProductBackExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from orderproductback
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select
+    <include refid="Base_Column_List" />
+    from orderproductback
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from orderproductback
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_product.bean.OrderProductBackExample" >
+    delete from orderproductback
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_product.bean.OrderProductBack" >
+    insert into orderproductback (id, orderno, orderpdid,
+    backtype, backno, backmoney,
+    pdno, pdid, pdname,
+    state, logisticsno, logisticscompany,
+    returnbackreason, pic, backaddress,
+    backexplain, province, city,
+    area, orderid, memberid,
+    sellerid, storeid, createtime,
+    pdnum, code, membername,
+    isreceivegoods, sellname, sellernotagree,
+    adminreason, contact, contactphone,
+    dissidencetime, adminstate, producttype,
+    limitid)
+    values (#{id,jdbcType=BIGINT}, #{orderno,jdbcType=VARCHAR}, #{orderpdid,jdbcType=BIGINT},
+    #{backtype,jdbcType=SMALLINT}, #{backno,jdbcType=VARCHAR}, #{backmoney,jdbcType=NUMERIC},
+    #{pdno,jdbcType=VARCHAR}, #{pdid,jdbcType=BIGINT}, #{pdname,jdbcType=VARCHAR},
+    #{state,jdbcType=SMALLINT}, #{logisticsno,jdbcType=VARCHAR}, #{logisticscompany,jdbcType=VARCHAR},
+    #{returnbackreason,jdbcType=VARCHAR}, #{pic,jdbcType=VARCHAR}, #{backaddress,jdbcType=VARCHAR},
+    #{backexplain,jdbcType=VARCHAR}, #{province,jdbcType=VARCHAR}, #{city,jdbcType=VARCHAR},
+    #{area,jdbcType=VARCHAR}, #{orderid,jdbcType=BIGINT}, #{memberid,jdbcType=BIGINT},
+    #{sellerid,jdbcType=BIGINT}, #{storeid,jdbcType=BIGINT}, #{createtime,jdbcType=TIMESTAMP},
+    #{pdnum,jdbcType=NUMERIC}, #{code,jdbcType=VARCHAR}, #{membername,jdbcType=VARCHAR},
+    #{isreceivegoods,jdbcType=SMALLINT}, #{sellname,jdbcType=VARCHAR}, #{sellernotagree,jdbcType=VARCHAR},
+    #{adminreason,jdbcType=VARCHAR}, #{contact,jdbcType=VARCHAR}, #{contactphone,jdbcType=VARCHAR},
+    #{dissidencetime,jdbcType=TIMESTAMP}, #{adminstate,jdbcType=SMALLINT}, #{producttype,jdbcType=SMALLINT},
+    #{limitid,jdbcType=BIGINT})
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_product.bean.OrderProductBack"  useGeneratedKeys="true" keyProperty="id">
+    insert into orderproductback
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="orderno != null" >
+        orderno,
+      </if>
+      <if test="orderpdid != null" >
+        orderpdid,
+      </if>
+      <if test="backtype != null" >
+        backtype,
+      </if>
+      <if test="backno != null" >
+        backno,
+      </if>
+      <if test="backmoney != null" >
+        backmoney,
+      </if>
+      <if test="pdno != null" >
+        pdno,
+      </if>
+      <if test="pdid != null" >
+        pdid,
+      </if>
+      <if test="pdname != null" >
+        pdname,
+      </if>
+      <if test="state != null" >
+        state,
+      </if>
+      <if test="logisticsno != null" >
+        logisticsno,
+      </if>
+      <if test="logisticscompany != null" >
+        logisticscompany,
+      </if>
+      <if test="returnbackreason != null" >
+        returnbackreason,
+      </if>
+      <if test="pic != null" >
+        pic,
+      </if>
+      <if test="backaddress != null" >
+        backaddress,
+      </if>
+      <if test="backexplain != null" >
+        backexplain,
+      </if>
+      <if test="province != null" >
+        province,
+      </if>
+      <if test="city != null" >
+        city,
+      </if>
+      <if test="area != null" >
+        area,
+      </if>
+      <if test="orderid != null" >
+        orderid,
+      </if>
+      <if test="memberid != null" >
+        memberid,
+      </if>
+      <if test="sellerid != null" >
+        sellerid,
+      </if>
+      <if test="storeid != null" >
+        storeid,
+      </if>
+      <if test="createtime != null" >
+        createtime,
+      </if>
+      <if test="pdnum != null" >
+        pdnum,
+      </if>
+      <if test="code != null" >
+        code,
+      </if>
+      <if test="membername != null" >
+        membername,
+      </if>
+      <if test="isreceivegoods != null" >
+        isreceivegoods,
+      </if>
+      <if test="sellname != null" >
+        sellname,
+      </if>
+      <if test="sellernotagree != null" >
+        sellernotagree,
+      </if>
+      <if test="adminreason != null" >
+        adminreason,
+      </if>
+      <if test="contact != null" >
+        contact,
+      </if>
+      <if test="contactphone != null" >
+        contactphone,
+      </if>
+      <if test="dissidencetime != null" >
+        dissidencetime,
+      </if>
+      <if test="adminstate != null" >
+        adminstate,
+      </if>
+      <if test="producttype != null" >
+        producttype,
+      </if>
+      <if test="limitid != null" >
+        limitid,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="orderno != null" >
+        #{orderno,jdbcType=VARCHAR},
+      </if>
+      <if test="orderpdid != null" >
+        #{orderpdid,jdbcType=BIGINT},
+      </if>
+      <if test="backtype != null" >
+        #{backtype,jdbcType=SMALLINT},
+      </if>
+      <if test="backno != null" >
+        #{backno,jdbcType=VARCHAR},
+      </if>
+      <if test="backmoney != null" >
+        #{backmoney,jdbcType=NUMERIC},
+      </if>
+      <if test="pdno != null" >
+        #{pdno,jdbcType=VARCHAR},
+      </if>
+      <if test="pdid != null" >
+        #{pdid,jdbcType=BIGINT},
+      </if>
+      <if test="pdname != null" >
+        #{pdname,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null" >
+        #{state,jdbcType=SMALLINT},
+      </if>
+      <if test="logisticsno != null" >
+        #{logisticsno,jdbcType=VARCHAR},
+      </if>
+      <if test="logisticscompany != null" >
+        #{logisticscompany,jdbcType=VARCHAR},
+      </if>
+      <if test="returnbackreason != null" >
+        #{returnbackreason,jdbcType=VARCHAR},
+      </if>
+      <if test="pic != null" >
+        #{pic,jdbcType=VARCHAR},
+      </if>
+      <if test="backaddress != null" >
+        #{backaddress,jdbcType=VARCHAR},
+      </if>
+      <if test="backexplain != null" >
+        #{backexplain,jdbcType=VARCHAR},
+      </if>
+      <if test="province != null" >
+        #{province,jdbcType=VARCHAR},
+      </if>
+      <if test="city != null" >
+        #{city,jdbcType=VARCHAR},
+      </if>
+      <if test="area != null" >
+        #{area,jdbcType=VARCHAR},
+      </if>
+      <if test="orderid != null" >
+        #{orderid,jdbcType=BIGINT},
+      </if>
+      <if test="memberid != null" >
+        #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="sellerid != null" >
+        #{sellerid,jdbcType=BIGINT},
+      </if>
+      <if test="storeid != null" >
+        #{storeid,jdbcType=BIGINT},
+      </if>
+      <if test="createtime != null" >
+        #{createtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="pdnum != null" >
+        #{pdnum,jdbcType=NUMERIC},
+      </if>
+      <if test="code != null" >
+        #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="membername != null" >
+        #{membername,jdbcType=VARCHAR},
+      </if>
+      <if test="isreceivegoods != null" >
+        #{isreceivegoods,jdbcType=SMALLINT},
+      </if>
+      <if test="sellname != null" >
+        #{sellname,jdbcType=VARCHAR},
+      </if>
+      <if test="sellernotagree != null" >
+        #{sellernotagree,jdbcType=VARCHAR},
+      </if>
+      <if test="adminreason != null" >
+        #{adminreason,jdbcType=VARCHAR},
+      </if>
+      <if test="contact != null" >
+        #{contact,jdbcType=VARCHAR},
+      </if>
+      <if test="contactphone != null" >
+        #{contactphone,jdbcType=VARCHAR},
+      </if>
+      <if test="dissidencetime != null" >
+        #{dissidencetime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="adminstate != null" >
+        #{adminstate,jdbcType=SMALLINT},
+      </if>
+      <if test="producttype != null" >
+        #{producttype,jdbcType=SMALLINT},
+      </if>
+      <if test="limitid != null" >
+        #{limitid,jdbcType=BIGINT},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_product.bean.OrderProductBackExample" resultType="java.lang.Integer" >
+    select count(*) from orderproductback
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update orderproductback
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.orderno != null" >
+        orderno = #{record.orderno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orderpdid != null" >
+        orderpdid = #{record.orderpdid,jdbcType=BIGINT},
+      </if>
+      <if test="record.backtype != null" >
+        backtype = #{record.backtype,jdbcType=SMALLINT},
+      </if>
+      <if test="record.backno != null" >
+        backno = #{record.backno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.backmoney != null" >
+        backmoney = #{record.backmoney,jdbcType=NUMERIC},
+      </if>
+      <if test="record.pdno != null" >
+        pdno = #{record.pdno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pdid != null" >
+        pdid = #{record.pdid,jdbcType=BIGINT},
+      </if>
+      <if test="record.pdname != null" >
+        pdname = #{record.pdname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.state != null" >
+        state = #{record.state,jdbcType=SMALLINT},
+      </if>
+      <if test="record.logisticsno != null" >
+        logisticsno = #{record.logisticsno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.logisticscompany != null" >
+        logisticscompany = #{record.logisticscompany,jdbcType=VARCHAR},
+      </if>
+      <if test="record.returnbackreason != null" >
+        returnbackreason = #{record.returnbackreason,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pic != null" >
+        pic = #{record.pic,jdbcType=VARCHAR},
+      </if>
+      <if test="record.backaddress != null" >
+        backaddress = #{record.backaddress,jdbcType=VARCHAR},
+      </if>
+      <if test="record.backexplain != null" >
+        backexplain = #{record.backexplain,jdbcType=VARCHAR},
+      </if>
+      <if test="record.province != null" >
+        province = #{record.province,jdbcType=VARCHAR},
+      </if>
+      <if test="record.city != null" >
+        city = #{record.city,jdbcType=VARCHAR},
+      </if>
+      <if test="record.area != null" >
+        area = #{record.area,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orderid != null" >
+        orderid = #{record.orderid,jdbcType=BIGINT},
+      </if>
+      <if test="record.memberid != null" >
+        memberid = #{record.memberid,jdbcType=BIGINT},
+      </if>
+      <if test="record.sellerid != null" >
+        sellerid = #{record.sellerid,jdbcType=BIGINT},
+      </if>
+      <if test="record.storeid != null" >
+        storeid = #{record.storeid,jdbcType=BIGINT},
+      </if>
+      <if test="record.createtime != null" >
+        createtime = #{record.createtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.pdnum != null" >
+        pdnum = #{record.pdnum,jdbcType=NUMERIC},
+      </if>
+      <if test="record.code != null" >
+        code = #{record.code,jdbcType=VARCHAR},
+      </if>
+      <if test="record.membername != null" >
+        membername = #{record.membername,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isreceivegoods != null" >
+        isreceivegoods = #{record.isreceivegoods,jdbcType=SMALLINT},
+      </if>
+      <if test="record.sellname != null" >
+        sellname = #{record.sellname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.sellernotagree != null" >
+        sellernotagree = #{record.sellernotagree,jdbcType=VARCHAR},
+      </if>
+      <if test="record.adminreason != null" >
+        adminreason = #{record.adminreason,jdbcType=VARCHAR},
+      </if>
+      <if test="record.contact != null" >
+        contact = #{record.contact,jdbcType=VARCHAR},
+      </if>
+      <if test="record.contactphone != null" >
+        contactphone = #{record.contactphone,jdbcType=VARCHAR},
+      </if>
+      <if test="record.dissidencetime != null" >
+        dissidencetime = #{record.dissidencetime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.adminstate != null" >
+        adminstate = #{record.adminstate,jdbcType=SMALLINT},
+      </if>
+      <if test="record.producttype != null" >
+        producttype = #{record.producttype,jdbcType=SMALLINT},
+      </if>
+      <if test="record.limitid != null" >
+        limitid = #{record.limitid,jdbcType=BIGINT},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update orderproductback
+    set id = #{record.id,jdbcType=BIGINT},
+    orderno = #{record.orderno,jdbcType=VARCHAR},
+    orderpdid = #{record.orderpdid,jdbcType=BIGINT},
+    backtype = #{record.backtype,jdbcType=SMALLINT},
+    backno = #{record.backno,jdbcType=VARCHAR},
+    backmoney = #{record.backmoney,jdbcType=NUMERIC},
+    pdno = #{record.pdno,jdbcType=VARCHAR},
+    pdid = #{record.pdid,jdbcType=BIGINT},
+    pdname = #{record.pdname,jdbcType=VARCHAR},
+    state = #{record.state,jdbcType=SMALLINT},
+    logisticsno = #{record.logisticsno,jdbcType=VARCHAR},
+    logisticscompany = #{record.logisticscompany,jdbcType=VARCHAR},
+    returnbackreason = #{record.returnbackreason,jdbcType=VARCHAR},
+    pic = #{record.pic,jdbcType=VARCHAR},
+    backaddress = #{record.backaddress,jdbcType=VARCHAR},
+    backexplain = #{record.backexplain,jdbcType=VARCHAR},
+    province = #{record.province,jdbcType=VARCHAR},
+    city = #{record.city,jdbcType=VARCHAR},
+    area = #{record.area,jdbcType=VARCHAR},
+    orderid = #{record.orderid,jdbcType=BIGINT},
+    memberid = #{record.memberid,jdbcType=BIGINT},
+    sellerid = #{record.sellerid,jdbcType=BIGINT},
+    storeid = #{record.storeid,jdbcType=BIGINT},
+    createtime = #{record.createtime,jdbcType=TIMESTAMP},
+    pdnum = #{record.pdnum,jdbcType=NUMERIC},
+    code = #{record.code,jdbcType=VARCHAR},
+    membername = #{record.membername,jdbcType=VARCHAR},
+    isreceivegoods = #{record.isreceivegoods,jdbcType=SMALLINT},
+    sellname = #{record.sellname,jdbcType=VARCHAR},
+    sellernotagree = #{record.sellernotagree,jdbcType=VARCHAR},
+    adminreason = #{record.adminreason,jdbcType=VARCHAR},
+    contact = #{record.contact,jdbcType=VARCHAR},
+    contactphone = #{record.contactphone,jdbcType=VARCHAR},
+    dissidencetime = #{record.dissidencetime,jdbcType=TIMESTAMP},
+    adminstate = #{record.adminstate,jdbcType=SMALLINT},
+    producttype = #{record.producttype,jdbcType=SMALLINT},
+    limitid = #{record.limitid,jdbcType=BIGINT}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_product.bean.OrderProductBack" >
+    update orderproductback
+    <set >
+      <if test="orderno != null" >
+        orderno = #{orderno,jdbcType=VARCHAR},
+      </if>
+      <if test="orderpdid != null" >
+        orderpdid = #{orderpdid,jdbcType=BIGINT},
+      </if>
+      <if test="backtype != null" >
+        backtype = #{backtype,jdbcType=SMALLINT},
+      </if>
+      <if test="backno != null" >
+        backno = #{backno,jdbcType=VARCHAR},
+      </if>
+      <if test="backmoney != null" >
+        backmoney = #{backmoney,jdbcType=NUMERIC},
+      </if>
+      <if test="pdno != null" >
+        pdno = #{pdno,jdbcType=VARCHAR},
+      </if>
+      <if test="pdid != null" >
+        pdid = #{pdid,jdbcType=BIGINT},
+      </if>
+      <if test="pdname != null" >
+        pdname = #{pdname,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null" >
+        state = #{state,jdbcType=SMALLINT},
+      </if>
+      <if test="logisticsno != null" >
+        logisticsno = #{logisticsno,jdbcType=VARCHAR},
+      </if>
+      <if test="logisticscompany != null" >
+        logisticscompany = #{logisticscompany,jdbcType=VARCHAR},
+      </if>
+      <if test="returnbackreason != null" >
+        returnbackreason = #{returnbackreason,jdbcType=VARCHAR},
+      </if>
+      <if test="pic != null" >
+        pic = #{pic,jdbcType=VARCHAR},
+      </if>
+      <if test="backaddress != null" >
+        backaddress = #{backaddress,jdbcType=VARCHAR},
+      </if>
+      <if test="backexplain != null" >
+        backexplain = #{backexplain,jdbcType=VARCHAR},
+      </if>
+      <if test="province != null" >
+        province = #{province,jdbcType=VARCHAR},
+      </if>
+      <if test="city != null" >
+        city = #{city,jdbcType=VARCHAR},
+      </if>
+      <if test="area != null" >
+        area = #{area,jdbcType=VARCHAR},
+      </if>
+      <if test="orderid != null" >
+        orderid = #{orderid,jdbcType=BIGINT},
+      </if>
+      <if test="memberid != null" >
+        memberid = #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="sellerid != null" >
+        sellerid = #{sellerid,jdbcType=BIGINT},
+      </if>
+      <if test="storeid != null" >
+        storeid = #{storeid,jdbcType=BIGINT},
+      </if>
+      <if test="createtime != null" >
+        createtime = #{createtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="pdnum != null" >
+        pdnum = #{pdnum,jdbcType=NUMERIC},
+      </if>
+      <if test="code != null" >
+        code = #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="membername != null" >
+        membername = #{membername,jdbcType=VARCHAR},
+      </if>
+      <if test="isreceivegoods != null" >
+        isreceivegoods = #{isreceivegoods,jdbcType=SMALLINT},
+      </if>
+      <if test="sellname != null" >
+        sellname = #{sellname,jdbcType=VARCHAR},
+      </if>
+      <if test="sellernotagree != null" >
+        sellernotagree = #{sellernotagree,jdbcType=VARCHAR},
+      </if>
+      <if test="adminreason != null" >
+        adminreason = #{adminreason,jdbcType=VARCHAR},
+      </if>
+      <if test="contact != null" >
+        contact = #{contact,jdbcType=VARCHAR},
+      </if>
+      <if test="contactphone != null" >
+        contactphone = #{contactphone,jdbcType=VARCHAR},
+      </if>
+      <if test="dissidencetime != null" >
+        dissidencetime = #{dissidencetime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="adminstate != null" >
+        adminstate = #{adminstate,jdbcType=SMALLINT},
+      </if>
+      <if test="producttype != null" >
+        producttype = #{producttype,jdbcType=SMALLINT},
+      </if>
+      <if test="limitid != null" >
+        limitid = #{limitid,jdbcType=BIGINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_product.bean.OrderProductBack" >
+    update orderproductback
+    set orderno = #{orderno,jdbcType=VARCHAR},
+    orderpdid = #{orderpdid,jdbcType=BIGINT},
+    backtype = #{backtype,jdbcType=SMALLINT},
+    backno = #{backno,jdbcType=VARCHAR},
+    backmoney = #{backmoney,jdbcType=NUMERIC},
+    pdno = #{pdno,jdbcType=VARCHAR},
+    pdid = #{pdid,jdbcType=BIGINT},
+    pdname = #{pdname,jdbcType=VARCHAR},
+    state = #{state,jdbcType=SMALLINT},
+    logisticsno = #{logisticsno,jdbcType=VARCHAR},
+    logisticscompany = #{logisticscompany,jdbcType=VARCHAR},
+    returnbackreason = #{returnbackreason,jdbcType=VARCHAR},
+    pic = #{pic,jdbcType=VARCHAR},
+    backaddress = #{backaddress,jdbcType=VARCHAR},
+    backexplain = #{backexplain,jdbcType=VARCHAR},
+    province = #{province,jdbcType=VARCHAR},
+    city = #{city,jdbcType=VARCHAR},
+    area = #{area,jdbcType=VARCHAR},
+    orderid = #{orderid,jdbcType=BIGINT},
+    memberid = #{memberid,jdbcType=BIGINT},
+    sellerid = #{sellerid,jdbcType=BIGINT},
+    storeid = #{storeid,jdbcType=BIGINT},
+    createtime = #{createtime,jdbcType=TIMESTAMP},
+    pdnum = #{pdnum,jdbcType=NUMERIC},
+    code = #{code,jdbcType=VARCHAR},
+    membername = #{membername,jdbcType=VARCHAR},
+    isreceivegoods = #{isreceivegoods,jdbcType=SMALLINT},
+    sellname = #{sellname,jdbcType=VARCHAR},
+    sellernotagree = #{sellernotagree,jdbcType=VARCHAR},
+    adminreason = #{adminreason,jdbcType=VARCHAR},
+    contact = #{contact,jdbcType=VARCHAR},
+    contactphone = #{contactphone,jdbcType=VARCHAR},
+    dissidencetime = #{dissidencetime,jdbcType=TIMESTAMP},
+    adminstate = #{adminstate,jdbcType=SMALLINT},
+    producttype = #{producttype,jdbcType=SMALLINT},
+    limitid = #{limitid,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

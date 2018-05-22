@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_admin.mod_top.TopActivityProductMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_admin.mod_top.bean.TopActivityProduct" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="activityid" property="activityid" jdbcType="BIGINT" />
+    <result column="topid" property="topid" jdbcType="BIGINT" />
+    <result column="activitytype" property="activitytype" jdbcType="SMALLINT" />
+    <result column="pdid" property="pdid" jdbcType="BIGINT" />
+    <result column="pdno" property="pdno" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, activityid, topid, activitytype, pdid, pdno
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_admin.mod_top.bean.TopActivityProductExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from topactivityproduct
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select
+    <include refid="Base_Column_List" />
+    from topactivityproduct
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from topactivityproduct
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_admin.mod_top.bean.TopActivityProductExample" >
+    delete from topactivityproduct
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_admin.mod_top.bean.TopActivityProduct" >
+    insert into topactivityproduct (id, activityid, topid,
+    activitytype, pdid, pdno
+    )
+    values (#{id,jdbcType=BIGINT}, #{activityid,jdbcType=BIGINT}, #{topid,jdbcType=BIGINT},
+    #{activitytype,jdbcType=SMALLINT}, #{pdid,jdbcType=BIGINT}, #{pdno,jdbcType=VARCHAR}
+    )
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_admin.mod_top.bean.TopActivityProduct" >
+    insert into topactivityproduct
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="activityid != null" >
+        activityid,
+      </if>
+      <if test="topid != null" >
+        topid,
+      </if>
+      <if test="activitytype != null" >
+        activitytype,
+      </if>
+      <if test="pdid != null" >
+        pdid,
+      </if>
+      <if test="pdno != null" >
+        pdno,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="activityid != null" >
+        #{activityid,jdbcType=BIGINT},
+      </if>
+      <if test="topid != null" >
+        #{topid,jdbcType=BIGINT},
+      </if>
+      <if test="activitytype != null" >
+        #{activitytype,jdbcType=SMALLINT},
+      </if>
+      <if test="pdid != null" >
+        #{pdid,jdbcType=BIGINT},
+      </if>
+      <if test="pdno != null" >
+        #{pdno,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_admin.mod_top.bean.TopActivityProductExample" resultType="java.lang.Integer" >
+    select count(*) from topactivityproduct
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update topactivityproduct
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.activityid != null" >
+        activityid = #{record.activityid,jdbcType=BIGINT},
+      </if>
+      <if test="record.topid != null" >
+        topid = #{record.topid,jdbcType=BIGINT},
+      </if>
+      <if test="record.activitytype != null" >
+        activitytype = #{record.activitytype,jdbcType=SMALLINT},
+      </if>
+      <if test="record.pdid != null" >
+        pdid = #{record.pdid,jdbcType=BIGINT},
+      </if>
+      <if test="record.pdno != null" >
+        pdno = #{record.pdno,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update topactivityproduct
+    set id = #{record.id,jdbcType=BIGINT},
+    activityid = #{record.activityid,jdbcType=BIGINT},
+    topid = #{record.topid,jdbcType=BIGINT},
+    activitytype = #{record.activitytype,jdbcType=SMALLINT},
+    pdid = #{record.pdid,jdbcType=BIGINT},
+    pdno = #{record.pdno,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_admin.mod_top.bean.TopActivityProduct" >
+    update topactivityproduct
+    <set >
+      <if test="activityid != null" >
+        activityid = #{activityid,jdbcType=BIGINT},
+      </if>
+      <if test="topid != null" >
+        topid = #{topid,jdbcType=BIGINT},
+      </if>
+      <if test="activitytype != null" >
+        activitytype = #{activitytype,jdbcType=SMALLINT},
+      </if>
+      <if test="pdid != null" >
+        pdid = #{pdid,jdbcType=BIGINT},
+      </if>
+      <if test="pdno != null" >
+        pdno = #{pdno,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_admin.mod_top.bean.TopActivityProduct" >
+    update topactivityproduct
+    set activityid = #{activityid,jdbcType=BIGINT},
+    topid = #{topid,jdbcType=BIGINT},
+    activitytype = #{activitytype,jdbcType=SMALLINT},
+    pdid = #{pdid,jdbcType=BIGINT},
+    pdno = #{pdno,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

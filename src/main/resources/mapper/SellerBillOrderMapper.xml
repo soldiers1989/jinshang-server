@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_sellerbill.mapper.SellerBillOrderMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_sellerbill.bean.SellerBillOrder" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="sellerbillid" property="sellerbillid" jdbcType="BIGINT" />
+    <result column="orderid" property="orderid" jdbcType="BIGINT" />
+    <result column="orderno" property="orderno" jdbcType="VARCHAR" />
+    <result column="ordermoney" property="ordermoney" jdbcType="NUMERIC" />
+    <result column="buyername" property="buyername" jdbcType="VARCHAR" />
+    <result column="fishtime" property="fishtime" jdbcType="TIMESTAMP" />
+    <result column="breakpaymoney" property="breakpaymoney" jdbcType="NUMERIC" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, sellerbillid, orderid, orderno, ordermoney, buyername, fishtime, breakpaymoney
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_sellerbill.bean.SellerBillOrderExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from sellerbillorder
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from sellerbillorder
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from sellerbillorder
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_sellerbill.bean.SellerBillOrderExample" >
+    delete from sellerbillorder
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_sellerbill.bean.SellerBillOrder" >
+    insert into sellerbillorder (id, sellerbillid, orderid, 
+      orderno, ordermoney, buyername, 
+      fishtime, breakpaymoney)
+    values (#{id,jdbcType=BIGINT}, #{sellerbillid,jdbcType=BIGINT}, #{orderid,jdbcType=BIGINT}, 
+      #{orderno,jdbcType=VARCHAR}, #{ordermoney,jdbcType=NUMERIC}, #{buyername,jdbcType=VARCHAR}, 
+      #{fishtime,jdbcType=TIMESTAMP}, #{breakpaymoney,jdbcType=NUMERIC})
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_sellerbill.bean.SellerBillOrder" >
+    insert into sellerbillorder
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="sellerbillid != null" >
+        sellerbillid,
+      </if>
+      <if test="orderid != null" >
+        orderid,
+      </if>
+      <if test="orderno != null" >
+        orderno,
+      </if>
+      <if test="ordermoney != null" >
+        ordermoney,
+      </if>
+      <if test="buyername != null" >
+        buyername,
+      </if>
+      <if test="fishtime != null" >
+        fishtime,
+      </if>
+      <if test="breakpaymoney != null" >
+        breakpaymoney,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="sellerbillid != null" >
+        #{sellerbillid,jdbcType=BIGINT},
+      </if>
+      <if test="orderid != null" >
+        #{orderid,jdbcType=BIGINT},
+      </if>
+      <if test="orderno != null" >
+        #{orderno,jdbcType=VARCHAR},
+      </if>
+      <if test="ordermoney != null" >
+        #{ordermoney,jdbcType=NUMERIC},
+      </if>
+      <if test="buyername != null" >
+        #{buyername,jdbcType=VARCHAR},
+      </if>
+      <if test="fishtime != null" >
+        #{fishtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="breakpaymoney != null" >
+        #{breakpaymoney,jdbcType=NUMERIC},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_sellerbill.bean.SellerBillOrderExample" resultType="java.lang.Integer" >
+    select count(*) from sellerbillorder
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update sellerbillorder
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.sellerbillid != null" >
+        sellerbillid = #{record.sellerbillid,jdbcType=BIGINT},
+      </if>
+      <if test="record.orderid != null" >
+        orderid = #{record.orderid,jdbcType=BIGINT},
+      </if>
+      <if test="record.orderno != null" >
+        orderno = #{record.orderno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.ordermoney != null" >
+        ordermoney = #{record.ordermoney,jdbcType=NUMERIC},
+      </if>
+      <if test="record.buyername != null" >
+        buyername = #{record.buyername,jdbcType=VARCHAR},
+      </if>
+      <if test="record.fishtime != null" >
+        fishtime = #{record.fishtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.breakpaymoney != null" >
+        breakpaymoney = #{record.breakpaymoney,jdbcType=NUMERIC},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update sellerbillorder
+    set id = #{record.id,jdbcType=BIGINT},
+      sellerbillid = #{record.sellerbillid,jdbcType=BIGINT},
+      orderid = #{record.orderid,jdbcType=BIGINT},
+      orderno = #{record.orderno,jdbcType=VARCHAR},
+      ordermoney = #{record.ordermoney,jdbcType=NUMERIC},
+      buyername = #{record.buyername,jdbcType=VARCHAR},
+      fishtime = #{record.fishtime,jdbcType=TIMESTAMP},
+      breakpaymoney = #{record.breakpaymoney,jdbcType=NUMERIC}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_sellerbill.bean.SellerBillOrder" >
+    update sellerbillorder
+    <set >
+      <if test="sellerbillid != null" >
+        sellerbillid = #{sellerbillid,jdbcType=BIGINT},
+      </if>
+      <if test="orderid != null" >
+        orderid = #{orderid,jdbcType=BIGINT},
+      </if>
+      <if test="orderno != null" >
+        orderno = #{orderno,jdbcType=VARCHAR},
+      </if>
+      <if test="ordermoney != null" >
+        ordermoney = #{ordermoney,jdbcType=NUMERIC},
+      </if>
+      <if test="buyername != null" >
+        buyername = #{buyername,jdbcType=VARCHAR},
+      </if>
+      <if test="fishtime != null" >
+        fishtime = #{fishtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="breakpaymoney != null" >
+        breakpaymoney = #{breakpaymoney,jdbcType=NUMERIC},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_sellerbill.bean.SellerBillOrder" >
+    update sellerbillorder
+    set sellerbillid = #{sellerbillid,jdbcType=BIGINT},
+      orderid = #{orderid,jdbcType=BIGINT},
+      orderno = #{orderno,jdbcType=VARCHAR},
+      ordermoney = #{ordermoney,jdbcType=NUMERIC},
+      buyername = #{buyername,jdbcType=VARCHAR},
+      fishtime = #{fishtime,jdbcType=TIMESTAMP},
+      breakpaymoney = #{breakpaymoney,jdbcType=NUMERIC}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

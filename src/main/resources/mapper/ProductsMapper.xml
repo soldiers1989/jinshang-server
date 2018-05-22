@@ -1,0 +1,591 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_product.ProductsMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_product.bean.Products" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="level1" property="level1" jdbcType="VARCHAR" />
+    <result column="level1id" property="level1id" jdbcType="BIGINT" />
+    <result column="level2" property="level2" jdbcType="VARCHAR" />
+    <result column="level2id" property="level2id" jdbcType="BIGINT" />
+    <result column="level3" property="level3" jdbcType="VARCHAR" />
+    <result column="level3id" property="level3id" jdbcType="BIGINT" />
+    <result column="productno" property="productno" jdbcType="VARCHAR" />
+    <result column="productnameid" property="productnameid" jdbcType="BIGINT" />
+    <result column="productname" property="productname" jdbcType="VARCHAR" />
+    <result column="productalias" property="productalias" jdbcType="VARCHAR" />
+    <result column="brand" property="brand" jdbcType="VARCHAR" />
+    <result column="brandid" property="brandid" jdbcType="BIGINT" />
+    <result column="cardnumid" property="cardnumid" jdbcType="BIGINT" />
+    <result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
+    <result column="materialid" property="materialid" jdbcType="BIGINT" />
+    <result column="material" property="material" jdbcType="VARCHAR" />
+    <result column="mark" property="mark" jdbcType="VARCHAR" />
+    <result column="unit" property="unit" jdbcType="VARCHAR" />
+    <result column="surfacetreatment" property="surfacetreatment" jdbcType="VARCHAR" />
+    <result column="packagetype" property="packagetype" jdbcType="VARCHAR" />
+    <result column="weight" property="weight" jdbcType="NUMERIC" />
+    <result column="pddrawing" property="pddrawing" jdbcType="ARRAY" typeHandler="project.jinshang.typeHandler.ArrayTypeHandler"/>
+    <result column="pdpicture" property="pdpicture" jdbcType="ARRAY" typeHandler="project.jinshang.typeHandler.ArrayTypeHandler"/>
+    <result column="pddes" property="pddes" jdbcType="VARCHAR" />
+    <result column="cardnum" property="cardnum" jdbcType="VARCHAR" />
+    <result column="standard" property="standard" jdbcType="VARCHAR" />
+    <result column="attribute" property="attribute" jdbcType="VARCHAR" />
+    <result column="prodstr" property="prodstr" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, level1, level1id, level2, level2id, level3, level3id, productno, productnameid, 
+    productname, productalias, brand, brandid, cardnumid, createtime, materialid, material, 
+    mark, unit, surfacetreatment, packagetype, weight, pddrawing, pdpicture, pddes, cardnum, 
+    standard, attribute, prodstr
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_product.bean.ProductsExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from products
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from products
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from products
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_product.bean.ProductsExample" >
+    delete from products
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_product.bean.Products" >
+    insert into products ( level1, level1id,
+      level2, level2id, level3, 
+      level3id, productno, productnameid, 
+      productname, productalias, brand, 
+      brandid, cardnumid, createtime, 
+      materialid, material, mark, 
+      unit, surfacetreatment, packagetype, 
+      weight, pddrawing, pdpicture, 
+      pddes, cardnum, standard, 
+      attribute, prodstr)
+    values ( #{level1,jdbcType=VARCHAR}, #{level1id,jdbcType=BIGINT},
+      #{level2,jdbcType=VARCHAR}, #{level2id,jdbcType=BIGINT}, #{level3,jdbcType=VARCHAR}, 
+      #{level3id,jdbcType=BIGINT}, #{productno,jdbcType=VARCHAR}, #{productnameid,jdbcType=BIGINT}, 
+      #{productname,jdbcType=VARCHAR}, #{productalias,jdbcType=VARCHAR}, #{brand,jdbcType=VARCHAR}, 
+      #{brandid,jdbcType=BIGINT}, #{cardnumid,jdbcType=BIGINT}, #{createtime,jdbcType=TIMESTAMP}, 
+      #{materialid,jdbcType=BIGINT}, #{material,jdbcType=VARCHAR}, #{mark,jdbcType=VARCHAR}, 
+      #{unit,jdbcType=VARCHAR}, #{surfacetreatment,jdbcType=VARCHAR}, #{packagetype,jdbcType=VARCHAR}, 
+      #{weight,jdbcType=NUMERIC}, #{pddrawing,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler}, #{pdpicture,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+      #{pddes,jdbcType=VARCHAR}, #{cardnum,jdbcType=VARCHAR}, #{standard,jdbcType=VARCHAR}, 
+      #{attribute,jdbcType=VARCHAR}, #{prodstr,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_product.bean.Products" >
+    insert into products
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="level1 != null" >
+        level1,
+      </if>
+      <if test="level1id != null" >
+        level1id,
+      </if>
+      <if test="level2 != null" >
+        level2,
+      </if>
+      <if test="level2id != null" >
+        level2id,
+      </if>
+      <if test="level3 != null" >
+        level3,
+      </if>
+      <if test="level3id != null" >
+        level3id,
+      </if>
+      <if test="productno != null" >
+        productno,
+      </if>
+      <if test="productnameid != null" >
+        productnameid,
+      </if>
+      <if test="productname != null" >
+        productname,
+      </if>
+      <if test="productalias != null" >
+        productalias,
+      </if>
+      <if test="brand != null" >
+        brand,
+      </if>
+      <if test="brandid != null" >
+        brandid,
+      </if>
+      <if test="cardnumid != null" >
+        cardnumid,
+      </if>
+      <if test="createtime != null" >
+        createtime,
+      </if>
+      <if test="materialid != null" >
+        materialid,
+      </if>
+      <if test="material != null" >
+        material,
+      </if>
+      <if test="mark != null" >
+        mark,
+      </if>
+      <if test="unit != null" >
+        unit,
+      </if>
+      <if test="surfacetreatment != null" >
+        surfacetreatment,
+      </if>
+      <if test="packagetype != null" >
+        packagetype,
+      </if>
+      <if test="weight != null" >
+        weight,
+      </if>
+      <if test="pddrawing != null" >
+        pddrawing,
+      </if>
+      <if test="pdpicture != null" >
+        pdpicture,
+      </if>
+      <if test="pddes != null" >
+        pddes,
+      </if>
+      <if test="cardnum != null" >
+        cardnum,
+      </if>
+      <if test="standard != null" >
+        standard,
+      </if>
+      <if test="attribute != null" >
+        attribute,
+      </if>
+      <if test="prodstr != null" >
+        prodstr,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="level1 != null" >
+        #{level1,jdbcType=VARCHAR},
+      </if>
+      <if test="level1id != null" >
+        #{level1id,jdbcType=BIGINT},
+      </if>
+      <if test="level2 != null" >
+        #{level2,jdbcType=VARCHAR},
+      </if>
+      <if test="level2id != null" >
+        #{level2id,jdbcType=BIGINT},
+      </if>
+      <if test="level3 != null" >
+        #{level3,jdbcType=VARCHAR},
+      </if>
+      <if test="level3id != null" >
+        #{level3id,jdbcType=BIGINT},
+      </if>
+      <if test="productno != null" >
+        #{productno,jdbcType=VARCHAR},
+      </if>
+      <if test="productnameid != null" >
+        #{productnameid,jdbcType=BIGINT},
+      </if>
+      <if test="productname != null" >
+        #{productname,jdbcType=VARCHAR},
+      </if>
+      <if test="productalias != null" >
+        #{productalias,jdbcType=VARCHAR},
+      </if>
+      <if test="brand != null" >
+        #{brand,jdbcType=VARCHAR},
+      </if>
+      <if test="brandid != null" >
+        #{brandid,jdbcType=BIGINT},
+      </if>
+      <if test="cardnumid != null" >
+        #{cardnumid,jdbcType=BIGINT},
+      </if>
+      <if test="createtime != null" >
+        #{createtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="materialid != null" >
+        #{materialid,jdbcType=BIGINT},
+      </if>
+      <if test="material != null" >
+        #{material,jdbcType=VARCHAR},
+      </if>
+      <if test="mark != null" >
+        #{mark,jdbcType=VARCHAR},
+      </if>
+      <if test="unit != null" >
+        #{unit,jdbcType=VARCHAR},
+      </if>
+      <if test="surfacetreatment != null" >
+        #{surfacetreatment,jdbcType=VARCHAR},
+      </if>
+      <if test="packagetype != null" >
+        #{packagetype,jdbcType=VARCHAR},
+      </if>
+      <if test="weight != null" >
+        #{weight,jdbcType=NUMERIC},
+      </if>
+      <if test="pddrawing != null" >
+        #{pddrawing,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+      </if>
+      <if test="pdpicture != null" >
+        #{pdpicture,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+      </if>
+      <if test="pddes != null" >
+        #{pddes,jdbcType=VARCHAR},
+      </if>
+      <if test="cardnum != null" >
+        #{cardnum,jdbcType=VARCHAR},
+      </if>
+      <if test="standard != null" >
+        #{standard,jdbcType=VARCHAR},
+      </if>
+      <if test="attribute != null" >
+        #{attribute,jdbcType=VARCHAR},
+      </if>
+      <if test="prodstr != null" >
+        #{prodstr,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_product.bean.ProductsExample" resultType="java.lang.Integer" >
+    select count(*) from products
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update products
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.level1 != null" >
+        level1 = #{record.level1,jdbcType=VARCHAR},
+      </if>
+      <if test="record.level1id != null" >
+        level1id = #{record.level1id,jdbcType=BIGINT},
+      </if>
+      <if test="record.level2 != null" >
+        level2 = #{record.level2,jdbcType=VARCHAR},
+      </if>
+      <if test="record.level2id != null" >
+        level2id = #{record.level2id,jdbcType=BIGINT},
+      </if>
+      <if test="record.level3 != null" >
+        level3 = #{record.level3,jdbcType=VARCHAR},
+      </if>
+      <if test="record.level3id != null" >
+        level3id = #{record.level3id,jdbcType=BIGINT},
+      </if>
+      <if test="record.productno != null" >
+        productno = #{record.productno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.productnameid != null" >
+        productnameid = #{record.productnameid,jdbcType=BIGINT},
+      </if>
+      <if test="record.productname != null" >
+        productname = #{record.productname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.productalias != null" >
+        productalias = #{record.productalias,jdbcType=VARCHAR},
+      </if>
+      <if test="record.brand != null" >
+        brand = #{record.brand,jdbcType=VARCHAR},
+      </if>
+      <if test="record.brandid != null" >
+        brandid = #{record.brandid,jdbcType=BIGINT},
+      </if>
+      <if test="record.cardnumid != null" >
+        cardnumid = #{record.cardnumid,jdbcType=BIGINT},
+      </if>
+      <if test="record.createtime != null" >
+        createtime = #{record.createtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.materialid != null" >
+        materialid = #{record.materialid,jdbcType=BIGINT},
+      </if>
+      <if test="record.material != null" >
+        material = #{record.material,jdbcType=VARCHAR},
+      </if>
+      <if test="record.mark != null" >
+        mark = #{record.mark,jdbcType=VARCHAR},
+      </if>
+      <if test="record.unit != null" >
+        unit = #{record.unit,jdbcType=VARCHAR},
+      </if>
+      <if test="record.surfacetreatment != null" >
+        surfacetreatment = #{record.surfacetreatment,jdbcType=VARCHAR},
+      </if>
+      <if test="record.packagetype != null" >
+        packagetype = #{record.packagetype,jdbcType=VARCHAR},
+      </if>
+      <if test="record.weight != null" >
+        weight = #{record.weight,jdbcType=NUMERIC},
+      </if>
+      <if test="record.pddrawing != null" >
+        pddrawing = #{record.pddrawing,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+      </if>
+      <if test="record.pdpicture != null" >
+        pdpicture = #{record.pdpicture,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+      </if>
+      <if test="record.pddes != null" >
+        pddes = #{record.pddes,jdbcType=VARCHAR},
+      </if>
+      <if test="record.cardnum != null" >
+        cardnum = #{record.cardnum,jdbcType=VARCHAR},
+      </if>
+      <if test="record.standard != null" >
+        standard = #{record.standard,jdbcType=VARCHAR},
+      </if>
+      <if test="record.attribute != null" >
+        attribute = #{record.attribute,jdbcType=VARCHAR},
+      </if>
+      <if test="record.prodstr != null" >
+        prodstr = #{record.prodstr,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update products
+    set id = #{record.id,jdbcType=BIGINT},
+      level1 = #{record.level1,jdbcType=VARCHAR},
+      level1id = #{record.level1id,jdbcType=BIGINT},
+      level2 = #{record.level2,jdbcType=VARCHAR},
+      level2id = #{record.level2id,jdbcType=BIGINT},
+      level3 = #{record.level3,jdbcType=VARCHAR},
+      level3id = #{record.level3id,jdbcType=BIGINT},
+      productno = #{record.productno,jdbcType=VARCHAR},
+      productnameid = #{record.productnameid,jdbcType=BIGINT},
+      productname = #{record.productname,jdbcType=VARCHAR},
+      productalias = #{record.productalias,jdbcType=VARCHAR},
+      brand = #{record.brand,jdbcType=VARCHAR},
+      brandid = #{record.brandid,jdbcType=BIGINT},
+      cardnumid = #{record.cardnumid,jdbcType=BIGINT},
+      createtime = #{record.createtime,jdbcType=TIMESTAMP},
+      materialid = #{record.materialid,jdbcType=BIGINT},
+      material = #{record.material,jdbcType=VARCHAR},
+      mark = #{record.mark,jdbcType=VARCHAR},
+      unit = #{record.unit,jdbcType=VARCHAR},
+      surfacetreatment = #{record.surfacetreatment,jdbcType=VARCHAR},
+      packagetype = #{record.packagetype,jdbcType=VARCHAR},
+      weight = #{record.weight,jdbcType=NUMERIC},
+      pddrawing = #{record.pddrawing,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+      pdpicture = #{record.pdpicture,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+      pddes = #{record.pddes,jdbcType=VARCHAR},
+      cardnum = #{record.cardnum,jdbcType=VARCHAR},
+      standard = #{record.standard,jdbcType=VARCHAR},
+      attribute = #{record.attribute,jdbcType=VARCHAR},
+      prodstr = #{record.prodstr,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_product.bean.Products" >
+    update products
+    <set >
+      <if test="level1 != null" >
+        level1 = #{level1,jdbcType=VARCHAR},
+      </if>
+      <if test="level1id != null" >
+        level1id = #{level1id,jdbcType=BIGINT},
+      </if>
+      <if test="level2 != null" >
+        level2 = #{level2,jdbcType=VARCHAR},
+      </if>
+      <if test="level2id != null" >
+        level2id = #{level2id,jdbcType=BIGINT},
+      </if>
+      <if test="level3 != null" >
+        level3 = #{level3,jdbcType=VARCHAR},
+      </if>
+      <if test="level3id != null" >
+        level3id = #{level3id,jdbcType=BIGINT},
+      </if>
+      <if test="productno != null" >
+        productno = #{productno,jdbcType=VARCHAR},
+      </if>
+      <if test="productnameid != null" >
+        productnameid = #{productnameid,jdbcType=BIGINT},
+      </if>
+      <if test="productname != null" >
+        productname = #{productname,jdbcType=VARCHAR},
+      </if>
+      <if test="productalias != null" >
+        productalias = #{productalias,jdbcType=VARCHAR},
+      </if>
+      <if test="brand != null" >
+        brand = #{brand,jdbcType=VARCHAR},
+      </if>
+      <if test="brandid != null" >
+        brandid = #{brandid,jdbcType=BIGINT},
+      </if>
+      <if test="cardnumid != null" >
+        cardnumid = #{cardnumid,jdbcType=BIGINT},
+      </if>
+      <if test="createtime != null" >
+        createtime = #{createtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="materialid != null" >
+        materialid = #{materialid,jdbcType=BIGINT},
+      </if>
+      <if test="material != null" >
+        material = #{material,jdbcType=VARCHAR},
+      </if>
+      <if test="mark != null" >
+        mark = #{mark,jdbcType=VARCHAR},
+      </if>
+      <if test="unit != null" >
+        unit = #{unit,jdbcType=VARCHAR},
+      </if>
+      <if test="surfacetreatment != null" >
+        surfacetreatment = #{surfacetreatment,jdbcType=VARCHAR},
+      </if>
+      <if test="packagetype != null" >
+        packagetype = #{packagetype,jdbcType=VARCHAR},
+      </if>
+      <if test="weight != null" >
+        weight = #{weight,jdbcType=NUMERIC},
+      </if>
+      <if test="pddrawing != null" >
+        pddrawing = #{pddrawing,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+      </if>
+      <if test="pdpicture != null" >
+        pdpicture = #{pdpicture,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+      </if>
+      <if test="pddes != null" >
+        pddes = #{pddes,jdbcType=VARCHAR},
+      </if>
+      <if test="cardnum != null" >
+        cardnum = #{cardnum,jdbcType=VARCHAR},
+      </if>
+      <if test="standard != null" >
+        standard = #{standard,jdbcType=VARCHAR},
+      </if>
+      <if test="attribute != null" >
+        attribute = #{attribute,jdbcType=VARCHAR},
+      </if>
+      <if test="prodstr != null" >
+        prodstr = #{prodstr,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_product.bean.Products" >
+    update products
+    set level1 = #{level1,jdbcType=VARCHAR},
+      level1id = #{level1id,jdbcType=BIGINT},
+      level2 = #{level2,jdbcType=VARCHAR},
+      level2id = #{level2id,jdbcType=BIGINT},
+      level3 = #{level3,jdbcType=VARCHAR},
+      level3id = #{level3id,jdbcType=BIGINT},
+      productno = #{productno,jdbcType=VARCHAR},
+      productnameid = #{productnameid,jdbcType=BIGINT},
+      productname = #{productname,jdbcType=VARCHAR},
+      productalias = #{productalias,jdbcType=VARCHAR},
+      brand = #{brand,jdbcType=VARCHAR},
+      brandid = #{brandid,jdbcType=BIGINT},
+      cardnumid = #{cardnumid,jdbcType=BIGINT},
+      createtime = #{createtime,jdbcType=TIMESTAMP},
+      materialid = #{materialid,jdbcType=BIGINT},
+      material = #{material,jdbcType=VARCHAR},
+      mark = #{mark,jdbcType=VARCHAR},
+      unit = #{unit,jdbcType=VARCHAR},
+      surfacetreatment = #{surfacetreatment,jdbcType=VARCHAR},
+      packagetype = #{packagetype,jdbcType=VARCHAR},
+      weight = #{weight,jdbcType=NUMERIC},
+      pddrawing = #{pddrawing,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+      pdpicture = #{pdpicture,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+      pddes = #{pddes,jdbcType=VARCHAR},
+      cardnum = #{cardnum,jdbcType=VARCHAR},
+      standard = #{standard,jdbcType=VARCHAR},
+      attribute = #{attribute,jdbcType=VARCHAR},
+      prodstr = #{prodstr,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

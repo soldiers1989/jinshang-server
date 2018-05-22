@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_invoice.InvoiceInfoMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_invoice.bean.InvoiceInfo" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="memberid" property="memberid" jdbcType="BIGINT" />
+    <result column="invoiceheadup" property="invoiceheadup" jdbcType="VARCHAR" />
+    <result column="bankofaccounts" property="bankofaccounts" jdbcType="VARCHAR" />
+    <result column="texno" property="texno" jdbcType="VARCHAR" />
+    <result column="account" property="account" jdbcType="VARCHAR" />
+    <result column="address" property="address" jdbcType="VARCHAR" />
+    <result column="linkman" property="linkman" jdbcType="VARCHAR" />
+    <result column="phone" property="phone" jdbcType="VARCHAR" />
+    <result column="defaultbill" property="defaultbill" jdbcType="SMALLINT" />
+    <result column="createdate" property="createdate" jdbcType="TIMESTAMP" />
+    <result column="updatedate" property="updatedate" jdbcType="TIMESTAMP" />
+    <result column="available" property="available" jdbcType="SMALLINT" />
+    <result column="receiveaddress" property="receiveaddress" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, memberid, invoiceheadup, bankofaccounts, texno, account, address, linkman, phone, 
+    defaultbill, createdate, updatedate, available, receiveaddress
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_invoice.bean.InvoiceInfoExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from invoiceinfo
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from invoiceinfo
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from invoiceinfo
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_invoice.bean.InvoiceInfoExample" >
+    delete from invoiceinfo
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_invoice.bean.InvoiceInfo" >
+    insert into invoiceinfo (id, memberid, invoiceheadup, 
+      bankofaccounts, texno, account, 
+      address, linkman, phone, 
+      defaultbill, createdate, updatedate, 
+      available, receiveaddress)
+    values (#{id,jdbcType=BIGINT}, #{memberid,jdbcType=BIGINT}, #{invoiceheadup,jdbcType=VARCHAR}, 
+      #{bankofaccounts,jdbcType=VARCHAR}, #{texno,jdbcType=VARCHAR}, #{account,jdbcType=VARCHAR}, 
+      #{address,jdbcType=VARCHAR}, #{linkman,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR}, 
+      #{defaultbill,jdbcType=SMALLINT}, #{createdate,jdbcType=TIMESTAMP}, #{updatedate,jdbcType=TIMESTAMP}, 
+      #{available,jdbcType=SMALLINT}, #{receiveaddress,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_invoice.bean.InvoiceInfo" >
+    insert into invoiceinfo
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="memberid != null" >
+        memberid,
+      </if>
+      <if test="invoiceheadup != null" >
+        invoiceheadup,
+      </if>
+      <if test="bankofaccounts != null" >
+        bankofaccounts,
+      </if>
+      <if test="texno != null" >
+        texno,
+      </if>
+      <if test="account != null" >
+        account,
+      </if>
+      <if test="address != null" >
+        address,
+      </if>
+      <if test="linkman != null" >
+        linkman,
+      </if>
+      <if test="phone != null" >
+        phone,
+      </if>
+      <if test="defaultbill != null" >
+        defaultbill,
+      </if>
+      <if test="createdate != null" >
+        createdate,
+      </if>
+      <if test="updatedate != null" >
+        updatedate,
+      </if>
+      <if test="available != null" >
+        available,
+      </if>
+      <if test="receiveaddress != null" >
+        receiveaddress,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="memberid != null" >
+        #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="invoiceheadup != null" >
+        #{invoiceheadup,jdbcType=VARCHAR},
+      </if>
+      <if test="bankofaccounts != null" >
+        #{bankofaccounts,jdbcType=VARCHAR},
+      </if>
+      <if test="texno != null" >
+        #{texno,jdbcType=VARCHAR},
+      </if>
+      <if test="account != null" >
+        #{account,jdbcType=VARCHAR},
+      </if>
+      <if test="address != null" >
+        #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="linkman != null" >
+        #{linkman,jdbcType=VARCHAR},
+      </if>
+      <if test="phone != null" >
+        #{phone,jdbcType=VARCHAR},
+      </if>
+      <if test="defaultbill != null" >
+        #{defaultbill,jdbcType=SMALLINT},
+      </if>
+      <if test="createdate != null" >
+        #{createdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedate != null" >
+        #{updatedate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="available != null" >
+        #{available,jdbcType=SMALLINT},
+      </if>
+      <if test="receiveaddress != null" >
+        #{receiveaddress,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_invoice.bean.InvoiceInfoExample" resultType="java.lang.Integer" >
+    select count(*) from invoiceinfo
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update invoiceinfo
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.memberid != null" >
+        memberid = #{record.memberid,jdbcType=BIGINT},
+      </if>
+      <if test="record.invoiceheadup != null" >
+        invoiceheadup = #{record.invoiceheadup,jdbcType=VARCHAR},
+      </if>
+      <if test="record.bankofaccounts != null" >
+        bankofaccounts = #{record.bankofaccounts,jdbcType=VARCHAR},
+      </if>
+      <if test="record.texno != null" >
+        texno = #{record.texno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.account != null" >
+        account = #{record.account,jdbcType=VARCHAR},
+      </if>
+      <if test="record.address != null" >
+        address = #{record.address,jdbcType=VARCHAR},
+      </if>
+      <if test="record.linkman != null" >
+        linkman = #{record.linkman,jdbcType=VARCHAR},
+      </if>
+      <if test="record.phone != null" >
+        phone = #{record.phone,jdbcType=VARCHAR},
+      </if>
+      <if test="record.defaultbill != null" >
+        defaultbill = #{record.defaultbill,jdbcType=SMALLINT},
+      </if>
+      <if test="record.createdate != null" >
+        createdate = #{record.createdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updatedate != null" >
+        updatedate = #{record.updatedate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.available != null" >
+        available = #{record.available,jdbcType=SMALLINT},
+      </if>
+      <if test="record.receiveaddress != null" >
+        receiveaddress = #{record.receiveaddress,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update invoiceinfo
+    set id = #{record.id,jdbcType=BIGINT},
+      memberid = #{record.memberid,jdbcType=BIGINT},
+      invoiceheadup = #{record.invoiceheadup,jdbcType=VARCHAR},
+      bankofaccounts = #{record.bankofaccounts,jdbcType=VARCHAR},
+      texno = #{record.texno,jdbcType=VARCHAR},
+      account = #{record.account,jdbcType=VARCHAR},
+      address = #{record.address,jdbcType=VARCHAR},
+      linkman = #{record.linkman,jdbcType=VARCHAR},
+      phone = #{record.phone,jdbcType=VARCHAR},
+      defaultbill = #{record.defaultbill,jdbcType=SMALLINT},
+      createdate = #{record.createdate,jdbcType=TIMESTAMP},
+      updatedate = #{record.updatedate,jdbcType=TIMESTAMP},
+      available = #{record.available,jdbcType=SMALLINT},
+      receiveaddress = #{record.receiveaddress,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_invoice.bean.InvoiceInfo" >
+    update invoiceinfo
+    <set >
+      <if test="memberid != null" >
+        memberid = #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="invoiceheadup != null" >
+        invoiceheadup = #{invoiceheadup,jdbcType=VARCHAR},
+      </if>
+      <if test="bankofaccounts != null" >
+        bankofaccounts = #{bankofaccounts,jdbcType=VARCHAR},
+      </if>
+      <if test="texno != null" >
+        texno = #{texno,jdbcType=VARCHAR},
+      </if>
+      <if test="account != null" >
+        account = #{account,jdbcType=VARCHAR},
+      </if>
+      <if test="address != null" >
+        address = #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="linkman != null" >
+        linkman = #{linkman,jdbcType=VARCHAR},
+      </if>
+      <if test="phone != null" >
+        phone = #{phone,jdbcType=VARCHAR},
+      </if>
+      <if test="defaultbill != null" >
+        defaultbill = #{defaultbill,jdbcType=SMALLINT},
+      </if>
+      <if test="createdate != null" >
+        createdate = #{createdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedate != null" >
+        updatedate = #{updatedate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="available != null" >
+        available = #{available,jdbcType=SMALLINT},
+      </if>
+      <if test="receiveaddress != null" >
+        receiveaddress = #{receiveaddress,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_invoice.bean.InvoiceInfo" >
+    update invoiceinfo
+    set memberid = #{memberid,jdbcType=BIGINT},
+      invoiceheadup = #{invoiceheadup,jdbcType=VARCHAR},
+      bankofaccounts = #{bankofaccounts,jdbcType=VARCHAR},
+      texno = #{texno,jdbcType=VARCHAR},
+      account = #{account,jdbcType=VARCHAR},
+      address = #{address,jdbcType=VARCHAR},
+      linkman = #{linkman,jdbcType=VARCHAR},
+      phone = #{phone,jdbcType=VARCHAR},
+      defaultbill = #{defaultbill,jdbcType=SMALLINT},
+      createdate = #{createdate,jdbcType=TIMESTAMP},
+      updatedate = #{updatedate,jdbcType=TIMESTAMP},
+      available = #{available,jdbcType=SMALLINT},
+      receiveaddress = #{receiveaddress,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

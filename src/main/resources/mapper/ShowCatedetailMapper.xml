@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_admin.mod_showcategory.ShowCatedetailMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_admin.mod_showcategory.bean.ShowCatedetail" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="showid" property="showid" jdbcType="BIGINT" />
+    <result column="level2category" property="level2category" jdbcType="VARCHAR" />
+    <result column="level2id" property="level2id" jdbcType="BIGINT" />
+    <result column="material" property="material" jdbcType="VARCHAR" />
+    <result column="categoryids" property="categoryids" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, showid, level2category, level2id, material, categoryids
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_admin.mod_showcategory.bean.ShowCatedetailExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from showcatedetail
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from showcatedetail
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from showcatedetail
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_admin.mod_showcategory.bean.ShowCatedetailExample" >
+    delete from showcatedetail
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_admin.mod_showcategory.bean.ShowCatedetail" >
+    insert into showcatedetail (id, showid, level2category, 
+      level2id, material, categoryids
+      )
+    values (#{id,jdbcType=BIGINT}, #{showid,jdbcType=BIGINT}, #{level2category,jdbcType=VARCHAR}, 
+      #{level2id,jdbcType=BIGINT}, #{material,jdbcType=VARCHAR}, #{categoryids,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_admin.mod_showcategory.bean.ShowCatedetail" >
+    insert into showcatedetail
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="showid != null" >
+        showid,
+      </if>
+      <if test="level2category != null" >
+        level2category,
+      </if>
+      <if test="level2id != null" >
+        level2id,
+      </if>
+      <if test="material != null" >
+        material,
+      </if>
+      <if test="categoryids != null" >
+        categoryids,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="showid != null" >
+        #{showid,jdbcType=BIGINT},
+      </if>
+      <if test="level2category != null" >
+        #{level2category,jdbcType=VARCHAR},
+      </if>
+      <if test="level2id != null" >
+        #{level2id,jdbcType=BIGINT},
+      </if>
+      <if test="material != null" >
+        #{material,jdbcType=VARCHAR},
+      </if>
+      <if test="categoryids != null" >
+        #{categoryids,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_admin.mod_showcategory.bean.ShowCatedetailExample" resultType="java.lang.Integer" >
+    select count(*) from showcatedetail
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update showcatedetail
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.showid != null" >
+        showid = #{record.showid,jdbcType=BIGINT},
+      </if>
+      <if test="record.level2category != null" >
+        level2category = #{record.level2category,jdbcType=VARCHAR},
+      </if>
+      <if test="record.level2id != null" >
+        level2id = #{record.level2id,jdbcType=BIGINT},
+      </if>
+      <if test="record.material != null" >
+        material = #{record.material,jdbcType=VARCHAR},
+      </if>
+      <if test="record.categoryids != null" >
+        categoryids = #{record.categoryids,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update showcatedetail
+    set id = #{record.id,jdbcType=BIGINT},
+      showid = #{record.showid,jdbcType=BIGINT},
+      level2category = #{record.level2category,jdbcType=VARCHAR},
+      level2id = #{record.level2id,jdbcType=BIGINT},
+      material = #{record.material,jdbcType=VARCHAR},
+      categoryids = #{record.categoryids,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_admin.mod_showcategory.bean.ShowCatedetail" >
+    update showcatedetail
+    <set >
+      <if test="showid != null" >
+        showid = #{showid,jdbcType=BIGINT},
+      </if>
+      <if test="level2category != null" >
+        level2category = #{level2category,jdbcType=VARCHAR},
+      </if>
+      <if test="level2id != null" >
+        level2id = #{level2id,jdbcType=BIGINT},
+      </if>
+      <if test="material != null" >
+        material = #{material,jdbcType=VARCHAR},
+      </if>
+      <if test="categoryids != null" >
+        categoryids = #{categoryids,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_admin.mod_showcategory.bean.ShowCatedetail" >
+    update showcatedetail
+    set showid = #{showid,jdbcType=BIGINT},
+      level2category = #{level2category,jdbcType=VARCHAR},
+      level2id = #{level2id,jdbcType=BIGINT},
+      material = #{material,jdbcType=VARCHAR},
+      categoryids = #{categoryids,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

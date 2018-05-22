@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_activity.LimitTimeProdMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_activity.bean.LimitTimeProd" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="memberid" property="memberid" jdbcType="BIGINT" />
+    <result column="username" property="username" jdbcType="VARCHAR" />
+    <result column="pdid" property="pdid" jdbcType="BIGINT" />
+    <result column="activitytitle" property="activitytitle" jdbcType="VARCHAR" />
+    <result column="begintime" property="begintime" jdbcType="TIMESTAMP" />
+    <result column="endtime" property="endtime" jdbcType="TIMESTAMP" />
+    <result column="salestotalnum" property="salestotalnum" jdbcType="NUMERIC" />
+    <result column="state" property="state" jdbcType="SMALLINT" />
+    <result column="buylimit" property="buylimit" jdbcType="NUMERIC" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="category" property="category" jdbcType="VARCHAR" />
+    <result column="categoryid" property="categoryid" jdbcType="BIGINT" />
+    <result column="minprice" property="minprice" jdbcType="NUMERIC" />
+    <result column="normalprice" property="normalprice" jdbcType="NUMERIC" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, memberid, username, pdid, activitytitle, begintime, endtime, salestotalnum, state, 
+    buylimit, remark, category, categoryid, minprice, normalprice
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_activity.bean.LimitTimeProdExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from limittimeprod
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from limittimeprod
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from limittimeprod
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_activity.bean.LimitTimeProdExample" >
+    delete from limittimeprod
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_activity.bean.LimitTimeProd" >
+    insert into limittimeprod (id, memberid, username, 
+      pdid, activitytitle, begintime, 
+      endtime, salestotalnum, state, 
+      buylimit, remark, category, 
+      categoryid, minprice, normalprice
+      )
+    values (#{id,jdbcType=BIGINT}, #{memberid,jdbcType=BIGINT}, #{username,jdbcType=VARCHAR}, 
+      #{pdid,jdbcType=BIGINT}, #{activitytitle,jdbcType=VARCHAR}, #{begintime,jdbcType=TIMESTAMP}, 
+      #{endtime,jdbcType=TIMESTAMP}, #{salestotalnum,jdbcType=NUMERIC}, #{state,jdbcType=SMALLINT}, 
+      #{buylimit,jdbcType=NUMERIC}, #{remark,jdbcType=VARCHAR}, #{category,jdbcType=VARCHAR}, 
+      #{categoryid,jdbcType=BIGINT}, #{minprice,jdbcType=NUMERIC}, #{normalprice,jdbcType=NUMERIC}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_activity.bean.LimitTimeProd" useGeneratedKeys="true" keyProperty="id">
+    insert into limittimeprod
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="memberid != null" >
+        memberid,
+      </if>
+      <if test="username != null" >
+        username,
+      </if>
+      <if test="pdid != null" >
+        pdid,
+      </if>
+      <if test="activitytitle != null" >
+        activitytitle,
+      </if>
+      <if test="begintime != null" >
+        begintime,
+      </if>
+      <if test="endtime != null" >
+        endtime,
+      </if>
+      <if test="salestotalnum != null" >
+        salestotalnum,
+      </if>
+      <if test="state != null" >
+        state,
+      </if>
+      <if test="buylimit != null" >
+        buylimit,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="category != null" >
+        category,
+      </if>
+      <if test="categoryid != null" >
+        categoryid,
+      </if>
+      <if test="minprice != null" >
+        minprice,
+      </if>
+      <if test="normalprice != null" >
+        normalprice,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="memberid != null" >
+        #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="username != null" >
+        #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="pdid != null" >
+        #{pdid,jdbcType=BIGINT},
+      </if>
+      <if test="activitytitle != null" >
+        #{activitytitle,jdbcType=VARCHAR},
+      </if>
+      <if test="begintime != null" >
+        #{begintime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="endtime != null" >
+        #{endtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="salestotalnum != null" >
+        #{salestotalnum,jdbcType=NUMERIC},
+      </if>
+      <if test="state != null" >
+        #{state,jdbcType=SMALLINT},
+      </if>
+      <if test="buylimit != null" >
+        #{buylimit,jdbcType=NUMERIC},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="category != null" >
+        #{category,jdbcType=VARCHAR},
+      </if>
+      <if test="categoryid != null" >
+        #{categoryid,jdbcType=BIGINT},
+      </if>
+      <if test="minprice != null" >
+        #{minprice,jdbcType=NUMERIC},
+      </if>
+      <if test="normalprice != null" >
+        #{normalprice,jdbcType=NUMERIC},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_activity.bean.LimitTimeProdExample" resultType="java.lang.Integer" >
+    select count(*) from limittimeprod
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update limittimeprod
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.memberid != null" >
+        memberid = #{record.memberid,jdbcType=BIGINT},
+      </if>
+      <if test="record.username != null" >
+        username = #{record.username,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pdid != null" >
+        pdid = #{record.pdid,jdbcType=BIGINT},
+      </if>
+      <if test="record.activitytitle != null" >
+        activitytitle = #{record.activitytitle,jdbcType=VARCHAR},
+      </if>
+      <if test="record.begintime != null" >
+        begintime = #{record.begintime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.endtime != null" >
+        endtime = #{record.endtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.salestotalnum != null" >
+        salestotalnum = #{record.salestotalnum,jdbcType=NUMERIC},
+      </if>
+      <if test="record.state != null" >
+        state = #{record.state,jdbcType=SMALLINT},
+      </if>
+      <if test="record.buylimit != null" >
+        buylimit = #{record.buylimit,jdbcType=NUMERIC},
+      </if>
+      <if test="record.remark != null" >
+        remark = #{record.remark,jdbcType=VARCHAR},
+      </if>
+      <if test="record.category != null" >
+        category = #{record.category,jdbcType=VARCHAR},
+      </if>
+      <if test="record.categoryid != null" >
+        categoryid = #{record.categoryid,jdbcType=BIGINT},
+      </if>
+      <if test="record.minprice != null" >
+        minprice = #{record.minprice,jdbcType=NUMERIC},
+      </if>
+      <if test="record.normalprice != null" >
+        normalprice = #{record.normalprice,jdbcType=NUMERIC},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update limittimeprod
+    set id = #{record.id,jdbcType=BIGINT},
+      memberid = #{record.memberid,jdbcType=BIGINT},
+      username = #{record.username,jdbcType=VARCHAR},
+      pdid = #{record.pdid,jdbcType=BIGINT},
+      activitytitle = #{record.activitytitle,jdbcType=VARCHAR},
+      begintime = #{record.begintime,jdbcType=TIMESTAMP},
+      endtime = #{record.endtime,jdbcType=TIMESTAMP},
+      salestotalnum = #{record.salestotalnum,jdbcType=NUMERIC},
+      state = #{record.state,jdbcType=SMALLINT},
+      buylimit = #{record.buylimit,jdbcType=NUMERIC},
+      remark = #{record.remark,jdbcType=VARCHAR},
+      category = #{record.category,jdbcType=VARCHAR},
+      categoryid = #{record.categoryid,jdbcType=BIGINT},
+      minprice = #{record.minprice,jdbcType=NUMERIC},
+      normalprice = #{record.normalprice,jdbcType=NUMERIC}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_activity.bean.LimitTimeProd" >
+    update limittimeprod
+    <set >
+      <if test="memberid != null" >
+        memberid = #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="username != null" >
+        username = #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="pdid != null" >
+        pdid = #{pdid,jdbcType=BIGINT},
+      </if>
+      <if test="activitytitle != null" >
+        activitytitle = #{activitytitle,jdbcType=VARCHAR},
+      </if>
+      <if test="begintime != null" >
+        begintime = #{begintime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="endtime != null" >
+        endtime = #{endtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="salestotalnum != null" >
+        salestotalnum = #{salestotalnum,jdbcType=NUMERIC},
+      </if>
+      <if test="state != null" >
+        state = #{state,jdbcType=SMALLINT},
+      </if>
+      <if test="buylimit != null" >
+        buylimit = #{buylimit,jdbcType=NUMERIC},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="category != null" >
+        category = #{category,jdbcType=VARCHAR},
+      </if>
+      <if test="categoryid != null" >
+        categoryid = #{categoryid,jdbcType=BIGINT},
+      </if>
+      <if test="minprice != null" >
+        minprice = #{minprice,jdbcType=NUMERIC},
+      </if>
+      <if test="normalprice != null" >
+        normalprice = #{normalprice,jdbcType=NUMERIC},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_activity.bean.LimitTimeProd" >
+    update limittimeprod
+    set memberid = #{memberid,jdbcType=BIGINT},
+      username = #{username,jdbcType=VARCHAR},
+      pdid = #{pdid,jdbcType=BIGINT},
+      activitytitle = #{activitytitle,jdbcType=VARCHAR},
+      begintime = #{begintime,jdbcType=TIMESTAMP},
+      endtime = #{endtime,jdbcType=TIMESTAMP},
+      salestotalnum = #{salestotalnum,jdbcType=NUMERIC},
+      state = #{state,jdbcType=SMALLINT},
+      buylimit = #{buylimit,jdbcType=NUMERIC},
+      remark = #{remark,jdbcType=VARCHAR},
+      category = #{category,jdbcType=VARCHAR},
+      categoryid = #{categoryid,jdbcType=BIGINT},
+      minprice = #{minprice,jdbcType=NUMERIC},
+      normalprice = #{normalprice,jdbcType=NUMERIC}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

@@ -1,0 +1,481 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_product.ProductStoreMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_product.bean.ProductStore" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="pdid" property="pdid" jdbcType="BIGINT" />
+    <result column="storeid" property="storeid" jdbcType="BIGINT" />
+    <result column="storename" property="storename" jdbcType="VARCHAR" />
+    <result column="stepwiseprice" property="stepwiseprice" jdbcType="BIT" />
+    <result column="prodprice" property="prodprice" jdbcType="NUMERIC" />
+    <result column="threeprice" property="threeprice" jdbcType="NUMERIC" />
+    <result column="ninetyprice" property="ninetyprice" jdbcType="NUMERIC" />
+    <result column="thirtyprice" property="thirtyprice" jdbcType="NUMERIC" />
+    <result column="sixtyprice" property="sixtyprice" jdbcType="NUMERIC" />
+    <result column="intervalprice" property="intervalprice" jdbcType="VARCHAR" />
+    <result column="marketprice" property="marketprice" jdbcType="NUMERIC" />
+    <result column="costprice" property="costprice" jdbcType="NUMERIC" />
+    <result column="storeunit" property="storeunit" jdbcType="VARCHAR" />
+    <result column="aftersale" property="aftersale" jdbcType="VARCHAR" />
+    <result column="location" property="location" jdbcType="VARCHAR" />
+    <result column="freightmode" property="freightmode" jdbcType="BIGINT" />
+    <result column="pdno" property="pdno" jdbcType="VARCHAR" />
+    <result column="pdstorenum" property="pdstorenum" jdbcType="NUMERIC" />
+    <result column="startnum" property="startnum" jdbcType="NUMERIC" />
+    <result column="weight" property="weight" jdbcType="NUMERIC" />
+    <result column="minplus" property="minplus" jdbcType="NUMERIC" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, pdid, storeid, storename, stepwiseprice, prodprice, threeprice, ninetyprice, 
+    thirtyprice, sixtyprice, intervalprice, marketprice, costprice, storeunit, aftersale, 
+    location, freightmode, pdno, pdstorenum, startnum, weight, minplus
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_product.bean.ProductStoreExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from productstore
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from productstore
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from productstore
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_product.bean.ProductStoreExample" >
+    delete from productstore
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_product.bean.ProductStore" >
+    insert into productstore (pdid, storeid,
+      storename, stepwiseprice, prodprice, 
+      threeprice, ninetyprice, thirtyprice, 
+      sixtyprice, intervalprice, marketprice, 
+      costprice, storeunit, aftersale, 
+      location, freightmode, pdno, 
+      pdstorenum, startnum, weight, 
+      minplus)
+    values ( #{pdid,jdbcType=BIGINT}, #{storeid,jdbcType=BIGINT},
+      #{storename,jdbcType=VARCHAR}, #{stepwiseprice,jdbcType=BIT}, #{prodprice,jdbcType=NUMERIC}, 
+      #{threeprice,jdbcType=NUMERIC}, #{ninetyprice,jdbcType=NUMERIC}, #{thirtyprice,jdbcType=NUMERIC}, 
+      #{sixtyprice,jdbcType=NUMERIC}, #{intervalprice,jdbcType=VARCHAR}, #{marketprice,jdbcType=NUMERIC}, 
+      #{costprice,jdbcType=NUMERIC}, #{storeunit,jdbcType=VARCHAR}, #{aftersale,jdbcType=VARCHAR}, 
+      #{location,jdbcType=VARCHAR}, #{freightmode,jdbcType=BIGINT}, #{pdno,jdbcType=VARCHAR}, 
+      #{pdstorenum,jdbcType=NUMERIC}, #{startnum,jdbcType=NUMERIC}, #{weight,jdbcType=NUMERIC}, 
+      #{minplus,jdbcType=NUMERIC})
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_product.bean.ProductStore" >
+    insert into productstore
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="pdid != null" >
+        pdid,
+      </if>
+      <if test="storeid != null" >
+        storeid,
+      </if>
+      <if test="storename != null" >
+        storename,
+      </if>
+      <if test="stepwiseprice != null" >
+        stepwiseprice,
+      </if>
+      <if test="prodprice != null" >
+        prodprice,
+      </if>
+      <if test="threeprice != null" >
+        threeprice,
+      </if>
+      <if test="ninetyprice != null" >
+        ninetyprice,
+      </if>
+      <if test="thirtyprice != null" >
+        thirtyprice,
+      </if>
+      <if test="sixtyprice != null" >
+        sixtyprice,
+      </if>
+      <if test="intervalprice != null" >
+        intervalprice,
+      </if>
+      <if test="marketprice != null" >
+        marketprice,
+      </if>
+      <if test="costprice != null" >
+        costprice,
+      </if>
+      <if test="storeunit != null" >
+        storeunit,
+      </if>
+      <if test="aftersale != null" >
+        aftersale,
+      </if>
+      <if test="location != null" >
+        location,
+      </if>
+      <if test="freightmode != null" >
+        freightmode,
+      </if>
+      <if test="pdno != null" >
+        pdno,
+      </if>
+      <if test="pdstorenum != null" >
+        pdstorenum,
+      </if>
+      <if test="startnum != null" >
+        startnum,
+      </if>
+      <if test="weight != null" >
+        weight,
+      </if>
+      <if test="minplus != null" >
+        minplus,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="pdid != null" >
+        #{pdid,jdbcType=BIGINT},
+      </if>
+      <if test="storeid != null" >
+        #{storeid,jdbcType=BIGINT},
+      </if>
+      <if test="storename != null" >
+        #{storename,jdbcType=VARCHAR},
+      </if>
+      <if test="stepwiseprice != null" >
+        #{stepwiseprice,jdbcType=BIT},
+      </if>
+      <if test="prodprice != null" >
+        #{prodprice,jdbcType=NUMERIC},
+      </if>
+      <if test="threeprice != null" >
+        #{threeprice,jdbcType=NUMERIC},
+      </if>
+      <if test="ninetyprice != null" >
+        #{ninetyprice,jdbcType=NUMERIC},
+      </if>
+      <if test="thirtyprice != null" >
+        #{thirtyprice,jdbcType=NUMERIC},
+      </if>
+      <if test="sixtyprice != null" >
+        #{sixtyprice,jdbcType=NUMERIC},
+      </if>
+      <if test="intervalprice != null" >
+        #{intervalprice,jdbcType=VARCHAR},
+      </if>
+      <if test="marketprice != null" >
+        #{marketprice,jdbcType=NUMERIC},
+      </if>
+      <if test="costprice != null" >
+        #{costprice,jdbcType=NUMERIC},
+      </if>
+      <if test="storeunit != null" >
+        #{storeunit,jdbcType=VARCHAR},
+      </if>
+      <if test="aftersale != null" >
+        #{aftersale,jdbcType=VARCHAR},
+      </if>
+      <if test="location != null" >
+        #{location,jdbcType=VARCHAR},
+      </if>
+      <if test="freightmode != null" >
+        #{freightmode,jdbcType=BIGINT},
+      </if>
+      <if test="pdno != null" >
+        #{pdno,jdbcType=VARCHAR},
+      </if>
+      <if test="pdstorenum != null" >
+        #{pdstorenum,jdbcType=NUMERIC},
+      </if>
+      <if test="startnum != null" >
+        #{startnum,jdbcType=NUMERIC},
+      </if>
+      <if test="weight != null" >
+        #{weight,jdbcType=NUMERIC},
+      </if>
+      <if test="minplus != null" >
+        #{minplus,jdbcType=NUMERIC},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_product.bean.ProductStoreExample" resultType="java.lang.Integer" >
+    select count(*) from productstore
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update productstore
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.pdid != null" >
+        pdid = #{record.pdid,jdbcType=BIGINT},
+      </if>
+      <if test="record.storeid != null" >
+        storeid = #{record.storeid,jdbcType=BIGINT},
+      </if>
+      <if test="record.storename != null" >
+        storename = #{record.storename,jdbcType=VARCHAR},
+      </if>
+      <if test="record.stepwiseprice != null" >
+        stepwiseprice = #{record.stepwiseprice,jdbcType=BIT},
+      </if>
+      <if test="record.prodprice != null" >
+        prodprice = #{record.prodprice,jdbcType=NUMERIC},
+      </if>
+      <if test="record.threeprice != null" >
+        threeprice = #{record.threeprice,jdbcType=NUMERIC},
+      </if>
+      <if test="record.ninetyprice != null" >
+        ninetyprice = #{record.ninetyprice,jdbcType=NUMERIC},
+      </if>
+      <if test="record.thirtyprice != null" >
+        thirtyprice = #{record.thirtyprice,jdbcType=NUMERIC},
+      </if>
+      <if test="record.sixtyprice != null" >
+        sixtyprice = #{record.sixtyprice,jdbcType=NUMERIC},
+      </if>
+      <if test="record.intervalprice != null" >
+        intervalprice = #{record.intervalprice,jdbcType=VARCHAR},
+      </if>
+      <if test="record.marketprice != null" >
+        marketprice = #{record.marketprice,jdbcType=NUMERIC},
+      </if>
+      <if test="record.costprice != null" >
+        costprice = #{record.costprice,jdbcType=NUMERIC},
+      </if>
+      <if test="record.storeunit != null" >
+        storeunit = #{record.storeunit,jdbcType=VARCHAR},
+      </if>
+      <if test="record.aftersale != null" >
+        aftersale = #{record.aftersale,jdbcType=VARCHAR},
+      </if>
+      <if test="record.location != null" >
+        location = #{record.location,jdbcType=VARCHAR},
+      </if>
+      <if test="record.freightmode != null" >
+        freightmode = #{record.freightmode,jdbcType=BIGINT},
+      </if>
+      <if test="record.pdno != null" >
+        pdno = #{record.pdno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pdstorenum != null" >
+        pdstorenum = #{record.pdstorenum,jdbcType=NUMERIC},
+      </if>
+      <if test="record.startnum != null" >
+        startnum = #{record.startnum,jdbcType=NUMERIC},
+      </if>
+      <if test="record.weight != null" >
+        weight = #{record.weight,jdbcType=NUMERIC},
+      </if>
+      <if test="record.minplus != null" >
+        minplus = #{record.minplus,jdbcType=NUMERIC},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update productstore
+    set id = #{record.id,jdbcType=BIGINT},
+      pdid = #{record.pdid,jdbcType=BIGINT},
+      storeid = #{record.storeid,jdbcType=BIGINT},
+      storename = #{record.storename,jdbcType=VARCHAR},
+      stepwiseprice = #{record.stepwiseprice,jdbcType=BIT},
+      prodprice = #{record.prodprice,jdbcType=NUMERIC},
+      threeprice = #{record.threeprice,jdbcType=NUMERIC},
+      ninetyprice = #{record.ninetyprice,jdbcType=NUMERIC},
+      thirtyprice = #{record.thirtyprice,jdbcType=NUMERIC},
+      sixtyprice = #{record.sixtyprice,jdbcType=NUMERIC},
+      intervalprice = #{record.intervalprice,jdbcType=VARCHAR},
+      marketprice = #{record.marketprice,jdbcType=NUMERIC},
+      costprice = #{record.costprice,jdbcType=NUMERIC},
+      storeunit = #{record.storeunit,jdbcType=VARCHAR},
+      aftersale = #{record.aftersale,jdbcType=VARCHAR},
+      location = #{record.location,jdbcType=VARCHAR},
+      freightmode = #{record.freightmode,jdbcType=BIGINT},
+      pdno = #{record.pdno,jdbcType=VARCHAR},
+      pdstorenum = #{record.pdstorenum,jdbcType=NUMERIC},
+      startnum = #{record.startnum,jdbcType=NUMERIC},
+      weight = #{record.weight,jdbcType=NUMERIC},
+      minplus = #{record.minplus,jdbcType=NUMERIC}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_product.bean.ProductStore" >
+    update productstore
+    <set >
+      <if test="pdid != null" >
+        pdid = #{pdid,jdbcType=BIGINT},
+      </if>
+      <if test="storeid != null" >
+        storeid = #{storeid,jdbcType=BIGINT},
+      </if>
+      <if test="storename != null" >
+        storename = #{storename,jdbcType=VARCHAR},
+      </if>
+      <if test="stepwiseprice != null" >
+        stepwiseprice = #{stepwiseprice,jdbcType=BIT},
+      </if>
+      <if test="prodprice != null" >
+        prodprice = #{prodprice,jdbcType=NUMERIC},
+      </if>
+      <if test="threeprice != null" >
+        threeprice = #{threeprice,jdbcType=NUMERIC},
+      </if>
+      <if test="ninetyprice != null" >
+        ninetyprice = #{ninetyprice,jdbcType=NUMERIC},
+      </if>
+      <if test="thirtyprice != null" >
+        thirtyprice = #{thirtyprice,jdbcType=NUMERIC},
+      </if>
+      <if test="sixtyprice != null" >
+        sixtyprice = #{sixtyprice,jdbcType=NUMERIC},
+      </if>
+      <if test="intervalprice != null" >
+        intervalprice = #{intervalprice,jdbcType=VARCHAR},
+      </if>
+      <if test="marketprice != null" >
+        marketprice = #{marketprice,jdbcType=NUMERIC},
+      </if>
+      <if test="costprice != null" >
+        costprice = #{costprice,jdbcType=NUMERIC},
+      </if>
+      <if test="storeunit != null" >
+        storeunit = #{storeunit,jdbcType=VARCHAR},
+      </if>
+      <if test="aftersale != null" >
+        aftersale = #{aftersale,jdbcType=VARCHAR},
+      </if>
+      <if test="location != null" >
+        location = #{location,jdbcType=VARCHAR},
+      </if>
+      <if test="freightmode != null" >
+        freightmode = #{freightmode,jdbcType=BIGINT},
+      </if>
+      <if test="pdno != null" >
+        pdno = #{pdno,jdbcType=VARCHAR},
+      </if>
+      <if test="pdstorenum != null" >
+        pdstorenum = #{pdstorenum,jdbcType=NUMERIC},
+      </if>
+      <if test="startnum != null" >
+        startnum = #{startnum,jdbcType=NUMERIC},
+      </if>
+      <if test="weight != null" >
+        weight = #{weight,jdbcType=NUMERIC},
+      </if>
+      <if test="minplus != null" >
+        minplus = #{minplus,jdbcType=NUMERIC},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_product.bean.ProductStore" >
+    update productstore
+    set pdid = #{pdid,jdbcType=BIGINT},
+      storeid = #{storeid,jdbcType=BIGINT},
+      storename = #{storename,jdbcType=VARCHAR},
+      stepwiseprice = #{stepwiseprice,jdbcType=BIT},
+      prodprice = #{prodprice,jdbcType=NUMERIC},
+      threeprice = #{threeprice,jdbcType=NUMERIC},
+      ninetyprice = #{ninetyprice,jdbcType=NUMERIC},
+      thirtyprice = #{thirtyprice,jdbcType=NUMERIC},
+      sixtyprice = #{sixtyprice,jdbcType=NUMERIC},
+      intervalprice = #{intervalprice,jdbcType=VARCHAR},
+      marketprice = #{marketprice,jdbcType=NUMERIC},
+      costprice = #{costprice,jdbcType=NUMERIC},
+      storeunit = #{storeunit,jdbcType=VARCHAR},
+      aftersale = #{aftersale,jdbcType=VARCHAR},
+      location = #{location,jdbcType=VARCHAR},
+      freightmode = #{freightmode,jdbcType=BIGINT},
+      pdno = #{pdno,jdbcType=VARCHAR},
+      pdstorenum = #{pdstorenum,jdbcType=NUMERIC},
+      startnum = #{startnum,jdbcType=NUMERIC},
+      weight = #{weight,jdbcType=NUMERIC},
+      minplus = #{minplus,jdbcType=NUMERIC}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

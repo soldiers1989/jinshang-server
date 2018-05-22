@@ -1,0 +1,831 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_company.SellerCompanyInfoMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_company.bean.SellerCompanyInfo" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="memberid" property="memberid" jdbcType="BIGINT" />
+    <result column="companyname" property="companyname" jdbcType="VARCHAR" />
+    <result column="province" property="province" jdbcType="VARCHAR" />
+    <result column="city" property="city" jdbcType="VARCHAR" />
+    <result column="citysmall" property="citysmall" jdbcType="VARCHAR" />
+    <result column="address" property="address" jdbcType="VARCHAR" />
+    <result column="email" property="email" jdbcType="VARCHAR" />
+    <result column="companytel" property="companytel" jdbcType="VARCHAR" />
+    <result column="linkman" property="linkman" jdbcType="VARCHAR" />
+    <result column="linkmantel" property="linkmantel" jdbcType="VARCHAR" />
+    <result column="employeenum" property="employeenum" jdbcType="INTEGER" />
+    <result column="regfound" property="regfound" jdbcType="INTEGER" />
+    <result column="businesslicencenumber" property="businesslicencenumber" jdbcType="VARCHAR" />
+    <result column="businesslicencenumberphoto" property="businesslicencenumberphoto" jdbcType="VARCHAR" />
+    <result column="businesslicencestart" property="businesslicencestart" jdbcType="TIMESTAMP" />
+    <result column="businesslicenceend" property="businesslicenceend" jdbcType="TIMESTAMP" />
+    <result column="businessscope" property="businessscope" jdbcType="VARCHAR" />
+    <result column="bankname" property="bankname" jdbcType="VARCHAR" />
+    <result column="bankaccount" property="bankaccount" jdbcType="VARCHAR" />
+    <result column="bankbrachname" property="bankbrachname" jdbcType="VARCHAR" />
+    <result column="bankbrachaccount" property="bankbrachaccount" jdbcType="VARCHAR" />
+    <result column="bankprovince" property="bankprovince" jdbcType="VARCHAR" />
+    <result column="bankcity" property="bankcity" jdbcType="VARCHAR" />
+    <result column="bankcitysmall" property="bankcitysmall" jdbcType="VARCHAR" />
+    <result column="bankorgnumpic" property="bankorgnumpic" jdbcType="VARCHAR" />
+    <result column="alipayname" property="alipayname" jdbcType="VARCHAR" />
+    <result column="alipayno" property="alipayno" jdbcType="VARCHAR" />
+    <result column="wxname" property="wxname" jdbcType="VARCHAR" />
+    <result column="wxno" property="wxno" jdbcType="VARCHAR" />
+    <result column="taxregistrationno" property="taxregistrationno" jdbcType="VARCHAR" />
+    <result column="taxregistrationcertificate" property="taxregistrationcertificate" jdbcType="VARCHAR" />
+    <result column="taxregistrationnopic" property="taxregistrationnopic" jdbcType="VARCHAR" />
+    <result column="createdate" property="createdate" jdbcType="TIMESTAMP" />
+    <result column="updatedate" property="updatedate" jdbcType="TIMESTAMP" />
+    <result column="validate" property="validate" jdbcType="SMALLINT" />
+    <result column="shopname" property="shopname" jdbcType="VARCHAR" />
+    <result column="businesscategory" property="businesscategory" jdbcType="ARRAY" />
+    <result column="shopgradeid" property="shopgradeid" jdbcType="INTEGER" />
+    <result column="shopperiod" property="shopperiod" jdbcType="VARCHAR" />
+    <result column="shopstate" property="shopstate" jdbcType="SMALLINT" />
+    <result column="isrecommend" property="isrecommend" jdbcType="SMALLINT" />
+    <result column="deliverymode" property="deliverymode" jdbcType="SMALLINT" />
+    <result column="smsnotify" property="smsnotify" jdbcType="SMALLINT" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, memberid, companyname, province, city, citysmall, address, email, companytel, 
+    linkman, linkmantel, employeenum, regfound, businesslicencenumber, businesslicencenumberphoto, 
+    businesslicencestart, businesslicenceend, businessscope, bankname, bankaccount, bankbrachname, 
+    bankbrachaccount, bankprovince, bankcity, bankcitysmall, bankorgnumpic, alipayname, 
+    alipayno, wxname, wxno, taxregistrationno, taxregistrationcertificate, taxregistrationnopic, 
+    createdate, updatedate, validate, shopname, businesscategory, shopgradeid, shopperiod, 
+    shopstate, isrecommend, deliverymode, smsnotify
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_company.bean.SellerCompanyInfoExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from sellercompanyinfo
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from sellercompanyinfo
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from sellercompanyinfo
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_company.bean.SellerCompanyInfoExample" >
+    delete from sellercompanyinfo
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_company.bean.SellerCompanyInfo" >
+    insert into sellercompanyinfo ( memberid, companyname,
+      province, city, citysmall, 
+      address, email, companytel, 
+      linkman, linkmantel, employeenum, 
+      regfound, businesslicencenumber, businesslicencenumberphoto, 
+      businesslicencestart, businesslicenceend, 
+      businessscope, bankname, bankaccount, 
+      bankbrachname, bankbrachaccount, bankprovince, 
+      bankcity, bankcitysmall, bankorgnumpic, 
+      alipayname, alipayno, wxname, 
+      wxno, taxregistrationno, taxregistrationcertificate, 
+      taxregistrationnopic, createdate, updatedate, 
+      validate, shopname, businesscategory, 
+      shopgradeid, shopperiod, shopstate, 
+      isrecommend, deliverymode, smsnotify
+      )
+    values ( #{memberid,jdbcType=BIGINT}, #{companyname,jdbcType=VARCHAR},
+      #{province,jdbcType=VARCHAR}, #{city,jdbcType=VARCHAR}, #{citysmall,jdbcType=VARCHAR}, 
+      #{address,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{companytel,jdbcType=VARCHAR}, 
+      #{linkman,jdbcType=VARCHAR}, #{linkmantel,jdbcType=VARCHAR}, #{employeenum,jdbcType=INTEGER}, 
+      #{regfound,jdbcType=INTEGER}, #{businesslicencenumber,jdbcType=VARCHAR}, #{businesslicencenumberphoto,jdbcType=VARCHAR}, 
+      #{businesslicencestart,jdbcType=TIMESTAMP}, #{businesslicenceend,jdbcType=TIMESTAMP}, 
+      #{businessscope,jdbcType=VARCHAR}, #{bankname,jdbcType=VARCHAR}, #{bankaccount,jdbcType=VARCHAR}, 
+      #{bankbrachname,jdbcType=VARCHAR}, #{bankbrachaccount,jdbcType=VARCHAR}, #{bankprovince,jdbcType=VARCHAR}, 
+      #{bankcity,jdbcType=VARCHAR}, #{bankcitysmall,jdbcType=VARCHAR}, #{bankorgnumpic,jdbcType=VARCHAR}, 
+      #{alipayname,jdbcType=VARCHAR}, #{alipayno,jdbcType=VARCHAR}, #{wxname,jdbcType=VARCHAR}, 
+      #{wxno,jdbcType=VARCHAR}, #{taxregistrationno,jdbcType=VARCHAR}, #{taxregistrationcertificate,jdbcType=VARCHAR}, 
+      #{taxregistrationnopic,jdbcType=VARCHAR}, #{createdate,jdbcType=TIMESTAMP}, #{updatedate,jdbcType=TIMESTAMP}, 
+      #{validate,jdbcType=SMALLINT}, #{shopname,jdbcType=VARCHAR}, #{businesscategory,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+      #{shopgradeid,jdbcType=INTEGER}, #{shopperiod,jdbcType=VARCHAR}, #{shopstate,jdbcType=SMALLINT}, 
+      #{isrecommend,jdbcType=SMALLINT}, #{deliverymode,jdbcType=SMALLINT}, #{smsnotify,jdbcType=SMALLINT}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_company.bean.SellerCompanyInfo" >
+    insert into sellercompanyinfo
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="memberid != null" >
+        memberid,
+      </if>
+      <if test="companyname != null" >
+        companyname,
+      </if>
+      <if test="province != null" >
+        province,
+      </if>
+      <if test="city != null" >
+        city,
+      </if>
+      <if test="citysmall != null" >
+        citysmall,
+      </if>
+      <if test="address != null" >
+        address,
+      </if>
+      <if test="email != null" >
+        email,
+      </if>
+      <if test="companytel != null" >
+        companytel,
+      </if>
+      <if test="linkman != null" >
+        linkman,
+      </if>
+      <if test="linkmantel != null" >
+        linkmantel,
+      </if>
+      <if test="employeenum != null" >
+        employeenum,
+      </if>
+      <if test="regfound != null" >
+        regfound,
+      </if>
+      <if test="businesslicencenumber != null" >
+        businesslicencenumber,
+      </if>
+      <if test="businesslicencenumberphoto != null" >
+        businesslicencenumberphoto,
+      </if>
+      <if test="businesslicencestart != null" >
+        businesslicencestart,
+      </if>
+      <if test="businesslicenceend != null" >
+        businesslicenceend,
+      </if>
+      <if test="businessscope != null" >
+        businessscope,
+      </if>
+      <if test="bankname != null" >
+        bankname,
+      </if>
+      <if test="bankaccount != null" >
+        bankaccount,
+      </if>
+      <if test="bankbrachname != null" >
+        bankbrachname,
+      </if>
+      <if test="bankbrachaccount != null" >
+        bankbrachaccount,
+      </if>
+      <if test="bankprovince != null" >
+        bankprovince,
+      </if>
+      <if test="bankcity != null" >
+        bankcity,
+      </if>
+      <if test="bankcitysmall != null" >
+        bankcitysmall,
+      </if>
+      <if test="bankorgnumpic != null" >
+        bankorgnumpic,
+      </if>
+      <if test="alipayname != null" >
+        alipayname,
+      </if>
+      <if test="alipayno != null" >
+        alipayno,
+      </if>
+      <if test="wxname != null" >
+        wxname,
+      </if>
+      <if test="wxno != null" >
+        wxno,
+      </if>
+      <if test="taxregistrationno != null" >
+        taxregistrationno,
+      </if>
+      <if test="taxregistrationcertificate != null" >
+        taxregistrationcertificate,
+      </if>
+      <if test="taxregistrationnopic != null" >
+        taxregistrationnopic,
+      </if>
+      <if test="createdate != null" >
+        createdate,
+      </if>
+      <if test="updatedate != null" >
+        updatedate,
+      </if>
+      <if test="validate != null" >
+        validate,
+      </if>
+      <if test="shopname != null" >
+        shopname,
+      </if>
+      <if test="businesscategory != null" >
+        businesscategory,
+      </if>
+      <if test="shopgradeid != null" >
+        shopgradeid,
+      </if>
+      <if test="shopperiod != null" >
+        shopperiod,
+      </if>
+      <if test="shopstate != null" >
+        shopstate,
+      </if>
+      <if test="isrecommend != null" >
+        isrecommend,
+      </if>
+      <if test="deliverymode != null" >
+        deliverymode,
+      </if>
+      <if test="smsnotify != null" >
+        smsnotify,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="memberid != null" >
+        #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="companyname != null" >
+        #{companyname,jdbcType=VARCHAR},
+      </if>
+      <if test="province != null" >
+        #{province,jdbcType=VARCHAR},
+      </if>
+      <if test="city != null" >
+        #{city,jdbcType=VARCHAR},
+      </if>
+      <if test="citysmall != null" >
+        #{citysmall,jdbcType=VARCHAR},
+      </if>
+      <if test="address != null" >
+        #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="email != null" >
+        #{email,jdbcType=VARCHAR},
+      </if>
+      <if test="companytel != null" >
+        #{companytel,jdbcType=VARCHAR},
+      </if>
+      <if test="linkman != null" >
+        #{linkman,jdbcType=VARCHAR},
+      </if>
+      <if test="linkmantel != null" >
+        #{linkmantel,jdbcType=VARCHAR},
+      </if>
+      <if test="employeenum != null" >
+        #{employeenum,jdbcType=INTEGER},
+      </if>
+      <if test="regfound != null" >
+        #{regfound,jdbcType=INTEGER},
+      </if>
+      <if test="businesslicencenumber != null" >
+        #{businesslicencenumber,jdbcType=VARCHAR},
+      </if>
+      <if test="businesslicencenumberphoto != null" >
+        #{businesslicencenumberphoto,jdbcType=VARCHAR},
+      </if>
+      <if test="businesslicencestart != null" >
+        #{businesslicencestart,jdbcType=TIMESTAMP},
+      </if>
+      <if test="businesslicenceend != null" >
+        #{businesslicenceend,jdbcType=TIMESTAMP},
+      </if>
+      <if test="businessscope != null" >
+        #{businessscope,jdbcType=VARCHAR},
+      </if>
+      <if test="bankname != null" >
+        #{bankname,jdbcType=VARCHAR},
+      </if>
+      <if test="bankaccount != null" >
+        #{bankaccount,jdbcType=VARCHAR},
+      </if>
+      <if test="bankbrachname != null" >
+        #{bankbrachname,jdbcType=VARCHAR},
+      </if>
+      <if test="bankbrachaccount != null" >
+        #{bankbrachaccount,jdbcType=VARCHAR},
+      </if>
+      <if test="bankprovince != null" >
+        #{bankprovince,jdbcType=VARCHAR},
+      </if>
+      <if test="bankcity != null" >
+        #{bankcity,jdbcType=VARCHAR},
+      </if>
+      <if test="bankcitysmall != null" >
+        #{bankcitysmall,jdbcType=VARCHAR},
+      </if>
+      <if test="bankorgnumpic != null" >
+        #{bankorgnumpic,jdbcType=VARCHAR},
+      </if>
+      <if test="alipayname != null" >
+        #{alipayname,jdbcType=VARCHAR},
+      </if>
+      <if test="alipayno != null" >
+        #{alipayno,jdbcType=VARCHAR},
+      </if>
+      <if test="wxname != null" >
+        #{wxname,jdbcType=VARCHAR},
+      </if>
+      <if test="wxno != null" >
+        #{wxno,jdbcType=VARCHAR},
+      </if>
+      <if test="taxregistrationno != null" >
+        #{taxregistrationno,jdbcType=VARCHAR},
+      </if>
+      <if test="taxregistrationcertificate != null" >
+        #{taxregistrationcertificate,jdbcType=VARCHAR},
+      </if>
+      <if test="taxregistrationnopic != null" >
+        #{taxregistrationnopic,jdbcType=VARCHAR},
+      </if>
+      <if test="createdate != null" >
+        #{createdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedate != null" >
+        #{updatedate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="validate != null" >
+        #{validate,jdbcType=SMALLINT},
+      </if>
+      <if test="shopname != null" >
+        #{shopname,jdbcType=VARCHAR},
+      </if>
+      <if test="businesscategory != null" >
+        #{businesscategory,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+      </if>
+      <if test="shopgradeid != null" >
+        #{shopgradeid,jdbcType=INTEGER},
+      </if>
+      <if test="shopperiod != null" >
+        #{shopperiod,jdbcType=VARCHAR},
+      </if>
+      <if test="shopstate != null" >
+        #{shopstate,jdbcType=SMALLINT},
+      </if>
+      <if test="isrecommend != null" >
+        #{isrecommend,jdbcType=SMALLINT},
+      </if>
+      <if test="deliverymode != null" >
+        #{deliverymode,jdbcType=SMALLINT},
+      </if>
+      <if test="smsnotify != null" >
+        #{smsnotify,jdbcType=SMALLINT},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_company.bean.SellerCompanyInfoExample" resultType="java.lang.Integer" >
+    select count(*) from sellercompanyinfo
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update sellercompanyinfo
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.memberid != null" >
+        memberid = #{record.memberid,jdbcType=BIGINT},
+      </if>
+      <if test="record.companyname != null" >
+        companyname = #{record.companyname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.province != null" >
+        province = #{record.province,jdbcType=VARCHAR},
+      </if>
+      <if test="record.city != null" >
+        city = #{record.city,jdbcType=VARCHAR},
+      </if>
+      <if test="record.citysmall != null" >
+        citysmall = #{record.citysmall,jdbcType=VARCHAR},
+      </if>
+      <if test="record.address != null" >
+        address = #{record.address,jdbcType=VARCHAR},
+      </if>
+      <if test="record.email != null" >
+        email = #{record.email,jdbcType=VARCHAR},
+      </if>
+      <if test="record.companytel != null" >
+        companytel = #{record.companytel,jdbcType=VARCHAR},
+      </if>
+      <if test="record.linkman != null" >
+        linkman = #{record.linkman,jdbcType=VARCHAR},
+      </if>
+      <if test="record.linkmantel != null" >
+        linkmantel = #{record.linkmantel,jdbcType=VARCHAR},
+      </if>
+      <if test="record.employeenum != null" >
+        employeenum = #{record.employeenum,jdbcType=INTEGER},
+      </if>
+      <if test="record.regfound != null" >
+        regfound = #{record.regfound,jdbcType=INTEGER},
+      </if>
+      <if test="record.businesslicencenumber != null" >
+        businesslicencenumber = #{record.businesslicencenumber,jdbcType=VARCHAR},
+      </if>
+      <if test="record.businesslicencenumberphoto != null" >
+        businesslicencenumberphoto = #{record.businesslicencenumberphoto,jdbcType=VARCHAR},
+      </if>
+      <if test="record.businesslicencestart != null" >
+        businesslicencestart = #{record.businesslicencestart,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.businesslicenceend != null" >
+        businesslicenceend = #{record.businesslicenceend,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.businessscope != null" >
+        businessscope = #{record.businessscope,jdbcType=VARCHAR},
+      </if>
+      <if test="record.bankname != null" >
+        bankname = #{record.bankname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.bankaccount != null" >
+        bankaccount = #{record.bankaccount,jdbcType=VARCHAR},
+      </if>
+      <if test="record.bankbrachname != null" >
+        bankbrachname = #{record.bankbrachname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.bankbrachaccount != null" >
+        bankbrachaccount = #{record.bankbrachaccount,jdbcType=VARCHAR},
+      </if>
+      <if test="record.bankprovince != null" >
+        bankprovince = #{record.bankprovince,jdbcType=VARCHAR},
+      </if>
+      <if test="record.bankcity != null" >
+        bankcity = #{record.bankcity,jdbcType=VARCHAR},
+      </if>
+      <if test="record.bankcitysmall != null" >
+        bankcitysmall = #{record.bankcitysmall,jdbcType=VARCHAR},
+      </if>
+      <if test="record.bankorgnumpic != null" >
+        bankorgnumpic = #{record.bankorgnumpic,jdbcType=VARCHAR},
+      </if>
+      <if test="record.alipayname != null" >
+        alipayname = #{record.alipayname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.alipayno != null" >
+        alipayno = #{record.alipayno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.wxname != null" >
+        wxname = #{record.wxname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.wxno != null" >
+        wxno = #{record.wxno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.taxregistrationno != null" >
+        taxregistrationno = #{record.taxregistrationno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.taxregistrationcertificate != null" >
+        taxregistrationcertificate = #{record.taxregistrationcertificate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.taxregistrationnopic != null" >
+        taxregistrationnopic = #{record.taxregistrationnopic,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createdate != null" >
+        createdate = #{record.createdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updatedate != null" >
+        updatedate = #{record.updatedate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.validate != null" >
+        validate = #{record.validate,jdbcType=SMALLINT},
+      </if>
+      <if test="record.shopname != null" >
+        shopname = #{record.shopname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.businesscategory != null" >
+        businesscategory = #{record.businesscategory,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+      </if>
+      <if test="record.shopgradeid != null" >
+        shopgradeid = #{record.shopgradeid,jdbcType=INTEGER},
+      </if>
+      <if test="record.shopperiod != null" >
+        shopperiod = #{record.shopperiod,jdbcType=VARCHAR},
+      </if>
+      <if test="record.shopstate != null" >
+        shopstate = #{record.shopstate,jdbcType=SMALLINT},
+      </if>
+      <if test="record.isrecommend != null" >
+        isrecommend = #{record.isrecommend,jdbcType=SMALLINT},
+      </if>
+      <if test="record.deliverymode != null" >
+        deliverymode = #{record.deliverymode,jdbcType=SMALLINT},
+      </if>
+      <if test="record.smsnotify != null" >
+        smsnotify = #{record.smsnotify,jdbcType=SMALLINT},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update sellercompanyinfo
+    set id = #{record.id,jdbcType=BIGINT},
+      memberid = #{record.memberid,jdbcType=BIGINT},
+      companyname = #{record.companyname,jdbcType=VARCHAR},
+      province = #{record.province,jdbcType=VARCHAR},
+      city = #{record.city,jdbcType=VARCHAR},
+      citysmall = #{record.citysmall,jdbcType=VARCHAR},
+      address = #{record.address,jdbcType=VARCHAR},
+      email = #{record.email,jdbcType=VARCHAR},
+      companytel = #{record.companytel,jdbcType=VARCHAR},
+      linkman = #{record.linkman,jdbcType=VARCHAR},
+      linkmantel = #{record.linkmantel,jdbcType=VARCHAR},
+      employeenum = #{record.employeenum,jdbcType=INTEGER},
+      regfound = #{record.regfound,jdbcType=INTEGER},
+      businesslicencenumber = #{record.businesslicencenumber,jdbcType=VARCHAR},
+      businesslicencenumberphoto = #{record.businesslicencenumberphoto,jdbcType=VARCHAR},
+      businesslicencestart = #{record.businesslicencestart,jdbcType=TIMESTAMP},
+      businesslicenceend = #{record.businesslicenceend,jdbcType=TIMESTAMP},
+      businessscope = #{record.businessscope,jdbcType=VARCHAR},
+      bankname = #{record.bankname,jdbcType=VARCHAR},
+      bankaccount = #{record.bankaccount,jdbcType=VARCHAR},
+      bankbrachname = #{record.bankbrachname,jdbcType=VARCHAR},
+      bankbrachaccount = #{record.bankbrachaccount,jdbcType=VARCHAR},
+      bankprovince = #{record.bankprovince,jdbcType=VARCHAR},
+      bankcity = #{record.bankcity,jdbcType=VARCHAR},
+      bankcitysmall = #{record.bankcitysmall,jdbcType=VARCHAR},
+      bankorgnumpic = #{record.bankorgnumpic,jdbcType=VARCHAR},
+      alipayname = #{record.alipayname,jdbcType=VARCHAR},
+      alipayno = #{record.alipayno,jdbcType=VARCHAR},
+      wxname = #{record.wxname,jdbcType=VARCHAR},
+      wxno = #{record.wxno,jdbcType=VARCHAR},
+      taxregistrationno = #{record.taxregistrationno,jdbcType=VARCHAR},
+      taxregistrationcertificate = #{record.taxregistrationcertificate,jdbcType=VARCHAR},
+      taxregistrationnopic = #{record.taxregistrationnopic,jdbcType=VARCHAR},
+      createdate = #{record.createdate,jdbcType=TIMESTAMP},
+      updatedate = #{record.updatedate,jdbcType=TIMESTAMP},
+      validate = #{record.validate,jdbcType=SMALLINT},
+      shopname = #{record.shopname,jdbcType=VARCHAR},
+      businesscategory = #{record.businesscategory,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+      shopgradeid = #{record.shopgradeid,jdbcType=INTEGER},
+      shopperiod = #{record.shopperiod,jdbcType=VARCHAR},
+      shopstate = #{record.shopstate,jdbcType=SMALLINT},
+      isrecommend = #{record.isrecommend,jdbcType=SMALLINT},
+      deliverymode = #{record.deliverymode,jdbcType=SMALLINT},
+      smsnotify = #{record.smsnotify,jdbcType=SMALLINT}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_company.bean.SellerCompanyInfo" >
+    update sellercompanyinfo
+    <set >
+      <if test="memberid != null" >
+        memberid = #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="companyname != null" >
+        companyname = #{companyname,jdbcType=VARCHAR},
+      </if>
+      <if test="province != null" >
+        province = #{province,jdbcType=VARCHAR},
+      </if>
+      <if test="city != null" >
+        city = #{city,jdbcType=VARCHAR},
+      </if>
+      <if test="citysmall != null" >
+        citysmall = #{citysmall,jdbcType=VARCHAR},
+      </if>
+      <if test="address != null" >
+        address = #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="email != null" >
+        email = #{email,jdbcType=VARCHAR},
+      </if>
+      <if test="companytel != null" >
+        companytel = #{companytel,jdbcType=VARCHAR},
+      </if>
+      <if test="linkman != null" >
+        linkman = #{linkman,jdbcType=VARCHAR},
+      </if>
+      <if test="linkmantel != null" >
+        linkmantel = #{linkmantel,jdbcType=VARCHAR},
+      </if>
+      <if test="employeenum != null" >
+        employeenum = #{employeenum,jdbcType=INTEGER},
+      </if>
+      <if test="regfound != null" >
+        regfound = #{regfound,jdbcType=INTEGER},
+      </if>
+      <if test="businesslicencenumber != null" >
+        businesslicencenumber = #{businesslicencenumber,jdbcType=VARCHAR},
+      </if>
+      <if test="businesslicencenumberphoto != null" >
+        businesslicencenumberphoto = #{businesslicencenumberphoto,jdbcType=VARCHAR},
+      </if>
+      <if test="businesslicencestart != null" >
+        businesslicencestart = #{businesslicencestart,jdbcType=TIMESTAMP},
+      </if>
+      <if test="businesslicenceend != null" >
+        businesslicenceend = #{businesslicenceend,jdbcType=TIMESTAMP},
+      </if>
+      <if test="businessscope != null" >
+        businessscope = #{businessscope,jdbcType=VARCHAR},
+      </if>
+      <if test="bankname != null" >
+        bankname = #{bankname,jdbcType=VARCHAR},
+      </if>
+      <if test="bankaccount != null" >
+        bankaccount = #{bankaccount,jdbcType=VARCHAR},
+      </if>
+      <if test="bankbrachname != null" >
+        bankbrachname = #{bankbrachname,jdbcType=VARCHAR},
+      </if>
+      <if test="bankbrachaccount != null" >
+        bankbrachaccount = #{bankbrachaccount,jdbcType=VARCHAR},
+      </if>
+      <if test="bankprovince != null" >
+        bankprovince = #{bankprovince,jdbcType=VARCHAR},
+      </if>
+      <if test="bankcity != null" >
+        bankcity = #{bankcity,jdbcType=VARCHAR},
+      </if>
+      <if test="bankcitysmall != null" >
+        bankcitysmall = #{bankcitysmall,jdbcType=VARCHAR},
+      </if>
+      <if test="bankorgnumpic != null" >
+        bankorgnumpic = #{bankorgnumpic,jdbcType=VARCHAR},
+      </if>
+      <if test="alipayname != null" >
+        alipayname = #{alipayname,jdbcType=VARCHAR},
+      </if>
+      <if test="alipayno != null" >
+        alipayno = #{alipayno,jdbcType=VARCHAR},
+      </if>
+      <if test="wxname != null" >
+        wxname = #{wxname,jdbcType=VARCHAR},
+      </if>
+      <if test="wxno != null" >
+        wxno = #{wxno,jdbcType=VARCHAR},
+      </if>
+      <if test="taxregistrationno != null" >
+        taxregistrationno = #{taxregistrationno,jdbcType=VARCHAR},
+      </if>
+      <if test="taxregistrationcertificate != null" >
+        taxregistrationcertificate = #{taxregistrationcertificate,jdbcType=VARCHAR},
+      </if>
+      <if test="taxregistrationnopic != null" >
+        taxregistrationnopic = #{taxregistrationnopic,jdbcType=VARCHAR},
+      </if>
+      <if test="createdate != null" >
+        createdate = #{createdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedate != null" >
+        updatedate = #{updatedate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="validate != null" >
+        validate = #{validate,jdbcType=SMALLINT},
+      </if>
+      <if test="shopname != null" >
+        shopname = #{shopname,jdbcType=VARCHAR},
+      </if>
+      <if test="businesscategory != null" >
+        businesscategory = #{businesscategory,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+      </if>
+      <if test="shopgradeid != null" >
+        shopgradeid = #{shopgradeid,jdbcType=INTEGER},
+      </if>
+      <if test="shopperiod != null" >
+        shopperiod = #{shopperiod,jdbcType=VARCHAR},
+      </if>
+      <if test="shopstate != null" >
+        shopstate = #{shopstate,jdbcType=SMALLINT},
+      </if>
+      <if test="isrecommend != null" >
+        isrecommend = #{isrecommend,jdbcType=SMALLINT},
+      </if>
+      <if test="deliverymode != null" >
+        deliverymode = #{deliverymode,jdbcType=SMALLINT},
+      </if>
+      <if test="smsnotify != null" >
+        smsnotify = #{smsnotify,jdbcType=SMALLINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_company.bean.SellerCompanyInfo" >
+    update sellercompanyinfo
+    set memberid = #{memberid,jdbcType=BIGINT},
+      companyname = #{companyname,jdbcType=VARCHAR},
+      province = #{province,jdbcType=VARCHAR},
+      city = #{city,jdbcType=VARCHAR},
+      citysmall = #{citysmall,jdbcType=VARCHAR},
+      address = #{address,jdbcType=VARCHAR},
+      email = #{email,jdbcType=VARCHAR},
+      companytel = #{companytel,jdbcType=VARCHAR},
+      linkman = #{linkman,jdbcType=VARCHAR},
+      linkmantel = #{linkmantel,jdbcType=VARCHAR},
+      employeenum = #{employeenum,jdbcType=INTEGER},
+      regfound = #{regfound,jdbcType=INTEGER},
+      businesslicencenumber = #{businesslicencenumber,jdbcType=VARCHAR},
+      businesslicencenumberphoto = #{businesslicencenumberphoto,jdbcType=VARCHAR},
+      businesslicencestart = #{businesslicencestart,jdbcType=TIMESTAMP},
+      businesslicenceend = #{businesslicenceend,jdbcType=TIMESTAMP},
+      businessscope = #{businessscope,jdbcType=VARCHAR},
+      bankname = #{bankname,jdbcType=VARCHAR},
+      bankaccount = #{bankaccount,jdbcType=VARCHAR},
+      bankbrachname = #{bankbrachname,jdbcType=VARCHAR},
+      bankbrachaccount = #{bankbrachaccount,jdbcType=VARCHAR},
+      bankprovince = #{bankprovince,jdbcType=VARCHAR},
+      bankcity = #{bankcity,jdbcType=VARCHAR},
+      bankcitysmall = #{bankcitysmall,jdbcType=VARCHAR},
+      bankorgnumpic = #{bankorgnumpic,jdbcType=VARCHAR},
+      alipayname = #{alipayname,jdbcType=VARCHAR},
+      alipayno = #{alipayno,jdbcType=VARCHAR},
+      wxname = #{wxname,jdbcType=VARCHAR},
+      wxno = #{wxno,jdbcType=VARCHAR},
+      taxregistrationno = #{taxregistrationno,jdbcType=VARCHAR},
+      taxregistrationcertificate = #{taxregistrationcertificate,jdbcType=VARCHAR},
+      taxregistrationnopic = #{taxregistrationnopic,jdbcType=VARCHAR},
+      createdate = #{createdate,jdbcType=TIMESTAMP},
+      updatedate = #{updatedate,jdbcType=TIMESTAMP},
+      validate = #{validate,jdbcType=SMALLINT},
+      shopname = #{shopname,jdbcType=VARCHAR},
+      businesscategory = #{businesscategory,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+      shopgradeid = #{shopgradeid,jdbcType=INTEGER},
+      shopperiod = #{shopperiod,jdbcType=VARCHAR},
+      shopstate = #{shopstate,jdbcType=SMALLINT},
+      isrecommend = #{isrecommend,jdbcType=SMALLINT},
+      deliverymode = #{deliverymode,jdbcType=SMALLINT},
+      smsnotify = #{smsnotify,jdbcType=SMALLINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

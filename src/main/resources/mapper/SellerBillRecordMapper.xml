@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_product.SellerBillRecordMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_product.bean.SellerBillRecord" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="money" property="money" jdbcType="NUMERIC" />
+    <result column="billtype" property="billtype" jdbcType="VARCHAR" />
+    <result column="billtitle" property="billtitle" jdbcType="VARCHAR" />
+    <result column="texno" property="texno" jdbcType="VARCHAR" />
+    <result column="billno" property="billno" jdbcType="VARCHAR" />
+    <result column="diliverycompany" property="diliverycompany" jdbcType="VARCHAR" />
+    <result column="diliveryno" property="diliveryno" jdbcType="VARCHAR" />
+    <result column="sellerid" property="sellerid" jdbcType="BIGINT" />
+    <result column="sellername" property="sellername" jdbcType="VARCHAR" />
+    <result column="applytime" property="applytime" jdbcType="TIMESTAMP" />
+    <result column="state" property="state" jdbcType="SMALLINT" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, money, billtype, billtitle, texno, billno, diliverycompany, diliveryno, sellerid, 
+    sellername, applytime, state
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_product.bean.SellerBillRecordExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from sellerbillrecord
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from sellerbillrecord
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from sellerbillrecord
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_product.bean.SellerBillRecordExample" >
+    delete from sellerbillrecord
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_product.bean.SellerBillRecord" >
+    insert into sellerbillrecord (id, money, billtype, 
+      billtitle, texno, billno, 
+      diliverycompany, diliveryno, sellerid, 
+      sellername, applytime, state
+      )
+    values (#{id,jdbcType=BIGINT}, #{money,jdbcType=NUMERIC}, #{billtype,jdbcType=VARCHAR}, 
+      #{billtitle,jdbcType=VARCHAR}, #{texno,jdbcType=VARCHAR}, #{billno,jdbcType=VARCHAR}, 
+      #{diliverycompany,jdbcType=VARCHAR}, #{diliveryno,jdbcType=VARCHAR}, #{sellerid,jdbcType=BIGINT}, 
+      #{sellername,jdbcType=VARCHAR}, #{applytime,jdbcType=TIMESTAMP}, #{state,jdbcType=SMALLINT}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_product.bean.SellerBillRecord" useGeneratedKeys="true" keyProperty="id">
+    insert into sellerbillrecord
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="money != null" >
+        money,
+      </if>
+      <if test="billtype != null" >
+        billtype,
+      </if>
+      <if test="billtitle != null" >
+        billtitle,
+      </if>
+      <if test="texno != null" >
+        texno,
+      </if>
+      <if test="billno != null" >
+        billno,
+      </if>
+      <if test="diliverycompany != null" >
+        diliverycompany,
+      </if>
+      <if test="diliveryno != null" >
+        diliveryno,
+      </if>
+      <if test="sellerid != null" >
+        sellerid,
+      </if>
+      <if test="sellername != null" >
+        sellername,
+      </if>
+      <if test="applytime != null" >
+        applytime,
+      </if>
+      <if test="state != null" >
+        state,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="money != null" >
+        #{money,jdbcType=NUMERIC},
+      </if>
+      <if test="billtype != null" >
+        #{billtype,jdbcType=VARCHAR},
+      </if>
+      <if test="billtitle != null" >
+        #{billtitle,jdbcType=VARCHAR},
+      </if>
+      <if test="texno != null" >
+        #{texno,jdbcType=VARCHAR},
+      </if>
+      <if test="billno != null" >
+        #{billno,jdbcType=VARCHAR},
+      </if>
+      <if test="diliverycompany != null" >
+        #{diliverycompany,jdbcType=VARCHAR},
+      </if>
+      <if test="diliveryno != null" >
+        #{diliveryno,jdbcType=VARCHAR},
+      </if>
+      <if test="sellerid != null" >
+        #{sellerid,jdbcType=BIGINT},
+      </if>
+      <if test="sellername != null" >
+        #{sellername,jdbcType=VARCHAR},
+      </if>
+      <if test="applytime != null" >
+        #{applytime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="state != null" >
+        #{state,jdbcType=SMALLINT},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_product.bean.SellerBillRecordExample" resultType="java.lang.Integer" >
+    select count(*) from sellerbillrecord
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update sellerbillrecord
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.money != null" >
+        money = #{record.money,jdbcType=NUMERIC},
+      </if>
+      <if test="record.billtype != null" >
+        billtype = #{record.billtype,jdbcType=VARCHAR},
+      </if>
+      <if test="record.billtitle != null" >
+        billtitle = #{record.billtitle,jdbcType=VARCHAR},
+      </if>
+      <if test="record.texno != null" >
+        texno = #{record.texno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.billno != null" >
+        billno = #{record.billno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.diliverycompany != null" >
+        diliverycompany = #{record.diliverycompany,jdbcType=VARCHAR},
+      </if>
+      <if test="record.diliveryno != null" >
+        diliveryno = #{record.diliveryno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.sellerid != null" >
+        sellerid = #{record.sellerid,jdbcType=BIGINT},
+      </if>
+      <if test="record.sellername != null" >
+        sellername = #{record.sellername,jdbcType=VARCHAR},
+      </if>
+      <if test="record.applytime != null" >
+        applytime = #{record.applytime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.state != null" >
+        state = #{record.state,jdbcType=SMALLINT},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update sellerbillrecord
+    set id = #{record.id,jdbcType=BIGINT},
+      money = #{record.money,jdbcType=NUMERIC},
+      billtype = #{record.billtype,jdbcType=VARCHAR},
+      billtitle = #{record.billtitle,jdbcType=VARCHAR},
+      texno = #{record.texno,jdbcType=VARCHAR},
+      billno = #{record.billno,jdbcType=VARCHAR},
+      diliverycompany = #{record.diliverycompany,jdbcType=VARCHAR},
+      diliveryno = #{record.diliveryno,jdbcType=VARCHAR},
+      sellerid = #{record.sellerid,jdbcType=BIGINT},
+      sellername = #{record.sellername,jdbcType=VARCHAR},
+      applytime = #{record.applytime,jdbcType=TIMESTAMP},
+      state = #{record.state,jdbcType=SMALLINT}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_product.bean.SellerBillRecord" >
+    update sellerbillrecord
+    <set >
+      <if test="money != null" >
+        money = #{money,jdbcType=NUMERIC},
+      </if>
+      <if test="billtype != null" >
+        billtype = #{billtype,jdbcType=VARCHAR},
+      </if>
+      <if test="billtitle != null" >
+        billtitle = #{billtitle,jdbcType=VARCHAR},
+      </if>
+      <if test="texno != null" >
+        texno = #{texno,jdbcType=VARCHAR},
+      </if>
+      <if test="billno != null" >
+        billno = #{billno,jdbcType=VARCHAR},
+      </if>
+      <if test="diliverycompany != null" >
+        diliverycompany = #{diliverycompany,jdbcType=VARCHAR},
+      </if>
+      <if test="diliveryno != null" >
+        diliveryno = #{diliveryno,jdbcType=VARCHAR},
+      </if>
+      <if test="sellerid != null" >
+        sellerid = #{sellerid,jdbcType=BIGINT},
+      </if>
+      <if test="sellername != null" >
+        sellername = #{sellername,jdbcType=VARCHAR},
+      </if>
+      <if test="applytime != null" >
+        applytime = #{applytime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="state != null" >
+        state = #{state,jdbcType=SMALLINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_product.bean.SellerBillRecord" >
+    update sellerbillrecord
+    set money = #{money,jdbcType=NUMERIC},
+      billtype = #{billtype,jdbcType=VARCHAR},
+      billtitle = #{billtitle,jdbcType=VARCHAR},
+      texno = #{texno,jdbcType=VARCHAR},
+      billno = #{billno,jdbcType=VARCHAR},
+      diliverycompany = #{diliverycompany,jdbcType=VARCHAR},
+      diliveryno = #{diliveryno,jdbcType=VARCHAR},
+      sellerid = #{sellerid,jdbcType=BIGINT},
+      sellername = #{sellername,jdbcType=VARCHAR},
+      applytime = #{applytime,jdbcType=TIMESTAMP},
+      state = #{state,jdbcType=SMALLINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

@@ -1,0 +1,496 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_product.BillingRecordMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_product.bean.BillingRecord" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="invoiceheadup" property="invoiceheadup" jdbcType="VARCHAR" />
+    <result column="texno" property="texno" jdbcType="VARCHAR" />
+    <result column="bankofaccounts" property="bankofaccounts" jdbcType="VARCHAR" />
+    <result column="account" property="account" jdbcType="VARCHAR" />
+    <result column="phone" property="phone" jdbcType="CHAR" />
+    <result column="address" property="address" jdbcType="VARCHAR" />
+    <result column="expressno" property="expressno" jdbcType="VARCHAR" />
+    <result column="orderno" property="orderno" jdbcType="VARCHAR" />
+    <result column="orderuuid" property="orderuuid" jdbcType="VARCHAR" />
+    <result column="memberid" property="memberid" jdbcType="BIGINT" />
+    <result column="invoiceid" property="invoiceid" jdbcType="BIGINT" />
+    <result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
+    <result column="membername" property="membername" jdbcType="VARCHAR" />
+    <result column="billcash" property="billcash" jdbcType="NUMERIC" />
+    <result column="expresscom" property="expresscom" jdbcType="VARCHAR" />
+    <result column="billno" property="billno" jdbcType="VARCHAR" />
+    <result column="billtime" property="billtime" jdbcType="TIMESTAMP" />
+    <result column="state" property="state" jdbcType="SMALLINT" />
+    <result column="remark" property="remark" jdbcType="SMALLINT" />
+    <result column="billtype" property="billtype" jdbcType="VARCHAR" />
+    <result column="billingrecordtype" property="billingrecordtype" jdbcType="SMALLINT" />
+    <result column="receiveaddress" property="receiveaddress" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, invoiceheadup, texno, bankofaccounts, account, phone, address, expressno, orderno, 
+    orderuuid, memberid, invoiceid, createtime, membername, billcash, expresscom, billno, 
+    billtime, state, remark, billtype, billingrecordtype, receiveaddress
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_product.bean.BillingRecordExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from billingrecord
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from billingrecord
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from billingrecord
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_product.bean.BillingRecordExample" >
+    delete from billingrecord
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_product.bean.BillingRecord" >
+    insert into billingrecord (id, invoiceheadup, texno, 
+      bankofaccounts, account, phone, 
+      address, expressno, orderno, 
+      orderuuid, memberid, invoiceid, 
+      createtime, membername, billcash, 
+      expresscom, billno, billtime, 
+      state, remark, billtype, 
+      billingrecordtype, receiveaddress)
+    values (#{id,jdbcType=BIGINT}, #{invoiceheadup,jdbcType=VARCHAR}, #{texno,jdbcType=VARCHAR}, 
+      #{bankofaccounts,jdbcType=VARCHAR}, #{account,jdbcType=VARCHAR}, #{phone,jdbcType=CHAR}, 
+      #{address,jdbcType=VARCHAR}, #{expressno,jdbcType=VARCHAR}, #{orderno,jdbcType=VARCHAR}, 
+      #{orderuuid,jdbcType=VARCHAR}, #{memberid,jdbcType=BIGINT}, #{invoiceid,jdbcType=BIGINT}, 
+      #{createtime,jdbcType=TIMESTAMP}, #{membername,jdbcType=VARCHAR}, #{billcash,jdbcType=NUMERIC}, 
+      #{expresscom,jdbcType=VARCHAR}, #{billno,jdbcType=VARCHAR}, #{billtime,jdbcType=TIMESTAMP}, 
+      #{state,jdbcType=SMALLINT}, #{remark,jdbcType=SMALLINT}, #{billtype,jdbcType=VARCHAR}, 
+      #{billingrecordtype,jdbcType=SMALLINT}, #{receiveaddress,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_product.bean.BillingRecord" useGeneratedKeys="true" keyProperty="id">
+    insert into billingrecord
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="invoiceheadup != null" >
+        invoiceheadup,
+      </if>
+      <if test="texno != null" >
+        texno,
+      </if>
+      <if test="bankofaccounts != null" >
+        bankofaccounts,
+      </if>
+      <if test="account != null" >
+        account,
+      </if>
+      <if test="phone != null" >
+        phone,
+      </if>
+      <if test="address != null" >
+        address,
+      </if>
+      <if test="expressno != null" >
+        expressno,
+      </if>
+      <if test="orderno != null" >
+        orderno,
+      </if>
+      <if test="orderuuid != null" >
+        orderuuid,
+      </if>
+      <if test="memberid != null" >
+        memberid,
+      </if>
+      <if test="invoiceid != null" >
+        invoiceid,
+      </if>
+      <if test="createtime != null" >
+        createtime,
+      </if>
+      <if test="membername != null" >
+        membername,
+      </if>
+      <if test="billcash != null" >
+        billcash,
+      </if>
+      <if test="expresscom != null" >
+        expresscom,
+      </if>
+      <if test="billno != null" >
+        billno,
+      </if>
+      <if test="billtime != null" >
+        billtime,
+      </if>
+      <if test="state != null" >
+        state,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="billtype != null" >
+        billtype,
+      </if>
+      <if test="billingrecordtype != null" >
+        billingrecordtype,
+      </if>
+      <if test="receiveaddress != null" >
+        receiveaddress,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="invoiceheadup != null" >
+        #{invoiceheadup,jdbcType=VARCHAR},
+      </if>
+      <if test="texno != null" >
+        #{texno,jdbcType=VARCHAR},
+      </if>
+      <if test="bankofaccounts != null" >
+        #{bankofaccounts,jdbcType=VARCHAR},
+      </if>
+      <if test="account != null" >
+        #{account,jdbcType=VARCHAR},
+      </if>
+      <if test="phone != null" >
+        #{phone,jdbcType=CHAR},
+      </if>
+      <if test="address != null" >
+        #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="expressno != null" >
+        #{expressno,jdbcType=VARCHAR},
+      </if>
+      <if test="orderno != null" >
+        #{orderno,jdbcType=VARCHAR},
+      </if>
+      <if test="orderuuid != null" >
+        #{orderuuid,jdbcType=VARCHAR},
+      </if>
+      <if test="memberid != null" >
+        #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="invoiceid != null" >
+        #{invoiceid,jdbcType=BIGINT},
+      </if>
+      <if test="createtime != null" >
+        #{createtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="membername != null" >
+        #{membername,jdbcType=VARCHAR},
+      </if>
+      <if test="billcash != null" >
+        #{billcash,jdbcType=NUMERIC},
+      </if>
+      <if test="expresscom != null" >
+        #{expresscom,jdbcType=VARCHAR},
+      </if>
+      <if test="billno != null" >
+        #{billno,jdbcType=VARCHAR},
+      </if>
+      <if test="billtime != null" >
+        #{billtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="state != null" >
+        #{state,jdbcType=SMALLINT},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=SMALLINT},
+      </if>
+      <if test="billtype != null" >
+        #{billtype,jdbcType=VARCHAR},
+      </if>
+      <if test="billingrecordtype != null" >
+        #{billingrecordtype,jdbcType=SMALLINT},
+      </if>
+      <if test="receiveaddress != null" >
+        #{receiveaddress,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_product.bean.BillingRecordExample" resultType="java.lang.Integer" >
+    select count(*) from billingrecord
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update billingrecord
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.invoiceheadup != null" >
+        invoiceheadup = #{record.invoiceheadup,jdbcType=VARCHAR},
+      </if>
+      <if test="record.texno != null" >
+        texno = #{record.texno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.bankofaccounts != null" >
+        bankofaccounts = #{record.bankofaccounts,jdbcType=VARCHAR},
+      </if>
+      <if test="record.account != null" >
+        account = #{record.account,jdbcType=VARCHAR},
+      </if>
+      <if test="record.phone != null" >
+        phone = #{record.phone,jdbcType=CHAR},
+      </if>
+      <if test="record.address != null" >
+        address = #{record.address,jdbcType=VARCHAR},
+      </if>
+      <if test="record.expressno != null" >
+        expressno = #{record.expressno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orderno != null" >
+        orderno = #{record.orderno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orderuuid != null" >
+        orderuuid = #{record.orderuuid,jdbcType=VARCHAR},
+      </if>
+      <if test="record.memberid != null" >
+        memberid = #{record.memberid,jdbcType=BIGINT},
+      </if>
+      <if test="record.invoiceid != null" >
+        invoiceid = #{record.invoiceid,jdbcType=BIGINT},
+      </if>
+      <if test="record.createtime != null" >
+        createtime = #{record.createtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.membername != null" >
+        membername = #{record.membername,jdbcType=VARCHAR},
+      </if>
+      <if test="record.billcash != null" >
+        billcash = #{record.billcash,jdbcType=NUMERIC},
+      </if>
+      <if test="record.expresscom != null" >
+        expresscom = #{record.expresscom,jdbcType=VARCHAR},
+      </if>
+      <if test="record.billno != null" >
+        billno = #{record.billno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.billtime != null" >
+        billtime = #{record.billtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.state != null" >
+        state = #{record.state,jdbcType=SMALLINT},
+      </if>
+      <if test="record.remark != null" >
+        remark = #{record.remark,jdbcType=SMALLINT},
+      </if>
+      <if test="record.billtype != null" >
+        billtype = #{record.billtype,jdbcType=VARCHAR},
+      </if>
+      <if test="record.billingrecordtype != null" >
+        billingrecordtype = #{record.billingrecordtype,jdbcType=SMALLINT},
+      </if>
+      <if test="record.receiveaddress != null" >
+        receiveaddress = #{record.receiveaddress,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update billingrecord
+    set id = #{record.id,jdbcType=BIGINT},
+      invoiceheadup = #{record.invoiceheadup,jdbcType=VARCHAR},
+      texno = #{record.texno,jdbcType=VARCHAR},
+      bankofaccounts = #{record.bankofaccounts,jdbcType=VARCHAR},
+      account = #{record.account,jdbcType=VARCHAR},
+      phone = #{record.phone,jdbcType=CHAR},
+      address = #{record.address,jdbcType=VARCHAR},
+      expressno = #{record.expressno,jdbcType=VARCHAR},
+      orderno = #{record.orderno,jdbcType=VARCHAR},
+      orderuuid = #{record.orderuuid,jdbcType=VARCHAR},
+      memberid = #{record.memberid,jdbcType=BIGINT},
+      invoiceid = #{record.invoiceid,jdbcType=BIGINT},
+      createtime = #{record.createtime,jdbcType=TIMESTAMP},
+      membername = #{record.membername,jdbcType=VARCHAR},
+      billcash = #{record.billcash,jdbcType=NUMERIC},
+      expresscom = #{record.expresscom,jdbcType=VARCHAR},
+      billno = #{record.billno,jdbcType=VARCHAR},
+      billtime = #{record.billtime,jdbcType=TIMESTAMP},
+      state = #{record.state,jdbcType=SMALLINT},
+      remark = #{record.remark,jdbcType=SMALLINT},
+      billtype = #{record.billtype,jdbcType=VARCHAR},
+      billingrecordtype = #{record.billingrecordtype,jdbcType=SMALLINT},
+      receiveaddress = #{record.receiveaddress,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_product.bean.BillingRecord" >
+    update billingrecord
+    <set >
+      <if test="invoiceheadup != null" >
+        invoiceheadup = #{invoiceheadup,jdbcType=VARCHAR},
+      </if>
+      <if test="texno != null" >
+        texno = #{texno,jdbcType=VARCHAR},
+      </if>
+      <if test="bankofaccounts != null" >
+        bankofaccounts = #{bankofaccounts,jdbcType=VARCHAR},
+      </if>
+      <if test="account != null" >
+        account = #{account,jdbcType=VARCHAR},
+      </if>
+      <if test="phone != null" >
+        phone = #{phone,jdbcType=CHAR},
+      </if>
+      <if test="address != null" >
+        address = #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="expressno != null" >
+        expressno = #{expressno,jdbcType=VARCHAR},
+      </if>
+      <if test="orderno != null" >
+        orderno = #{orderno,jdbcType=VARCHAR},
+      </if>
+      <if test="orderuuid != null" >
+        orderuuid = #{orderuuid,jdbcType=VARCHAR},
+      </if>
+      <if test="memberid != null" >
+        memberid = #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="invoiceid != null" >
+        invoiceid = #{invoiceid,jdbcType=BIGINT},
+      </if>
+      <if test="createtime != null" >
+        createtime = #{createtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="membername != null" >
+        membername = #{membername,jdbcType=VARCHAR},
+      </if>
+      <if test="billcash != null" >
+        billcash = #{billcash,jdbcType=NUMERIC},
+      </if>
+      <if test="expresscom != null" >
+        expresscom = #{expresscom,jdbcType=VARCHAR},
+      </if>
+      <if test="billno != null" >
+        billno = #{billno,jdbcType=VARCHAR},
+      </if>
+      <if test="billtime != null" >
+        billtime = #{billtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="state != null" >
+        state = #{state,jdbcType=SMALLINT},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=SMALLINT},
+      </if>
+      <if test="billtype != null" >
+        billtype = #{billtype,jdbcType=VARCHAR},
+      </if>
+      <if test="billingrecordtype != null" >
+        billingrecordtype = #{billingrecordtype,jdbcType=SMALLINT},
+      </if>
+      <if test="receiveaddress != null" >
+        receiveaddress = #{receiveaddress,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_product.bean.BillingRecord" >
+    update billingrecord
+    set invoiceheadup = #{invoiceheadup,jdbcType=VARCHAR},
+      texno = #{texno,jdbcType=VARCHAR},
+      bankofaccounts = #{bankofaccounts,jdbcType=VARCHAR},
+      account = #{account,jdbcType=VARCHAR},
+      phone = #{phone,jdbcType=CHAR},
+      address = #{address,jdbcType=VARCHAR},
+      expressno = #{expressno,jdbcType=VARCHAR},
+      orderno = #{orderno,jdbcType=VARCHAR},
+      orderuuid = #{orderuuid,jdbcType=VARCHAR},
+      memberid = #{memberid,jdbcType=BIGINT},
+      invoiceid = #{invoiceid,jdbcType=BIGINT},
+      createtime = #{createtime,jdbcType=TIMESTAMP},
+      membername = #{membername,jdbcType=VARCHAR},
+      billcash = #{billcash,jdbcType=NUMERIC},
+      expresscom = #{expresscom,jdbcType=VARCHAR},
+      billno = #{billno,jdbcType=VARCHAR},
+      billtime = #{billtime,jdbcType=TIMESTAMP},
+      state = #{state,jdbcType=SMALLINT},
+      remark = #{remark,jdbcType=SMALLINT},
+      billtype = #{billtype,jdbcType=VARCHAR},
+      billingrecordtype = #{billingrecordtype,jdbcType=SMALLINT},
+      receiveaddress = #{receiveaddress,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

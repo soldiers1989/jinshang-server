@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_member.SellerCategoryMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_member.bean.SellerCategory" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="categoryid" property="categoryid" jdbcType="BIGINT" />
+    <result column="brokeragerate" property="brokeragerate" jdbcType="NUMERIC" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="parentid" property="parentid" jdbcType="BIGINT" />
+    <result column="title" property="title" jdbcType="VARCHAR" />
+    <result column="keywords" property="keywords" jdbcType="VARCHAR" />
+    <result column="description" property="description" jdbcType="VARCHAR" />
+    <result column="img" property="img" jdbcType="VARCHAR" />
+    <result column="sort" property="sort" jdbcType="INTEGER" />
+    <result column="sellerid" property="sellerid" jdbcType="BIGINT" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, categoryid, brokeragerate, name, parentid, title, keywords, description, img, 
+    sort, sellerid
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_member.bean.SellerCategoryExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from sellercategory
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from sellercategory
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from sellercategory
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_member.bean.SellerCategoryExample" >
+    delete from sellercategory
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_member.bean.SellerCategory" >
+    insert into sellercategory (id, categoryid, brokeragerate, 
+      name, parentid, title, 
+      keywords, description, img, 
+      sort, sellerid)
+    values (#{id,jdbcType=BIGINT}, #{categoryid,jdbcType=BIGINT}, #{brokeragerate,jdbcType=NUMERIC}, 
+      #{name,jdbcType=VARCHAR}, #{parentid,jdbcType=BIGINT}, #{title,jdbcType=VARCHAR}, 
+      #{keywords,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{img,jdbcType=VARCHAR}, 
+      #{sort,jdbcType=INTEGER}, #{sellerid,jdbcType=BIGINT})
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_member.bean.SellerCategory" >
+    insert into sellercategory
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="categoryid != null" >
+        categoryid,
+      </if>
+      <if test="brokeragerate != null" >
+        brokeragerate,
+      </if>
+      <if test="name != null" >
+        name,
+      </if>
+      <if test="parentid != null" >
+        parentid,
+      </if>
+      <if test="title != null" >
+        title,
+      </if>
+      <if test="keywords != null" >
+        keywords,
+      </if>
+      <if test="description != null" >
+        description,
+      </if>
+      <if test="img != null" >
+        img,
+      </if>
+      <if test="sort != null" >
+        sort,
+      </if>
+      <if test="sellerid != null" >
+        sellerid,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="categoryid != null" >
+        #{categoryid,jdbcType=BIGINT},
+      </if>
+      <if test="brokeragerate != null" >
+        #{brokeragerate,jdbcType=NUMERIC},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="parentid != null" >
+        #{parentid,jdbcType=BIGINT},
+      </if>
+      <if test="title != null" >
+        #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="keywords != null" >
+        #{keywords,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null" >
+        #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="img != null" >
+        #{img,jdbcType=VARCHAR},
+      </if>
+      <if test="sort != null" >
+        #{sort,jdbcType=INTEGER},
+      </if>
+      <if test="sellerid != null" >
+        #{sellerid,jdbcType=BIGINT},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_member.bean.SellerCategoryExample" resultType="java.lang.Integer" >
+    select count(*) from sellercategory
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update sellercategory
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.categoryid != null" >
+        categoryid = #{record.categoryid,jdbcType=BIGINT},
+      </if>
+      <if test="record.brokeragerate != null" >
+        brokeragerate = #{record.brokeragerate,jdbcType=NUMERIC},
+      </if>
+      <if test="record.name != null" >
+        name = #{record.name,jdbcType=VARCHAR},
+      </if>
+      <if test="record.parentid != null" >
+        parentid = #{record.parentid,jdbcType=BIGINT},
+      </if>
+      <if test="record.title != null" >
+        title = #{record.title,jdbcType=VARCHAR},
+      </if>
+      <if test="record.keywords != null" >
+        keywords = #{record.keywords,jdbcType=VARCHAR},
+      </if>
+      <if test="record.description != null" >
+        description = #{record.description,jdbcType=VARCHAR},
+      </if>
+      <if test="record.img != null" >
+        img = #{record.img,jdbcType=VARCHAR},
+      </if>
+      <if test="record.sort != null" >
+        sort = #{record.sort,jdbcType=INTEGER},
+      </if>
+      <if test="record.sellerid != null" >
+        sellerid = #{record.sellerid,jdbcType=BIGINT},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update sellercategory
+    set id = #{record.id,jdbcType=BIGINT},
+      categoryid = #{record.categoryid,jdbcType=BIGINT},
+      brokeragerate = #{record.brokeragerate,jdbcType=NUMERIC},
+      name = #{record.name,jdbcType=VARCHAR},
+      parentid = #{record.parentid,jdbcType=BIGINT},
+      title = #{record.title,jdbcType=VARCHAR},
+      keywords = #{record.keywords,jdbcType=VARCHAR},
+      description = #{record.description,jdbcType=VARCHAR},
+      img = #{record.img,jdbcType=VARCHAR},
+      sort = #{record.sort,jdbcType=INTEGER},
+      sellerid = #{record.sellerid,jdbcType=BIGINT}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_member.bean.SellerCategory" >
+    update sellercategory
+    <set >
+      <if test="categoryid != null" >
+        categoryid = #{categoryid,jdbcType=BIGINT},
+      </if>
+      <if test="brokeragerate != null" >
+        brokeragerate = #{brokeragerate,jdbcType=NUMERIC},
+      </if>
+      <if test="name != null" >
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="parentid != null" >
+        parentid = #{parentid,jdbcType=BIGINT},
+      </if>
+      <if test="title != null" >
+        title = #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="keywords != null" >
+        keywords = #{keywords,jdbcType=VARCHAR},
+      </if>
+      <if test="description != null" >
+        description = #{description,jdbcType=VARCHAR},
+      </if>
+      <if test="img != null" >
+        img = #{img,jdbcType=VARCHAR},
+      </if>
+      <if test="sort != null" >
+        sort = #{sort,jdbcType=INTEGER},
+      </if>
+      <if test="sellerid != null" >
+        sellerid = #{sellerid,jdbcType=BIGINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_member.bean.SellerCategory" >
+    update sellercategory
+    set categoryid = #{categoryid,jdbcType=BIGINT},
+      brokeragerate = #{brokeragerate,jdbcType=NUMERIC},
+      name = #{name,jdbcType=VARCHAR},
+      parentid = #{parentid,jdbcType=BIGINT},
+      title = #{title,jdbcType=VARCHAR},
+      keywords = #{keywords,jdbcType=VARCHAR},
+      description = #{description,jdbcType=VARCHAR},
+      img = #{img,jdbcType=VARCHAR},
+      sort = #{sort,jdbcType=INTEGER},
+      sellerid = #{sellerid,jdbcType=BIGINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

@@ -1,0 +1,6 @@
+rootProject.name = 'jinshang-server'
+
+//include 'core_main'
+//project(':core_main').projectDir = new File(settingsDir,"../RestServerCore/main")
+//include 'common'
+//project(':common').projectDir = new File(settingsDir,"../RestServerCore/common")

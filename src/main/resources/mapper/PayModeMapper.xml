@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_admin.mod_paymode.PayModeMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_admin.mod_paymode.bean.PayMode" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="paytype" property="paytype" jdbcType="VARCHAR" />
+    <result column="identityid" property="identityid" jdbcType="VARCHAR" />
+    <result column="saftycode" property="saftycode" jdbcType="VARCHAR" />
+    <result column="alipayaccount" property="alipayaccount" jdbcType="VARCHAR" />
+    <result column="saleralipayaccount" property="saleralipayaccount" jdbcType="VARCHAR" />
+    <result column="privatekey" property="privatekey" jdbcType="VARCHAR" />
+    <result column="publickey" property="publickey" jdbcType="VARCHAR" />
+    <result column="weixinappid" property="weixinappid" jdbcType="VARCHAR" />
+    <result column="weixinappsecret" property="weixinappsecret" jdbcType="VARCHAR" />
+    <result column="weixinkey" property="weixinkey" jdbcType="VARCHAR" />
+    <result column="weixinmchid" property="weixinmchid" jdbcType="VARCHAR" />
+    <result column="certificate" property="certificate" jdbcType="VARCHAR" />
+    <result column="open" property="open" jdbcType="SMALLINT" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, paytype, identityid, saftycode, alipayaccount, saleralipayaccount, privatekey, 
+    publickey, weixinappid, weixinappsecret, weixinkey, weixinmchid, certificate, open
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_admin.mod_paymode.bean.PayModeExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from paymode
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from paymode
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from paymode
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_admin.mod_paymode.bean.PayMode" >
+    insert into paymode (id, paytype, identityid, 
+      saftycode, alipayaccount, saleralipayaccount, 
+      privatekey, publickey, weixinappid, 
+      weixinappsecret, weixinkey, weixinmchid, 
+      certificate, open)
+    values (#{id,jdbcType=BIGINT}, #{paytype,jdbcType=VARCHAR}, #{identityid,jdbcType=VARCHAR},
+      #{saftycode,jdbcType=VARCHAR}, #{alipayaccount,jdbcType=VARCHAR}, #{saleralipayaccount,jdbcType=VARCHAR}, 
+      #{privatekey,jdbcType=VARCHAR}, #{publickey,jdbcType=VARCHAR}, #{weixinappid,jdbcType=VARCHAR}, 
+      #{weixinappsecret,jdbcType=VARCHAR}, #{weixinkey,jdbcType=VARCHAR}, #{weixinmchid,jdbcType=VARCHAR}, 
+      #{certificate,jdbcType=VARCHAR}, #{open,jdbcType=SMALLINT})
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_admin.mod_paymode.bean.PayMode" >
+    insert into paymode
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="paytype != null" >
+        paytype,
+      </if>
+      <if test="identityid != null" >
+        identityid,
+      </if>
+      <if test="saftycode != null" >
+        saftycode,
+      </if>
+      <if test="alipayaccount != null" >
+        alipayaccount,
+      </if>
+      <if test="saleralipayaccount != null" >
+        saleralipayaccount,
+      </if>
+      <if test="privatekey != null" >
+        privatekey,
+      </if>
+      <if test="publickey != null" >
+        publickey,
+      </if>
+      <if test="weixinappid != null" >
+        weixinappid,
+      </if>
+      <if test="weixinappsecret != null" >
+        weixinappsecret,
+      </if>
+      <if test="weixinkey != null" >
+        weixinkey,
+      </if>
+      <if test="weixinmchid != null" >
+        weixinmchid,
+      </if>
+      <if test="certificate != null" >
+        certificate,
+      </if>
+      <if test="open != null" >
+        open,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="paytype != null" >
+        #{paytype,jdbcType=VARCHAR},
+      </if>
+      <if test="identityid != null" >
+        #{identityid,jdbcType=VARCHAR},
+      </if>
+      <if test="saftycode != null" >
+        #{saftycode,jdbcType=VARCHAR},
+      </if>
+      <if test="alipayaccount != null" >
+        #{alipayaccount,jdbcType=VARCHAR},
+      </if>
+      <if test="saleralipayaccount != null" >
+        #{saleralipayaccount,jdbcType=VARCHAR},
+      </if>
+      <if test="privatekey != null" >
+        #{privatekey,jdbcType=VARCHAR},
+      </if>
+      <if test="publickey != null" >
+        #{publickey,jdbcType=VARCHAR},
+      </if>
+      <if test="weixinappid != null" >
+        #{weixinappid,jdbcType=VARCHAR},
+      </if>
+      <if test="weixinappsecret != null" >
+        #{weixinappsecret,jdbcType=VARCHAR},
+      </if>
+      <if test="weixinkey != null" >
+        #{weixinkey,jdbcType=VARCHAR},
+      </if>
+      <if test="weixinmchid != null" >
+        #{weixinmchid,jdbcType=VARCHAR},
+      </if>
+      <if test="certificate != null" >
+        #{certificate,jdbcType=VARCHAR},
+      </if>
+      <if test="open != null" >
+        #{open,jdbcType=SMALLINT},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_admin.mod_paymode.bean.PayModeExample" resultType="java.lang.Integer" >
+    select count(*) from paymode
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update paymode
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.paytype != null" >
+        paytype = #{record.paytype,jdbcType=VARCHAR},
+      </if>
+      <if test="record.identityid != null" >
+        identityid = #{record.identityid,jdbcType=VARCHAR},
+      </if>
+      <if test="record.saftycode != null" >
+        saftycode = #{record.saftycode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.alipayaccount != null" >
+        alipayaccount = #{record.alipayaccount,jdbcType=VARCHAR},
+      </if>
+      <if test="record.saleralipayaccount != null" >
+        saleralipayaccount = #{record.saleralipayaccount,jdbcType=VARCHAR},
+      </if>
+      <if test="record.privatekey != null" >
+        privatekey = #{record.privatekey,jdbcType=VARCHAR},
+      </if>
+      <if test="record.publickey != null" >
+        publickey = #{record.publickey,jdbcType=VARCHAR},
+      </if>
+      <if test="record.weixinappid != null" >
+        weixinappid = #{record.weixinappid,jdbcType=VARCHAR},
+      </if>
+      <if test="record.weixinappsecret != null" >
+        weixinappsecret = #{record.weixinappsecret,jdbcType=VARCHAR},
+      </if>
+      <if test="record.weixinkey != null" >
+        weixinkey = #{record.weixinkey,jdbcType=VARCHAR},
+      </if>
+      <if test="record.weixinmchid != null" >
+        weixinmchid = #{record.weixinmchid,jdbcType=VARCHAR},
+      </if>
+      <if test="record.certificate != null" >
+        certificate = #{record.certificate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.open != null" >
+        open = #{record.open,jdbcType=SMALLINT},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update paymode
+    set id = #{record.id,jdbcType=BIGINT},
+      paytype = #{record.paytype,jdbcType=VARCHAR},
+      identityid = #{record.identityid,jdbcType=VARCHAR},
+      saftycode = #{record.saftycode,jdbcType=VARCHAR},
+      alipayaccount = #{record.alipayaccount,jdbcType=VARCHAR},
+      saleralipayaccount = #{record.saleralipayaccount,jdbcType=VARCHAR},
+      privatekey = #{record.privatekey,jdbcType=VARCHAR},
+      publickey = #{record.publickey,jdbcType=VARCHAR},
+      weixinappid = #{record.weixinappid,jdbcType=VARCHAR},
+      weixinappsecret = #{record.weixinappsecret,jdbcType=VARCHAR},
+      weixinkey = #{record.weixinkey,jdbcType=VARCHAR},
+      weixinmchid = #{record.weixinmchid,jdbcType=VARCHAR},
+      certificate = #{record.certificate,jdbcType=VARCHAR},
+      open = #{record.open,jdbcType=SMALLINT}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_admin.mod_paymode.bean.PayMode" >
+    update paymode
+    <set >
+      <if test="paytype != null" >
+        paytype = #{paytype,jdbcType=VARCHAR},
+      </if>
+      <if test="identityid != null" >
+        identityid = #{identityid,jdbcType=VARCHAR},
+      </if>
+      <if test="saftycode != null" >
+        saftycode = #{saftycode,jdbcType=VARCHAR},
+      </if>
+      <if test="alipayaccount != null" >
+        alipayaccount = #{alipayaccount,jdbcType=VARCHAR},
+      </if>
+      <if test="saleralipayaccount != null" >
+        saleralipayaccount = #{saleralipayaccount,jdbcType=VARCHAR},
+      </if>
+      <if test="privatekey != null" >
+        privatekey = #{privatekey,jdbcType=VARCHAR},
+      </if>
+      <if test="publickey != null" >
+        publickey = #{publickey,jdbcType=VARCHAR},
+      </if>
+      <if test="weixinappid != null" >
+        weixinappid = #{weixinappid,jdbcType=VARCHAR},
+      </if>
+      <if test="weixinappsecret != null" >
+        weixinappsecret = #{weixinappsecret,jdbcType=VARCHAR},
+      </if>
+      <if test="weixinkey != null" >
+        weixinkey = #{weixinkey,jdbcType=VARCHAR},
+      </if>
+      <if test="weixinmchid != null" >
+        weixinmchid = #{weixinmchid,jdbcType=VARCHAR},
+      </if>
+      <if test="certificate != null" >
+        certificate = #{certificate,jdbcType=VARCHAR},
+      </if>
+      <if test="open != null" >
+        open = #{open,jdbcType=SMALLINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_admin.mod_paymode.bean.PayMode" >
+    update paymode
+    set paytype = #{paytype,jdbcType=VARCHAR},
+      identityid = #{identityid,jdbcType=VARCHAR},
+      saftycode = #{saftycode,jdbcType=VARCHAR},
+      alipayaccount = #{alipayaccount,jdbcType=VARCHAR},
+      saleralipayaccount = #{saleralipayaccount,jdbcType=VARCHAR},
+      privatekey = #{privatekey,jdbcType=VARCHAR},
+      publickey = #{publickey,jdbcType=VARCHAR},
+      weixinappid = #{weixinappid,jdbcType=VARCHAR},
+      weixinappsecret = #{weixinappsecret,jdbcType=VARCHAR},
+      weixinkey = #{weixinkey,jdbcType=VARCHAR},
+      weixinmchid = #{weixinmchid,jdbcType=VARCHAR},
+      certificate = #{certificate,jdbcType=VARCHAR},
+      open = #{open,jdbcType=SMALLINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

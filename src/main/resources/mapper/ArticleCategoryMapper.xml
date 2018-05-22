@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_admin.mod_article.ArticleCategoryMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_admin.mod_article.bean.ArticleCategory" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="praentid" property="praentid" jdbcType="BIGINT" />
+    <result column="docname" property="docname" jdbcType="VARCHAR" />
+    <result column="docorder" property="docorder" jdbcType="INTEGER" />
+    <result column="docislist" property="docislist" jdbcType="SMALLINT" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, praentid, docname, docorder, docislist
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_admin.mod_article.bean.ArticleCategoryExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from articlecategory
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from articlecategory
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from articlecategory
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_admin.mod_article.bean.ArticleCategory" >
+    insert into articlecategory (praentid, docname, 
+      docorder, docislist)
+    values (#{praentid,jdbcType=BIGINT}, #{docname,jdbcType=VARCHAR}, 
+      #{docorder,jdbcType=INTEGER}, #{docislist,jdbcType=SMALLINT})
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_admin.mod_article.bean.ArticleCategory" >
+    insert into articlecategory
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="praentid != null" >
+        praentid,
+      </if>
+      <if test="docname != null" >
+        docname,
+      </if>
+      <if test="docorder != null" >
+        docorder,
+      </if>
+      <if test="docislist != null" >
+        docislist,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="praentid != null" >
+        #{praentid,jdbcType=BIGINT},
+      </if>
+      <if test="docname != null" >
+        #{docname,jdbcType=VARCHAR},
+      </if>
+      <if test="docorder != null" >
+        #{docorder,jdbcType=INTEGER},
+      </if>
+      <if test="docislist != null" >
+        #{docislist,jdbcType=SMALLINT},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_admin.mod_article.bean.ArticleCategoryExample" resultType="java.lang.Integer" >
+    select count(*) from articlecategory
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update articlecategory
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.praentid != null" >
+        praentid = #{record.praentid,jdbcType=BIGINT},
+      </if>
+      <if test="record.docname != null" >
+        docname = #{record.docname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.docorder != null" >
+        docorder = #{record.docorder,jdbcType=INTEGER},
+      </if>
+      <if test="record.docislist != null" >
+        docislist = #{record.docislist,jdbcType=SMALLINT},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update articlecategory
+    set id = #{record.id,jdbcType=BIGINT},
+      praentid = #{record.praentid,jdbcType=BIGINT},
+      docname = #{record.docname,jdbcType=VARCHAR},
+      docorder = #{record.docorder,jdbcType=INTEGER},
+      docislist = #{record.docislist,jdbcType=SMALLINT}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_admin.mod_article.bean.ArticleCategory" >
+    update articlecategory
+    <set >
+      <if test="praentid != null" >
+        praentid = #{praentid,jdbcType=BIGINT},
+      </if>
+      <if test="docname != null" >
+        docname = #{docname,jdbcType=VARCHAR},
+      </if>
+      <if test="docorder != null" >
+        docorder = #{docorder,jdbcType=INTEGER},
+      </if>
+      <if test="docislist != null" >
+        docislist = #{docislist,jdbcType=SMALLINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_admin.mod_article.bean.ArticleCategory" >
+    update articlecategory
+    set praentid = #{praentid,jdbcType=BIGINT},
+      docname = #{docname,jdbcType=VARCHAR},
+      docorder = #{docorder,jdbcType=INTEGER},
+      docislist = #{docislist,jdbcType=SMALLINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

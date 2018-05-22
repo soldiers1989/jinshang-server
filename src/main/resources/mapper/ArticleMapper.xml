@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_admin.mod_article.ArticleMapper">
+    <resultMap id="BaseResultMap" type="project.jinshang.mod_admin.mod_article.bean.Article">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="docid" property="docid" jdbcType="BIGINT"/>
+        <result column="doctitle" property="doctitle" jdbcType="VARCHAR"/>
+        <result column="doccontent" property="doccontent" jdbcType="VARCHAR"/>
+        <result column="docorder" property="docorder" jdbcType="INTEGER"/>
+        <result column="docaddress" property="docaddress" jdbcType="VARCHAR"/>
+        <result column="docshow" property="docshow" jdbcType="SMALLINT"/>
+        <result column="creattime" property="creattime" jdbcType="TIMESTAMP"/>
+        <result column="updatetime" property="updatetime" jdbcType="TIMESTAMP"/>
+        <result column="docstatus" property="docstatus" jdbcType="SMALLINT"/>
+        <result column="sketch" property="sketch" jdbcType="VARCHAR"/>
+        <result column="pic" property="pic" jdbcType="VARCHAR"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            <foreach collection="oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")"
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Update_By_Example_Where_Clause">
+        <where>
+            <foreach collection="example.oredCriteria" item="criteria" separator="or">
+                <if test="criteria.valid">
+                    <trim prefix="(" suffix=")" prefixOverrides="and">
+                        <foreach collection="criteria.criteria" item="criterion">
+                            <choose>
+                                <when test="criterion.noValue">
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue">
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue">
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue">
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")"
+                                             separator=",">
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+    id, docid, doctitle, doccontent, docorder, docaddress, docshow, creattime, updatetime, 
+    docstatus, sketch, pic
+  </sql>
+    <select id="selectByExample" resultMap="BaseResultMap"
+            parameterType="project.jinshang.mod_admin.mod_article.bean.ArticleExample">
+        select
+        <if test="distinct">
+            distinct
+        </if>
+        'true' as QUERYID,
+        <include refid="Base_Column_List"/>
+        from article
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+        <if test="orderByClause != null">
+            order by ${orderByClause}
+        </if>
+    </select>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="Base_Column_List"/>
+        from article
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+    delete from article
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+    <delete id="deleteByExample" parameterType="project.jinshang.mod_admin.mod_article.bean.ArticleExample">
+        delete from article
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </delete>
+    <insert id="insert" parameterType="project.jinshang.mod_admin.mod_article.bean.Article">
+    insert into article (docid, doctitle,
+      doccontent, docorder, docaddress, 
+      docshow, creattime, updatetime, 
+      docstatus, sketch, pic
+      )
+    values (#{docid,jdbcType=BIGINT}, #{doctitle,jdbcType=VARCHAR},
+      #{doccontent,jdbcType=VARCHAR}, #{docorder,jdbcType=INTEGER}, #{docaddress,jdbcType=VARCHAR}, 
+      #{docshow,jdbcType=SMALLINT}, #{creattime,jdbcType=TIMESTAMP}, #{updatetime,jdbcType=TIMESTAMP}, 
+      #{docstatus,jdbcType=SMALLINT}, #{sketch,jdbcType=VARCHAR}, #{pic,jdbcType=VARCHAR}
+      )
+  </insert>
+    <insert id="insertSelective" parameterType="project.jinshang.mod_admin.mod_article.bean.Article">
+        insert into article
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                id,
+            </if>
+            <if test="docid != null">
+                docid,
+            </if>
+            <if test="doctitle != null">
+                doctitle,
+            </if>
+            <if test="doccontent != null">
+                doccontent,
+            </if>
+            <if test="docorder != null">
+                docorder,
+            </if>
+            <if test="docaddress != null">
+                docaddress,
+            </if>
+            <if test="docshow != null">
+                docshow,
+            </if>
+            <if test="creattime != null">
+                creattime,
+            </if>
+            <if test="updatetime != null">
+                updatetime,
+            </if>
+            <if test="docstatus != null">
+                docstatus,
+            </if>
+            <if test="sketch != null">
+                sketch,
+            </if>
+            <if test="pic != null">
+                pic,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="id != null">
+                #{id,jdbcType=BIGINT},
+            </if>
+            <if test="docid != null">
+                #{docid,jdbcType=BIGINT},
+            </if>
+            <if test="doctitle != null">
+                #{doctitle,jdbcType=VARCHAR},
+            </if>
+            <if test="doccontent != null">
+                #{doccontent,jdbcType=VARCHAR},
+            </if>
+            <if test="docorder != null">
+                #{docorder,jdbcType=INTEGER},
+            </if>
+            <if test="docaddress != null">
+                #{docaddress,jdbcType=VARCHAR},
+            </if>
+            <if test="docshow != null">
+                #{docshow,jdbcType=SMALLINT},
+            </if>
+            <if test="creattime != null">
+                #{creattime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatetime != null">
+                #{updatetime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="docstatus != null">
+                #{docstatus,jdbcType=SMALLINT},
+            </if>
+            <if test="sketch != null">
+                #{sketch,jdbcType=VARCHAR},
+            </if>
+            <if test="pic != null">
+                #{pic,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <select id="countByExample" parameterType="project.jinshang.mod_admin.mod_article.bean.ArticleExample"
+            resultType="java.lang.Integer">
+        select count(*) from article
+        <if test="_parameter != null">
+            <include refid="Example_Where_Clause"/>
+        </if>
+    </select>
+    <update id="updateByExampleSelective" parameterType="map">
+        update article
+        <set>
+            <if test="record.id != null">
+                id = #{record.id,jdbcType=BIGINT},
+            </if>
+            <if test="record.docid != null">
+                docid = #{record.docid,jdbcType=BIGINT},
+            </if>
+            <if test="record.doctitle != null">
+                doctitle = #{record.doctitle,jdbcType=VARCHAR},
+            </if>
+            <if test="record.doccontent != null">
+                doccontent = #{record.doccontent,jdbcType=VARCHAR},
+            </if>
+            <if test="record.docorder != null">
+                docorder = #{record.docorder,jdbcType=INTEGER},
+            </if>
+            <if test="record.docaddress != null">
+                docaddress = #{record.docaddress,jdbcType=VARCHAR},
+            </if>
+            <if test="record.docshow != null">
+                docshow = #{record.docshow,jdbcType=SMALLINT},
+            </if>
+            <if test="record.creattime != null">
+                creattime = #{record.creattime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.updatetime != null">
+                updatetime = #{record.updatetime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.docstatus != null">
+                docstatus = #{record.docstatus,jdbcType=SMALLINT},
+            </if>
+            <if test="record.sketch != null">
+                sketch = #{record.sketch,jdbcType=VARCHAR},
+            </if>
+            <if test="record.pic != null">
+                pic = #{record.pic,jdbcType=VARCHAR},
+            </if>
+        </set>
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByExample" parameterType="map">
+        update article
+        set id = #{record.id,jdbcType=BIGINT},
+        docid = #{record.docid,jdbcType=BIGINT},
+        doctitle = #{record.doctitle,jdbcType=VARCHAR},
+        doccontent = #{record.doccontent,jdbcType=VARCHAR},
+        docorder = #{record.docorder,jdbcType=INTEGER},
+        docaddress = #{record.docaddress,jdbcType=VARCHAR},
+        docshow = #{record.docshow,jdbcType=SMALLINT},
+        creattime = #{record.creattime,jdbcType=TIMESTAMP},
+        updatetime = #{record.updatetime,jdbcType=TIMESTAMP},
+        docstatus = #{record.docstatus,jdbcType=SMALLINT},
+        sketch = #{record.sketch,jdbcType=VARCHAR},
+        pic = #{record.pic,jdbcType=VARCHAR}
+        <if test="_parameter != null">
+            <include refid="Update_By_Example_Where_Clause"/>
+        </if>
+    </update>
+    <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_admin.mod_article.bean.Article">
+        update article
+        <set>
+            <if test="docid != null">
+                docid = #{docid,jdbcType=BIGINT},
+            </if>
+            <if test="doctitle != null">
+                doctitle = #{doctitle,jdbcType=VARCHAR},
+            </if>
+            <if test="doccontent != null">
+                doccontent = #{doccontent,jdbcType=VARCHAR},
+            </if>
+            <if test="docorder != null">
+                docorder = #{docorder,jdbcType=INTEGER},
+            </if>
+            <if test="docaddress != null">
+                docaddress = #{docaddress,jdbcType=VARCHAR},
+            </if>
+            <if test="docshow != null">
+                docshow = #{docshow,jdbcType=SMALLINT},
+            </if>
+            <if test="creattime != null">
+                creattime = #{creattime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatetime != null">
+                updatetime = #{updatetime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="docstatus != null">
+                docstatus = #{docstatus,jdbcType=SMALLINT},
+            </if>
+            <if test="sketch != null">
+                sketch = #{sketch,jdbcType=VARCHAR},
+            </if>
+            <if test="pic != null">
+                pic = #{pic,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+    <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_admin.mod_article.bean.Article">
+    update article
+    set docid = #{docid,jdbcType=BIGINT},
+      doctitle = #{doctitle,jdbcType=VARCHAR},
+      doccontent = #{doccontent,jdbcType=VARCHAR},
+      docorder = #{docorder,jdbcType=INTEGER},
+      docaddress = #{docaddress,jdbcType=VARCHAR},
+      docshow = #{docshow,jdbcType=SMALLINT},
+      creattime = #{creattime,jdbcType=TIMESTAMP},
+      updatetime = #{updatetime,jdbcType=TIMESTAMP},
+      docstatus = #{docstatus,jdbcType=SMALLINT},
+      sketch = #{sketch,jdbcType=VARCHAR},
+      pic = #{pic,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

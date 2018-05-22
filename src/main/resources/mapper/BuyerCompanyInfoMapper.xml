@@ -1,0 +1,451 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_company.BuyerCompanyInfoMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_company.bean.BuyerCompanyInfo" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="memberid" property="memberid" jdbcType="BIGINT" />
+    <result column="shortname" property="shortname" jdbcType="VARCHAR" />
+    <result column="companyname" property="companyname" jdbcType="VARCHAR" />
+    <result column="address" property="address" jdbcType="VARCHAR" />
+    <result column="legalperson" property="legalperson" jdbcType="VARCHAR" />
+    <result column="mobile" property="mobile" jdbcType="VARCHAR" />
+    <result column="worktelephone" property="worktelephone" jdbcType="VARCHAR" />
+    <result column="bankname" property="bankname" jdbcType="VARCHAR" />
+    <result column="bankaccount" property="bankaccount" jdbcType="VARCHAR" />
+    <result column="taxregistrationcertificate" property="taxregistrationcertificate" jdbcType="VARCHAR" />
+    <result column="methodsettingaccount" property="methodsettingaccount" jdbcType="VARCHAR" />
+    <result column="createdate" property="createdate" jdbcType="TIMESTAMP" />
+    <result column="updatedate" property="updatedate" jdbcType="TIMESTAMP" />
+    <result column="province" property="province" jdbcType="VARCHAR" />
+    <result column="city" property="city" jdbcType="VARCHAR" />
+    <result column="citysmall" property="citysmall" jdbcType="VARCHAR" />
+    <result column="businesslicencenumberphoto" property="businesslicencenumberphoto" jdbcType="VARCHAR" />
+    <result column="bankdeposit" property="bankdeposit" jdbcType="VARCHAR" />
+    <result column="bankuser" property="bankuser" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, memberid, shortname, companyname, address, legalperson, mobile, worktelephone, 
+    bankname, bankaccount, taxregistrationcertificate, methodsettingaccount, createdate, 
+    updatedate, province, city, citysmall, businesslicencenumberphoto, bankdeposit, bankuser
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_company.bean.BuyerCompanyInfoExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from buyercompanyinfo
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from buyercompanyinfo
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from buyercompanyinfo
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_company.bean.BuyerCompanyInfoExample" >
+    delete from buyercompanyinfo
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_company.bean.BuyerCompanyInfo" >
+    insert into buyercompanyinfo ( memberid, shortname,
+      companyname, address, legalperson, 
+      mobile, worktelephone, bankname, 
+      bankaccount, taxregistrationcertificate, 
+      methodsettingaccount, createdate, updatedate, 
+      province, city, citysmall, 
+      businesslicencenumberphoto, bankdeposit, 
+      bankuser)
+    values (#{memberid,jdbcType=BIGINT}, #{shortname,jdbcType=VARCHAR},
+      #{companyname,jdbcType=VARCHAR}, #{address,jdbcType=VARCHAR}, #{legalperson,jdbcType=VARCHAR}, 
+      #{mobile,jdbcType=VARCHAR}, #{worktelephone,jdbcType=VARCHAR}, #{bankname,jdbcType=VARCHAR}, 
+      #{bankaccount,jdbcType=VARCHAR}, #{taxregistrationcertificate,jdbcType=VARCHAR}, 
+      #{methodsettingaccount,jdbcType=VARCHAR}, #{createdate,jdbcType=TIMESTAMP}, #{updatedate,jdbcType=TIMESTAMP}, 
+      #{province,jdbcType=VARCHAR}, #{city,jdbcType=VARCHAR}, #{citysmall,jdbcType=VARCHAR}, 
+      #{businesslicencenumberphoto,jdbcType=VARCHAR}, #{bankdeposit,jdbcType=VARCHAR}, 
+      #{bankuser,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_company.bean.BuyerCompanyInfo" >
+    insert into buyercompanyinfo
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="memberid != null" >
+        memberid,
+      </if>
+      <if test="shortname != null" >
+        shortname,
+      </if>
+      <if test="companyname != null" >
+        companyname,
+      </if>
+      <if test="address != null" >
+        address,
+      </if>
+      <if test="legalperson != null" >
+        legalperson,
+      </if>
+      <if test="mobile != null" >
+        mobile,
+      </if>
+      <if test="worktelephone != null" >
+        worktelephone,
+      </if>
+      <if test="bankname != null" >
+        bankname,
+      </if>
+      <if test="bankaccount != null" >
+        bankaccount,
+      </if>
+      <if test="taxregistrationcertificate != null" >
+        taxregistrationcertificate,
+      </if>
+      <if test="methodsettingaccount != null" >
+        methodsettingaccount,
+      </if>
+      <if test="createdate != null" >
+        createdate,
+      </if>
+      <if test="updatedate != null" >
+        updatedate,
+      </if>
+      <if test="province != null" >
+        province,
+      </if>
+      <if test="city != null" >
+        city,
+      </if>
+      <if test="citysmall != null" >
+        citysmall,
+      </if>
+      <if test="businesslicencenumberphoto != null" >
+        businesslicencenumberphoto,
+      </if>
+      <if test="bankdeposit != null" >
+        bankdeposit,
+      </if>
+      <if test="bankuser != null" >
+        bankuser,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="memberid != null" >
+        #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="shortname != null" >
+        #{shortname,jdbcType=VARCHAR},
+      </if>
+      <if test="companyname != null" >
+        #{companyname,jdbcType=VARCHAR},
+      </if>
+      <if test="address != null" >
+        #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="legalperson != null" >
+        #{legalperson,jdbcType=VARCHAR},
+      </if>
+      <if test="mobile != null" >
+        #{mobile,jdbcType=VARCHAR},
+      </if>
+      <if test="worktelephone != null" >
+        #{worktelephone,jdbcType=VARCHAR},
+      </if>
+      <if test="bankname != null" >
+        #{bankname,jdbcType=VARCHAR},
+      </if>
+      <if test="bankaccount != null" >
+        #{bankaccount,jdbcType=VARCHAR},
+      </if>
+      <if test="taxregistrationcertificate != null" >
+        #{taxregistrationcertificate,jdbcType=VARCHAR},
+      </if>
+      <if test="methodsettingaccount != null" >
+        #{methodsettingaccount,jdbcType=VARCHAR},
+      </if>
+      <if test="createdate != null" >
+        #{createdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedate != null" >
+        #{updatedate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="province != null" >
+        #{province,jdbcType=VARCHAR},
+      </if>
+      <if test="city != null" >
+        #{city,jdbcType=VARCHAR},
+      </if>
+      <if test="citysmall != null" >
+        #{citysmall,jdbcType=VARCHAR},
+      </if>
+      <if test="businesslicencenumberphoto != null" >
+        #{businesslicencenumberphoto,jdbcType=VARCHAR},
+      </if>
+      <if test="bankdeposit != null" >
+        #{bankdeposit,jdbcType=VARCHAR},
+      </if>
+      <if test="bankuser != null" >
+        #{bankuser,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_company.bean.BuyerCompanyInfoExample" resultType="java.lang.Integer" >
+    select count(*) from buyercompanyinfo
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update buyercompanyinfo
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.memberid != null" >
+        memberid = #{record.memberid,jdbcType=BIGINT},
+      </if>
+      <if test="record.shortname != null" >
+        shortname = #{record.shortname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.companyname != null" >
+        companyname = #{record.companyname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.address != null" >
+        address = #{record.address,jdbcType=VARCHAR},
+      </if>
+      <if test="record.legalperson != null" >
+        legalperson = #{record.legalperson,jdbcType=VARCHAR},
+      </if>
+      <if test="record.mobile != null" >
+        mobile = #{record.mobile,jdbcType=VARCHAR},
+      </if>
+      <if test="record.worktelephone != null" >
+        worktelephone = #{record.worktelephone,jdbcType=VARCHAR},
+      </if>
+      <if test="record.bankname != null" >
+        bankname = #{record.bankname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.bankaccount != null" >
+        bankaccount = #{record.bankaccount,jdbcType=VARCHAR},
+      </if>
+      <if test="record.taxregistrationcertificate != null" >
+        taxregistrationcertificate = #{record.taxregistrationcertificate,jdbcType=VARCHAR},
+      </if>
+      <if test="record.methodsettingaccount != null" >
+        methodsettingaccount = #{record.methodsettingaccount,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createdate != null" >
+        createdate = #{record.createdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.updatedate != null" >
+        updatedate = #{record.updatedate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.province != null" >
+        province = #{record.province,jdbcType=VARCHAR},
+      </if>
+      <if test="record.city != null" >
+        city = #{record.city,jdbcType=VARCHAR},
+      </if>
+      <if test="record.citysmall != null" >
+        citysmall = #{record.citysmall,jdbcType=VARCHAR},
+      </if>
+      <if test="record.businesslicencenumberphoto != null" >
+        businesslicencenumberphoto = #{record.businesslicencenumberphoto,jdbcType=VARCHAR},
+      </if>
+      <if test="record.bankdeposit != null" >
+        bankdeposit = #{record.bankdeposit,jdbcType=VARCHAR},
+      </if>
+      <if test="record.bankuser != null" >
+        bankuser = #{record.bankuser,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update buyercompanyinfo
+    set id = #{record.id,jdbcType=BIGINT},
+      memberid = #{record.memberid,jdbcType=BIGINT},
+      shortname = #{record.shortname,jdbcType=VARCHAR},
+      companyname = #{record.companyname,jdbcType=VARCHAR},
+      address = #{record.address,jdbcType=VARCHAR},
+      legalperson = #{record.legalperson,jdbcType=VARCHAR},
+      mobile = #{record.mobile,jdbcType=VARCHAR},
+      worktelephone = #{record.worktelephone,jdbcType=VARCHAR},
+      bankname = #{record.bankname,jdbcType=VARCHAR},
+      bankaccount = #{record.bankaccount,jdbcType=VARCHAR},
+      taxregistrationcertificate = #{record.taxregistrationcertificate,jdbcType=VARCHAR},
+      methodsettingaccount = #{record.methodsettingaccount,jdbcType=VARCHAR},
+      createdate = #{record.createdate,jdbcType=TIMESTAMP},
+      updatedate = #{record.updatedate,jdbcType=TIMESTAMP},
+      province = #{record.province,jdbcType=VARCHAR},
+      city = #{record.city,jdbcType=VARCHAR},
+      citysmall = #{record.citysmall,jdbcType=VARCHAR},
+      businesslicencenumberphoto = #{record.businesslicencenumberphoto,jdbcType=VARCHAR},
+      bankdeposit = #{record.bankdeposit,jdbcType=VARCHAR},
+      bankuser = #{record.bankuser,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_company.bean.BuyerCompanyInfo" >
+    update buyercompanyinfo
+    <set >
+      <if test="memberid != null" >
+        memberid = #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="shortname != null" >
+        shortname = #{shortname,jdbcType=VARCHAR},
+      </if>
+      <if test="companyname != null" >
+        companyname = #{companyname,jdbcType=VARCHAR},
+      </if>
+      <if test="address != null" >
+        address = #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="legalperson != null" >
+        legalperson = #{legalperson,jdbcType=VARCHAR},
+      </if>
+      <if test="mobile != null" >
+        mobile = #{mobile,jdbcType=VARCHAR},
+      </if>
+      <if test="worktelephone != null" >
+        worktelephone = #{worktelephone,jdbcType=VARCHAR},
+      </if>
+      <if test="bankname != null" >
+        bankname = #{bankname,jdbcType=VARCHAR},
+      </if>
+      <if test="bankaccount != null" >
+        bankaccount = #{bankaccount,jdbcType=VARCHAR},
+      </if>
+      <if test="taxregistrationcertificate != null" >
+        taxregistrationcertificate = #{taxregistrationcertificate,jdbcType=VARCHAR},
+      </if>
+      <if test="methodsettingaccount != null" >
+        methodsettingaccount = #{methodsettingaccount,jdbcType=VARCHAR},
+      </if>
+      <if test="createdate != null" >
+        createdate = #{createdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updatedate != null" >
+        updatedate = #{updatedate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="province != null" >
+        province = #{province,jdbcType=VARCHAR},
+      </if>
+      <if test="city != null" >
+        city = #{city,jdbcType=VARCHAR},
+      </if>
+      <if test="citysmall != null" >
+        citysmall = #{citysmall,jdbcType=VARCHAR},
+      </if>
+      <if test="businesslicencenumberphoto != null" >
+        businesslicencenumberphoto = #{businesslicencenumberphoto,jdbcType=VARCHAR},
+      </if>
+      <if test="bankdeposit != null" >
+        bankdeposit = #{bankdeposit,jdbcType=VARCHAR},
+      </if>
+      <if test="bankuser != null" >
+        bankuser = #{bankuser,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_company.bean.BuyerCompanyInfo" >
+    update buyercompanyinfo
+    set memberid = #{memberid,jdbcType=BIGINT},
+      shortname = #{shortname,jdbcType=VARCHAR},
+      companyname = #{companyname,jdbcType=VARCHAR},
+      address = #{address,jdbcType=VARCHAR},
+      legalperson = #{legalperson,jdbcType=VARCHAR},
+      mobile = #{mobile,jdbcType=VARCHAR},
+      worktelephone = #{worktelephone,jdbcType=VARCHAR},
+      bankname = #{bankname,jdbcType=VARCHAR},
+      bankaccount = #{bankaccount,jdbcType=VARCHAR},
+      taxregistrationcertificate = #{taxregistrationcertificate,jdbcType=VARCHAR},
+      methodsettingaccount = #{methodsettingaccount,jdbcType=VARCHAR},
+      createdate = #{createdate,jdbcType=TIMESTAMP},
+      updatedate = #{updatedate,jdbcType=TIMESTAMP},
+      province = #{province,jdbcType=VARCHAR},
+      city = #{city,jdbcType=VARCHAR},
+      citysmall = #{citysmall,jdbcType=VARCHAR},
+      businesslicencenumberphoto = #{businesslicencenumberphoto,jdbcType=VARCHAR},
+      bankdeposit = #{bankdeposit,jdbcType=VARCHAR},
+      bankuser = #{bankuser,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

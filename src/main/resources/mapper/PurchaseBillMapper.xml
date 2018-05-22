@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_purchase.PurchaseBillMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_purchase.bean.PurchaseBill" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="supplyid" property="supplyid" jdbcType="BIGINT" />
+    <result column="supplier" property="supplier" jdbcType="VARCHAR" />
+    <result column="billstart" property="billstart" jdbcType="TIMESTAMP" />
+    <result column="billend" property="billend" jdbcType="TIMESTAMP" />
+    <result column="spay" property="spay" jdbcType="NUMERIC" />
+    <result column="billtype" property="billtype" jdbcType="VARCHAR" />
+    <result column="pay" property="pay" jdbcType="NUMERIC" />
+    <result column="ypay" property="ypay" jdbcType="NUMERIC" />
+    <result column="billno" property="billno" jdbcType="VARCHAR" />
+    <result column="express" property="express" jdbcType="VARCHAR" />
+    <result column="expressno" property="expressno" jdbcType="VARCHAR" />
+    <result column="memberid" property="memberid" jdbcType="BIGINT" />
+    <result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, supplyid, supplier, billstart, billend, spay, billtype, pay, ypay, billno, express,
+    expressno, memberid, createtime
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_purchase.bean.PurchaseBillExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from purchasebill
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select
+    <include refid="Base_Column_List" />
+    from purchasebill
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from purchasebill
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_purchase.bean.PurchaseBillExample" >
+    delete from purchasebill
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_purchase.bean.PurchaseBill" >
+    insert into purchasebill (id, supplyid, supplier,
+    billstart, billend, spay,
+    billtype, pay, ypay,
+    billno, express, expressno,
+    memberid, createtime)
+    values (#{id,jdbcType=BIGINT}, #{supplyid,jdbcType=BIGINT}, #{supplier,jdbcType=VARCHAR},
+    #{billstart,jdbcType=TIMESTAMP}, #{billend,jdbcType=TIMESTAMP}, #{spay,jdbcType=NUMERIC},
+    #{billtype,jdbcType=VARCHAR}, #{pay,jdbcType=NUMERIC}, #{ypay,jdbcType=NUMERIC},
+    #{billno,jdbcType=VARCHAR}, #{express,jdbcType=VARCHAR}, #{expressno,jdbcType=VARCHAR},
+    #{memberid,jdbcType=BIGINT}, #{createtime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_purchase.bean.PurchaseBill" >
+    insert into purchasebill
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="supplyid != null" >
+        supplyid,
+      </if>
+      <if test="supplier != null" >
+        supplier,
+      </if>
+      <if test="billstart != null" >
+        billstart,
+      </if>
+      <if test="billend != null" >
+        billend,
+      </if>
+      <if test="spay != null" >
+        spay,
+      </if>
+      <if test="billtype != null" >
+        billtype,
+      </if>
+      <if test="pay != null" >
+        pay,
+      </if>
+      <if test="ypay != null" >
+        ypay,
+      </if>
+      <if test="billno != null" >
+        billno,
+      </if>
+      <if test="express != null" >
+        express,
+      </if>
+      <if test="expressno != null" >
+        expressno,
+      </if>
+      <if test="memberid != null" >
+        memberid,
+      </if>
+      <if test="createtime != null" >
+        createtime,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="supplyid != null" >
+        #{supplyid,jdbcType=BIGINT},
+      </if>
+      <if test="supplier != null" >
+        #{supplier,jdbcType=VARCHAR},
+      </if>
+      <if test="billstart != null" >
+        #{billstart,jdbcType=TIMESTAMP},
+      </if>
+      <if test="billend != null" >
+        #{billend,jdbcType=TIMESTAMP},
+      </if>
+      <if test="spay != null" >
+        #{spay,jdbcType=NUMERIC},
+      </if>
+      <if test="billtype != null" >
+        #{billtype,jdbcType=VARCHAR},
+      </if>
+      <if test="pay != null" >
+        #{pay,jdbcType=NUMERIC},
+      </if>
+      <if test="ypay != null" >
+        #{ypay,jdbcType=NUMERIC},
+      </if>
+      <if test="billno != null" >
+        #{billno,jdbcType=VARCHAR},
+      </if>
+      <if test="express != null" >
+        #{express,jdbcType=VARCHAR},
+      </if>
+      <if test="expressno != null" >
+        #{expressno,jdbcType=VARCHAR},
+      </if>
+      <if test="memberid != null" >
+        #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="createtime != null" >
+        #{createtime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_purchase.bean.PurchaseBillExample" resultType="java.lang.Integer" >
+    select count(*) from purchasebill
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update purchasebill
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.supplyid != null" >
+        supplyid = #{record.supplyid,jdbcType=BIGINT},
+      </if>
+      <if test="record.supplier != null" >
+        supplier = #{record.supplier,jdbcType=VARCHAR},
+      </if>
+      <if test="record.billstart != null" >
+        billstart = #{record.billstart,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.billend != null" >
+        billend = #{record.billend,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.spay != null" >
+        spay = #{record.spay,jdbcType=NUMERIC},
+      </if>
+      <if test="record.billtype != null" >
+        billtype = #{record.billtype,jdbcType=VARCHAR},
+      </if>
+      <if test="record.pay != null" >
+        pay = #{record.pay,jdbcType=NUMERIC},
+      </if>
+      <if test="record.ypay != null" >
+        ypay = #{record.ypay,jdbcType=NUMERIC},
+      </if>
+      <if test="record.billno != null" >
+        billno = #{record.billno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.express != null" >
+        express = #{record.express,jdbcType=VARCHAR},
+      </if>
+      <if test="record.expressno != null" >
+        expressno = #{record.expressno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.memberid != null" >
+        memberid = #{record.memberid,jdbcType=BIGINT},
+      </if>
+      <if test="record.createtime != null" >
+        createtime = #{record.createtime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update purchasebill
+    set id = #{record.id,jdbcType=BIGINT},
+    supplyid = #{record.supplyid,jdbcType=BIGINT},
+    supplier = #{record.supplier,jdbcType=VARCHAR},
+    billstart = #{record.billstart,jdbcType=TIMESTAMP},
+    billend = #{record.billend,jdbcType=TIMESTAMP},
+    spay = #{record.spay,jdbcType=NUMERIC},
+    billtype = #{record.billtype,jdbcType=VARCHAR},
+    pay = #{record.pay,jdbcType=NUMERIC},
+    ypay = #{record.ypay,jdbcType=NUMERIC},
+    billno = #{record.billno,jdbcType=VARCHAR},
+    express = #{record.express,jdbcType=VARCHAR},
+    expressno = #{record.expressno,jdbcType=VARCHAR},
+    memberid = #{record.memberid,jdbcType=BIGINT},
+    createtime = #{record.createtime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_purchase.bean.PurchaseBill" >
+    update purchasebill
+    <set >
+      <if test="supplyid != null" >
+        supplyid = #{supplyid,jdbcType=BIGINT},
+      </if>
+      <if test="supplier != null" >
+        supplier = #{supplier,jdbcType=VARCHAR},
+      </if>
+      <if test="billstart != null" >
+        billstart = #{billstart,jdbcType=TIMESTAMP},
+      </if>
+      <if test="billend != null" >
+        billend = #{billend,jdbcType=TIMESTAMP},
+      </if>
+      <if test="spay != null" >
+        spay = #{spay,jdbcType=NUMERIC},
+      </if>
+      <if test="billtype != null" >
+        billtype = #{billtype,jdbcType=VARCHAR},
+      </if>
+      <if test="pay != null" >
+        pay = #{pay,jdbcType=NUMERIC},
+      </if>
+      <if test="ypay != null" >
+        ypay = #{ypay,jdbcType=NUMERIC},
+      </if>
+      <if test="billno != null" >
+        billno = #{billno,jdbcType=VARCHAR},
+      </if>
+      <if test="express != null" >
+        express = #{express,jdbcType=VARCHAR},
+      </if>
+      <if test="expressno != null" >
+        expressno = #{expressno,jdbcType=VARCHAR},
+      </if>
+      <if test="memberid != null" >
+        memberid = #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="createtime != null" >
+        createtime = #{createtime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_purchase.bean.PurchaseBill" >
+    update purchasebill
+    set supplyid = #{supplyid,jdbcType=BIGINT},
+    supplier = #{supplier,jdbcType=VARCHAR},
+    billstart = #{billstart,jdbcType=TIMESTAMP},
+    billend = #{billend,jdbcType=TIMESTAMP},
+    spay = #{spay,jdbcType=NUMERIC},
+    billtype = #{billtype,jdbcType=VARCHAR},
+    pay = #{pay,jdbcType=NUMERIC},
+    ypay = #{ypay,jdbcType=NUMERIC},
+    billno = #{billno,jdbcType=VARCHAR},
+    express = #{express,jdbcType=VARCHAR},
+    expressno = #{expressno,jdbcType=VARCHAR},
+    memberid = #{memberid,jdbcType=BIGINT},
+    createtime = #{createtime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

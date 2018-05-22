@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_admin.mod_transet.TransactionSettingMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_admin.mod_transet.bean.TransactionSetting" >
+    <result column="unpaidtimeout" property="unpaidtimeout" jdbcType="NUMERIC" />
+    <result column="confirmreceipttimeout" property="confirmreceipttimeout" jdbcType="NUMERIC" />
+    <result column="orderreturnperiod" property="orderreturnperiod" jdbcType="NUMERIC" />
+    <result column="spotsalesmargin" property="spotsalesmargin" jdbcType="NUMERIC" />
+    <result column="forwardsalesmargin" property="forwardsalesmargin" jdbcType="NUMERIC" />
+    <result column="getliquidated" property="getliquidated" jdbcType="NUMERIC" />
+    <result column="remotepurchasingmargin" property="remotepurchasingmargin" jdbcType="NUMERIC" />
+    <result column="upperlimitamount" property="upperlimitamount" jdbcType="NUMERIC" />
+    <result column="delivery1of10" property="delivery1of10" jdbcType="NUMERIC" />
+    <result column="delivery11of20" property="delivery11of20" jdbcType="NUMERIC" />
+    <result column="delivery21of30" property="delivery21of30" jdbcType="NUMERIC" />
+    <result column="remotedeliveryday" property="remotedeliveryday" jdbcType="NUMERIC" />
+    <result column="buytimeaheadtime" property="buytimeaheadtime" jdbcType="NUMERIC" />
+    <result column="timedoutofpayment" property="timedoutofpayment" jdbcType="NUMERIC" />
+    <result column="inspectionperiod" property="inspectionperiod" jdbcType="NUMERIC" />
+    <result column="periodoffreezing" property="periodoffreezing" jdbcType="NUMERIC" />
+    <result column="freezetotogoodspay" property="freezetotogoodspay" jdbcType="NUMERIC" />
+    <result column="creditbreakrate" property="creditbreakrate" jdbcType="NUMERIC" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    unpaidtimeout, confirmreceipttimeout, orderreturnperiod, spotsalesmargin, forwardsalesmargin, 
+    getliquidated, remotepurchasingmargin, upperlimitamount, delivery1of10, delivery11of20, 
+    delivery21of30, remotedeliveryday, buytimeaheadtime, timedoutofpayment, inspectionperiod, 
+    periodoffreezing, freezetotogoodspay, creditbreakrate
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_admin.mod_transet.bean.TransactionSettingExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from transactionsetting
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_admin.mod_transet.bean.TransactionSettingExample" >
+    delete from transactionsetting
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_admin.mod_transet.bean.TransactionSetting" >
+    insert into transactionsetting (unpaidtimeout, confirmreceipttimeout, 
+      orderreturnperiod, spotsalesmargin, forwardsalesmargin, 
+      getliquidated, remotepurchasingmargin, 
+      upperlimitamount, delivery1of10, delivery11of20, 
+      delivery21of30, remotedeliveryday, buytimeaheadtime, 
+      timedoutofpayment, inspectionperiod, periodoffreezing, 
+      freezetotogoodspay, creditbreakrate)
+    values (#{unpaidtimeout,jdbcType=NUMERIC}, #{confirmreceipttimeout,jdbcType=NUMERIC}, 
+      #{orderreturnperiod,jdbcType=NUMERIC}, #{spotsalesmargin,jdbcType=NUMERIC}, #{forwardsalesmargin,jdbcType=NUMERIC}, 
+      #{getliquidated,jdbcType=NUMERIC}, #{remotepurchasingmargin,jdbcType=NUMERIC}, 
+      #{upperlimitamount,jdbcType=NUMERIC}, #{delivery1of10,jdbcType=NUMERIC}, #{delivery11of20,jdbcType=NUMERIC}, 
+      #{delivery21of30,jdbcType=NUMERIC}, #{remotedeliveryday,jdbcType=NUMERIC}, #{buytimeaheadtime,jdbcType=NUMERIC}, 
+      #{timedoutofpayment,jdbcType=NUMERIC}, #{inspectionperiod,jdbcType=NUMERIC}, #{periodoffreezing,jdbcType=NUMERIC}, 
+      #{freezetotogoodspay,jdbcType=NUMERIC}, #{creditbreakrate,jdbcType=NUMERIC})
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_admin.mod_transet.bean.TransactionSetting" >
+    insert into transactionsetting
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="unpaidtimeout != null" >
+        unpaidtimeout,
+      </if>
+      <if test="confirmreceipttimeout != null" >
+        confirmreceipttimeout,
+      </if>
+      <if test="orderreturnperiod != null" >
+        orderreturnperiod,
+      </if>
+      <if test="spotsalesmargin != null" >
+        spotsalesmargin,
+      </if>
+      <if test="forwardsalesmargin != null" >
+        forwardsalesmargin,
+      </if>
+      <if test="getliquidated != null" >
+        getliquidated,
+      </if>
+      <if test="remotepurchasingmargin != null" >
+        remotepurchasingmargin,
+      </if>
+      <if test="upperlimitamount != null" >
+        upperlimitamount,
+      </if>
+      <if test="delivery1of10 != null" >
+        delivery1of10,
+      </if>
+      <if test="delivery11of20 != null" >
+        delivery11of20,
+      </if>
+      <if test="delivery21of30 != null" >
+        delivery21of30,
+      </if>
+      <if test="remotedeliveryday != null" >
+        remotedeliveryday,
+      </if>
+      <if test="buytimeaheadtime != null" >
+        buytimeaheadtime,
+      </if>
+      <if test="timedoutofpayment != null" >
+        timedoutofpayment,
+      </if>
+      <if test="inspectionperiod != null" >
+        inspectionperiod,
+      </if>
+      <if test="periodoffreezing != null" >
+        periodoffreezing,
+      </if>
+      <if test="freezetotogoodspay != null" >
+        freezetotogoodspay,
+      </if>
+      <if test="creditbreakrate != null" >
+        creditbreakrate,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="unpaidtimeout != null" >
+        #{unpaidtimeout,jdbcType=NUMERIC},
+      </if>
+      <if test="confirmreceipttimeout != null" >
+        #{confirmreceipttimeout,jdbcType=NUMERIC},
+      </if>
+      <if test="orderreturnperiod != null" >
+        #{orderreturnperiod,jdbcType=NUMERIC},
+      </if>
+      <if test="spotsalesmargin != null" >
+        #{spotsalesmargin,jdbcType=NUMERIC},
+      </if>
+      <if test="forwardsalesmargin != null" >
+        #{forwardsalesmargin,jdbcType=NUMERIC},
+      </if>
+      <if test="getliquidated != null" >
+        #{getliquidated,jdbcType=NUMERIC},
+      </if>
+      <if test="remotepurchasingmargin != null" >
+        #{remotepurchasingmargin,jdbcType=NUMERIC},
+      </if>
+      <if test="upperlimitamount != null" >
+        #{upperlimitamount,jdbcType=NUMERIC},
+      </if>
+      <if test="delivery1of10 != null" >
+        #{delivery1of10,jdbcType=NUMERIC},
+      </if>
+      <if test="delivery11of20 != null" >
+        #{delivery11of20,jdbcType=NUMERIC},
+      </if>
+      <if test="delivery21of30 != null" >
+        #{delivery21of30,jdbcType=NUMERIC},
+      </if>
+      <if test="remotedeliveryday != null" >
+        #{remotedeliveryday,jdbcType=NUMERIC},
+      </if>
+      <if test="buytimeaheadtime != null" >
+        #{buytimeaheadtime,jdbcType=NUMERIC},
+      </if>
+      <if test="timedoutofpayment != null" >
+        #{timedoutofpayment,jdbcType=NUMERIC},
+      </if>
+      <if test="inspectionperiod != null" >
+        #{inspectionperiod,jdbcType=NUMERIC},
+      </if>
+      <if test="periodoffreezing != null" >
+        #{periodoffreezing,jdbcType=NUMERIC},
+      </if>
+      <if test="freezetotogoodspay != null" >
+        #{freezetotogoodspay,jdbcType=NUMERIC},
+      </if>
+      <if test="creditbreakrate != null" >
+        #{creditbreakrate,jdbcType=NUMERIC},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_admin.mod_transet.bean.TransactionSettingExample" resultType="java.lang.Integer" >
+    select count(*) from transactionsetting
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update transactionsetting
+    <set >
+      <if test="record.unpaidtimeout != null" >
+        unpaidtimeout = #{record.unpaidtimeout,jdbcType=NUMERIC},
+      </if>
+      <if test="record.confirmreceipttimeout != null" >
+        confirmreceipttimeout = #{record.confirmreceipttimeout,jdbcType=NUMERIC},
+      </if>
+      <if test="record.orderreturnperiod != null" >
+        orderreturnperiod = #{record.orderreturnperiod,jdbcType=NUMERIC},
+      </if>
+      <if test="record.spotsalesmargin != null" >
+        spotsalesmargin = #{record.spotsalesmargin,jdbcType=NUMERIC},
+      </if>
+      <if test="record.forwardsalesmargin != null" >
+        forwardsalesmargin = #{record.forwardsalesmargin,jdbcType=NUMERIC},
+      </if>
+      <if test="record.getliquidated != null" >
+        getliquidated = #{record.getliquidated,jdbcType=NUMERIC},
+      </if>
+      <if test="record.remotepurchasingmargin != null" >
+        remotepurchasingmargin = #{record.remotepurchasingmargin,jdbcType=NUMERIC},
+      </if>
+      <if test="record.upperlimitamount != null" >
+        upperlimitamount = #{record.upperlimitamount,jdbcType=NUMERIC},
+      </if>
+      <if test="record.delivery1of10 != null" >
+        delivery1of10 = #{record.delivery1of10,jdbcType=NUMERIC},
+      </if>
+      <if test="record.delivery11of20 != null" >
+        delivery11of20 = #{record.delivery11of20,jdbcType=NUMERIC},
+      </if>
+      <if test="record.delivery21of30 != null" >
+        delivery21of30 = #{record.delivery21of30,jdbcType=NUMERIC},
+      </if>
+      <if test="record.remotedeliveryday != null" >
+        remotedeliveryday = #{record.remotedeliveryday,jdbcType=NUMERIC},
+      </if>
+      <if test="record.buytimeaheadtime != null" >
+        buytimeaheadtime = #{record.buytimeaheadtime,jdbcType=NUMERIC},
+      </if>
+      <if test="record.timedoutofpayment != null" >
+        timedoutofpayment = #{record.timedoutofpayment,jdbcType=NUMERIC},
+      </if>
+      <if test="record.inspectionperiod != null" >
+        inspectionperiod = #{record.inspectionperiod,jdbcType=NUMERIC},
+      </if>
+      <if test="record.periodoffreezing != null" >
+        periodoffreezing = #{record.periodoffreezing,jdbcType=NUMERIC},
+      </if>
+      <if test="record.freezetotogoodspay != null" >
+        freezetotogoodspay = #{record.freezetotogoodspay,jdbcType=NUMERIC},
+      </if>
+      <if test="record.creditbreakrate != null" >
+        creditbreakrate = #{record.creditbreakrate,jdbcType=NUMERIC},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update transactionsetting
+    set unpaidtimeout = #{record.unpaidtimeout,jdbcType=NUMERIC},
+      confirmreceipttimeout = #{record.confirmreceipttimeout,jdbcType=NUMERIC},
+      orderreturnperiod = #{record.orderreturnperiod,jdbcType=NUMERIC},
+      spotsalesmargin = #{record.spotsalesmargin,jdbcType=NUMERIC},
+      forwardsalesmargin = #{record.forwardsalesmargin,jdbcType=NUMERIC},
+      getliquidated = #{record.getliquidated,jdbcType=NUMERIC},
+      remotepurchasingmargin = #{record.remotepurchasingmargin,jdbcType=NUMERIC},
+      upperlimitamount = #{record.upperlimitamount,jdbcType=NUMERIC},
+      delivery1of10 = #{record.delivery1of10,jdbcType=NUMERIC},
+      delivery11of20 = #{record.delivery11of20,jdbcType=NUMERIC},
+      delivery21of30 = #{record.delivery21of30,jdbcType=NUMERIC},
+      remotedeliveryday = #{record.remotedeliveryday,jdbcType=NUMERIC},
+      buytimeaheadtime = #{record.buytimeaheadtime,jdbcType=NUMERIC},
+      timedoutofpayment = #{record.timedoutofpayment,jdbcType=NUMERIC},
+      inspectionperiod = #{record.inspectionperiod,jdbcType=NUMERIC},
+      periodoffreezing = #{record.periodoffreezing,jdbcType=NUMERIC},
+      freezetotogoodspay = #{record.freezetotogoodspay,jdbcType=NUMERIC},
+      creditbreakrate = #{record.creditbreakrate,jdbcType=NUMERIC}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+</mapper>

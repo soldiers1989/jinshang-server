@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_admin.mod_pdlabel.PdlabelMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_admin.mod_pdlabel.bean.Pdlabel" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="pdlableid" property="pdlableid" jdbcType="BIGINT" />
+    <result column="labelname" property="labelname" jdbcType="VARCHAR" />
+    <result column="recommend" property="recommend" jdbcType="VARCHAR" />
+    <result column="isuse" property="isuse" jdbcType="INTEGER" />
+    <result column="creattime" property="creattime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, pdlableid, labelname, recommend, isuse, creattime
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_admin.mod_pdlabel.bean.PdlabelExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from pdlabel
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from pdlabel
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from pdlabel
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_admin.mod_pdlabel.bean.Pdlabel" >
+    insert into pdlabel (pdlableid, labelname,
+      recommend, isuse, creattime
+      )
+    values (#{#{pdlableid,jdbcType=BIGINT}, #{labelname,jdbcType=VARCHAR},
+      #{recommend,jdbcType=VARCHAR}, #{isuse,jdbcType=INTEGER}, #{creattime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_admin.mod_pdlabel.bean.Pdlabel" >
+    insert into pdlabel
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="pdlableid != null" >
+        pdlableid,
+      </if>
+      <if test="labelname != null" >
+        labelname,
+      </if>
+      <if test="recommend != null" >
+        recommend,
+      </if>
+      <if test="isuse != null" >
+        isuse,
+      </if>
+      <if test="creattime != null" >
+        creattime,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="pdlableid != null" >
+        #{pdlableid,jdbcType=BIGINT},
+      </if>
+      <if test="labelname != null" >
+        #{labelname,jdbcType=VARCHAR},
+      </if>
+      <if test="recommend != null" >
+        #{recommend,jdbcType=VARCHAR},
+      </if>
+      <if test="isuse != null" >
+        #{isuse,jdbcType=INTEGER},
+      </if>
+      <if test="creattime != null" >
+        #{creattime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_admin.mod_pdlabel.bean.PdlabelExample" resultType="java.lang.Integer" >
+    select count(*) from pdlabel
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update pdlabel
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.pdlableid != null" >
+        pdlableid = #{record.pdlableid,jdbcType=BIGINT},
+      </if>
+      <if test="record.labelname != null" >
+        labelname = #{record.labelname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.recommend != null" >
+        recommend = #{record.recommend,jdbcType=VARCHAR},
+      </if>
+      <if test="record.isuse != null" >
+        isuse = #{record.isuse,jdbcType=INTEGER},
+      </if>
+      <if test="record.creattime != null" >
+        creattime = #{record.creattime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update pdlabel
+    set id = #{record.id,jdbcType=BIGINT},
+      pdlableid = #{record.pdlableid,jdbcType=BIGINT},
+      labelname = #{record.labelname,jdbcType=VARCHAR},
+      recommend = #{record.recommend,jdbcType=VARCHAR},
+      isuse = #{record.isuse,jdbcType=INTEGER},
+      creattime = #{record.creattime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_admin.mod_pdlabel.bean.Pdlabel" >
+    update pdlabel
+    <set >
+      <if test="pdlableid != null" >
+        pdlableid = #{pdlableid,jdbcType=BIGINT},
+      </if>
+      <if test="labelname != null" >
+        labelname = #{labelname,jdbcType=VARCHAR},
+      </if>
+      <if test="recommend != null" >
+        recommend = #{recommend,jdbcType=VARCHAR},
+      </if>
+      <if test="isuse != null" >
+        isuse = #{isuse,jdbcType=INTEGER},
+      </if>
+      <if test="creattime != null" >
+        creattime = #{creattime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_admin.mod_pdlabel.bean.Pdlabel" >
+    update pdlabel
+    set pdlableid = #{pdlableid,jdbcType=BIGINT},
+      labelname = #{labelname,jdbcType=VARCHAR},
+      recommend = #{recommend,jdbcType=VARCHAR},
+      isuse = #{isuse,jdbcType=INTEGER},
+      creattime = #{creattime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

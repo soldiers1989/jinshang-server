@@ -1,0 +1,318 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_member.AdminMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_member.bean.Admin" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="username" property="username" jdbcType="VARCHAR" />
+    <result column="password" property="password" jdbcType="VARCHAR" />
+    <result column="passwordsalt" property="passwordsalt" jdbcType="VARCHAR" />
+    <result column="realname" property="realname" jdbcType="VARCHAR" />
+    <result column="mobile" property="mobile" jdbcType="VARCHAR" />
+    <result column="groupid" property="groupid" jdbcType="INTEGER" />
+    <result column="groupname" property="groupname" jdbcType="VARCHAR" />
+    <result column="disable" property="disable" jdbcType="BIT" />
+    <result column="createdate" property="createdate" jdbcType="TIMESTAMP" />
+    <result column="parentid" property="parentid" jdbcType="INTEGER" />
+    <result column="roles" property="roles" jdbcType="ARRAY" typeHandler="project.jinshang.typeHandler.ArrayTypeHandler" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, username, password, passwordsalt, realname, mobile, groupid, groupname, disable, 
+    createdate, parentid, roles
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_member.bean.AdminExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from admin
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from admin
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from admin
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_member.bean.Admin" >
+    insert into admin ( username, password,
+      passwordsalt, realname, mobile, 
+      groupid, groupname, disable, 
+      createdate, parentid, roles
+      )
+    values ( #{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR},
+      #{passwordsalt,jdbcType=VARCHAR}, #{realname,jdbcType=VARCHAR}, #{mobile,jdbcType=VARCHAR}, 
+      #{groupid,jdbcType=INTEGER}, #{groupname,jdbcType=VARCHAR}, #{disable,jdbcType=BIT}, 
+      #{createdate,jdbcType=TIMESTAMP}, #{parentid,jdbcType=INTEGER}, #{roles,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_member.bean.Admin" >
+    insert into admin
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="username != null" >
+        username,
+      </if>
+      <if test="password != null" >
+        password,
+      </if>
+      <if test="passwordsalt != null" >
+        passwordsalt,
+      </if>
+      <if test="realname != null" >
+        realname,
+      </if>
+      <if test="mobile != null" >
+        mobile,
+      </if>
+      <if test="groupid != null" >
+        groupid,
+      </if>
+      <if test="groupname != null" >
+        groupname,
+      </if>
+      <if test="disable != null" >
+        disable,
+      </if>
+      <if test="createdate != null" >
+        createdate,
+      </if>
+      <if test="parentid != null" >
+        parentid,
+      </if>
+      <if test="roles != null" >
+        roles,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="username != null" >
+        #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="password != null" >
+        #{password,jdbcType=VARCHAR},
+      </if>
+      <if test="passwordsalt != null" >
+        #{passwordsalt,jdbcType=VARCHAR},
+      </if>
+      <if test="realname != null" >
+        #{realname,jdbcType=VARCHAR},
+      </if>
+      <if test="mobile != null" >
+        #{mobile,jdbcType=VARCHAR},
+      </if>
+      <if test="groupid != null" >
+        #{groupid,jdbcType=INTEGER},
+      </if>
+      <if test="groupname != null" >
+        #{groupname,jdbcType=VARCHAR},
+      </if>
+      <if test="disable != null" >
+        #{disable,jdbcType=BIT},
+      </if>
+      <if test="createdate != null" >
+        #{createdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="parentid != null" >
+        #{parentid,jdbcType=INTEGER},
+      </if>
+      <if test="roles != null" >
+        #{roles,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_member.bean.AdminExample" resultType="java.lang.Integer" >
+    select count(*) from admin
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update admin
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.username != null" >
+        username = #{record.username,jdbcType=VARCHAR},
+      </if>
+      <if test="record.password != null" >
+        password = #{record.password,jdbcType=VARCHAR},
+      </if>
+      <if test="record.passwordsalt != null" >
+        passwordsalt = #{record.passwordsalt,jdbcType=VARCHAR},
+      </if>
+      <if test="record.realname != null" >
+        realname = #{record.realname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.mobile != null" >
+        mobile = #{record.mobile,jdbcType=VARCHAR},
+      </if>
+      <if test="record.groupid != null" >
+        groupid = #{record.groupid,jdbcType=INTEGER},
+      </if>
+      <if test="record.groupname != null" >
+        groupname = #{record.groupname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.disable != null" >
+        disable = #{record.disable,jdbcType=BIT},
+      </if>
+      <if test="record.createdate != null" >
+        createdate = #{record.createdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.parentid != null" >
+        parentid = #{record.parentid,jdbcType=INTEGER},
+      </if>
+      <if test="record.roles != null" >
+        roles = #{record.roles,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update admin
+    set id = #{record.id,jdbcType=BIGINT},
+      username = #{record.username,jdbcType=VARCHAR},
+      password = #{record.password,jdbcType=VARCHAR},
+      passwordsalt = #{record.passwordsalt,jdbcType=VARCHAR},
+      realname = #{record.realname,jdbcType=VARCHAR},
+      mobile = #{record.mobile,jdbcType=VARCHAR},
+      groupid = #{record.groupid,jdbcType=INTEGER},
+      groupname = #{record.groupname,jdbcType=VARCHAR},
+      disable = #{record.disable,jdbcType=BIT},
+      createdate = #{record.createdate,jdbcType=TIMESTAMP},
+      parentid = #{record.parentid,jdbcType=INTEGER},
+      roles = #{record.roles,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_member.bean.Admin" >
+    update admin
+    <set >
+      <if test="username != null" >
+        username = #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="password != null" >
+        password = #{password,jdbcType=VARCHAR},
+      </if>
+      <if test="passwordsalt != null" >
+        passwordsalt = #{passwordsalt,jdbcType=VARCHAR},
+      </if>
+      <if test="realname != null" >
+        realname = #{realname,jdbcType=VARCHAR},
+      </if>
+      <if test="mobile != null" >
+        mobile = #{mobile,jdbcType=VARCHAR},
+      </if>
+      <if test="groupid != null" >
+        groupid = #{groupid,jdbcType=INTEGER},
+      </if>
+      <if test="groupname != null" >
+        groupname = #{groupname,jdbcType=VARCHAR},
+      </if>
+      <if test="disable != null" >
+        disable = #{disable,jdbcType=BIT},
+      </if>
+      <if test="createdate != null" >
+        createdate = #{createdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="parentid != null" >
+        parentid = #{parentid,jdbcType=INTEGER},
+      </if>
+      <if test="roles != null" >
+        roles = #{roles,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_member.bean.Admin" >
+    update admin
+    set username = #{username,jdbcType=VARCHAR},
+      password = #{password,jdbcType=VARCHAR},
+      passwordsalt = #{passwordsalt,jdbcType=VARCHAR},
+      realname = #{realname,jdbcType=VARCHAR},
+      mobile = #{mobile,jdbcType=VARCHAR},
+      groupid = #{groupid,jdbcType=INTEGER},
+      groupname = #{groupname,jdbcType=VARCHAR},
+      disable = #{disable,jdbcType=BIT},
+      createdate = #{createdate,jdbcType=TIMESTAMP},
+      parentid = #{parentid,jdbcType=INTEGER},
+      roles = #{roles,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

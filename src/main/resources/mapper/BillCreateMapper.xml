@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_credit.BillCreateMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_credit.bean.BillCreate" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="buyerid" property="buyerid" jdbcType="BIGINT" />
+    <result column="billno" property="billno" jdbcType="VARCHAR" />
+    <result column="money" property="money" jdbcType="NUMERIC" />
+    <result column="amountpaid" property="amountpaid" jdbcType="NUMERIC" />
+    <result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
+    <result column="settlementtime" property="settlementtime" jdbcType="VARCHAR" />
+    <result column="records" property="records" jdbcType="INTEGER" />
+    <result column="state" property="state" jdbcType="SMALLINT" />
+    <result column="lastrepaymentday" property="lastrepaymentday" jdbcType="TIMESTAMP" />
+    <result column="illegal" property="illegal" jdbcType="BIT" />
+    <result column="illegaldays" property="illegaldays" jdbcType="INTEGER" />
+    <result column="illegalmoney" property="illegalmoney" jdbcType="NUMERIC" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, buyerid, billno, money, amountpaid, createtime, settlementtime, records, state, 
+    lastrepaymentday, illegal, illegaldays, illegalmoney
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_credit.bean.BillCreateExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from billcreate
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from billcreate
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from billcreate
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_credit.bean.BillCreateExample" >
+    delete from billcreate
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_credit.bean.BillCreate" >
+    insert into billcreate (id, buyerid, billno, 
+      money, amountpaid, createtime, 
+      settlementtime, records, state, 
+      lastrepaymentday, illegal, illegaldays, 
+      illegalmoney)
+    values (#{id,jdbcType=INTEGER}, #{buyerid,jdbcType=BIGINT}, #{billno,jdbcType=VARCHAR}, 
+      #{money,jdbcType=NUMERIC}, #{amountpaid,jdbcType=NUMERIC}, #{createtime,jdbcType=TIMESTAMP}, 
+      #{settlementtime,jdbcType=VARCHAR}, #{records,jdbcType=INTEGER}, #{state,jdbcType=SMALLINT}, 
+      #{lastrepaymentday,jdbcType=TIMESTAMP}, #{illegal,jdbcType=BIT}, #{illegaldays,jdbcType=INTEGER}, 
+      #{illegalmoney,jdbcType=NUMERIC})
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_credit.bean.BillCreate" useGeneratedKeys="true" keyProperty="id">
+    insert into billcreate
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="buyerid != null" >
+        buyerid,
+      </if>
+      <if test="billno != null" >
+        billno,
+      </if>
+      <if test="money != null" >
+        money,
+      </if>
+      <if test="amountpaid != null" >
+        amountpaid,
+      </if>
+      <if test="createtime != null" >
+        createtime,
+      </if>
+      <if test="settlementtime != null" >
+        settlementtime,
+      </if>
+      <if test="records != null" >
+        records,
+      </if>
+      <if test="state != null" >
+        state,
+      </if>
+      <if test="lastrepaymentday != null" >
+        lastrepaymentday,
+      </if>
+      <if test="illegal != null" >
+        illegal,
+      </if>
+      <if test="illegaldays != null" >
+        illegaldays,
+      </if>
+      <if test="illegalmoney != null" >
+        illegalmoney,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="buyerid != null" >
+        #{buyerid,jdbcType=BIGINT},
+      </if>
+      <if test="billno != null" >
+        #{billno,jdbcType=VARCHAR},
+      </if>
+      <if test="money != null" >
+        #{money,jdbcType=NUMERIC},
+      </if>
+      <if test="amountpaid != null" >
+        #{amountpaid,jdbcType=NUMERIC},
+      </if>
+      <if test="createtime != null" >
+        #{createtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="settlementtime != null" >
+        #{settlementtime,jdbcType=VARCHAR},
+      </if>
+      <if test="records != null" >
+        #{records,jdbcType=INTEGER},
+      </if>
+      <if test="state != null" >
+        #{state,jdbcType=SMALLINT},
+      </if>
+      <if test="lastrepaymentday != null" >
+        #{lastrepaymentday,jdbcType=TIMESTAMP},
+      </if>
+      <if test="illegal != null" >
+        #{illegal,jdbcType=BIT},
+      </if>
+      <if test="illegaldays != null" >
+        #{illegaldays,jdbcType=INTEGER},
+      </if>
+      <if test="illegalmoney != null" >
+        #{illegalmoney,jdbcType=NUMERIC},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_credit.bean.BillCreateExample" resultType="java.lang.Integer" >
+    select count(*) from billcreate
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update billcreate
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=INTEGER},
+      </if>
+      <if test="record.buyerid != null" >
+        buyerid = #{record.buyerid,jdbcType=BIGINT},
+      </if>
+      <if test="record.billno != null" >
+        billno = #{record.billno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.money != null" >
+        money = #{record.money,jdbcType=NUMERIC},
+      </if>
+      <if test="record.amountpaid != null" >
+        amountpaid = #{record.amountpaid,jdbcType=NUMERIC},
+      </if>
+      <if test="record.createtime != null" >
+        createtime = #{record.createtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.settlementtime != null" >
+        settlementtime = #{record.settlementtime,jdbcType=VARCHAR},
+      </if>
+      <if test="record.records != null" >
+        records = #{record.records,jdbcType=INTEGER},
+      </if>
+      <if test="record.state != null" >
+        state = #{record.state,jdbcType=SMALLINT},
+      </if>
+      <if test="record.lastrepaymentday != null" >
+        lastrepaymentday = #{record.lastrepaymentday,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.illegal != null" >
+        illegal = #{record.illegal,jdbcType=BIT},
+      </if>
+      <if test="record.illegaldays != null" >
+        illegaldays = #{record.illegaldays,jdbcType=INTEGER},
+      </if>
+      <if test="record.illegalmoney != null" >
+        illegalmoney = #{record.illegalmoney,jdbcType=NUMERIC},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update billcreate
+    set id = #{record.id,jdbcType=INTEGER},
+      buyerid = #{record.buyerid,jdbcType=BIGINT},
+      billno = #{record.billno,jdbcType=VARCHAR},
+      money = #{record.money,jdbcType=NUMERIC},
+      amountpaid = #{record.amountpaid,jdbcType=NUMERIC},
+      createtime = #{record.createtime,jdbcType=TIMESTAMP},
+      settlementtime = #{record.settlementtime,jdbcType=VARCHAR},
+      records = #{record.records,jdbcType=INTEGER},
+      state = #{record.state,jdbcType=SMALLINT},
+      lastrepaymentday = #{record.lastrepaymentday,jdbcType=TIMESTAMP},
+      illegal = #{record.illegal,jdbcType=BIT},
+      illegaldays = #{record.illegaldays,jdbcType=INTEGER},
+      illegalmoney = #{record.illegalmoney,jdbcType=NUMERIC}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_credit.bean.BillCreate" >
+    update billcreate
+    <set >
+      <if test="buyerid != null" >
+        buyerid = #{buyerid,jdbcType=BIGINT},
+      </if>
+      <if test="billno != null" >
+        billno = #{billno,jdbcType=VARCHAR},
+      </if>
+      <if test="money != null" >
+        money = #{money,jdbcType=NUMERIC},
+      </if>
+      <if test="amountpaid != null" >
+        amountpaid = #{amountpaid,jdbcType=NUMERIC},
+      </if>
+      <if test="createtime != null" >
+        createtime = #{createtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="settlementtime != null" >
+        settlementtime = #{settlementtime,jdbcType=VARCHAR},
+      </if>
+      <if test="records != null" >
+        records = #{records,jdbcType=INTEGER},
+      </if>
+      <if test="state != null" >
+        state = #{state,jdbcType=SMALLINT},
+      </if>
+      <if test="lastrepaymentday != null" >
+        lastrepaymentday = #{lastrepaymentday,jdbcType=TIMESTAMP},
+      </if>
+      <if test="illegal != null" >
+        illegal = #{illegal,jdbcType=BIT},
+      </if>
+      <if test="illegaldays != null" >
+        illegaldays = #{illegaldays,jdbcType=INTEGER},
+      </if>
+      <if test="illegalmoney != null" >
+        illegalmoney = #{illegalmoney,jdbcType=NUMERIC},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_credit.bean.BillCreate" >
+    update billcreate
+    set buyerid = #{buyerid,jdbcType=BIGINT},
+      billno = #{billno,jdbcType=VARCHAR},
+      money = #{money,jdbcType=NUMERIC},
+      amountpaid = #{amountpaid,jdbcType=NUMERIC},
+      createtime = #{createtime,jdbcType=TIMESTAMP},
+      settlementtime = #{settlementtime,jdbcType=VARCHAR},
+      records = #{records,jdbcType=INTEGER},
+      state = #{state,jdbcType=SMALLINT},
+      lastrepaymentday = #{lastrepaymentday,jdbcType=TIMESTAMP},
+      illegal = #{illegal,jdbcType=BIT},
+      illegaldays = #{illegaldays,jdbcType=INTEGER},
+      illegalmoney = #{illegalmoney,jdbcType=NUMERIC}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

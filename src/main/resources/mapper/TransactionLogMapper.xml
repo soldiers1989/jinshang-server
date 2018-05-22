@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_transaction.TransactionLogMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_transaction.bean.TransactionLog" >
+    <id column="id" property="id" jdbcType="INTEGER" />
+    <result column="tranno" property="tranno" jdbcType="VARCHAR" />
+    <result column="orderno" property="orderno" jdbcType="VARCHAR" />
+    <result column="rejectedno" property="rejectedno" jdbcType="VARCHAR" />
+    <result column="trantype" property="trantype" jdbcType="SMALLINT" />
+    <result column="trannum" property="trannum" jdbcType="NUMERIC" />
+    <result column="transtate" property="transtate" jdbcType="SMALLINT" />
+    <result column="goodsname" property="goodsname" jdbcType="VARCHAR" />
+    <result column="trantime" property="trantime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, tranno, orderno, rejectedno, trantype, trannum, transtate, goodsname, trantime
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_transaction.bean.TransactionLogExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from transactionlog
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from transactionlog
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from transactionlog
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_transaction.bean.TransactionLog" >
+    insert into transactionlog (id, tranno, orderno, 
+      rejectedno, trantype, trannum, 
+      transtate, goodsname, trantime
+      )
+    values (#{id,jdbcType=INTEGER}, #{tranno,jdbcType=VARCHAR}, #{orderno,jdbcType=VARCHAR}, 
+      #{rejectedno,jdbcType=VARCHAR}, #{trantype,jdbcType=SMALLINT}, #{trannum,jdbcType=NUMERIC}, 
+      #{transtate,jdbcType=SMALLINT}, #{goodsname,jdbcType=VARCHAR}, #{trantime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_transaction.bean.TransactionLog" >
+    insert into transactionlog
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="tranno != null" >
+        tranno,
+      </if>
+      <if test="orderno != null" >
+        orderno,
+      </if>
+      <if test="rejectedno != null" >
+        rejectedno,
+      </if>
+      <if test="trantype != null" >
+        trantype,
+      </if>
+      <if test="trannum != null" >
+        trannum,
+      </if>
+      <if test="transtate != null" >
+        transtate,
+      </if>
+      <if test="goodsname != null" >
+        goodsname,
+      </if>
+      <if test="trantime != null" >
+        trantime,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="tranno != null" >
+        #{tranno,jdbcType=VARCHAR},
+      </if>
+      <if test="orderno != null" >
+        #{orderno,jdbcType=VARCHAR},
+      </if>
+      <if test="rejectedno != null" >
+        #{rejectedno,jdbcType=VARCHAR},
+      </if>
+      <if test="trantype != null" >
+        #{trantype,jdbcType=SMALLINT},
+      </if>
+      <if test="trannum != null" >
+        #{trannum,jdbcType=NUMERIC},
+      </if>
+      <if test="transtate != null" >
+        #{transtate,jdbcType=SMALLINT},
+      </if>
+      <if test="goodsname != null" >
+        #{goodsname,jdbcType=VARCHAR},
+      </if>
+      <if test="trantime != null" >
+        #{trantime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_transaction.bean.TransactionLogExample" resultType="java.lang.Integer" >
+    select count(*) from transactionlog
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update transactionlog
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=INTEGER},
+      </if>
+      <if test="record.tranno != null" >
+        tranno = #{record.tranno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orderno != null" >
+        orderno = #{record.orderno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.rejectedno != null" >
+        rejectedno = #{record.rejectedno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.trantype != null" >
+        trantype = #{record.trantype,jdbcType=SMALLINT},
+      </if>
+      <if test="record.trannum != null" >
+        trannum = #{record.trannum,jdbcType=NUMERIC},
+      </if>
+      <if test="record.transtate != null" >
+        transtate = #{record.transtate,jdbcType=SMALLINT},
+      </if>
+      <if test="record.goodsname != null" >
+        goodsname = #{record.goodsname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.trantime != null" >
+        trantime = #{record.trantime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update transactionlog
+    set id = #{record.id,jdbcType=INTEGER},
+      tranno = #{record.tranno,jdbcType=VARCHAR},
+      orderno = #{record.orderno,jdbcType=VARCHAR},
+      rejectedno = #{record.rejectedno,jdbcType=VARCHAR},
+      trantype = #{record.trantype,jdbcType=SMALLINT},
+      trannum = #{record.trannum,jdbcType=NUMERIC},
+      transtate = #{record.transtate,jdbcType=SMALLINT},
+      goodsname = #{record.goodsname,jdbcType=VARCHAR},
+      trantime = #{record.trantime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_transaction.bean.TransactionLog" >
+    update transactionlog
+    <set >
+      <if test="tranno != null" >
+        tranno = #{tranno,jdbcType=VARCHAR},
+      </if>
+      <if test="orderno != null" >
+        orderno = #{orderno,jdbcType=VARCHAR},
+      </if>
+      <if test="rejectedno != null" >
+        rejectedno = #{rejectedno,jdbcType=VARCHAR},
+      </if>
+      <if test="trantype != null" >
+        trantype = #{trantype,jdbcType=SMALLINT},
+      </if>
+      <if test="trannum != null" >
+        trannum = #{trannum,jdbcType=NUMERIC},
+      </if>
+      <if test="transtate != null" >
+        transtate = #{transtate,jdbcType=SMALLINT},
+      </if>
+      <if test="goodsname != null" >
+        goodsname = #{goodsname,jdbcType=VARCHAR},
+      </if>
+      <if test="trantime != null" >
+        trantime = #{trantime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_transaction.bean.TransactionLog" >
+    update transactionlog
+    set tranno = #{tranno,jdbcType=VARCHAR},
+      orderno = #{orderno,jdbcType=VARCHAR},
+      rejectedno = #{rejectedno,jdbcType=VARCHAR},
+      trantype = #{trantype,jdbcType=SMALLINT},
+      trannum = #{trannum,jdbcType=NUMERIC},
+      transtate = #{transtate,jdbcType=SMALLINT},
+      goodsname = #{goodsname,jdbcType=VARCHAR},
+      trantime = #{trantime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>

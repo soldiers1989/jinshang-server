@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_shop.ShopGradeMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_shop.bean.ShopGrade" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="grade" property="grade" jdbcType="INTEGER" />
+    <result column="gradename" property="gradename" jdbcType="VARCHAR" />
+    <result column="productlimit" property="productlimit" jdbcType="INTEGER" />
+    <result column="chargestandard" property="chargestandard" jdbcType="NUMERIC" />
+    <result column="rate" property="rate" jdbcType="NUMERIC" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="idefault" property="idefault" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, grade, gradename, productlimit, chargestandard, rate, remark, idefault
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_shop.bean.ShopGradeExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from shopgrade
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from shopgrade
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from shopgrade
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_shop.bean.ShopGrade" >
+    insert into shopgrade (grade, gradename,
+      productlimit, chargestandard, rate, 
+      remark, idefault)
+    values (#{grade,jdbcType=INTEGER}, #{gradename,jdbcType=VARCHAR},
+      #{productlimit,jdbcType=INTEGER}, #{chargestandard,jdbcType=NUMERIC}, #{rate,jdbcType=NUMERIC}, 
+      #{remark,jdbcType=VARCHAR}, #{idefault,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_shop.bean.ShopGrade" >
+    insert into shopgrade
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="grade != null" >
+        grade,
+      </if>
+      <if test="gradename != null" >
+        gradename,
+      </if>
+      <if test="productlimit != null" >
+        productlimit,
+      </if>
+      <if test="chargestandard != null" >
+        chargestandard,
+      </if>
+      <if test="rate != null" >
+        rate,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="idefault != null" >
+        idefault,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="grade != null" >
+        #{grade,jdbcType=INTEGER},
+      </if>
+      <if test="gradename != null" >
+        #{gradename,jdbcType=VARCHAR},
+      </if>
+      <if test="productlimit != null" >
+        #{productlimit,jdbcType=INTEGER},
+      </if>
+      <if test="chargestandard != null" >
+        #{chargestandard,jdbcType=NUMERIC},
+      </if>
+      <if test="rate != null" >
+        #{rate,jdbcType=NUMERIC},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="idefault != null" >
+        #{idefault,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_shop.bean.ShopGradeExample" resultType="java.lang.Integer" >
+    select count(*) from shopgrade
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update shopgrade
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.grade != null" >
+        grade = #{record.grade,jdbcType=INTEGER},
+      </if>
+      <if test="record.gradename != null" >
+        gradename = #{record.gradename,jdbcType=VARCHAR},
+      </if>
+      <if test="record.productlimit != null" >
+        productlimit = #{record.productlimit,jdbcType=INTEGER},
+      </if>
+      <if test="record.chargestandard != null" >
+        chargestandard = #{record.chargestandard,jdbcType=NUMERIC},
+      </if>
+      <if test="record.rate != null" >
+        rate = #{record.rate,jdbcType=NUMERIC},
+      </if>
+      <if test="record.remark != null" >
+        remark = #{record.remark,jdbcType=VARCHAR},
+      </if>
+      <if test="record.idefault != null" >
+        idefault = #{record.idefault,jdbcType=INTEGER},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update shopgrade
+    set id = #{record.id,jdbcType=BIGINT},
+      grade = #{record.grade,jdbcType=INTEGER},
+      gradename = #{record.gradename,jdbcType=VARCHAR},
+      productlimit = #{record.productlimit,jdbcType=INTEGER},
+      chargestandard = #{record.chargestandard,jdbcType=NUMERIC},
+      rate = #{record.rate,jdbcType=NUMERIC},
+      remark = #{record.remark,jdbcType=VARCHAR},
+      idefault = #{record.idefault,jdbcType=INTEGER}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_shop.bean.ShopGrade" >
+    update shopgrade
+    <set >
+      <if test="grade != null" >
+        grade = #{grade,jdbcType=INTEGER},
+      </if>
+      <if test="gradename != null" >
+        gradename = #{gradename,jdbcType=VARCHAR},
+      </if>
+      <if test="productlimit != null" >
+        productlimit = #{productlimit,jdbcType=INTEGER},
+      </if>
+      <if test="chargestandard != null" >
+        chargestandard = #{chargestandard,jdbcType=NUMERIC},
+      </if>
+      <if test="rate != null" >
+        rate = #{rate,jdbcType=NUMERIC},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="idefault != null" >
+        idefault = #{idefault,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_shop.bean.ShopGrade" >
+    update shopgrade
+    set grade = #{grade,jdbcType=INTEGER},
+      gradename = #{gradename,jdbcType=VARCHAR},
+      productlimit = #{productlimit,jdbcType=INTEGER},
+      chargestandard = #{chargestandard,jdbcType=NUMERIC},
+      rate = #{rate,jdbcType=NUMERIC},
+      remark = #{remark,jdbcType=VARCHAR},
+      idefault = #{idefault,jdbcType=INTEGER}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

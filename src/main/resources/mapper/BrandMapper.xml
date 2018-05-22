@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_product.BrandMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_product.bean.Brand" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="category" property="category" jdbcType="VARCHAR" />
+    <result column="categoryid" property="categoryid" jdbcType="BIGINT" />
+    <result column="pic" property="pic" jdbcType="VARCHAR" />
+    <result column="memberid" property="memberid" jdbcType="BIGINT" />
+    <result column="auditname" property="auditname" jdbcType="BIGINT" />
+    <result column="audittime" property="audittime" jdbcType="TIMESTAMP" />
+    <result column="reason" property="reason" jdbcType="VARCHAR" />
+    <result column="auditstate" property="auditstate" jdbcType="SMALLINT" />
+    <result column="ceatetime" property="ceatetime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, name, category, categoryid, pic, memberid, auditname, audittime, reason, auditstate,
+    ceatetime
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_product.bean.BrandExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from brand
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select
+    <include refid="Base_Column_List" />
+    from brand
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from brand
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_product.bean.BrandExample" >
+    delete from brand
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_product.bean.Brand" >
+    insert into brand ( name, category,
+    categoryid, pic, memberid,
+    auditname, audittime, reason,
+    auditstate, ceatetime)
+    values (#{name,jdbcType=VARCHAR}, #{category,jdbcType=VARCHAR},
+    #{categoryid,jdbcType=BIGINT}, #{pic,jdbcType=VARCHAR}, #{memberid,jdbcType=BIGINT},
+    #{auditname,jdbcType=BIGINT}, #{audittime,jdbcType=TIMESTAMP}, #{reason,jdbcType=VARCHAR},
+    #{auditstate,jdbcType=SMALLINT}, #{ceatetime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_product.bean.Brand" >
+    insert into brand
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="name != null" >
+        name,
+      </if>
+      <if test="category != null" >
+        category,
+      </if>
+      <if test="categoryid != null" >
+        categoryid,
+      </if>
+      <if test="pic != null" >
+        pic,
+      </if>
+      <if test="memberid != null" >
+        memberid,
+      </if>
+      <if test="auditname != null" >
+        auditname,
+      </if>
+      <if test="audittime != null" >
+        audittime,
+      </if>
+      <if test="reason != null" >
+        reason,
+      </if>
+      <if test="auditstate != null" >
+        auditstate,
+      </if>
+      <if test="ceatetime != null" >
+        ceatetime,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="category != null" >
+        #{category,jdbcType=VARCHAR},
+      </if>
+      <if test="categoryid != null" >
+        #{categoryid,jdbcType=BIGINT},
+      </if>
+      <if test="pic != null" >
+        #{pic,jdbcType=VARCHAR},
+      </if>
+      <if test="memberid != null" >
+        #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="auditname != null" >
+        #{auditname,jdbcType=BIGINT},
+      </if>
+      <if test="audittime != null" >
+        #{audittime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="reason != null" >
+        #{reason,jdbcType=VARCHAR},
+      </if>
+      <if test="auditstate != null" >
+        #{auditstate,jdbcType=SMALLINT},
+      </if>
+      <if test="ceatetime != null" >
+        #{ceatetime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_product.bean.BrandExample" resultType="java.lang.Integer" >
+    select count(*) from brand
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update brand
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.name != null" >
+        name = #{record.name,jdbcType=VARCHAR},
+      </if>
+      <if test="record.category != null" >
+        category = #{record.category,jdbcType=VARCHAR},
+      </if>
+      <if test="record.categoryid != null" >
+        categoryid = #{record.categoryid,jdbcType=BIGINT},
+      </if>
+      <if test="record.pic != null" >
+        pic = #{record.pic,jdbcType=VARCHAR},
+      </if>
+      <if test="record.memberid != null" >
+        memberid = #{record.memberid,jdbcType=BIGINT},
+      </if>
+      <if test="record.auditname != null" >
+        auditname = #{record.auditname,jdbcType=BIGINT},
+      </if>
+      <if test="record.audittime != null" >
+        audittime = #{record.audittime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.reason != null" >
+        reason = #{record.reason,jdbcType=VARCHAR},
+      </if>
+      <if test="record.auditstate != null" >
+        auditstate = #{record.auditstate,jdbcType=SMALLINT},
+      </if>
+      <if test="record.ceatetime != null" >
+        ceatetime = #{record.ceatetime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update brand
+    set id = #{record.id,jdbcType=BIGINT},
+    name = #{record.name,jdbcType=VARCHAR},
+    category = #{record.category,jdbcType=VARCHAR},
+    categoryid = #{record.categoryid,jdbcType=BIGINT},
+    pic = #{record.pic,jdbcType=VARCHAR},
+    memberid = #{record.memberid,jdbcType=BIGINT},
+    auditname = #{record.auditname,jdbcType=BIGINT},
+    audittime = #{record.audittime,jdbcType=TIMESTAMP},
+    reason = #{record.reason,jdbcType=VARCHAR},
+    auditstate = #{record.auditstate,jdbcType=SMALLINT},
+    ceatetime = #{record.ceatetime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_product.bean.Brand" >
+    update brand
+    <set >
+      <if test="name != null" >
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="category != null" >
+        category = #{category,jdbcType=VARCHAR},
+      </if>
+      <if test="categoryid != null" >
+        categoryid = #{categoryid,jdbcType=BIGINT},
+      </if>
+      <if test="pic != null" >
+        pic = #{pic,jdbcType=VARCHAR},
+      </if>
+      <if test="memberid != null" >
+        memberid = #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="auditname != null" >
+        auditname = #{auditname,jdbcType=BIGINT},
+      </if>
+      <if test="audittime != null" >
+        audittime = #{audittime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="reason != null" >
+        reason = #{reason,jdbcType=VARCHAR},
+      </if>
+      <if test="auditstate != null" >
+        auditstate = #{auditstate,jdbcType=SMALLINT},
+      </if>
+      <if test="ceatetime != null" >
+        ceatetime = #{ceatetime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_product.bean.Brand" >
+    update brand
+    set name = #{name,jdbcType=VARCHAR},
+    category = #{category,jdbcType=VARCHAR},
+    categoryid = #{categoryid,jdbcType=BIGINT},
+    pic = #{pic,jdbcType=VARCHAR},
+    memberid = #{memberid,jdbcType=BIGINT},
+    auditname = #{auditname,jdbcType=BIGINT},
+    audittime = #{audittime,jdbcType=TIMESTAMP},
+    reason = #{reason,jdbcType=VARCHAR},
+    auditstate = #{auditstate,jdbcType=SMALLINT},
+    ceatetime = #{ceatetime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

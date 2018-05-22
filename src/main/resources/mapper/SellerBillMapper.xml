@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_sellerbill.mapper.SellerBillMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_sellerbill.bean.SellerBill" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="no" property="no" jdbcType="VARCHAR" />
+    <result column="state" property="state" jdbcType="SMALLINT" />
+    <result column="money" property="money" jdbcType="NUMERIC" />
+    <result column="sellerid" property="sellerid" jdbcType="BIGINT" />
+    <result column="adduser" property="adduser" jdbcType="VARCHAR" />
+    <result column="addtime" property="addtime" jdbcType="TIMESTAMP" />
+    <result column="billjson" property="billjson" jdbcType="OTHER" typeHandler="project.jinshang.typeHandler.JsonTypeHandler"/>
+    <result column="billtype" property="billtype" jdbcType="VARCHAR" />
+    <result column="billcreatetime" property="billcreatetime" jdbcType="TIMESTAMP" />
+    <result column="sellerusername" property="sellerusername" jdbcType="VARCHAR" />
+    <result column="sellercompanyname" property="sellercompanyname" jdbcType="VARCHAR" />
+    <result column="ordernum" property="ordernum" jdbcType="INTEGER" />
+    <result column="totalorders" property="totalorders" jdbcType="NUMERIC" />
+    <result column="totalbrokepay" property="totalbrokepay" jdbcType="NUMERIC" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, no, state, money, sellerid, adduser, addtime, billjson, billtype, billcreatetime, 
+    sellerusername, sellercompanyname, ordernum, totalorders, totalbrokepay
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_sellerbill.bean.SellerBillExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from sellerbill
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from sellerbill
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from sellerbill
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_sellerbill.bean.SellerBillExample" >
+    delete from sellerbill
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_sellerbill.bean.SellerBill" >
+    insert into sellerbill (id, no, state, 
+      money, sellerid, adduser, 
+      addtime, billjson, billtype, 
+      billcreatetime, sellerusername, sellercompanyname, 
+      ordernum, totalorders, totalbrokepay
+      )
+    values (#{id,jdbcType=BIGINT}, #{no,jdbcType=VARCHAR}, #{state,jdbcType=SMALLINT}, 
+      #{money,jdbcType=NUMERIC}, #{sellerid,jdbcType=BIGINT}, #{adduser,jdbcType=VARCHAR}, 
+      #{addtime,jdbcType=TIMESTAMP}, #{billjson,jdbcType=OTHER}, #{billtype,jdbcType=VARCHAR}, 
+      #{billcreatetime,jdbcType=TIMESTAMP}, #{sellerusername,jdbcType=VARCHAR}, #{sellercompanyname,jdbcType=VARCHAR}, 
+      #{ordernum,jdbcType=INTEGER}, #{totalorders,jdbcType=NUMERIC}, #{totalbrokepay,jdbcType=NUMERIC}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_sellerbill.bean.SellerBill" useGeneratedKeys="true" keyProperty="id">
+    insert into sellerbill
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="no != null" >
+        no,
+      </if>
+      <if test="state != null" >
+        state,
+      </if>
+      <if test="money != null" >
+        money,
+      </if>
+      <if test="sellerid != null" >
+        sellerid,
+      </if>
+      <if test="adduser != null" >
+        adduser,
+      </if>
+      <if test="addtime != null" >
+        addtime,
+      </if>
+      <if test="billjson != null" >
+        billjson,
+      </if>
+      <if test="billtype != null" >
+        billtype,
+      </if>
+      <if test="billcreatetime != null" >
+        billcreatetime,
+      </if>
+      <if test="sellerusername != null" >
+        sellerusername,
+      </if>
+      <if test="sellercompanyname != null" >
+        sellercompanyname,
+      </if>
+      <if test="ordernum != null" >
+        ordernum,
+      </if>
+      <if test="totalorders != null" >
+        totalorders,
+      </if>
+      <if test="totalbrokepay != null" >
+        totalbrokepay,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="no != null" >
+        #{no,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null" >
+        #{state,jdbcType=SMALLINT},
+      </if>
+      <if test="money != null" >
+        #{money,jdbcType=NUMERIC},
+      </if>
+      <if test="sellerid != null" >
+        #{sellerid,jdbcType=BIGINT},
+      </if>
+      <if test="adduser != null" >
+        #{adduser,jdbcType=VARCHAR},
+      </if>
+      <if test="addtime != null" >
+        #{addtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="billjson != null" >
+        #{billjson,jdbcType=OTHER},
+      </if>
+      <if test="billtype != null" >
+        #{billtype,jdbcType=VARCHAR},
+      </if>
+      <if test="billcreatetime != null" >
+        #{billcreatetime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="sellerusername != null" >
+        #{sellerusername,jdbcType=VARCHAR},
+      </if>
+      <if test="sellercompanyname != null" >
+        #{sellercompanyname,jdbcType=VARCHAR},
+      </if>
+      <if test="ordernum != null" >
+        #{ordernum,jdbcType=INTEGER},
+      </if>
+      <if test="totalorders != null" >
+        #{totalorders,jdbcType=NUMERIC},
+      </if>
+      <if test="totalbrokepay != null" >
+        #{totalbrokepay,jdbcType=NUMERIC},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_sellerbill.bean.SellerBillExample" resultType="java.lang.Integer" >
+    select count(*) from sellerbill
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update sellerbill
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.no != null" >
+        no = #{record.no,jdbcType=VARCHAR},
+      </if>
+      <if test="record.state != null" >
+        state = #{record.state,jdbcType=SMALLINT},
+      </if>
+      <if test="record.money != null" >
+        money = #{record.money,jdbcType=NUMERIC},
+      </if>
+      <if test="record.sellerid != null" >
+        sellerid = #{record.sellerid,jdbcType=BIGINT},
+      </if>
+      <if test="record.adduser != null" >
+        adduser = #{record.adduser,jdbcType=VARCHAR},
+      </if>
+      <if test="record.addtime != null" >
+        addtime = #{record.addtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.billjson != null" >
+        billjson = #{record.billjson,jdbcType=OTHER},
+      </if>
+      <if test="record.billtype != null" >
+        billtype = #{record.billtype,jdbcType=VARCHAR},
+      </if>
+      <if test="record.billcreatetime != null" >
+        billcreatetime = #{record.billcreatetime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.sellerusername != null" >
+        sellerusername = #{record.sellerusername,jdbcType=VARCHAR},
+      </if>
+      <if test="record.sellercompanyname != null" >
+        sellercompanyname = #{record.sellercompanyname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.ordernum != null" >
+        ordernum = #{record.ordernum,jdbcType=INTEGER},
+      </if>
+      <if test="record.totalorders != null" >
+        totalorders = #{record.totalorders,jdbcType=NUMERIC},
+      </if>
+      <if test="record.totalbrokepay != null" >
+        totalbrokepay = #{record.totalbrokepay,jdbcType=NUMERIC},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update sellerbill
+    set id = #{record.id,jdbcType=BIGINT},
+      no = #{record.no,jdbcType=VARCHAR},
+      state = #{record.state,jdbcType=SMALLINT},
+      money = #{record.money,jdbcType=NUMERIC},
+      sellerid = #{record.sellerid,jdbcType=BIGINT},
+      adduser = #{record.adduser,jdbcType=VARCHAR},
+      addtime = #{record.addtime,jdbcType=TIMESTAMP},
+      billjson = #{record.billjson,jdbcType=OTHER},
+      billtype = #{record.billtype,jdbcType=VARCHAR},
+      billcreatetime = #{record.billcreatetime,jdbcType=TIMESTAMP},
+      sellerusername = #{record.sellerusername,jdbcType=VARCHAR},
+      sellercompanyname = #{record.sellercompanyname,jdbcType=VARCHAR},
+      ordernum = #{record.ordernum,jdbcType=INTEGER},
+      totalorders = #{record.totalorders,jdbcType=NUMERIC},
+      totalbrokepay = #{record.totalbrokepay,jdbcType=NUMERIC}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_sellerbill.bean.SellerBill" >
+    update sellerbill
+    <set >
+      <if test="no != null" >
+        no = #{no,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null" >
+        state = #{state,jdbcType=SMALLINT},
+      </if>
+      <if test="money != null" >
+        money = #{money,jdbcType=NUMERIC},
+      </if>
+      <if test="sellerid != null" >
+        sellerid = #{sellerid,jdbcType=BIGINT},
+      </if>
+      <if test="adduser != null" >
+        adduser = #{adduser,jdbcType=VARCHAR},
+      </if>
+      <if test="addtime != null" >
+        addtime = #{addtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="billjson != null" >
+        <!--billjson = #{billjson,javaType=Object,jdbcType=OTHER,typeHandler=project.jinshang.typeHandler.JsonTypeHandler},-->
+        billjson=#{billjson,javaType=Object,jdbcType=OTHER}::jsonb,
+
+      </if>
+      <if test="billtype != null" >
+        billtype = #{billtype,jdbcType=VARCHAR},
+      </if>
+      <if test="billcreatetime != null" >
+        billcreatetime = #{billcreatetime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="sellerusername != null" >
+        sellerusername = #{sellerusername,jdbcType=VARCHAR},
+      </if>
+      <if test="sellercompanyname != null" >
+        sellercompanyname = #{sellercompanyname,jdbcType=VARCHAR},
+      </if>
+      <if test="ordernum != null" >
+        ordernum = #{ordernum,jdbcType=INTEGER},
+      </if>
+      <if test="totalorders != null" >
+        totalorders = #{totalorders,jdbcType=NUMERIC},
+      </if>
+      <if test="totalbrokepay != null" >
+        totalbrokepay = #{totalbrokepay,jdbcType=NUMERIC},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_sellerbill.bean.SellerBill" >
+    update sellerbill
+    set no = #{no,jdbcType=VARCHAR},
+      state = #{state,jdbcType=SMALLINT},
+      money = #{money,jdbcType=NUMERIC},
+      sellerid = #{sellerid,jdbcType=BIGINT},
+      adduser = #{adduser,jdbcType=VARCHAR},
+      addtime = #{addtime,jdbcType=TIMESTAMP},
+      billjson = #{billjson,jdbcType=OTHER},
+      billtype = #{billtype,jdbcType=VARCHAR},
+      billcreatetime = #{billcreatetime,jdbcType=TIMESTAMP},
+      sellerusername = #{sellerusername,jdbcType=VARCHAR},
+      sellercompanyname = #{sellercompanyname,jdbcType=VARCHAR},
+      ordernum = #{ordernum,jdbcType=INTEGER},
+      totalorders = #{totalorders,jdbcType=NUMERIC},
+      totalbrokepay = #{totalbrokepay,jdbcType=NUMERIC}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

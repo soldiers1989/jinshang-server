@@ -1,0 +1,1092 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_member.MemberMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_member.bean.Member" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="username" property="username" jdbcType="VARCHAR" />
+    <result column="password" property="password" jdbcType="VARCHAR" />
+    <result column="passwordsalt" property="passwordsalt" jdbcType="VARCHAR" />
+    <result column="mobile" property="mobile" jdbcType="VARCHAR" />
+    <result column="email" property="email" jdbcType="VARCHAR" />
+    <result column="postcode" property="postcode" jdbcType="VARCHAR" />
+    <result column="nick" property="nick" jdbcType="VARCHAR" />
+    <result column="realname" property="realname" jdbcType="VARCHAR" />
+    <result column="address" property="address" jdbcType="VARCHAR" />
+    <result column="disabled" property="disabled" jdbcType="BIT" />
+    <result column="createdate" property="createdate" jdbcType="TIMESTAMP" />
+    <result column="lastlogindate" property="lastlogindate" jdbcType="TIMESTAMP" />
+    <result column="photo" property="photo" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="SMALLINT" />
+    <result column="paypassword" property="paypassword" jdbcType="VARCHAR" />
+    <result column="paypasswordsalt" property="paypasswordsalt" jdbcType="VARCHAR" />
+    <result column="company" property="company" jdbcType="BIT" />
+    <result column="reviewed" property="reviewed" jdbcType="BIT" />
+    <result column="gradleid" property="gradleid" jdbcType="BIGINT" />
+    <result column="deliveryregionid" property="deliveryregionid" jdbcType="VARCHAR" />
+    <result column="deliveryaddress" property="deliveryaddress" jdbcType="VARCHAR" />
+    <result column="integrals" property="integrals" jdbcType="NUMERIC" />
+    <result column="balance" property="balance" jdbcType="NUMERIC" />
+    <result column="alipay" property="alipay" jdbcType="VARCHAR" />
+    <result column="wxpay" property="wxpay" jdbcType="VARCHAR" />
+    <result column="way" property="way" jdbcType="VARCHAR" />
+    <result column="waysalesman" property="waysalesman" jdbcType="VARCHAR" />
+    <result column="invitecode" property="invitecode" jdbcType="VARCHAR" />
+    <result column="clerkname" property="clerkname" jdbcType="VARCHAR" />
+    <result column="labelid" property="labelid" jdbcType="VARCHAR" />
+    <result column="parentid" property="parentid" jdbcType="BIGINT" />
+    <result column="parentname" property="parentname" jdbcType="VARCHAR" />
+    <result column="menu" property="menu" jdbcType="ARRAY" typeHandler="project.jinshang.typeHandler.ArrayTypeHandler"/>
+    <result column="flag" property="flag" jdbcType="BIT" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="qq" property="qq" jdbcType="VARCHAR" />
+    <result column="sex" property="sex" jdbcType="VARCHAR" />
+    <result column="faxes" property="faxes" jdbcType="VARCHAR" />
+    <result column="telephone" property="telephone" jdbcType="VARCHAR" />
+    <result column="hobby" property="hobby" jdbcType="VARCHAR" />
+    <result column="favicon" property="favicon" jdbcType="VARCHAR" />
+    <result column="sellerbanlance" property="sellerbanlance" jdbcType="NUMERIC" />
+    <result column="sellerfreezebanlance" property="sellerfreezebanlance" jdbcType="NUMERIC" />
+    <result column="creditlimit" property="creditlimit" jdbcType="NUMERIC" />
+    <result column="usedlimit" property="usedlimit" jdbcType="NUMERIC" />
+    <result column="availablelimit" property="availablelimit" jdbcType="NUMERIC" />
+    <result column="membersettingstate" property="membersettingstate" jdbcType="SMALLINT" />
+    <result column="billmoney" property="billmoney" jdbcType="NUMERIC" />
+    <result column="eva1" property="eva1" jdbcType="NUMERIC" />
+    <result column="eva2" property="eva2" jdbcType="NUMERIC" />
+    <result column="eva3" property="eva3" jdbcType="NUMERIC" />
+    <result column="sellergroupid" property="sellergroupid" jdbcType="BIGINT" />
+    <result column="availableintegral" property="availableintegral" jdbcType="NUMERIC" />
+    <result column="province" property="province" jdbcType="VARCHAR" />
+    <result column="city" property="city" jdbcType="VARCHAR" />
+    <result column="citysmall" property="citysmall" jdbcType="VARCHAR" />
+    <result column="creditstate" property="creditstate" jdbcType="SMALLINT" />
+    <result column="goodsbanlance" property="goodsbanlance" jdbcType="NUMERIC" />
+    <result column="services" property="services" jdbcType="BIT" />
+    <result column="isbuy" property="isbuy" jdbcType="SMALLINT" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, username, password, passwordsalt, mobile, email, postcode, nick, realname, address, 
+    disabled, createdate, lastlogindate, photo, type, paypassword, paypasswordsalt, company, 
+    reviewed, gradleid, deliveryregionid, deliveryaddress, integrals, balance, alipay, 
+    wxpay, way, waysalesman, invitecode, clerkname, labelid, parentid, parentname, menu, 
+    flag, remark, qq, sex, faxes, telephone, hobby, favicon, sellerbanlance, sellerfreezebanlance, 
+    creditlimit, usedlimit, availablelimit, membersettingstate, billmoney, eva1, eva2, 
+    eva3, sellergroupid, availableintegral, province, city, citysmall, creditstate,goodsbanlance,services, isbuy
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_member.bean.MemberExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from member
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from member
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from member
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_member.bean.MemberExample" >
+    delete from member
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_member.bean.Member" >
+    insert into member ( username, password,
+      passwordsalt, mobile, email, 
+      postcode, nick, realname, 
+      address, disabled, createdate, 
+      lastlogindate, photo, type, 
+      paypassword, paypasswordsalt, company, 
+      reviewed, gradleid, deliveryregionid, 
+      deliveryaddress, integrals, balance, 
+      alipay, wxpay, way, 
+      waysalesman, invitecode, clerkname, 
+      labelid, parentid, parentname, 
+      menu, flag, remark, qq, 
+      sex, faxes, telephone, 
+      hobby, favicon, sellerbanlance, 
+      sellerfreezebanlance, creditlimit, usedlimit, 
+      availablelimit, membersettingstate, billmoney, 
+      eva1, eva2, eva3, sellergroupid, 
+      availableintegral, province, city, 
+      citysmall, creditstate,goodsbanlance,services, isbuy)
+    values (#{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR},
+      #{passwordsalt,jdbcType=VARCHAR}, #{mobile,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, 
+      #{postcode,jdbcType=VARCHAR}, #{nick,jdbcType=VARCHAR}, #{realname,jdbcType=VARCHAR}, 
+      #{address,jdbcType=VARCHAR}, #{disabled,jdbcType=BIT}, #{createdate,jdbcType=TIMESTAMP}, 
+      #{lastlogindate,jdbcType=TIMESTAMP}, #{photo,jdbcType=VARCHAR}, #{type,jdbcType=SMALLINT}, 
+      #{paypassword,jdbcType=VARCHAR}, #{paypasswordsalt,jdbcType=VARCHAR}, #{company,jdbcType=BIT}, 
+      #{reviewed,jdbcType=BIT}, #{gradleid,jdbcType=BIGINT}, #{deliveryregionid,jdbcType=VARCHAR}, 
+      #{deliveryaddress,jdbcType=VARCHAR}, #{integrals,jdbcType=NUMERIC}, #{balance,jdbcType=NUMERIC}, 
+      #{alipay,jdbcType=VARCHAR}, #{wxpay,jdbcType=VARCHAR}, #{way,jdbcType=VARCHAR}, 
+      #{waysalesman,jdbcType=VARCHAR}, #{invitecode,jdbcType=VARCHAR}, #{clerkname,jdbcType=VARCHAR}, 
+      #{labelid,jdbcType=VARCHAR}, #{parentid,jdbcType=BIGINT}, #{parentname,jdbcType=VARCHAR}, 
+      #{menu,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler}, #{flag,jdbcType=BIT}, #{remark,jdbcType=VARCHAR}, #{qq,jdbcType=VARCHAR},
+      #{sex,jdbcType=VARCHAR}, #{faxes,jdbcType=VARCHAR}, #{telephone,jdbcType=VARCHAR}, 
+      #{hobby,jdbcType=VARCHAR}, #{favicon,jdbcType=VARCHAR}, #{sellerbanlance,jdbcType=NUMERIC}, 
+      #{sellerfreezebanlance,jdbcType=NUMERIC}, #{creditlimit,jdbcType=NUMERIC}, #{usedlimit,jdbcType=NUMERIC}, 
+      #{availablelimit,jdbcType=NUMERIC}, #{membersettingstate,jdbcType=SMALLINT}, #{billmoney,jdbcType=NUMERIC}, 
+      #{eva1,jdbcType=NUMERIC}, #{eva2,jdbcType=NUMERIC}, #{eva3,jdbcType=NUMERIC}, #{sellergroupid,jdbcType=BIGINT}, 
+      #{availableintegral,jdbcType=NUMERIC}, #{province,jdbcType=VARCHAR}, #{city,jdbcType=VARCHAR}, 
+      #{citysmall,jdbcType=VARCHAR}, #{creditstate,jdbcType=SMALLINT},#{goodsbanlance,jdbcType=NUMERIC},#{services,jdbcType=BIT}, #{isbuy,jdbcType=SMALLINT})
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_member.bean.Member" >
+    insert into member
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="username != null" >
+        username,
+      </if>
+      <if test="password != null" >
+        password,
+      </if>
+      <if test="passwordsalt != null" >
+        passwordsalt,
+      </if>
+      <if test="mobile != null" >
+        mobile,
+      </if>
+      <if test="email != null" >
+        email,
+      </if>
+      <if test="postcode != null" >
+        postcode,
+      </if>
+      <if test="nick != null" >
+        nick,
+      </if>
+      <if test="realname != null" >
+        realname,
+      </if>
+      <if test="address != null" >
+        address,
+      </if>
+      <if test="disabled != null" >
+        disabled,
+      </if>
+      <if test="createdate != null" >
+        createdate,
+      </if>
+      <if test="lastlogindate != null" >
+        lastlogindate,
+      </if>
+      <if test="photo != null" >
+        photo,
+      </if>
+      <if test="type != null" >
+        type,
+      </if>
+      <if test="paypassword != null" >
+        paypassword,
+      </if>
+      <if test="paypasswordsalt != null" >
+        paypasswordsalt,
+      </if>
+      <if test="company != null" >
+        company,
+      </if>
+      <if test="reviewed != null" >
+        reviewed,
+      </if>
+      <if test="gradleid != null" >
+        gradleid,
+      </if>
+      <if test="deliveryregionid != null" >
+        deliveryregionid,
+      </if>
+      <if test="deliveryaddress != null" >
+        deliveryaddress,
+      </if>
+      <if test="integrals != null" >
+        integrals,
+      </if>
+      <if test="balance != null" >
+        balance,
+      </if>
+      <if test="alipay != null" >
+        alipay,
+      </if>
+      <if test="wxpay != null" >
+        wxpay,
+      </if>
+      <if test="way != null" >
+        way,
+      </if>
+      <if test="waysalesman != null" >
+        waysalesman,
+      </if>
+      <if test="invitecode != null" >
+        invitecode,
+      </if>
+      <if test="clerkname != null" >
+        clerkname,
+      </if>
+      <if test="labelid != null" >
+        labelid,
+      </if>
+      <if test="parentid != null" >
+        parentid,
+      </if>
+      <if test="parentname != null" >
+        parentname,
+      </if>
+      <if test="menu != null" >
+        menu,
+      </if>
+      <if test="flag != null" >
+        flag,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="qq != null" >
+        qq,
+      </if>
+      <if test="sex != null" >
+        sex,
+      </if>
+      <if test="faxes != null" >
+        faxes,
+      </if>
+      <if test="telephone != null" >
+        telephone,
+      </if>
+      <if test="hobby != null" >
+        hobby,
+      </if>
+      <if test="favicon != null" >
+        favicon,
+      </if>
+      <if test="sellerbanlance != null" >
+        sellerbanlance,
+      </if>
+      <if test="sellerfreezebanlance != null" >
+        sellerfreezebanlance,
+      </if>
+      <if test="creditlimit != null" >
+        creditlimit,
+      </if>
+      <if test="usedlimit != null" >
+        usedlimit,
+      </if>
+      <if test="availablelimit != null" >
+        availablelimit,
+      </if>
+      <if test="membersettingstate != null" >
+        membersettingstate,
+      </if>
+      <if test="billmoney != null" >
+        billmoney,
+      </if>
+      <if test="eva1 != null" >
+        eva1,
+      </if>
+      <if test="eva2 != null" >
+        eva2,
+      </if>
+      <if test="eva3 != null" >
+        eva3,
+      </if>
+      <if test="sellergroupid != null" >
+        sellergroupid,
+      </if>
+      <if test="availableintegral != null" >
+        availableintegral,
+      </if>
+      <if test="province != null" >
+        province,
+      </if>
+      <if test="city != null" >
+        city,
+      </if>
+      <if test="citysmall != null" >
+        citysmall,
+      </if>
+      <if test="creditstate != null" >
+        creditstate,
+      </if>
+      <if test="goodsbanlance != null" >
+        goodsbanlance,
+      </if>
+      <if test="services != null" >
+        services,
+      </if>
+      <if test="isbuy != null" >
+        isbuy,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="username != null" >
+        #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="password != null" >
+        #{password,jdbcType=VARCHAR},
+      </if>
+      <if test="passwordsalt != null" >
+        #{passwordsalt,jdbcType=VARCHAR},
+      </if>
+      <if test="mobile != null" >
+        #{mobile,jdbcType=VARCHAR},
+      </if>
+      <if test="email != null" >
+        #{email,jdbcType=VARCHAR},
+      </if>
+      <if test="postcode != null" >
+        #{postcode,jdbcType=VARCHAR},
+      </if>
+      <if test="nick != null" >
+        #{nick,jdbcType=VARCHAR},
+      </if>
+      <if test="realname != null" >
+        #{realname,jdbcType=VARCHAR},
+      </if>
+      <if test="address != null" >
+        #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="disabled != null" >
+        #{disabled,jdbcType=BIT},
+      </if>
+      <if test="createdate != null" >
+        #{createdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="lastlogindate != null" >
+        #{lastlogindate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="photo != null" >
+        #{photo,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        #{type,jdbcType=SMALLINT},
+      </if>
+      <if test="paypassword != null" >
+        #{paypassword,jdbcType=VARCHAR},
+      </if>
+      <if test="paypasswordsalt != null" >
+        #{paypasswordsalt,jdbcType=VARCHAR},
+      </if>
+      <if test="company != null" >
+        #{company,jdbcType=BIT},
+      </if>
+      <if test="reviewed != null" >
+        #{reviewed,jdbcType=BIT},
+      </if>
+      <if test="gradleid != null" >
+        #{gradleid,jdbcType=BIGINT},
+      </if>
+      <if test="deliveryregionid != null" >
+        #{deliveryregionid,jdbcType=VARCHAR},
+      </if>
+      <if test="deliveryaddress != null" >
+        #{deliveryaddress,jdbcType=VARCHAR},
+      </if>
+      <if test="integrals != null" >
+        #{integrals,jdbcType=NUMERIC},
+      </if>
+      <if test="balance != null" >
+        #{balance,jdbcType=NUMERIC},
+      </if>
+      <if test="alipay != null" >
+        #{alipay,jdbcType=VARCHAR},
+      </if>
+      <if test="wxpay != null" >
+        #{wxpay,jdbcType=VARCHAR},
+      </if>
+      <if test="way != null" >
+        #{way,jdbcType=VARCHAR},
+      </if>
+      <if test="waysalesman != null" >
+        #{waysalesman,jdbcType=VARCHAR},
+      </if>
+      <if test="invitecode != null" >
+        #{invitecode,jdbcType=VARCHAR},
+      </if>
+      <if test="clerkname != null" >
+        #{clerkname,jdbcType=VARCHAR},
+      </if>
+      <if test="labelid != null" >
+        #{labelid,jdbcType=VARCHAR},
+      </if>
+      <if test="parentid != null" >
+        #{parentid,jdbcType=BIGINT},
+      </if>
+      <if test="parentname != null" >
+        #{parentname,jdbcType=VARCHAR},
+      </if>
+      <if test="menu != null" >
+        #{menu,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+      </if>
+      <if test="flag != null" >
+        #{flag,jdbcType=BIT},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="qq != null" >
+        #{qq,jdbcType=VARCHAR},
+      </if>
+      <if test="sex != null" >
+        #{sex,jdbcType=VARCHAR},
+      </if>
+      <if test="faxes != null" >
+        #{faxes,jdbcType=VARCHAR},
+      </if>
+      <if test="telephone != null" >
+        #{telephone,jdbcType=VARCHAR},
+      </if>
+      <if test="hobby != null" >
+        #{hobby,jdbcType=VARCHAR},
+      </if>
+      <if test="favicon != null" >
+        #{favicon,jdbcType=VARCHAR},
+      </if>
+      <if test="sellerbanlance != null" >
+        #{sellerbanlance,jdbcType=NUMERIC},
+      </if>
+      <if test="sellerfreezebanlance != null" >
+        #{sellerfreezebanlance,jdbcType=NUMERIC},
+      </if>
+      <if test="creditlimit != null" >
+        #{creditlimit,jdbcType=NUMERIC},
+      </if>
+      <if test="usedlimit != null" >
+        #{usedlimit,jdbcType=NUMERIC},
+      </if>
+      <if test="availablelimit != null" >
+        #{availablelimit,jdbcType=NUMERIC},
+      </if>
+      <if test="membersettingstate != null" >
+        #{membersettingstate,jdbcType=SMALLINT},
+      </if>
+      <if test="billmoney != null" >
+        #{billmoney,jdbcType=NUMERIC},
+      </if>
+      <if test="eva1 != null" >
+        #{eva1,jdbcType=NUMERIC},
+      </if>
+      <if test="eva2 != null" >
+        #{eva2,jdbcType=NUMERIC},
+      </if>
+      <if test="eva3 != null" >
+        #{eva3,jdbcType=NUMERIC},
+      </if>
+      <if test="sellergroupid != null" >
+        #{sellergroupid,jdbcType=BIGINT},
+      </if>
+      <if test="availableintegral != null" >
+        #{availableintegral,jdbcType=NUMERIC},
+      </if>
+      <if test="province != null" >
+        #{province,jdbcType=VARCHAR},
+      </if>
+      <if test="city != null" >
+        #{city,jdbcType=VARCHAR},
+      </if>
+      <if test="citysmall != null" >
+        #{citysmall,jdbcType=VARCHAR},
+      </if>
+      <if test="creditstate != null" >
+        #{creditstate,jdbcType=SMALLINT},
+      </if>
+      <if test="goodsbanlance != null" >
+        #{goodsbanlance,jdbcType=NUMERIC},
+      </if>
+      <if test="services != null" >
+        #{services,jdbcType=BIT},
+      </if>
+      <if test="isbuy != null" >
+        #{isbuy,jdbcType=SMALLINT},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_member.bean.MemberExample" resultType="java.lang.Integer" >
+    select count(*) from member
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update member
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.username != null" >
+        username = #{record.username,jdbcType=VARCHAR},
+      </if>
+      <if test="record.password != null" >
+        password = #{record.password,jdbcType=VARCHAR},
+      </if>
+      <if test="record.passwordsalt != null" >
+        passwordsalt = #{record.passwordsalt,jdbcType=VARCHAR},
+      </if>
+      <if test="record.mobile != null" >
+        mobile = #{record.mobile,jdbcType=VARCHAR},
+      </if>
+      <if test="record.email != null" >
+        email = #{record.email,jdbcType=VARCHAR},
+      </if>
+      <if test="record.postcode != null" >
+        postcode = #{record.postcode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.nick != null" >
+        nick = #{record.nick,jdbcType=VARCHAR},
+      </if>
+      <if test="record.realname != null" >
+        realname = #{record.realname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.address != null" >
+        address = #{record.address,jdbcType=VARCHAR},
+      </if>
+      <if test="record.disabled != null" >
+        disabled = #{record.disabled,jdbcType=BIT},
+      </if>
+      <if test="record.createdate != null" >
+        createdate = #{record.createdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.lastlogindate != null" >
+        lastlogindate = #{record.lastlogindate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.photo != null" >
+        photo = #{record.photo,jdbcType=VARCHAR},
+      </if>
+      <if test="record.type != null" >
+        type = #{record.type,jdbcType=SMALLINT},
+      </if>
+      <if test="record.paypassword != null" >
+        paypassword = #{record.paypassword,jdbcType=VARCHAR},
+      </if>
+      <if test="record.paypasswordsalt != null" >
+        paypasswordsalt = #{record.paypasswordsalt,jdbcType=VARCHAR},
+      </if>
+      <if test="record.company != null" >
+        company = #{record.company,jdbcType=BIT},
+      </if>
+      <if test="record.reviewed != null" >
+        reviewed = #{record.reviewed,jdbcType=BIT},
+      </if>
+      <if test="record.gradleid != null" >
+        gradleid = #{record.gradleid,jdbcType=BIGINT},
+      </if>
+      <if test="record.deliveryregionid != null" >
+        deliveryregionid = #{record.deliveryregionid,jdbcType=VARCHAR},
+      </if>
+      <if test="record.deliveryaddress != null" >
+        deliveryaddress = #{record.deliveryaddress,jdbcType=VARCHAR},
+      </if>
+      <if test="record.integrals != null" >
+        integrals = #{record.integrals,jdbcType=NUMERIC},
+      </if>
+      <if test="record.balance != null" >
+        balance = #{record.balance,jdbcType=NUMERIC},
+      </if>
+      <if test="record.alipay != null" >
+        alipay = #{record.alipay,jdbcType=VARCHAR},
+      </if>
+      <if test="record.wxpay != null" >
+        wxpay = #{record.wxpay,jdbcType=VARCHAR},
+      </if>
+      <if test="record.way != null" >
+        way = #{record.way,jdbcType=VARCHAR},
+      </if>
+      <if test="record.waysalesman != null" >
+        waysalesman = #{record.waysalesman,jdbcType=VARCHAR},
+      </if>
+      <if test="record.invitecode != null" >
+        invitecode = #{record.invitecode,jdbcType=VARCHAR},
+      </if>
+      <if test="record.clerkname != null" >
+        clerkname = #{record.clerkname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.labelid != null" >
+        labelid = #{record.labelid,jdbcType=VARCHAR},
+      </if>
+      <if test="record.parentid != null" >
+        parentid = #{record.parentid,jdbcType=BIGINT},
+      </if>
+      <if test="record.parentname != null" >
+        parentname = #{record.parentname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.menu != null" >
+        menu = #{record.menu,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+      </if>
+      <if test="record.flag != null" >
+        flag = #{record.flag,jdbcType=BIT},
+      </if>
+      <if test="record.remark != null" >
+        remark = #{record.remark,jdbcType=VARCHAR},
+      </if>
+      <if test="record.qq != null" >
+        qq = #{record.qq,jdbcType=VARCHAR},
+      </if>
+      <if test="record.sex != null" >
+        sex = #{record.sex,jdbcType=VARCHAR},
+      </if>
+      <if test="record.faxes != null" >
+        faxes = #{record.faxes,jdbcType=VARCHAR},
+      </if>
+      <if test="record.telephone != null" >
+        telephone = #{record.telephone,jdbcType=VARCHAR},
+      </if>
+      <if test="record.hobby != null" >
+        hobby = #{record.hobby,jdbcType=VARCHAR},
+      </if>
+      <if test="record.favicon != null" >
+        favicon = #{record.favicon,jdbcType=VARCHAR},
+      </if>
+      <if test="record.sellerbanlance != null" >
+        sellerbanlance = #{record.sellerbanlance,jdbcType=NUMERIC},
+      </if>
+      <if test="record.sellerfreezebanlance != null" >
+        sellerfreezebanlance = #{record.sellerfreezebanlance,jdbcType=NUMERIC},
+      </if>
+      <if test="record.creditlimit != null" >
+        creditlimit = #{record.creditlimit,jdbcType=NUMERIC},
+      </if>
+      <if test="record.usedlimit != null" >
+        usedlimit = #{record.usedlimit,jdbcType=NUMERIC},
+      </if>
+      <if test="record.availablelimit != null" >
+        availablelimit = #{record.availablelimit,jdbcType=NUMERIC},
+      </if>
+      <if test="record.membersettingstate != null" >
+        membersettingstate = #{record.membersettingstate,jdbcType=SMALLINT},
+      </if>
+      <if test="record.billmoney != null" >
+        billmoney = #{record.billmoney,jdbcType=NUMERIC},
+      </if>
+      <if test="record.eva1 != null" >
+        eva1 = #{record.eva1,jdbcType=NUMERIC},
+      </if>
+      <if test="record.eva2 != null" >
+        eva2 = #{record.eva2,jdbcType=NUMERIC},
+      </if>
+      <if test="record.eva3 != null" >
+        eva3 = #{record.eva3,jdbcType=NUMERIC},
+      </if>
+      <if test="record.sellergroupid != null" >
+        sellergroupid = #{record.sellergroupid,jdbcType=BIGINT},
+      </if>
+      <if test="record.availableintegral != null" >
+        availableintegral = #{record.availableintegral,jdbcType=NUMERIC},
+      </if>
+      <if test="record.province != null" >
+        province = #{record.province,jdbcType=VARCHAR},
+      </if>
+      <if test="record.city != null" >
+        city = #{record.city,jdbcType=VARCHAR},
+      </if>
+      <if test="record.citysmall != null" >
+        citysmall = #{record.citysmall,jdbcType=VARCHAR},
+      </if>
+      <if test="record.creditstate != null" >
+        creditstate = #{record.creditstate,jdbcType=SMALLINT},
+      </if>
+      <if test="record.goodsbanlance != null" >
+        goodsbanlance = #{record.goodsbanlance,jdbcType=NUMERIC},
+      </if>
+      <if test="record.services != null" >
+        services = #{record.services,jdbcType=BIT},
+      </if>
+      <if test="record.isbuy != null" >
+        isbuy = #{record.isbuy,jdbcType=SMALLINT},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update member
+    set id = #{record.id,jdbcType=BIGINT},
+      username = #{record.username,jdbcType=VARCHAR},
+      password = #{record.password,jdbcType=VARCHAR},
+      passwordsalt = #{record.passwordsalt,jdbcType=VARCHAR},
+      mobile = #{record.mobile,jdbcType=VARCHAR},
+      email = #{record.email,jdbcType=VARCHAR},
+      postcode = #{record.postcode,jdbcType=VARCHAR},
+      nick = #{record.nick,jdbcType=VARCHAR},
+      realname = #{record.realname,jdbcType=VARCHAR},
+      address = #{record.address,jdbcType=VARCHAR},
+      disabled = #{record.disabled,jdbcType=BIT},
+      createdate = #{record.createdate,jdbcType=TIMESTAMP},
+      lastlogindate = #{record.lastlogindate,jdbcType=TIMESTAMP},
+      photo = #{record.photo,jdbcType=VARCHAR},
+      type = #{record.type,jdbcType=SMALLINT},
+      paypassword = #{record.paypassword,jdbcType=VARCHAR},
+      paypasswordsalt = #{record.paypasswordsalt,jdbcType=VARCHAR},
+      company = #{record.company,jdbcType=BIT},
+      reviewed = #{record.reviewed,jdbcType=BIT},
+      gradleid = #{record.gradleid,jdbcType=BIGINT},
+      deliveryregionid = #{record.deliveryregionid,jdbcType=VARCHAR},
+      deliveryaddress = #{record.deliveryaddress,jdbcType=VARCHAR},
+      integrals = #{record.integrals,jdbcType=NUMERIC},
+      balance = #{record.balance,jdbcType=NUMERIC},
+      alipay = #{record.alipay,jdbcType=VARCHAR},
+      wxpay = #{record.wxpay,jdbcType=VARCHAR},
+      way = #{record.way,jdbcType=VARCHAR},
+      waysalesman = #{record.waysalesman,jdbcType=VARCHAR},
+      invitecode = #{record.invitecode,jdbcType=VARCHAR},
+      clerkname = #{record.clerkname,jdbcType=VARCHAR},
+      labelid = #{record.labelid,jdbcType=VARCHAR},
+      parentid = #{record.parentid,jdbcType=BIGINT},
+      parentname = #{record.parentname,jdbcType=VARCHAR},
+      menu = #{record.menu,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+      flag = #{record.flag,jdbcType=BIT},
+      remark = #{record.remark,jdbcType=VARCHAR},
+      qq = #{record.qq,jdbcType=VARCHAR},
+      sex = #{record.sex,jdbcType=VARCHAR},
+      faxes = #{record.faxes,jdbcType=VARCHAR},
+      telephone = #{record.telephone,jdbcType=VARCHAR},
+      hobby = #{record.hobby,jdbcType=VARCHAR},
+      favicon = #{record.favicon,jdbcType=VARCHAR},
+      sellerbanlance = #{record.sellerbanlance,jdbcType=NUMERIC},
+      sellerfreezebanlance = #{record.sellerfreezebanlance,jdbcType=NUMERIC},
+      creditlimit = #{record.creditlimit,jdbcType=NUMERIC},
+      usedlimit = #{record.usedlimit,jdbcType=NUMERIC},
+      availablelimit = #{record.availablelimit,jdbcType=NUMERIC},
+      membersettingstate = #{record.membersettingstate,jdbcType=SMALLINT},
+      billmoney = #{record.billmoney,jdbcType=NUMERIC},
+      eva1 = #{record.eva1,jdbcType=NUMERIC},
+      eva2 = #{record.eva2,jdbcType=NUMERIC},
+      eva3 = #{record.eva3,jdbcType=NUMERIC},
+      sellergroupid = #{record.sellergroupid,jdbcType=BIGINT},
+      availableintegral = #{record.availableintegral,jdbcType=NUMERIC},
+      province = #{record.province,jdbcType=VARCHAR},
+      city = #{record.city,jdbcType=VARCHAR},
+      citysmall = #{record.citysmall,jdbcType=VARCHAR},
+      creditstate = #{record.creditstate,jdbcType=SMALLINT},
+    goodsbanlance = #{record.goodsbanlance,jdbcType=NUMERIC},
+    services = #{record.services,jdbcType=BIT},
+    isbuy = #{record.isbuy,jdbcType=SMALLINT}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_member.bean.Member" >
+    update member
+    <set >
+      <if test="username != null" >
+        username = #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="password != null" >
+        password = #{password,jdbcType=VARCHAR},
+      </if>
+      <if test="passwordsalt != null" >
+        passwordsalt = #{passwordsalt,jdbcType=VARCHAR},
+      </if>
+      <if test="mobile != null" >
+        mobile = #{mobile,jdbcType=VARCHAR},
+      </if>
+      <if test="email != null" >
+        email = #{email,jdbcType=VARCHAR},
+      </if>
+      <if test="postcode != null" >
+        postcode = #{postcode,jdbcType=VARCHAR},
+      </if>
+      <if test="nick != null" >
+        nick = #{nick,jdbcType=VARCHAR},
+      </if>
+      <if test="realname != null" >
+        realname = #{realname,jdbcType=VARCHAR},
+      </if>
+      <if test="address != null" >
+        address = #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="disabled != null" >
+        disabled = #{disabled,jdbcType=BIT},
+      </if>
+      <if test="createdate != null" >
+        createdate = #{createdate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="lastlogindate != null" >
+        lastlogindate = #{lastlogindate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="photo != null" >
+        photo = #{photo,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        type = #{type,jdbcType=SMALLINT},
+      </if>
+      <if test="paypassword != null" >
+        paypassword = #{paypassword,jdbcType=VARCHAR},
+      </if>
+      <if test="paypasswordsalt != null" >
+        paypasswordsalt = #{paypasswordsalt,jdbcType=VARCHAR},
+      </if>
+      <if test="company != null" >
+        company = #{company,jdbcType=BIT},
+      </if>
+      <if test="reviewed != null" >
+        reviewed = #{reviewed,jdbcType=BIT},
+      </if>
+      <if test="gradleid != null" >
+        gradleid = #{gradleid,jdbcType=BIGINT},
+      </if>
+      <if test="deliveryregionid != null" >
+        deliveryregionid = #{deliveryregionid,jdbcType=VARCHAR},
+      </if>
+      <if test="deliveryaddress != null" >
+        deliveryaddress = #{deliveryaddress,jdbcType=VARCHAR},
+      </if>
+      <if test="integrals != null" >
+        integrals = #{integrals,jdbcType=NUMERIC},
+      </if>
+      <if test="balance != null" >
+        balance = #{balance,jdbcType=NUMERIC},
+      </if>
+      <if test="alipay != null" >
+        alipay = #{alipay,jdbcType=VARCHAR},
+      </if>
+      <if test="wxpay != null" >
+        wxpay = #{wxpay,jdbcType=VARCHAR},
+      </if>
+      <if test="way != null" >
+        way = #{way,jdbcType=VARCHAR},
+      </if>
+      <if test="waysalesman != null" >
+        waysalesman = #{waysalesman,jdbcType=VARCHAR},
+      </if>
+      <if test="invitecode != null" >
+        invitecode = #{invitecode,jdbcType=VARCHAR},
+      </if>
+      <if test="clerkname != null" >
+        clerkname = #{clerkname,jdbcType=VARCHAR},
+      </if>
+      <if test="labelid != null" >
+        labelid = #{labelid,jdbcType=VARCHAR},
+      </if>
+      <if test="parentid != null" >
+        parentid = #{parentid,jdbcType=BIGINT},
+      </if>
+      <if test="parentname != null" >
+        parentname = #{parentname,jdbcType=VARCHAR},
+      </if>
+      <if test="menu != null" >
+        menu = #{menu,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+      </if>
+      <if test="flag != null" >
+        flag = #{flag,jdbcType=BIT},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="qq != null" >
+        qq = #{qq,jdbcType=VARCHAR},
+      </if>
+      <if test="sex != null" >
+        sex = #{sex,jdbcType=VARCHAR},
+      </if>
+      <if test="faxes != null" >
+        faxes = #{faxes,jdbcType=VARCHAR},
+      </if>
+      <if test="telephone != null" >
+        telephone = #{telephone,jdbcType=VARCHAR},
+      </if>
+      <if test="hobby != null" >
+        hobby = #{hobby,jdbcType=VARCHAR},
+      </if>
+      <if test="favicon != null" >
+        favicon = #{favicon,jdbcType=VARCHAR},
+      </if>
+      <if test="sellerbanlance != null" >
+        sellerbanlance = #{sellerbanlance,jdbcType=NUMERIC},
+      </if>
+      <if test="sellerfreezebanlance != null" >
+        sellerfreezebanlance = #{sellerfreezebanlance,jdbcType=NUMERIC},
+      </if>
+      <if test="creditlimit != null" >
+        creditlimit = #{creditlimit,jdbcType=NUMERIC},
+      </if>
+      <if test="usedlimit != null" >
+        usedlimit = #{usedlimit,jdbcType=NUMERIC},
+      </if>
+      <if test="availablelimit != null" >
+        availablelimit = #{availablelimit,jdbcType=NUMERIC},
+      </if>
+      <if test="membersettingstate != null" >
+        membersettingstate = #{membersettingstate,jdbcType=SMALLINT},
+      </if>
+      <if test="billmoney != null" >
+        billmoney = #{billmoney,jdbcType=NUMERIC},
+      </if>
+      <if test="eva1 != null" >
+        eva1 = #{eva1,jdbcType=NUMERIC},
+      </if>
+      <if test="eva2 != null" >
+        eva2 = #{eva2,jdbcType=NUMERIC},
+      </if>
+      <if test="eva3 != null" >
+        eva3 = #{eva3,jdbcType=NUMERIC},
+      </if>
+      <if test="sellergroupid != null" >
+        sellergroupid = #{sellergroupid,jdbcType=BIGINT},
+      </if>
+      <if test="availableintegral != null" >
+        availableintegral = #{availableintegral,jdbcType=NUMERIC},
+      </if>
+      <if test="province != null" >
+        province = #{province,jdbcType=VARCHAR},
+      </if>
+      <if test="city != null" >
+        city = #{city,jdbcType=VARCHAR},
+      </if>
+      <if test="citysmall != null" >
+        citysmall = #{citysmall,jdbcType=VARCHAR},
+      </if>
+      <if test="creditstate != null" >
+        creditstate = #{creditstate,jdbcType=SMALLINT},
+      </if>
+      <if test="goodsbanlance != null" >
+        goodsbanlance = #{goodsbanlance,jdbcType=NUMERIC},
+      </if>
+      <if test="services != null" >
+        services = #{services,jdbcType=BIT},
+      </if>
+      <if test="isbuy != null" >
+        isbuy = #{isbuy,jdbcType=SMALLINT},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_member.bean.Member" >
+    update member
+    set username = #{username,jdbcType=VARCHAR},
+      password = #{password,jdbcType=VARCHAR},
+      passwordsalt = #{passwordsalt,jdbcType=VARCHAR},
+      mobile = #{mobile,jdbcType=VARCHAR},
+      email = #{email,jdbcType=VARCHAR},
+      postcode = #{postcode,jdbcType=VARCHAR},
+      nick = #{nick,jdbcType=VARCHAR},
+      realname = #{realname,jdbcType=VARCHAR},
+      address = #{address,jdbcType=VARCHAR},
+      disabled = #{disabled,jdbcType=BIT},
+      createdate = #{createdate,jdbcType=TIMESTAMP},
+      lastlogindate = #{lastlogindate,jdbcType=TIMESTAMP},
+      photo = #{photo,jdbcType=VARCHAR},
+      type = #{type,jdbcType=SMALLINT},
+      paypassword = #{paypassword,jdbcType=VARCHAR},
+      paypasswordsalt = #{paypasswordsalt,jdbcType=VARCHAR},
+      company = #{company,jdbcType=BIT},
+      reviewed = #{reviewed,jdbcType=BIT},
+      gradleid = #{gradleid,jdbcType=BIGINT},
+      deliveryregionid = #{deliveryregionid,jdbcType=VARCHAR},
+      deliveryaddress = #{deliveryaddress,jdbcType=VARCHAR},
+      integrals = #{integrals,jdbcType=NUMERIC},
+      balance = #{balance,jdbcType=NUMERIC},
+      alipay = #{alipay,jdbcType=VARCHAR},
+      wxpay = #{wxpay,jdbcType=VARCHAR},
+      way = #{way,jdbcType=VARCHAR},
+      waysalesman = #{waysalesman,jdbcType=VARCHAR},
+      invitecode = #{invitecode,jdbcType=VARCHAR},
+      clerkname = #{clerkname,jdbcType=VARCHAR},
+      labelid = #{labelid,jdbcType=VARCHAR},
+      parentid = #{parentid,jdbcType=BIGINT},
+      parentname = #{parentname,jdbcType=VARCHAR},
+      menu = #{menu,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+      flag = #{flag,jdbcType=BIT},
+      remark = #{remark,jdbcType=VARCHAR},
+      qq = #{qq,jdbcType=VARCHAR},
+      sex = #{sex,jdbcType=VARCHAR},
+      faxes = #{faxes,jdbcType=VARCHAR},
+      telephone = #{telephone,jdbcType=VARCHAR},
+      hobby = #{hobby,jdbcType=VARCHAR},
+      favicon = #{favicon,jdbcType=VARCHAR},
+      sellerbanlance = #{sellerbanlance,jdbcType=NUMERIC},
+      sellerfreezebanlance = #{sellerfreezebanlance,jdbcType=NUMERIC},
+      creditlimit = #{creditlimit,jdbcType=NUMERIC},
+      usedlimit = #{usedlimit,jdbcType=NUMERIC},
+      availablelimit = #{availablelimit,jdbcType=NUMERIC},
+      membersettingstate = #{membersettingstate,jdbcType=SMALLINT},
+      billmoney = #{billmoney,jdbcType=NUMERIC},
+      eva1 = #{eva1,jdbcType=NUMERIC},
+      eva2 = #{eva2,jdbcType=NUMERIC},
+      eva3 = #{eva3,jdbcType=NUMERIC},
+      sellergroupid = #{sellergroupid,jdbcType=BIGINT},
+      availableintegral = #{availableintegral,jdbcType=NUMERIC},
+      province = #{province,jdbcType=VARCHAR},
+      city = #{city,jdbcType=VARCHAR},
+      citysmall = #{citysmall,jdbcType=VARCHAR},
+      creditstate = #{creditstate,jdbcType=SMALLINT},
+    goodsbanlance = #{goodsbanlance,jdbcType=NUMERIC},
+    services = #{services,jdbcType=BIT},
+    isbuy = #{isbuy,jdbcType=SMALLINT}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>
