@@ -1,3 +1,4 @@
+import DesignPattern.Country;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
@@ -95,6 +96,8 @@ public class Test {
 //        }
 
 //        short a=null;
+        Country country=new Country.Builder().setName("China").setArea("Asia").setPopulation(14).build();
+        System.out.println(country.getArea()+":"+country.getName()+":"+country.getPopulation());
 
     }
     public static void filter(List<String> names,Predicate condition){
