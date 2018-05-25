@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_fx.FxstationMapper" >
+
+    <resultMap id="BaseResultMap" type="project.jinshang.mod_fx.bean.Fxstation" >
+        <id column="id" property="id" jdbcType="BIGINT" />
+        <result column="cycle" property="cycle" jdbcType="BIGINT" />
+        <result column="ratio2" property="ratio2" jdbcType="NUMERIC" />
+        <result column="disable" property="disable" jdbcType="BIT" />
+    </resultMap>
+
+    <sql id="Example_Where_Clause" >
+        <where >
+            <foreach collection="oredCriteria" item="criteria" separator="or" >
+                <if test="criteria.valid" >
+                    <trim prefix="(" suffix=")" prefixOverrides="and" >
+                        <foreach collection="criteria.criteria" item="criterion" >
+                            <choose >
+                                <when test="criterion.noValue" >
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue" >
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue" >
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue" >
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+
+    <sql id="Update_By_Example_Where_Clause" >
+        <where >
+            <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+                <if test="criteria.valid" >
+                    <trim prefix="(" suffix=")" prefixOverrides="and" >
+                        <foreach collection="criteria.criteria" item="criterion" >
+                            <choose >
+                                <when test="criterion.noValue" >
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue" >
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue" >
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue" >
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+
+    <sql id="Base_Column_List" >
+        id, cycle, ratio2, disable
+    </sql>
+
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_fx.bean.FxstationExample" >
+        select
+        <if test="distinct" >
+            distinct
+        </if>
+        'true' as QUERYID,
+        <include refid="Base_Column_List" />
+        from public.fx_station
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+        <if test="orderByClause != null" >
+            order by ${orderByClause}
+        </if>
+    </select>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+        select 
+        <include refid="Base_Column_List" />
+        from public.fx_station
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+        delete from public.fx_station
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+
+    <delete id="deleteByExample" parameterType="project.jinshang.mod_fx.bean.FxstationExample" >
+        delete from public.fx_station
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+    </delete>
+
+    <insert id="insert" parameterType="project.jinshang.mod_fx.bean.Fxstation" >
+        insert into public.fx_station (id, cycle, ratio2, 
+            disable)
+        values (#{id,jdbcType=BIGINT}, #{cycle,jdbcType=BIGINT}, #{ratio2,jdbcType=NUMERIC}, 
+            #{disable,jdbcType=BIT})
+    </insert>
+
+    <insert id="insertSelective" parameterType="project.jinshang.mod_fx.bean.Fxstation" >
+        insert into public.fx_station
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="id != null" >
+                id,
+            </if>
+            <if test="cycle != null" >
+                cycle,
+            </if>
+            <if test="ratio2 != null" >
+                ratio2,
+            </if>
+            <if test="disable != null" >
+                disable,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="id != null" >
+                #{id,jdbcType=BIGINT},
+            </if>
+            <if test="cycle != null" >
+                #{cycle,jdbcType=BIGINT},
+            </if>
+            <if test="ratio2 != null" >
+                #{ratio2,jdbcType=NUMERIC},
+            </if>
+            <if test="disable != null" >
+                #{disable,jdbcType=BIT},
+            </if>
+        </trim>
+    </insert>
+
+    <select id="countByExample" parameterType="project.jinshang.mod_fx.bean.FxstationExample" resultType="java.lang.Integer" >
+        select count(*) from public.fx_station
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+    </select>
+
+    <update id="updateByExampleSelective" parameterType="map" >
+        update public.fx_station
+        <set >
+            <if test="record.id != null" >
+                id = #{record.id,jdbcType=BIGINT},
+            </if>
+            <if test="record.cycle != null" >
+                cycle = #{record.cycle,jdbcType=BIGINT},
+            </if>
+            <if test="record.ratio2 != null" >
+                ratio2 = #{record.ratio2,jdbcType=NUMERIC},
+            </if>
+            <if test="record.disable != null" >
+                disable = #{record.disable,jdbcType=BIT},
+            </if>
+        </set>
+        <if test="_parameter != null" >
+            <include refid="Update_By_Example_Where_Clause" />
+        </if>
+    </update>
+
+    <update id="updateByExample" parameterType="map" >
+        update public.fx_station
+        set id = #{record.id,jdbcType=BIGINT},
+            cycle = #{record.cycle,jdbcType=BIGINT},
+            ratio2 = #{record.ratio2,jdbcType=NUMERIC},
+            disable = #{record.disable,jdbcType=BIT}
+        <if test="_parameter != null" >
+            <include refid="Update_By_Example_Where_Clause" />
+        </if>
+    </update>
+
+    <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_fx.bean.Fxstation" >
+        update public.fx_station
+        <set >
+            <if test="cycle != null" >
+                cycle = #{cycle,jdbcType=BIGINT},
+            </if>
+            <if test="ratio2 != null" >
+                ratio2 = #{ratio2,jdbcType=NUMERIC},
+            </if>
+            <if test="disable != null" >
+                disable = #{disable,jdbcType=BIT},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_fx.bean.Fxstation" >
+        update public.fx_station
+        set cycle = #{cycle,jdbcType=BIGINT},
+            ratio2 = #{ratio2,jdbcType=NUMERIC},
+            disable = #{disable,jdbcType=BIT}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+</mapper>

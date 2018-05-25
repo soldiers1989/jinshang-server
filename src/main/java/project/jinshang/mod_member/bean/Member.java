@@ -223,6 +223,10 @@ public class Member implements Serializable{
     private Short isbuy;
 
 
+    @ApiModelProperty(notes = "三级分销 邀请人id")
+    private Long inviterid;
+
+
     public Short getIsbuy() {
         return isbuy;
     }
@@ -810,5 +814,13 @@ public class Member implements Serializable{
 
     public void setCreditstate(Short creditstate) {
         this.creditstate = creditstate;
+    }
+
+    public Long getInviterid() {
+        return inviterid;
+    }
+
+    public void setInviterid(Long inviterid) {
+        this.inviterid = inviterid;
     }
 }

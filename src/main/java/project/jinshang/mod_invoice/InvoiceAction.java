@@ -134,12 +134,29 @@ public class InvoiceAction {
         return basicRet;
     }
 
-    @RequestMapping(value = "/list", method = RequestMethod.POST)
-    @ApiOperation(value = "发票信息列表")
-    public BasicRet getInvoiceInfoList(Model model) {
+    @RequestMapping(value = "/list2", method = RequestMethod.POST)
+    @ApiOperation(value = "买家中心-发票信息列表")
+    public BasicRet getInvoiceInfoList2(Model model) {
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
         BasicExtRet basicRet = new BasicExtRet();
         List<InvoiceInfo> invoiceInfoList = invoiceService.getInvoiceInfoListByMemberId(member.getId());
+        basicRet.setData(invoiceInfoList);
+        basicRet.setResult(BasicRet.SUCCESS);
+        basicRet.setMessage("获取成功");
+        return basicRet;
+    }
+
+    @RequestMapping(value = "/list", method = RequestMethod.POST)
+    @ApiOperation(value = "订单信息-发票信息列表")
+    public BasicRet getInvoiceInfoList(Model model) {
+        Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
+        BasicExtRet basicRet = new BasicExtRet();
+        List<InvoiceInfo> invoiceInfoList = null;
+        if(member.getCompany()){
+            invoiceInfoList = invoiceService.getInvoiceInfoListByMemberId2(member.getId());
+        }else{
+            invoiceInfoList = invoiceService.getInvoiceInfoListByMemberId(member.getId());
+        }
         basicRet.setData(invoiceInfoList);
         basicRet.setResult(BasicRet.SUCCESS);
         basicRet.setMessage("获取成功");

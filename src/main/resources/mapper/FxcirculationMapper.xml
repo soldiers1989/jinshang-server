@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_fx.FxcirculationMapper" >
+
+    <resultMap id="BaseResultMap" type="project.jinshang.mod_fx.bean.Fxcirculation" >
+        <id column="id" property="id" jdbcType="BIGINT" />
+        <result column="commisionid" property="commisionid" jdbcType="BIGINT" />
+        <result column="orderid" property="orderid" jdbcType="BIGINT" />
+        <result column="orderno" property="orderno" jdbcType="VARCHAR" />
+        <result column="memberid" property="memberid" jdbcType="BIGINT" />
+        <result column="saleid" property="saleid" jdbcType="BIGINT" />
+        <result column="circulationtext" property="circulationtext" jdbcType="VARCHAR" />
+        <result column="circulationold" property="circulationold" jdbcType="BIGINT" />
+        <result column="circulationnew" property="circulationnew" jdbcType="BIGINT" />
+        <result column="other" property="other" jdbcType="VARCHAR" />
+        <result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
+    </resultMap>
+
+    <sql id="Example_Where_Clause" >
+        <where >
+            <foreach collection="oredCriteria" item="criteria" separator="or" >
+                <if test="criteria.valid" >
+                    <trim prefix="(" suffix=")" prefixOverrides="and" >
+                        <foreach collection="criteria.criteria" item="criterion" >
+                            <choose >
+                                <when test="criterion.noValue" >
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue" >
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue" >
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue" >
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+
+    <sql id="Update_By_Example_Where_Clause" >
+        <where >
+            <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+                <if test="criteria.valid" >
+                    <trim prefix="(" suffix=")" prefixOverrides="and" >
+                        <foreach collection="criteria.criteria" item="criterion" >
+                            <choose >
+                                <when test="criterion.noValue" >
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue" >
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue" >
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue" >
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+
+    <sql id="Base_Column_List" >
+        id, commisionid, orderid, orderno, memberid, saleid, circulationtext, circulationold, 
+        circulationnew, other, createtime
+    </sql>
+
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_fx.bean.FxcirculationExample" >
+        select
+        <if test="distinct" >
+            distinct
+        </if>
+        'true' as QUERYID,
+        <include refid="Base_Column_List" />
+        from public.fx_circulation
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+        <if test="orderByClause != null" >
+            order by ${orderByClause}
+        </if>
+    </select>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+        select 
+        <include refid="Base_Column_List" />
+        from public.fx_circulation
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+        delete from public.fx_circulation
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+
+    <delete id="deleteByExample" parameterType="project.jinshang.mod_fx.bean.FxcirculationExample" >
+        delete from public.fx_circulation
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+    </delete>
+
+    <insert id="insert" parameterType="project.jinshang.mod_fx.bean.Fxcirculation" >
+        insert into public.fx_circulation (id, commisionid, orderid, 
+            orderno, memberid, saleid, 
+            circulationtext, circulationold, circulationnew, 
+            other, createtime)
+        values (#{id,jdbcType=BIGINT}, #{commisionid,jdbcType=BIGINT}, #{orderid,jdbcType=BIGINT}, 
+            #{orderno,jdbcType=VARCHAR}, #{memberid,jdbcType=BIGINT}, #{saleid,jdbcType=BIGINT}, 
+            #{circulationtext,jdbcType=VARCHAR}, #{circulationold,jdbcType=BIGINT}, #{circulationnew,jdbcType=BIGINT}, 
+            #{other,jdbcType=VARCHAR}, #{createtime,jdbcType=TIMESTAMP})
+    </insert>
+
+    <insert id="insertSelective" parameterType="project.jinshang.mod_fx.bean.Fxcirculation" >
+        insert into public.fx_circulation
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="id != null" >
+                id,
+            </if>
+            <if test="commisionid != null" >
+                commisionid,
+            </if>
+            <if test="orderid != null" >
+                orderid,
+            </if>
+            <if test="orderno != null" >
+                orderno,
+            </if>
+            <if test="memberid != null" >
+                memberid,
+            </if>
+            <if test="saleid != null" >
+                saleid,
+            </if>
+            <if test="circulationtext != null" >
+                circulationtext,
+            </if>
+            <if test="circulationold != null" >
+                circulationold,
+            </if>
+            <if test="circulationnew != null" >
+                circulationnew,
+            </if>
+            <if test="other != null" >
+                other,
+            </if>
+            <if test="createtime != null" >
+                createtime,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="id != null" >
+                #{id,jdbcType=BIGINT},
+            </if>
+            <if test="commisionid != null" >
+                #{commisionid,jdbcType=BIGINT},
+            </if>
+            <if test="orderid != null" >
+                #{orderid,jdbcType=BIGINT},
+            </if>
+            <if test="orderno != null" >
+                #{orderno,jdbcType=VARCHAR},
+            </if>
+            <if test="memberid != null" >
+                #{memberid,jdbcType=BIGINT},
+            </if>
+            <if test="saleid != null" >
+                #{saleid,jdbcType=BIGINT},
+            </if>
+            <if test="circulationtext != null" >
+                #{circulationtext,jdbcType=VARCHAR},
+            </if>
+            <if test="circulationold != null" >
+                #{circulationold,jdbcType=BIGINT},
+            </if>
+            <if test="circulationnew != null" >
+                #{circulationnew,jdbcType=BIGINT},
+            </if>
+            <if test="other != null" >
+                #{other,jdbcType=VARCHAR},
+            </if>
+            <if test="createtime != null" >
+                #{createtime,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+
+    <select id="countByExample" parameterType="project.jinshang.mod_fx.bean.FxcirculationExample" resultType="java.lang.Integer" >
+        select count(*) from public.fx_circulation
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+    </select>
+
+    <update id="updateByExampleSelective" parameterType="map" >
+        update public.fx_circulation
+        <set >
+            <if test="record.id != null" >
+                id = #{record.id,jdbcType=BIGINT},
+            </if>
+            <if test="record.commisionid != null" >
+                commisionid = #{record.commisionid,jdbcType=BIGINT},
+            </if>
+            <if test="record.orderid != null" >
+                orderid = #{record.orderid,jdbcType=BIGINT},
+            </if>
+            <if test="record.orderno != null" >
+                orderno = #{record.orderno,jdbcType=VARCHAR},
+            </if>
+            <if test="record.memberid != null" >
+                memberid = #{record.memberid,jdbcType=BIGINT},
+            </if>
+            <if test="record.saleid != null" >
+                saleid = #{record.saleid,jdbcType=BIGINT},
+            </if>
+            <if test="record.circulationtext != null" >
+                circulationtext = #{record.circulationtext,jdbcType=VARCHAR},
+            </if>
+            <if test="record.circulationold != null" >
+                circulationold = #{record.circulationold,jdbcType=BIGINT},
+            </if>
+            <if test="record.circulationnew != null" >
+                circulationnew = #{record.circulationnew,jdbcType=BIGINT},
+            </if>
+            <if test="record.other != null" >
+                other = #{record.other,jdbcType=VARCHAR},
+            </if>
+            <if test="record.createtime != null" >
+                createtime = #{record.createtime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        <if test="_parameter != null" >
+            <include refid="Update_By_Example_Where_Clause" />
+        </if>
+    </update>
+
+    <update id="updateByExample" parameterType="map" >
+        update public.fx_circulation
+        set id = #{record.id,jdbcType=BIGINT},
+            commisionid = #{record.commisionid,jdbcType=BIGINT},
+            orderid = #{record.orderid,jdbcType=BIGINT},
+            orderno = #{record.orderno,jdbcType=VARCHAR},
+            memberid = #{record.memberid,jdbcType=BIGINT},
+            saleid = #{record.saleid,jdbcType=BIGINT},
+            circulationtext = #{record.circulationtext,jdbcType=VARCHAR},
+            circulationold = #{record.circulationold,jdbcType=BIGINT},
+            circulationnew = #{record.circulationnew,jdbcType=BIGINT},
+            other = #{record.other,jdbcType=VARCHAR},
+            createtime = #{record.createtime,jdbcType=TIMESTAMP}
+        <if test="_parameter != null" >
+            <include refid="Update_By_Example_Where_Clause" />
+        </if>
+    </update>
+
+    <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_fx.bean.Fxcirculation" >
+        update public.fx_circulation
+        <set >
+            <if test="commisionid != null" >
+                commisionid = #{commisionid,jdbcType=BIGINT},
+            </if>
+            <if test="orderid != null" >
+                orderid = #{orderid,jdbcType=BIGINT},
+            </if>
+            <if test="orderno != null" >
+                orderno = #{orderno,jdbcType=VARCHAR},
+            </if>
+            <if test="memberid != null" >
+                memberid = #{memberid,jdbcType=BIGINT},
+            </if>
+            <if test="saleid != null" >
+                saleid = #{saleid,jdbcType=BIGINT},
+            </if>
+            <if test="circulationtext != null" >
+                circulationtext = #{circulationtext,jdbcType=VARCHAR},
+            </if>
+            <if test="circulationold != null" >
+                circulationold = #{circulationold,jdbcType=BIGINT},
+            </if>
+            <if test="circulationnew != null" >
+                circulationnew = #{circulationnew,jdbcType=BIGINT},
+            </if>
+            <if test="other != null" >
+                other = #{other,jdbcType=VARCHAR},
+            </if>
+            <if test="createtime != null" >
+                createtime = #{createtime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_fx.bean.Fxcirculation" >
+        update public.fx_circulation
+        set commisionid = #{commisionid,jdbcType=BIGINT},
+            orderid = #{orderid,jdbcType=BIGINT},
+            orderno = #{orderno,jdbcType=VARCHAR},
+            memberid = #{memberid,jdbcType=BIGINT},
+            saleid = #{saleid,jdbcType=BIGINT},
+            circulationtext = #{circulationtext,jdbcType=VARCHAR},
+            circulationold = #{circulationold,jdbcType=BIGINT},
+            circulationnew = #{circulationnew,jdbcType=BIGINT},
+            other = #{other,jdbcType=VARCHAR},
+            createtime = #{createtime,jdbcType=TIMESTAMP}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+</mapper>

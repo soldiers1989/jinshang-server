@@ -34,8 +34,8 @@ public class SalerCapitalProvider {
 
 
         if(dto.getCapitaltype() != null && dto.getCapitaltype() != -1){
-//            sql.append(" and B.capitaltype=#{dto.capitaltype} ");
-            if(dto.getCapitaltype() == 5){ //提现   余额提现、货款提现
+            //sql.append(" and B.capitaltype=#{dto.capitaltype} ");
+            if(dto.getCapitaltype() == 511){ //提现   余额提现、货款提现
                 sql.append(" and B.capitaltype in (5,11) ");
             }else {
                 sql.append(" and B.capitaltype=#{dto.capitaltype} ");
@@ -64,6 +64,14 @@ public class SalerCapitalProvider {
 
         if(dto.getPaytype() != null && dto.getPaytype() !=-1){
             sql.append(" and B.paytype = #{dto.paytype} ");
+        }
+
+        if(dto.getWithdrawtype() != null && dto.getWithdrawtype() !=-1){
+            sql.append(" and B.withdrawtype = #{dto.withdrawtype} ");
+        }
+
+        if(dto.getRechargestate() != null && dto.getRechargestate() !=-1){
+            sql.append(" and B.rechargestate = #{dto.rechargestate} ");
         }
 
         if(dto.getRechargeperform() != null && dto.getRechargeperform() != -1){

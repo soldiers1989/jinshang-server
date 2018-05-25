@@ -74,7 +74,7 @@ public class LimitTimeActivityProvider {
 
         if(StringUtils.hasText(query.getActivitytitle())){
 //            sql.append(" and l.activitytitle like '%"+query.getActivitytitle()+"%' ");
-            sql.append(" and l.activitytitle like #{activitytitle}) ");
+            sql.append(" and l.activitytitle like #{activitytitle} ");
         }
 
         if(query.getActivitycateid() != null && query.getActivitycateid() >0){

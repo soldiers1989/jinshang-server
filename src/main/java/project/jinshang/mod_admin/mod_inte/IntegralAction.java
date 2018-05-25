@@ -145,11 +145,12 @@ public class IntegralAction {
             @ApiImplicitParam(name = "pageSize",value = "页数",required = true,paramType = "query",dataType = "int"),
             @ApiImplicitParam(name = "type",value = "传数组，积分类型0=消费1=注册2=邀请3=后台增加4=后台减少",required = false,paramType = "query",dataType = "Array"),
             @ApiImplicitParam(name = "memberid",value = "用户id",required = false,paramType = "query",dataType = "long"),
+            @ApiImplicitParam(name = "membername",value = "用户名",required = false,paramType = "query",dataType = "String"),
             @ApiImplicitParam(name = "startTime",value = "开始时间",required = false,paramType = "query",dataType = "string"),
             @ApiImplicitParam(name = "endTime",value = "结束时间",required = false,paramType = "query",dataType = "string"),
     })
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.MEMBERINTEGRAL + "')")
-    public PageRet getIntegerRecordList(int pageNo, int pageSize, Short[] type, Long memberid, Date startTime, Date endTime){
+    public PageRet getIntegerRecordList(int pageNo, int pageSize, Short[] type, Long memberid, String membername,Date startTime, Date endTime){
         PageRet pageRet = new PageRet();
         List<Short> list = null;
         if(type!=null){
@@ -157,7 +158,7 @@ public class IntegralAction {
         }else {
             list = new ArrayList<>();
         }
-        PageInfo info = integralService.getIntegralRecord(pageNo,pageSize, list,memberid,startTime,endTime);
+        PageInfo info = integralService.getIntegralRecord(pageNo,pageSize, list,memberid,membername,startTime,endTime);
         pageRet.setResult(BasicRet.SUCCESS);
         pageRet.setMessage("返回成功");
         pageRet.data.setPageInfo(info);

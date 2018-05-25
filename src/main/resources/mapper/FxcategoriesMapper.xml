@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_fx.FxcategoriesMapper" >
+
+    <resultMap id="BaseResultMap" type="project.jinshang.mod_fx.bean.Fxcategories" >
+        <id column="id" property="id" jdbcType="BIGINT" />
+        <result column="cid" property="cid" jdbcType="BIGINT" />
+        <result column="ratio" property="ratio" jdbcType="NUMERIC" />
+    </resultMap>
+
+    <sql id="Example_Where_Clause" >
+        <where >
+            <foreach collection="oredCriteria" item="criteria" separator="or" >
+                <if test="criteria.valid" >
+                    <trim prefix="(" suffix=")" prefixOverrides="and" >
+                        <foreach collection="criteria.criteria" item="criterion" >
+                            <choose >
+                                <when test="criterion.noValue" >
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue" >
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue" >
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue" >
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+
+    <sql id="Update_By_Example_Where_Clause" >
+        <where >
+            <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+                <if test="criteria.valid" >
+                    <trim prefix="(" suffix=")" prefixOverrides="and" >
+                        <foreach collection="criteria.criteria" item="criterion" >
+                            <choose >
+                                <when test="criterion.noValue" >
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue" >
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue" >
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue" >
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+
+    <sql id="Base_Column_List" >
+        id, cid, ratio
+    </sql>
+
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_fx.bean.FxcategoriesExample" >
+        select
+        <if test="distinct" >
+            distinct
+        </if>
+        'true' as QUERYID,
+        <include refid="Base_Column_List" />
+        from public.fx_categories
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+        <if test="orderByClause != null" >
+            order by ${orderByClause}
+        </if>
+    </select>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+        select 
+        <include refid="Base_Column_List" />
+        from public.fx_categories
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+        delete from public.fx_categories
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+
+    <delete id="deleteByExample" parameterType="project.jinshang.mod_fx.bean.FxcategoriesExample" >
+        delete from public.fx_categories
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+    </delete>
+
+    <insert id="insert" parameterType="project.jinshang.mod_fx.bean.Fxcategories" >
+        insert into public.fx_categories (id, cid, ratio)
+        values (#{id,jdbcType=BIGINT}, #{cid,jdbcType=BIGINT}, #{ratio,jdbcType=NUMERIC})
+    </insert>
+
+    <insert id="insertSelective" parameterType="project.jinshang.mod_fx.bean.Fxcategories" >
+        insert into public.fx_categories
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="id != null" >
+                id,
+            </if>
+            <if test="cid != null" >
+                cid,
+            </if>
+            <if test="ratio != null" >
+                ratio,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="id != null" >
+                #{id,jdbcType=BIGINT},
+            </if>
+            <if test="cid != null" >
+                #{cid,jdbcType=BIGINT},
+            </if>
+            <if test="ratio != null" >
+                #{ratio,jdbcType=NUMERIC},
+            </if>
+        </trim>
+    </insert>
+
+    <select id="countByExample" parameterType="project.jinshang.mod_fx.bean.FxcategoriesExample" resultType="java.lang.Integer" >
+        select count(*) from public.fx_categories
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+    </select>
+
+    <update id="updateByExampleSelective" parameterType="map" >
+        update public.fx_categories
+        <set >
+            <if test="record.id != null" >
+                id = #{record.id,jdbcType=BIGINT},
+            </if>
+            <if test="record.cid != null" >
+                cid = #{record.cid,jdbcType=BIGINT},
+            </if>
+            <if test="record.ratio != null" >
+                ratio = #{record.ratio,jdbcType=NUMERIC},
+            </if>
+        </set>
+        <if test="_parameter != null" >
+            <include refid="Update_By_Example_Where_Clause" />
+        </if>
+    </update>
+
+    <update id="updateByExample" parameterType="map" >
+        update public.fx_categories
+        set id = #{record.id,jdbcType=BIGINT},
+            cid = #{record.cid,jdbcType=BIGINT},
+            ratio = #{record.ratio,jdbcType=NUMERIC}
+        <if test="_parameter != null" >
+            <include refid="Update_By_Example_Where_Clause" />
+        </if>
+    </update>
+
+    <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_fx.bean.Fxcategories" >
+        update public.fx_categories
+        <set >
+            <if test="cid != null" >
+                cid = #{cid,jdbcType=BIGINT},
+            </if>
+            <if test="ratio != null" >
+                ratio = #{ratio,jdbcType=NUMERIC},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_fx.bean.Fxcategories" >
+        update public.fx_categories
+        set cid = #{cid,jdbcType=BIGINT},
+            ratio = #{ratio,jdbcType=NUMERIC}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+</mapper>

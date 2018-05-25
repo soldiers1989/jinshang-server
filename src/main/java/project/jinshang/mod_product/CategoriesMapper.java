@@ -1,6 +1,8 @@
 package project.jinshang.mod_product;
 
 import java.util.List;
+import java.util.Map;
+
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.springframework.cache.annotation.CacheConfig;
@@ -69,5 +71,12 @@ public interface CategoriesMapper {
 
     @Select("select id,name,parentid,uprate,goldmemberrate,serverrate,thirdrate,secondrate,firstrate from categories where parentid=#{parentid} order by sort asc")
     List<Categories> listBusinessRate(@Param("parentid") long parentid);
+    @Select("with recursive cte as(" +
+            "select * from categories  " +
+            "UNION ALL " +
+            "select k.* from categories k inner join cte c on c.id = k.parentid " +
+            ") " +
+            "select DISTINCT cte.id,cte.*,f.ratio ,f.cid  ,f.id from cte  left join fx_categories f on cte.id = f.cid")
+    List<Map<String,Object>> findCategories();
 
 }

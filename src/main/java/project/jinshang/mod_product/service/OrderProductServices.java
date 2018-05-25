@@ -62,4 +62,12 @@ public class OrderProductServices {
         return orderProductMapper.selectByExample(orderProductExample);
     }
 
+    public List<OrderProduct> getByOrderNo(String orderno) {
+
+        return orderProductMapper.getByOrderNo(orderno);
+    }
+
+    public List<OrderProduct> getByOrderNoAndBackStatus(String orderno) {
+        return orderProductMapper.getByOrderNoAndBackStatus(orderno);
+    }
 }

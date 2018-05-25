@@ -62,6 +62,11 @@ public interface OrderProductMapper {
      */
     @InsertProvider(type = OrderProductProvider.class, method = "insertAll")
     void insertAll(List<OrderProduct> list);
+    @Select("select * from orderproduct where orderno = #{orderno}")
+    List<OrderProduct> getByOrderNo(@Param("orderno") String orderno);
+
+
+
 
     public class OrderProductProvider {
         public String insertAll(Map map) {
@@ -139,6 +144,9 @@ public interface OrderProductMapper {
      */
     @Select("select * from orderproduct where orderid=#{orderid}")
     List<OrderProduct> getByOrderid(@Param("orderid") Long orderid);
+
+    @Select("select * from orderproduct where orderno = #{orderno} and backstate = 0 ")
+    List<OrderProduct> getByOrderNoAndBackStatus(@Param("orderno") String orderno);
 
 /*    @SelectProvider(type = OrderProductMapper.OrdersProvider.class, method = "queryOrderByParam")
     @Results({

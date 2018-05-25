@@ -69,6 +69,13 @@ public class BuyerCapitalProvider {
             sql.append(" and B.paytype = #{dto.paytype} ");
         }
 
+        if(dto.getWithdrawtype() != null && dto.getWithdrawtype() !=-1){
+            sql.append(" and B.withdrawtype = #{dto.withdrawtype} ");
+        }
+
+        if(dto.getRechargestate() != null && dto.getRechargestate() !=-1){
+            sql.append(" and B.rechargestate = #{dto.rechargestate} ");
+        }
 
         if(dto.getRechargeperform() != null && dto.getRechargeperform() != -1){
             sql.append(" and B.rechargeperform=#{dto.rechargeperform} ");
@@ -99,7 +106,7 @@ public class BuyerCapitalProvider {
 
     public String listForAccount(@Param("dto")BuyerCapitalAccountQueryDto dto){
         StringBuilder sql=new StringBuilder();
-        sql.append("SELECT B.*,O.deliveryno FROM buyercapital B\n"+
+        sql.append("SELECT B.*,O.deliveryno,BG.invoiceheadup FROM buyercapital B\n"+
                 "\tLEFT JOIN member M ON B.memberid = M.id LEFT JOIN buyercompanyinfo BC ON B.memberid = BC.memberid\n"+
                 "\tLEFT JOIN orders O ON O.orderno = B.orderno LEFT JOIN billingrecord BG ON (BG.orderno LIKE concat( '', O.id, '' )\n"+
                  "\tOR BG.orderno LIKE concat( '', o.id, ',%' ) OR BG.orderno LIKE concat( '%,', o.id, ',%' ) )\n"+

@@ -987,7 +987,7 @@ public class CashManageAction {
                             sumReceivableAccount=sumReceivableAccount.subtract(buyerCapitalAccountDto.getReceiptamount());
                             buyerCapitalAccountDto.setReceivableaccount(sumReceivableAccount);
                             buyerCapitalAccountDto.setInvoicebalance(sumInvoiceBalance);
-                            buyerCapitalAccountDto.setRemark(buyerCapitalViewDto.getRemark());
+                            buyerCapitalAccountDto.setRemark((buyerCapitalViewDto.getInvoiceheadup()==null?"":buyerCapitalViewDto.getInvoiceheadup())+"$"+buyerCapitalViewDto.getMemberid());
                             //添加到对应的结果集合中去
                             buyerCapitalAccountDtos.add(buyerCapitalAccountDto);
                             //然后再添加一条发货记录，【应收账款】加钱
@@ -1002,7 +1002,7 @@ public class CashManageAction {
                             //当发货=加法，发票结余进行累加，其他情况不处理
                             sumInvoiceBalance=sumInvoiceBalance.add(buyerCapitalAccountDto.getDeliveryamount());
                             buyerCapitalAccountDto.setInvoicebalance(sumInvoiceBalance);
-                            buyerCapitalAccountDto.setRemark(buyerCapitalViewDto.getRemark());
+                            buyerCapitalAccountDto.setRemark((buyerCapitalViewDto.getInvoiceheadup()==null?"":buyerCapitalViewDto.getInvoiceheadup())+"$"+buyerCapitalViewDto.getMemberid());
                             //添加到对应的结果集合中去
                             buyerCapitalAccountDtos.add(buyerCapitalAccountDto);
                         } else if (payType == BuyerCapitalConst.PAYMETHOD_BALANCE || payType == BuyerCapitalConst.PAYMETHOD_CREDIT) {
@@ -1017,7 +1017,7 @@ public class CashManageAction {
                             buyerCapitalAccountDto.setReceivableaccount(sumReceivableAccount);
                             sumInvoiceBalance=sumInvoiceBalance.add(buyerCapitalAccountDto.getDeliveryamount());
                             buyerCapitalAccountDto.setInvoicebalance(sumInvoiceBalance);
-                            buyerCapitalAccountDto.setRemark(buyerCapitalViewDto.getRemark());
+                            buyerCapitalAccountDto.setRemark((buyerCapitalViewDto.getInvoiceheadup()==null?"":buyerCapitalViewDto.getInvoiceheadup())+"$"+buyerCapitalViewDto.getMemberid());
                             buyerCapitalAccountDtos.add(buyerCapitalAccountDto);
                         }
                         break;
@@ -1047,8 +1047,9 @@ public class CashManageAction {
                         sumReceivableAccount=sumReceivableAccount.add(buyerCapitalAccountDto.getOtheramount());
                         buyerCapitalAccountDto.setReceivableaccount(sumReceivableAccount);
                         buyerCapitalAccountDto.setInvoicebalance(sumInvoiceBalance);
+                        buyerCapitalAccountDto.setPaytype((short)5);
                         //capitalType类型为违约时，显示remark字段的内容
-                        buyerCapitalAccountDto.setRemark(buyerCapitalViewDto.getRemark());
+                        buyerCapitalAccountDto.setRemark("买家违约");
                         buyerCapitalAccountDtos.add(buyerCapitalAccountDto);
                         break;
                     }
@@ -1063,8 +1064,10 @@ public class CashManageAction {
                         sumReceivableAccount=sumReceivableAccount.add(buyerCapitalAccountDto.getOtheramount());
                         buyerCapitalAccountDto.setReceivableaccount(sumReceivableAccount);
                         buyerCapitalAccountDto.setInvoicebalance(sumInvoiceBalance);
+                        //违约金没有支付方式
+                        buyerCapitalAccountDto.setPaytype((short)5);
                         //capitalType类型为违约时，显示remark字段的内容
-                        buyerCapitalAccountDto.setRemark(buyerCapitalViewDto.getRemark());
+                        buyerCapitalAccountDto.setRemark("卖家违约");
                         buyerCapitalAccountDtos.add(buyerCapitalAccountDto);
                         break;
                     }
@@ -1127,7 +1130,7 @@ public class CashManageAction {
         buyerCapitalAccountDto.setOtheramount(dto.getCapital());
         buyerCapitalAccountDto.setPaytype(dto.getPaytype()==null?0:dto.getPaytype());
         buyerCapitalAccountDto.setPayno(dto.getTransactionid());
-        buyerCapitalAccountDto.setRemark("操作人: "+(dto.getOperation()==null?"":dto.getOperation())+"\n"+"审核人: "+(dto.getVerify()==null?"":dto.getVerify()));
+        buyerCapitalAccountDto.setRemark("操作人: "+(dto.getOperation()==null?"":dto.getOperation())+"$"+"审核人: "+(dto.getVerify()==null?"":dto.getVerify())+"$"+dto.getMemberid());
         return buyerCapitalAccountDto;
     }
 

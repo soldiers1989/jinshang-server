@@ -40,7 +40,7 @@ public interface OrdersMapper {
 
     int updateByPrimaryKey(Orders record);
 
-    @Select("select * from orders where orderno=#{param1} order by id desc limit 1")
+    @Select("select * from orders where orderno=#{param1}")
     Orders findByNo(String no);
 
     @Update("update orders set orderstatus=#{param2},sellerdeliverytime=now()" +
@@ -167,7 +167,7 @@ public interface OrdersMapper {
      * @param param
      * @return
      */
-    @SelectProvider(type = OrdersMapper.OrdersSumBrokerProvider.class, method = "queryByParam")
+    @SelectProvider(type = OrdersSumBrokerProvider.class, method = "queryByParam")
     public BigDecimal getOrdersSumBroker(OrderQueryParam param);
 
 
@@ -257,7 +257,7 @@ public interface OrdersMapper {
      *
      * @return
      */
-    @SelectProvider(type = OrdersMapper.OrderNumProvider.class, method = "queryByParam")
+    @SelectProvider(type = OrderNumProvider.class, method = "queryByParam")
     public BigDecimal getOrdersSum(OrderQueryParam param);
 
     public class OrderNumProvider {
@@ -346,7 +346,7 @@ public interface OrdersMapper {
      *
      * @return
      */
-    @SelectProvider(type = OrdersMapper.OrderSellSumProvider.class, method = "queryByParam")
+    @SelectProvider(type = OrderSellSumProvider.class, method = "queryByParam")
     public BigDecimal getOrderSellSum(OrderQueryParam param);
 
     public class OrderSellSumProvider {
@@ -440,7 +440,7 @@ public interface OrdersMapper {
      *
      * @return
      */
-    @SelectProvider(type = OrdersMapper.OrderTotalNumProvider.class, method = "queryByParam")
+    @SelectProvider(type = OrderTotalNumProvider.class, method = "queryByParam")
     public BigDecimal getOrdersTotalNum(OrderQueryParam param);
 
     public class OrderTotalNumProvider {
@@ -532,7 +532,7 @@ public interface OrdersMapper {
      *
      * @return
      */
-    @SelectProvider(type = OrdersMapper.OrdersTotalDeliveryNumProvider.class, method = "queryByParam")
+    @SelectProvider(type = OrdersTotalDeliveryNumProvider.class, method = "queryByParam")
     public BigDecimal getOrdersTotalDeliveryNum(OrderQueryParam param);
 
 
@@ -656,7 +656,7 @@ public interface OrdersMapper {
      *
      * @param list
      */
-    @InsertProvider(type = OrdersMapper.OrderProvider.class, method = "insertAll")
+    @InsertProvider(type = OrderProvider.class, method = "insertAll")
     void insertAll(List<Orders> list);
 
     public class OrderProvider {
@@ -1105,4 +1105,11 @@ public interface OrdersMapper {
     @Select("<script>select * from orders where id in <foreach collection=\"ids\" item=\"item\" index=\"index\" \n" +
             "open=\"(\" separator=\",\" close=\")\">#{item}</foreach></script>")
     List<Orders> getOrdersByIds(@Param("ids") Long[] ids);
+
+    /**
+     * 获取昨天0点到24点之间付款，且状态正常的订单；
+     * @return
+     */
+    @Select("select o.*  from orders o where o.paymenttime between #{starttime} and #{endtime} and o.orderstatus not in (0,7) order by o.id asc")
+    List<Orders> getRegularOrders(@Param("starttime") Date starttime, @Param("endtime") Date endtime);
 }

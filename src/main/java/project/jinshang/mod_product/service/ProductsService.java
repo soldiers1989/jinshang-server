@@ -54,6 +54,11 @@ public class ProductsService {
         return  productsMapper.countByExample(example);
     }
 
+
+    public List<Products> selectByExample(ProductsExample example){
+        return  productsMapper.selectByExample(example);
+    }
+
     /**
      * 按产品编号查询个数
      * @param prodNo

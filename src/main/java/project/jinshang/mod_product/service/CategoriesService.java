@@ -16,6 +16,7 @@ import project.jinshang.mod_product.bean.CategoriesExample;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * create : wyh
@@ -270,6 +271,8 @@ public class CategoriesService {
 
 
 
+
+
     private class SortToList {
         private List<Categories> list = new ArrayList<>();
 
@@ -299,6 +302,12 @@ public class CategoriesService {
         CategoriesExample.Criteria criteria = example.createCriteria();
         criteria.andParentidEqualTo((long) 0);
         return categoriesMapper.selectByExample(example);
+    }
+
+
+    public List<Map<String,Object>> findCategories(){
+        return categoriesMapper.findCategories();
+
     }
 
 

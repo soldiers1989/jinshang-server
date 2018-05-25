@@ -34,13 +34,22 @@ public interface InvoiceInfoMapper {
     int updateByPrimaryKey(InvoiceInfo record);
 
     /**
-     * 获取某个用户的所有发票信息
+     * 获取某个用户的所有发票信息-买家中心用
      *
      * @param memberId
      * @return
      */
     @Select("select i.*,m.company from invoiceinfo i left join member m on i.memberid=m.id where i.memberid = #{memberid,jdbcType=BIGINT} order by i.id asc")
     List<InvoiceInfo> invoiceInfoListByMemberId(@Param(value = "memberid") Long memberId);
+
+    /**
+     * 获取某个用户的所有发票信息-订单信息用
+     *
+     * @param memberId
+     * @return
+     */
+    @Select("select i.*,m.company from invoiceinfo i left join member m on i.memberid=m.id where i.memberid = #{memberid,jdbcType=BIGINT} and defaultbill=1 order by i.id asc")
+    List<InvoiceInfo> invoiceInfoListByMemberId2(@Param(value = "memberid") Long memberId);
 
     /**
      * 获取某个用户的默认发票信息

@@ -159,6 +159,9 @@ public interface MemberMapper {
     @SelectProvider(type = MemberMapper.StatisProvider.class, method = "queryMemberRegisterByParam")
     List<MemberStatistcModel> getMemberRegisterStatistic(MemberQueryParam param);
 
+
+
+
     public class StatisProvider {
 
         private final String TBL_MEMBER = "MEMBER member";
@@ -249,5 +252,26 @@ public interface MemberMapper {
             "createdate>=#{startDate} and createdate<=#{endDate} group by to_char(createdate,'YYYY-MM-DD') \n" +
             ") as t1 ORDER BY registerday asc")
     List<Map<String,Object>> getRegisterRate(@Param("startDate") Date startDate,@Param("endDate") Date endDate);
+
+
+
+    @Select("<script>select m.username,m.createdate " +
+            "from member m " +
+            "<where> 1=1 " +
+            "<if test=\"inviterid != null \">and m.inviterid = #{inviterid} </if>" +
+            "</where> order by m.id desc" +
+            "</script>")
+    List<Map<String,Object>> findInviteList(@Param("inviterid") long inviterid);
+
+    /**
+     * 显示会员列表 真实姓名和用户名
+     * @return
+     */
+    @Select("<script>select m.id,m.realname,m.username " +
+            "from member m " +
+            "<where> 1=1 " +
+            "</where> order by m.id desc" +
+            "</script>")
+    List<Map<String,Object>> findAllMemberList();
 
 }

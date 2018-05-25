@@ -67,6 +67,7 @@ public class BuyerRestAction {
     private BuyerCapitalService buyerCapitalService;
 
 
+
     @RequestMapping(value = "/registerMember", method = RequestMethod.POST)
     @ApiOperation(value = "注册用户")
     @ApiImplicitParams({
@@ -122,9 +123,6 @@ public class BuyerRestAction {
 
             memberRet.setRegmes("注册送现金");
         }
-
-
-
 
          member.setFrom("buyer");
          member.setLoginType("main");
@@ -191,7 +189,6 @@ public class BuyerRestAction {
 
                 //将未付款的订单改变成关闭
                 //ordersService.updateNotPayOrdersForFinish(member.getId());
-
 
                 return basicRet;
             } else {
@@ -608,10 +605,6 @@ public class BuyerRestAction {
         }
     }
 
-
-    public static void main(String[] args) {
-        System.out.println(CommonUtils.genMd5Password("123456", "87be535ae01842fe912c"));
-    }
 
 
     @RequestMapping(value = "/updateMemberFavicon", method = RequestMethod.POST)

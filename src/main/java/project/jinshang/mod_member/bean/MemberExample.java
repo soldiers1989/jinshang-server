@@ -3967,62 +3967,62 @@ public class MemberExample {
         }
 
         public Criteria andServicesIsNull() {
-            addCriterion("service is null");
+            addCriterion("services is null");
             return (Criteria) this;
         }
 
         public Criteria andServicesIsNotNull() {
-            addCriterion("service is not null");
+            addCriterion("services is not null");
             return (Criteria) this;
         }
 
         public Criteria andServicesEqualTo(Boolean value) {
-            addCriterion("service =", value, "service");
+            addCriterion("services =", value, "services");
             return (Criteria) this;
         }
 
         public Criteria andServicesNotEqualTo(Boolean value) {
-            addCriterion("service <>", value, "service");
+            addCriterion("services <>", value, "services");
             return (Criteria) this;
         }
 
         public Criteria andServicesGreaterThan(Boolean value) {
-            addCriterion("service >", value, "service");
+            addCriterion("services >", value, "services");
             return (Criteria) this;
         }
 
         public Criteria andServicesGreaterThanOrEqualTo(Boolean value) {
-            addCriterion("service >=", value, "service");
+            addCriterion("services >=", value, "services");
             return (Criteria) this;
         }
 
         public Criteria andServicesLessThan(Boolean value) {
-            addCriterion("service <", value, "service");
+            addCriterion("services <", value, "services");
             return (Criteria) this;
         }
 
         public Criteria andServicesLessThanOrEqualTo(Boolean value) {
-            addCriterion("service <=", value, "service");
+            addCriterion("services <=", value, "services");
             return (Criteria) this;
         }
 
         public Criteria andServicesIn(List<Boolean> values) {
-            addCriterion("service in", values, "service");
+            addCriterion("services in", values, "services");
             return (Criteria) this;
         }
 
         public Criteria andServicesNotIn(List<Boolean> values) {
-            addCriterion("service not in", values, "service");
+            addCriterion("services not in", values, "services");
             return (Criteria) this;
         }
 
         public Criteria andServicesBetween(Boolean value1, Boolean value2) {
-            addCriterion("service between", value1, value2, "service");
+            addCriterion("services between", value1, value2, "services");
             return (Criteria) this;
         }
 
         public Criteria andServicesNotBetween(Boolean value1, Boolean value2) {
-            addCriterion("service not between", value1, value2, "service");
+            addCriterion("services not between", value1, value2, "services");
             return (Criteria) this;
         }
 
@@ -4083,6 +4083,66 @@ public class MemberExample {
 
         public Criteria andIsbuyNotBetween(Short value1, Short value2) {
             addCriterion("isbuy not between", value1, value2, "isbuy");
+            return (Criteria) this;
+        }
+
+        public Criteria andInviteridIsNull() {
+            addCriterion("inviterid is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andInviteridIsNotNull() {
+            addCriterion("inviterid is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andInviteridEqualTo(Long value) {
+            addCriterion("inviterid =", value, "inviterid");
+            return (Criteria) this;
+        }
+
+        public Criteria andInviteridNotEqualTo(Long value) {
+            addCriterion("inviterid <>", value, "inviterid");
+            return (Criteria) this;
+        }
+
+        public Criteria andInviteridGreaterThan(Long value) {
+            addCriterion("inviterid >", value, "inviterid");
+            return (Criteria) this;
+        }
+
+        public Criteria andInviteridGreaterThanOrEqualTo(Long value) {
+            addCriterion("inviterid >=", value, "inviterid");
+            return (Criteria) this;
+        }
+
+        public Criteria andInviteridLessThan(Long value) {
+            addCriterion("inviterid <", value, "inviterid");
+            return (Criteria) this;
+        }
+
+        public Criteria andInviteridLessThanOrEqualTo(Long value) {
+            addCriterion("inviterid <=", value, "inviterid");
+            return (Criteria) this;
+        }
+
+        public Criteria andInviteridIn(List<Long> values) {
+            addCriterion("inviterid in", values, "inviterid");
+            return (Criteria) this;
+        }
+
+        public Criteria andInviteridNotIn(List<Long> values) {
+            addCriterion("inviterid not in", values, "inviterid");
+            return (Criteria) this;
+        }
+
+        public Criteria andInviteridBetween(Long value1, Long value2) {
+            addCriterion("inviterid between", value1, value2, "inviterid");
+            return (Criteria) this;
+        }
+
+        public Criteria andInviteridNotBetween(Long value1, Long value2) {
+            addCriterion("inviterid not between", value1, value2, "inviterid");
             return (Criteria) this;
         }
     }

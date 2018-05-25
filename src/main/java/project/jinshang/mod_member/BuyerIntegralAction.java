@@ -62,7 +62,7 @@ public class BuyerIntegralAction {
         }else {
             list = new ArrayList<>();
         }
-        PageInfo info = integralService.getIntegralRecord(pageNo,pageSize, list,member.getId(),null,null);
+        PageInfo info = integralService.getIntegralRecord(pageNo,pageSize, list,member.getId(),null,null,null);
         pageRet.setResult(BasicRet.SUCCESS);
         pageRet.setMessage("返回成功");
         pageRet.data.setPageInfo(info);

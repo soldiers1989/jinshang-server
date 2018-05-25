@@ -194,9 +194,25 @@ public interface BuyerCapitalMapper {
     void updateCapitalIsbackcredit(@Param("memberid") Long memberid,@Param("ids") String ids,@Param("state") Short state);
 
 
-    @Select("select sum(capital) from buyercapital where memberid=#{memberid} and capitaltype=#{capitaltype} and paytype=#{paytype} and outbillstate=#{outbillstate} and tradetime>=#{starttime} and tradetime<=#{endtime}  ")
+    @Select("select sum(capital) from buyercapital where memberid=#{memberid} and capitaltype=#{capitaltype} and paytype=#{paytype} " +
+            " and outbillstate=#{outbillstate} and tradetime>=#{starttime} and tradetime<=#{endtime}  ")
     BigDecimal getTotal(@Param("memberid") long memberid, @Param("capitaltype") Short capitaltype, @Param("paytype") Short paytype,
                         @Param("outbillstate") Short outbillstate, @Param("starttime")Date starttime,@Param("endtime") Date endtime);
+
+
+
+
+    @Select("select sum(capital) from buyercapital where memberid=#{memberid} and capitaltype=#{capitaltype} and paytype=#{paytype} " +
+            " and tradetime>=#{starttime} and tradetime<=#{endtime}  ")
+    BigDecimal getTotal1(@Param("memberid") long memberid, @Param("capitaltype") Short capitaltype, @Param("paytype") Short paytype,
+                         @Param("starttime")Date starttime,@Param("endtime") Date endtime);
+
+
+
+    @Select("select sum(capital) from buyercapital where memberid=#{memberid} and capitaltype in (0,6,7,8,9) and paytype=4 " +
+            " and tradetime>=#{starttime} and tradetime<=#{endtime}  ")
+    BigDecimal getTotalByCredit(@Param("memberid") long memberid,
+                         @Param("starttime")Date starttime,@Param("endtime") Date endtime);
 
 
     @SelectProvider(type = BuyerCapitalProvider.class,method = "breakContractListLogs")

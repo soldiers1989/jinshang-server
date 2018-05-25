@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_fx.FxcommisionMapper" >
+
+    <resultMap id="BaseResultMap" type="project.jinshang.mod_fx.bean.Fxcommision" >
+        <id column="id" property="id" jdbcType="BIGINT" />
+        <result column="orderid" property="orderid" jdbcType="BIGINT" />
+        <result column="orderno" property="orderno" jdbcType="VARCHAR" />
+        <result column="memberid" property="memberid" jdbcType="BIGINT" />
+        <result column="saleid" property="saleid" jdbcType="BIGINT" />
+        <result column="cmemberid" property="cmemberid" jdbcType="BIGINT" />
+        <result column="type" property="type" jdbcType="BIGINT" />
+        <result column="ordercreatetime" property="ordercreatetime" jdbcType="TIMESTAMP" />
+        <result column="buyerinspectiontime" property="buyerinspectiontime" jdbcType="TIMESTAMP" />
+        <result column="totalprice" property="totalprice" jdbcType="NUMERIC" />
+        <result column="commisionprice" property="commisionprice" jdbcType="NUMERIC" />
+        <result column="progressnum" property="progressnum" jdbcType="BIGINT" />
+        <result column="productslist" property="productslist" jdbcType="VARCHAR" />
+        <result column="other" property="other" jdbcType="VARCHAR" />
+        <result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
+        <result column="commisiontime" property="commisiontime" jdbcType="TIMESTAMP" />
+    </resultMap>
+
+    <sql id="Example_Where_Clause" >
+        <where >
+            <foreach collection="oredCriteria" item="criteria" separator="or" >
+                <if test="criteria.valid" >
+                    <trim prefix="(" suffix=")" prefixOverrides="and" >
+                        <foreach collection="criteria.criteria" item="criterion" >
+                            <choose >
+                                <when test="criterion.noValue" >
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue" >
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue" >
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue" >
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+
+    <sql id="Update_By_Example_Where_Clause" >
+        <where >
+            <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+                <if test="criteria.valid" >
+                    <trim prefix="(" suffix=")" prefixOverrides="and" >
+                        <foreach collection="criteria.criteria" item="criterion" >
+                            <choose >
+                                <when test="criterion.noValue" >
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue" >
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue" >
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue" >
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+
+    <sql id="Base_Column_List" >
+        id, orderid, orderno, memberid, saleid, cmemberid, type, ordercreatetime, buyerinspectiontime, 
+        totalprice, commisionprice, progressnum, productslist, other, createtime, commisiontime
+    </sql>
+
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_fx.bean.FxcommisionExample" >
+        select
+        <if test="distinct" >
+            distinct
+        </if>
+        'true' as QUERYID,
+        <include refid="Base_Column_List" />
+        from public.fx_commision
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+        <if test="orderByClause != null" >
+            order by ${orderByClause}
+        </if>
+    </select>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+        select 
+        <include refid="Base_Column_List" />
+        from public.fx_commision
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+        delete from public.fx_commision
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+
+    <delete id="deleteByExample" parameterType="project.jinshang.mod_fx.bean.FxcommisionExample" >
+        delete from public.fx_commision
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+    </delete>
+
+    <insert id="insert" parameterType="project.jinshang.mod_fx.bean.Fxcommision" >
+        insert into public.fx_commision (id, orderid, orderno, 
+            memberid, saleid, cmemberid, 
+            type, ordercreatetime, buyerinspectiontime, 
+            totalprice, commisionprice, progressnum, 
+            productslist, other, createtime, 
+            commisiontime)
+        values (#{id,jdbcType=BIGINT}, #{orderid,jdbcType=BIGINT}, #{orderno,jdbcType=VARCHAR}, 
+            #{memberid,jdbcType=BIGINT}, #{saleid,jdbcType=BIGINT}, #{cmemberid,jdbcType=BIGINT}, 
+            #{type,jdbcType=BIGINT}, #{ordercreatetime,jdbcType=TIMESTAMP}, #{buyerinspectiontime,jdbcType=TIMESTAMP}, 
+            #{totalprice,jdbcType=NUMERIC}, #{commisionprice,jdbcType=NUMERIC}, #{progressnum,jdbcType=BIGINT}, 
+            #{productslist,jdbcType=VARCHAR}, #{other,jdbcType=VARCHAR}, #{createtime,jdbcType=TIMESTAMP}, 
+            #{commisiontime,jdbcType=TIMESTAMP})
+    </insert>
+
+    <insert id="insertSelective" parameterType="project.jinshang.mod_fx.bean.Fxcommision"  useGeneratedKeys="true" keyProperty="id">
+        insert into public.fx_commision
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="id != null" >
+                id,
+            </if>
+            <if test="orderid != null" >
+                orderid,
+            </if>
+            <if test="orderno != null" >
+                orderno,
+            </if>
+            <if test="memberid != null" >
+                memberid,
+            </if>
+            <if test="saleid != null" >
+                saleid,
+            </if>
+            <if test="cmemberid != null" >
+                cmemberid,
+            </if>
+            <if test="type != null" >
+                type,
+            </if>
+            <if test="ordercreatetime != null" >
+                ordercreatetime,
+            </if>
+            <if test="buyerinspectiontime != null" >
+                buyerinspectiontime,
+            </if>
+            <if test="totalprice != null" >
+                totalprice,
+            </if>
+            <if test="commisionprice != null" >
+                commisionprice,
+            </if>
+            <if test="progressnum != null" >
+                progressnum,
+            </if>
+            <if test="productslist != null" >
+                productslist,
+            </if>
+            <if test="other != null" >
+                other,
+            </if>
+            <if test="createtime != null" >
+                createtime,
+            </if>
+            <if test="commisiontime != null" >
+                commisiontime,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="id != null" >
+                #{id,jdbcType=BIGINT},
+            </if>
+            <if test="orderid != null" >
+                #{orderid,jdbcType=BIGINT},
+            </if>
+            <if test="orderno != null" >
+                #{orderno,jdbcType=VARCHAR},
+            </if>
+            <if test="memberid != null" >
+                #{memberid,jdbcType=BIGINT},
+            </if>
+            <if test="saleid != null" >
+                #{saleid,jdbcType=BIGINT},
+            </if>
+            <if test="cmemberid != null" >
+                #{cmemberid,jdbcType=BIGINT},
+            </if>
+            <if test="type != null" >
+                #{type,jdbcType=BIGINT},
+            </if>
+            <if test="ordercreatetime != null" >
+                #{ordercreatetime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="buyerinspectiontime != null" >
+                #{buyerinspectiontime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="totalprice != null" >
+                #{totalprice,jdbcType=NUMERIC},
+            </if>
+            <if test="commisionprice != null" >
+                #{commisionprice,jdbcType=NUMERIC},
+            </if>
+            <if test="progressnum != null" >
+                #{progressnum,jdbcType=BIGINT},
+            </if>
+            <if test="productslist != null" >
+                #{productslist,jdbcType=VARCHAR},
+            </if>
+            <if test="other != null" >
+                #{other,jdbcType=VARCHAR},
+            </if>
+            <if test="createtime != null" >
+                #{createtime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="commisiontime != null" >
+                #{commisiontime,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+
+    <select id="countByExample" parameterType="project.jinshang.mod_fx.bean.FxcommisionExample" resultType="java.lang.Integer" >
+        select count(*) from public.fx_commision
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+    </select>
+
+    <update id="updateByExampleSelective" parameterType="map" >
+        update public.fx_commision
+        <set >
+            <if test="record.id != null" >
+                id = #{record.id,jdbcType=BIGINT},
+            </if>
+            <if test="record.orderid != null" >
+                orderid = #{record.orderid,jdbcType=BIGINT},
+            </if>
+            <if test="record.orderno != null" >
+                orderno = #{record.orderno,jdbcType=VARCHAR},
+            </if>
+            <if test="record.memberid != null" >
+                memberid = #{record.memberid,jdbcType=BIGINT},
+            </if>
+            <if test="record.saleid != null" >
+                saleid = #{record.saleid,jdbcType=BIGINT},
+            </if>
+            <if test="record.cmemberid != null" >
+                cmemberid = #{record.cmemberid,jdbcType=BIGINT},
+            </if>
+            <if test="record.type != null" >
+                type = #{record.type,jdbcType=BIGINT},
+            </if>
+            <if test="record.ordercreatetime != null" >
+                ordercreatetime = #{record.ordercreatetime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.buyerinspectiontime != null" >
+                buyerinspectiontime = #{record.buyerinspectiontime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.totalprice != null" >
+                totalprice = #{record.totalprice,jdbcType=NUMERIC},
+            </if>
+            <if test="record.commisionprice != null" >
+                commisionprice = #{record.commisionprice,jdbcType=NUMERIC},
+            </if>
+            <if test="record.progressnum != null" >
+                progressnum = #{record.progressnum,jdbcType=BIGINT},
+            </if>
+            <if test="record.productslist != null" >
+                productslist = #{record.productslist,jdbcType=VARCHAR},
+            </if>
+            <if test="record.other != null" >
+                other = #{record.other,jdbcType=VARCHAR},
+            </if>
+            <if test="record.createtime != null" >
+                createtime = #{record.createtime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.commisiontime != null" >
+                commisiontime = #{record.commisiontime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        <if test="_parameter != null" >
+            <include refid="Update_By_Example_Where_Clause" />
+        </if>
+    </update>
+
+    <update id="updateByExample" parameterType="map" >
+        update public.fx_commision
+        set id = #{record.id,jdbcType=BIGINT},
+            orderid = #{record.orderid,jdbcType=BIGINT},
+            orderno = #{record.orderno,jdbcType=VARCHAR},
+            memberid = #{record.memberid,jdbcType=BIGINT},
+            saleid = #{record.saleid,jdbcType=BIGINT},
+            cmemberid = #{record.cmemberid,jdbcType=BIGINT},
+            type = #{record.type,jdbcType=BIGINT},
+            ordercreatetime = #{record.ordercreatetime,jdbcType=TIMESTAMP},
+            buyerinspectiontime = #{record.buyerinspectiontime,jdbcType=TIMESTAMP},
+            totalprice = #{record.totalprice,jdbcType=NUMERIC},
+            commisionprice = #{record.commisionprice,jdbcType=NUMERIC},
+            progressnum = #{record.progressnum,jdbcType=BIGINT},
+            productslist = #{record.productslist,jdbcType=VARCHAR},
+            other = #{record.other,jdbcType=VARCHAR},
+            createtime = #{record.createtime,jdbcType=TIMESTAMP},
+            commisiontime = #{record.commisiontime,jdbcType=TIMESTAMP}
+        <if test="_parameter != null" >
+            <include refid="Update_By_Example_Where_Clause" />
+        </if>
+    </update>
+
+    <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_fx.bean.Fxcommision" >
+        update public.fx_commision
+        <set >
+            <if test="orderid != null" >
+                orderid = #{orderid,jdbcType=BIGINT},
+            </if>
+            <if test="orderno != null" >
+                orderno = #{orderno,jdbcType=VARCHAR},
+            </if>
+            <if test="memberid != null" >
+                memberid = #{memberid,jdbcType=BIGINT},
+            </if>
+            <if test="saleid != null" >
+                saleid = #{saleid,jdbcType=BIGINT},
+            </if>
+            <if test="cmemberid != null" >
+                cmemberid = #{cmemberid,jdbcType=BIGINT},
+            </if>
+            <if test="type != null" >
+                type = #{type,jdbcType=BIGINT},
+            </if>
+            <if test="ordercreatetime != null" >
+                ordercreatetime = #{ordercreatetime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="buyerinspectiontime != null" >
+                buyerinspectiontime = #{buyerinspectiontime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="totalprice != null" >
+                totalprice = #{totalprice,jdbcType=NUMERIC},
+            </if>
+            <if test="commisionprice != null" >
+                commisionprice = #{commisionprice,jdbcType=NUMERIC},
+            </if>
+            <if test="progressnum != null" >
+                progressnum = #{progressnum,jdbcType=BIGINT},
+            </if>
+            <if test="productslist != null" >
+                productslist = #{productslist,jdbcType=VARCHAR},
+            </if>
+            <if test="other != null" >
+                other = #{other,jdbcType=VARCHAR},
+            </if>
+            <if test="createtime != null" >
+                createtime = #{createtime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="commisiontime != null" >
+                commisiontime = #{commisiontime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_fx.bean.Fxcommision" >
+        update public.fx_commision
+        set orderid = #{orderid,jdbcType=BIGINT},
+            orderno = #{orderno,jdbcType=VARCHAR},
+            memberid = #{memberid,jdbcType=BIGINT},
+            saleid = #{saleid,jdbcType=BIGINT},
+            cmemberid = #{cmemberid,jdbcType=BIGINT},
+            type = #{type,jdbcType=BIGINT},
+            ordercreatetime = #{ordercreatetime,jdbcType=TIMESTAMP},
+            buyerinspectiontime = #{buyerinspectiontime,jdbcType=TIMESTAMP},
+            totalprice = #{totalprice,jdbcType=NUMERIC},
+            commisionprice = #{commisionprice,jdbcType=NUMERIC},
+            progressnum = #{progressnum,jdbcType=BIGINT},
+            productslist = #{productslist,jdbcType=VARCHAR},
+            other = #{other,jdbcType=VARCHAR},
+            createtime = #{createtime,jdbcType=TIMESTAMP},
+            commisiontime = #{commisiontime,jdbcType=TIMESTAMP}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+</mapper>

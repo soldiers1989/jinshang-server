@@ -1,6 +1,7 @@
 
 var:
   server: 120.27.226.95
+  server-test: 47.98.222.182
 #  server: 192.168.1.112
   appName: jinshang-server
 
@@ -49,6 +50,15 @@ spring:
 #  client:
 #    serviceUrl:
 #      defaultZone: http://${var.server}:10000/eureka/
+
+eureka:
+ client:
+   service-url:
+    defaultZone: http://${var.server}:10924/eureka/
+ instance:
+   prefer-ip-address: true
+
+
 
 logging:
   file: /root/${var.appName}/console.log
@@ -149,6 +159,13 @@ spring:
       password: 503149
       database: 8
 
+eureka:
+ client:
+   service-url:
+    defaultZone: http://${var.server-test}:10924/eureka/
+ instance:
+   prefer-ip-address: true
+
 logging:
   file: logs/console.log
 
@@ -185,6 +202,10 @@ shop:
   jinshang-store-url: http://122.224.247.86:18080/GwallServices/httpService?appkey=app_wms&service=subGetOrderFullLinkInfo&format=Json&secret=null&encrypt=0&content={%22orderCode%22:%22#orderno#-jinshang%22}
   aozhan-store-url: http://47.98.222.182/aozhan-middleware/aoZhan/selectOrderOperatingStatus?orderNo=#orderno#
   #aozhan-store-url: http://120.27.226.95/aozhan-middleware/aoZhan/selectOrderOperatingStatus?orderNo=#orderno#
+
+
+
+
 ---
 server:
   context-path: /${var.appName}
@@ -200,6 +221,13 @@ spring:
     port: 6379
     password: 503149
     database: 5
+
+eureka:
+ client:
+   service-url:
+    defaultZone: http://${var.server-test}:10924/eureka/
+ instance:
+   prefer-ip-address: true
 
 
 shop:

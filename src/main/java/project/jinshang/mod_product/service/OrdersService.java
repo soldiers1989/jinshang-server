@@ -1604,7 +1604,7 @@ public class OrdersService {
             list2.add(maptemp);
         }
 
-       /* List<Map<String,Object>> newList = new ArrayList<Map<String,Object>>();
+  /* List<Map<String,Object>> newList = new ArrayList<Map<String,Object>>();
         for(int i=0;i<list2.size();i++){
             Map<String,Object> newMap = new HashMap<String,Object>();
             String flag=list2.get(i).get("订单号").toString();
@@ -2727,9 +2727,17 @@ public class OrdersService {
         return  ordersMapper.updateByExampleSelective(record,example);
     }
 
+    /**
+     * 获取昨天0点到24点之间付款，且状态正常的订单；
+     * @return
+     */
+    public List<Orders> getRegularOrders(Date starttime,Date endtime) {
+        return  ordersMapper.getRegularOrders(starttime,endtime);
+    }
+
 
     @Autowired
-    private  JinShangSms jinShangSms;
+    private JinShangSms jinShangSms;
 
     @Autowired
     private SmsTemplateService smsTemplateService;
@@ -2832,49 +2840,49 @@ public class OrdersService {
      * @param list
      */
     public void jisuanOrdersBreakPay(List<String> list){
-            list.forEach(orderno->{
-                    Orders orders = this.getOrdersByOrderNo(orderno);
-                    List<OrderProduct> orderProductList = this.getOrderProductByOrderId(orders.getId());
+        list.forEach(orderno->{
+            Orders orders = this.getOrdersByOrderNo(orderno);
+            List<OrderProduct> orderProductList = this.getOrderProductByOrderId(orders.getId());
 
-                     BigDecimal totalBroke = Quantity.BIG_DECIMAL_0;
-                     BigDecimal totalServerPay = Quantity.BIG_DECIMAL_0;
+            BigDecimal totalBroke = Quantity.BIG_DECIMAL_0;
+            BigDecimal totalServerPay = Quantity.BIG_DECIMAL_0;
 
-                    Predicate<OrderProduct> orderProductPredicate = (n) -> n.getBackstate()==0;
+            Predicate<OrderProduct> orderProductPredicate = (n) -> n.getBackstate()==0;
 
-                    List<OrderProduct> orderProducts = orderProductList.stream().filter(orderProductPredicate).collect(Collectors.toList());
-                    for(OrderProduct orderProduct : orderProducts){
-                        Long classifyid = orderProduct.getClassifyid();
-                        BigDecimal brolerRate = this.getSellerBrokeragerate(orders.getSaleid(),orderProduct.getClassifyid());
+            List<OrderProduct> orderProducts = orderProductList.stream().filter(orderProductPredicate).collect(Collectors.toList());
+            for(OrderProduct orderProduct : orderProducts){
+                Long classifyid = orderProduct.getClassifyid();
+                BigDecimal brolerRate = this.getSellerBrokeragerate(orders.getSaleid(),orderProduct.getClassifyid());
 
-                        //服务费比率 用的是category中设置的
-                        BigDecimal serverRate = categoriesService.getServerRate(classifyid).multiply(BigDecimal.valueOf(0.01));
+                //服务费比率 用的是category中设置的
+                BigDecimal serverRate = categoriesService.getServerRate(classifyid).multiply(BigDecimal.valueOf(0.01));
 
-                        //商品单位佣金=销售单价*商品佣金比例
-                        BigDecimal singlebrokepay = orderProduct.getPrice().multiply(brolerRate);
+                //商品单位佣金=销售单价*商品佣金比例
+                BigDecimal singlebrokepay = orderProduct.getPrice().multiply(brolerRate);
 
-                        //商品佣金=商品单位佣金*商品数量
-                        //BigDecimal broker = (orderProduct.getActualpayment().subtract(orderProduct.getFreight())).multiply(brolerRate);
-                        BigDecimal broker = singlebrokepay.multiply(orderProduct.getNum());
+                //商品佣金=商品单位佣金*商品数量
+                //BigDecimal broker = (orderProduct.getActualpayment().subtract(orderProduct.getFreight())).multiply(brolerRate);
+                BigDecimal broker = singlebrokepay.multiply(orderProduct.getNum());
 
-                        OrderProduct op = new OrderProduct();
-                        op.setId(orderProduct.getId());
-                        op.setSinglebrokepay(singlebrokepay);
-                        op.setBrokepay(broker);
-                        this.updateOrderProduct(op);
+                OrderProduct op = new OrderProduct();
+                op.setId(orderProduct.getId());
+                op.setSinglebrokepay(singlebrokepay);
+                op.setBrokepay(broker);
+                this.updateOrderProduct(op);
 
 
-                        BigDecimal servepay = (orderProduct.getActualpayment().subtract(orderProduct.getFreight())).multiply(serverRate);
+                BigDecimal servepay = (orderProduct.getActualpayment().subtract(orderProduct.getFreight())).multiply(serverRate);
 
-                        totalBroke = totalBroke.add(broker);
-                        totalServerPay = totalServerPay.add(servepay);
-                    }
+                totalBroke = totalBroke.add(broker);
+                totalServerPay = totalServerPay.add(servepay);
+            }
 
-                    Orders orders1 = new Orders();
-                    orders1.setId(orders.getId());
-                    orders1.setBrokepay(totalBroke);
-                    orders1.setServerpay(totalServerPay);
-                    this.updateSingleOrder(orders1);
-            });
+            Orders orders1 = new Orders();
+            orders1.setId(orders.getId());
+            orders1.setBrokepay(totalBroke);
+            orders1.setServerpay(totalServerPay);
+            this.updateSingleOrder(orders1);
+        });
     }
 
 

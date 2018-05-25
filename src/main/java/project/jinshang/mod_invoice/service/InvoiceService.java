@@ -30,6 +30,10 @@ public class InvoiceService {
         return invoiceInfoMapper.invoiceInfoListByMemberId(memberId);
     }
 
+    public List<InvoiceInfo> getInvoiceInfoListByMemberId2(Long memberId){
+        return invoiceInfoMapper.invoiceInfoListByMemberId2(memberId);
+    }
+
     public InvoiceInfo getDefaultInvoiceInfoByMemberId(Long memberId){
         return invoiceInfoMapper.defaultInvoiceInfoByMemberId(memberId);
     }

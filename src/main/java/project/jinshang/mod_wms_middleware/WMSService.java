@@ -89,6 +89,8 @@ public class WMSService {
     @Value("${shop.aozhan-syn.id}")
     private  String aozhanids;
 
+    @Value("${shop.productstore-check.id}")
+    private  String jskjjgjc;
 
     @Scheduled(cron = "0 0/1 * * * ?")
     @Profile("pro")
@@ -167,8 +169,8 @@ public class WMSService {
         //System.out.println("执行订单同步");
         logger.error("执行订单同步");
 
-
-        List<String> shopSelfSupportIds = Arrays.asList(shopSelfSupportid.split("\\|"));
+        List<String> shopSelfSupportIds = Arrays.asList(jskjjgjc.split("\\|"));
+//        List<String> shopSelfSupportIds = Arrays.asList(shopSelfSupportid.split("\\|"));
         List<String> aoZhanidList = Arrays.asList(aozhanids.split("\\|"));
         List<Orders> list = new ArrayList<>();
         List<Orders> aoZhanList = new ArrayList<>();
@@ -264,7 +266,7 @@ public class WMSService {
 
             logger.error("紧商中间件："+ JSONArray.fromObject(list));
             logger.info("紧商中间件："+JSONArray.fromObject(list));
-            //System.out.println("执行订单jswms同步");
+//            System.out.println("紧商中间件："+JSONArray.fromObject(list));
             logger.error("执行订单jswms同步");
             logger.error(JsonUtil.toJson(list));
             params.put("saleOrderJsonList", JsonUtil.toJson(list));
@@ -307,7 +309,9 @@ public class WMSService {
      * 取消订单 销售/退货订单
      */
     public void cancelOrders(Orders orders, String type) {
-        List<String> shopSelfSupportIds = Arrays.asList(shopSelfSupportid.split("\\|"));
+
+        List<String> shopSelfSupportIds = Arrays.asList(jskjjgjc.split("\\|"));
+//        List<String> shopSelfSupportIds = Arrays.asList(shopSelfSupportid.split("\\|"));
         List<String> aozhanIdsList = Arrays.asList(aozhanids.split("\\|"));
         if (shopSelfSupportIds.contains(String.valueOf(orders.getSaleid())) && !"".equals(middleware_url)) {
             Map<String, String> params = new HashMap<>();
@@ -331,7 +335,9 @@ public class WMSService {
      * 退货
      */
     public void backOrders(OrderProductBack orderProductBack) {
-        List<String> shopSelfSupportIds = Arrays.asList(shopSelfSupportid.split("\\|"));
+
+        List<String> shopSelfSupportIds = Arrays.asList(jskjjgjc.split("\\|"));
+//        List<String> shopSelfSupportIds = Arrays.asList(shopSelfSupportid.split("\\|"));
         List<String> aozhanIdsList = Arrays.asList(aozhanids.split("\\|"));
 
         ProductInfo productInfo = productInfoMapper.selectByPrimaryKey(orderProductBack.getPdid());

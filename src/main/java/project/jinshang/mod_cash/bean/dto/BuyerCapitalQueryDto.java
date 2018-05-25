@@ -37,7 +37,7 @@ public class BuyerCapitalQueryDto {
     @ApiModelProperty(notes = "充值平台")
     private Short rechargeperform;
 
-
+    @ApiModelProperty(notes = "状态0=待处理1=成功2=失败3=待审核4=审核通过5=审核不通过")
     private Short rechargestate;
 
     @ApiModelProperty(notes = "类别")
@@ -73,6 +73,16 @@ public class BuyerCapitalQueryDto {
     @ApiModelProperty(notes = "授信账单id")
     private  Integer billcreateid;
 
+    @ApiModelProperty(notes = "提现方式1=微信2=支付宝3=银行卡")
+    private Short withdrawtype;
+
+    public Short getWithdrawtype() {
+        return withdrawtype;
+    }
+
+    public void setWithdrawtype(Short withdrawtype) {
+        this.withdrawtype = withdrawtype;
+    }
 
     public String getOrderno() {
         return orderno;

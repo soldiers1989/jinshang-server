@@ -49,13 +49,15 @@ public class SalerCapitalAction {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "tradetimeStart",value = "开始时间",required = false,paramType = "query",dataType = "date"),
             @ApiImplicitParam(name = "tradetimeEnd",value = "结束时间",required = false,paramType = "query",dataType = "date"),
-            @ApiImplicitParam(name = "capitaltype",value = "资金类型0=订单金额1=上架保证金2=下架保证金3=退款金额4=充值5=提现6=违约金",defaultValue = "-1",required = false,paramType = "query",dataType = "int"),
+            @ApiImplicitParam(name = "capitaltype",value = "资金类型0=订单金额1=上架保证金2=下架保证金3=退款金额4=充值5=余额提现6=买家违约金7=卖家违约金8=余款9=全款10=定金 11=货款提现",defaultValue = "-1",required = false,paramType = "query",dataType = "int"),
             @ApiImplicitParam(name = "tradeno",value = "交易编号",defaultValue = "",required = false,paramType = "query",dataType = "string"),
             @ApiImplicitParam(name = "orderno",value = "订单号",defaultValue = "",required = false,paramType = "query",dataType = "string"),
             @ApiImplicitParam(name = "rechargenumber",value = "充值单号",defaultValue = "",required = false,paramType = "query",dataType = "string"),
             @ApiImplicitParam(name = "presentationnumber",value = "提现单号",defaultValue = "",required = false,paramType = "query",dataType = "string"),
             @ApiImplicitParam(name = "paytype",value = "支付方式{0=支付宝1=微信2=银行卡3=余额4=授信}",defaultValue = "-1",required = false,paramType = "query",dataType = "int"),
             @ApiImplicitParam(name = "rechargeperform",value = "平台0=微信1=支付宝2=线下平台3=授信4=银行卡",defaultValue = "-1",required = false,paramType = "query",dataType = "int"),
+            @ApiImplicitParam(name = "withdrawtype", value = "提现方式{1=微信2=支付宝3=银行卡}", defaultValue = "-1", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "rechargestate", value = "状态{0=待处理1=成功2=失败3=待审核4=审核通过5=审核不通过}", defaultValue = "-1", required = false, paramType = "query", dataType = "int"),
     })
     @PreAuthorize("hasAuthority('"+ SellerAuthorityConst.MYACCOUNT+"') || hasAuthority('"+ SellerAuthorityConst.ALL+"')")
     public PageRet list(SalerCapitalQueryDto  dto,

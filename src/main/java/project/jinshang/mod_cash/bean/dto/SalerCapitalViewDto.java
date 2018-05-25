@@ -39,7 +39,7 @@ public class SalerCapitalViewDto {
     @ApiModelProperty(notes = "备注")
     private String remark;
 
-    @ApiModelProperty(notes = "资金类型0=订单金额1=上架保证金2=下架保证金3=退款金额4=充值5=提现6=违约金")
+    @ApiModelProperty(notes = "资金类型0=订单金额1=上架保证金2=下架保证金3=退款金额4=充值5=余额提现6=买家违约金7=卖家违约金8=余款9=全款10=定金 11=货款提现")
     private Short capitaltype;
 
     @ApiModelProperty(notes = "充值单号")

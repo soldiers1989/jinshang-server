@@ -157,6 +157,11 @@ public class MemberService {
             }
 
             member.setInvitecode(inviteCode);
+            //查询是谁邀请的，设置邀请者的id
+            if(null != customInvitecode) {
+                Member inviterMember = getByInvitecode(customInvitecode);
+                member.setInviterid(inviterMember.getId());
+            }
 
             MemberGrade memberGrade = memberGradeService.getDefaultMemberGrade();
             if (memberGrade != null) {
@@ -626,6 +631,49 @@ public class MemberService {
         return  memberMapper.getRegisterRate(startDate,endDate);
     }
 
+    /**
+     * 根据当前登陆的用户 查询自己邀请人
+     * 邀请人就是真实姓名
+     *
+     * @param pageNo
+     * @param pageSize
+     * @param inviterid
+     * @return
+     */
+    public PageInfo findInviteList(int pageNo, int pageSize, long inviterid) {
+        if (pageNo != -1) {
+            PageHelper.startPage(pageNo, pageSize);
+        }
+        List<Map<String, Object>> list = memberMapper.findInviteList(inviterid);
+        PageInfo pageInfo = new PageInfo(list);
+        return pageInfo;
+    }
+
+    public long countAllInvite(long inviterid) {
+        MemberExample memberExample = new MemberExample();
+        MemberExample.Criteria criteria = memberExample.createCriteria();
+        criteria.andInviteridEqualTo(inviterid);
+
+        return memberMapper.countByExample(memberExample);
+    }
+
+    /**
+     * 显示会员列表 真实姓名和用户名
+     * @param pageNo
+     * @param pageSize
+     * @return
+     */
+    public PageInfo findAllMemberList(int pageNo, int pageSize) {
+        if (pageNo != -1) {
+            PageHelper.startPage(pageNo, pageSize);
+        }
+        List<Map<String, Object>> list = memberMapper.findAllMemberList();
+        PageInfo pageInfo = new PageInfo(list);
+        return pageInfo;
+    }
 
 
+    public Member getInviterIdByMemberId(Long memberid) {
+        return  memberMapper.selectByPrimaryKey(memberid);
+    }
 }

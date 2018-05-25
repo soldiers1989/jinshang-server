@@ -88,11 +88,11 @@ public class BillcreateTask {
 
             Calendar cal = Calendar.getInstance();
 //            测试
-            cal.add(Calendar.DATE,1);
+            //cal.add(Calendar.DATE,1);
 
 //            正式使用
-//            cal.add(Calendar.MONTH,1);
-//            cal.set(Calendar.DAY_OF_MONTH,15);
+            cal.add(Calendar.MONTH,1);
+            cal.set(Calendar.DAY_OF_MONTH,15);
 
             billCreate.setLastrepaymentday(DateUtils.StrToDate(DateUtils.format(cal.getTime(),"yyyy-MM-dd")+" 23:59:59","yyyy-MM-dd HH:mm:ss")); //统一每月15号还款
             billCreate.setBillno(GenerateNo.getSettlementNo());

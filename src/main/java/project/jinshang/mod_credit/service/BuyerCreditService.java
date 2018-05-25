@@ -99,11 +99,22 @@ public class BuyerCreditService {
 //       return sumout.subtract(sumin);
 
 
+
+        //正式环境
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.DAY_OF_MONTH,27);
         Date buyerinspectiontimeEndDate = calendar.getTime();
         calendar.add(Calendar.MONTH,-1);
         Date buyerinspectiontimeStartDate =  calendar.getTime();
+
+
+        /*
+        //测试环境
+        Calendar calendar = Calendar.getInstance();
+        //calendar.add(Calendar.DAY_OF_MONTH,-1);
+        Date buyerinspectiontimeEndDate = calendar.getTime();
+        Date buyerinspectiontimeStartDate =  calendar.getTime();
+        */
 
         String buyerinspectiontimeStart = DateUtils.format(buyerinspectiontimeStartDate,"yyyy-MM-dd")+" 00:00:00";
         String buyerinspectiontimeEnd =  DateUtils.format(buyerinspectiontimeEndDate,"yyyy-MM-dd")+" 23:59:59";
@@ -111,11 +122,12 @@ public class BuyerCreditService {
         Date start = DateUtils.StrToDate(buyerinspectiontimeStart);
         Date end = DateUtils.StrToDate(buyerinspectiontimeEnd);
 
-//统计所以的，不管是否已经打了还款标记的
+
 //        已用金额 = 消费总金额 - 退款总金额 - 已还款总金额(提前还款)
 
          //消费总金额
-         BigDecimal xfTotal = buyerCapitalMapper.getTotal(member.getId(),Quantity.STATE_0,Quantity.STATE_4,Quantity.STATE_0,start,end);
+         //BigDecimal xfTotal = buyerCapitalMapper.getTotal(member.getId(),Quantity.STATE_0,Quantity.STATE_4,Quantity.STATE_,start,end);
+         BigDecimal xfTotal = buyerCapitalMapper.getTotalByCredit(member.getId(),start,end);
          xfTotal =  xfTotal==null? new BigDecimal(0) : xfTotal;
 
          //退款总金额
@@ -123,10 +135,11 @@ public class BuyerCreditService {
         tkTotal = tkTotal == null ? new BigDecimal(0) : tkTotal;
 
         //已还款总金额（提前还款）
-        BigDecimal hkTotal =  buyerCapitalMapper.getTotal(member.getId(),Quantity.STATE_11,Quantity.STATE_3,Quantity.STATE_0,start,end);
+        BigDecimal hkTotal =  buyerCapitalMapper.getTotal1(member.getId(),Quantity.STATE_11,Quantity.STATE_3,start,end);
         hkTotal = hkTotal == null ? new BigDecimal(0) : hkTotal;
 
         return  xfTotal.subtract(tkTotal).subtract(hkTotal);
+       // return  xfTotal.subtract(tkTotal);
     }
 
 

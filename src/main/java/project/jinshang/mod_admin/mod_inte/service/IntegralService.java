@@ -70,7 +70,7 @@ public class IntegralService {
      * @param endTime
      * @return
      */
-    public PageInfo getIntegralRecord(int pageNo, int pageSize, List<Short> type, Long memberid, Date startTime, Date endTime){
+    public PageInfo getIntegralRecord(int pageNo, int pageSize, List<Short> type, Long memberid,String membername, Date startTime, Date endTime){
         PageHelper.startPage(pageNo,pageSize);
         IntegralRecordExample integralRecordExample = new IntegralRecordExample();
         IntegralRecordExample.Criteria criteria = integralRecordExample.createCriteria();
@@ -80,6 +80,9 @@ public class IntegralService {
         }
         if(memberid!=null){
             criteria.andMemberidEqualTo(memberid);
+        }
+        if(membername!=null){
+            criteria.andMembernameLike("%"+membername+"%");
         }
 
         if(startTime!=null){

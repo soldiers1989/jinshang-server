@@ -14,10 +14,13 @@ import project.jinshang.common.utils.CommonUtils;
 import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_member.bean.Admin;
 import project.jinshang.mod_member.bean.AdminGroup;
+import project.jinshang.mod_member.bean.Member;
 import project.jinshang.mod_member.service.AdminGroupService;
 import project.jinshang.mod_member.service.AdminService;
+import project.jinshang.mod_member.service.MemberService;
 
 import javax.servlet.http.HttpSession;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -25,7 +28,7 @@ import java.util.List;
  * date : 2017/10/30
  */
 @RestController
-@SessionAttributes({AppConstant.ADMIN_SESSION_NAME})
+@SessionAttributes({AppConstant.ADMIN_SESSION_NAME,AppConstant.MEMBER_SESSION_NAME})
 @Api(tags = "后台管理员模块",description = "后台管理员信息相关接口")
 @RequestMapping("/rest/admin")
 public class AdminRestAction {
@@ -36,6 +39,10 @@ public class AdminRestAction {
 
     @Autowired
     private AdminService adminService;
+
+    @Autowired
+    private MemberService memberService;
+
 
     @ApiOperation("登录 123=MTIz 123456=MTIzNDU2")
     @RequestMapping(value =  "/login",method = RequestMethod.POST)
@@ -366,6 +373,42 @@ public class AdminRestAction {
         basicRet.setResult(BasicRet.SUCCESS);
         basicRet.setMessage("退出成功");
         return  basicRet;
+    }
+
+
+
+
+    @RequestMapping(value = "/buyerlogin",method = RequestMethod.POST)
+    public BasicRet buyerlogin(@RequestParam(required = true) long memberid,HttpSession session,Model model) {
+        BasicRet basicRet = new BasicRet();
+        Member member = memberService.getMemberById(memberid);
+
+        if (member == null) {
+            basicRet.setMessage("用户不存在");
+            basicRet.setResult(BasicRet.ERR);
+            return basicRet;
+        } else {
+            member.setFrom("admin");
+            member.setLoginType("main");
+
+            if (member.getDisabled() == true) {
+                basicRet.setResult(BasicRet.ERR);
+                basicRet.setMessage("帐号被禁用");
+                return basicRet;
+            }
+
+            memberService.fillMember(member);
+
+            model.addAttribute(AppConstant.MEMBER_SESSION_NAME, member);
+            basicRet.setMessage("登陆成功");
+            basicRet.setResult(BasicRet.SUCCESS);
+
+            Member updateDateMember = new Member();
+            updateDateMember.setId(member.getId());
+            updateDateMember.setLastlogindate(new Date());
+
+            return basicRet;
+        }
     }
 
 }
