@@ -246,4 +246,7 @@ public interface OrderProductMapper {
 
         System.out.println(sql);
     }*/
+
+    @Select("select * from orderproduct where orderno = #{orderno}")
+    List<OrderProduct> getRepurchaseList(@Param("orderno") String orderno);
 }

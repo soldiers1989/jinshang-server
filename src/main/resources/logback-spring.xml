@@ -219,6 +219,7 @@
     <logger name="druid.sql" level="INFO" />
     <logger name="org.mybatis.spring.mapper.ClassPathMapperScanner" level="INFO" />
 
+
     <!--<contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">-->
     <!--<resetJUL>true</resetJUL>-->
     <!--</contextListener>-->

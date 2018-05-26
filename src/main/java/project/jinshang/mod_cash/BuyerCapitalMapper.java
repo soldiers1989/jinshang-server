@@ -157,10 +157,11 @@ public interface BuyerCapitalMapper {
 //            ",(select sum(capital)" +
 //            "    from buyercapital where capitaltype=1 and rechargestate=1 and memberid=M.id ) as totalcapital" +
             "    from member M left JOIN buyercompanyinfo C ON M.id=C.memberid left join membergrade G on M.gradleid=G.id where M.parentid=0 " +
-            "<if test=\"memberid != null and memberid != 0\"> and M.id=#{memberid} </if>" +
-            "<if test=\"username != null and username !=''\"> and (M.username like '%${username}%' or M.realname like '%${username}%' or C.companyname like '%${username}%')</if>" +
+            "<if test=\"dto.memberid != null and dto.memberid != 0\"> and M.id=${dto.memberid} </if>" +
+            "<if test=\"dto.username != null and dto.username !=''\"> and (M.username like '%${dto.username}%' or M.realname like '%${dto.username}%' or C.companyname like '%${dto.username}%')</if>" +
+            //"<if test=\"dto.companyname != null and dto.companyname !=''\"> and C.companyname like '%${dto.companyname}%' </if>" +
             "</script>")
-    List<Map<String,Object>> advanceCapitalList( AdvanceCapitalQueryDto dto);
+    List<Map<String,Object>> advanceCapitalList(@Param("dto") AdvanceCapitalQueryDto dto);
 
 
     /**

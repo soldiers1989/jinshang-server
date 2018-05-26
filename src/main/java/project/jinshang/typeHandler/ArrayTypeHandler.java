@@ -16,6 +16,8 @@ public class ArrayTypeHandler extends BaseTypeHandler<Object[]> {
     private static final String TYPE_NAME_INTEGER = "integer";
     private static final String TYPE_NAME_BOOLEAN = "boolean";
     private static final String TYPE_NAME_NUMERIC = "numeric";
+    private static final String TYPE_NAME_BIGINT = "bigint";
+
 
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, Object[] parameter, JdbcType jdbcType) throws SQLException {
@@ -29,7 +31,7 @@ public class ArrayTypeHandler extends BaseTypeHandler<Object[]> {
         } else if (parameter instanceof Double[]) {
             typeName = TYPE_NAME_NUMERIC;
         } else if(parameter instanceof  Long[]){
-            typeName =  TYPE_NAME_INTEGER;
+            typeName =  TYPE_NAME_BIGINT;
         }
 
         if (typeName == null) {

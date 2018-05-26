@@ -138,6 +138,9 @@ public class SellerOrdersAction {
     @Autowired
     private  AgentDeliveryAddressService agentDeliveryAddressService;
 
+    @Autowired
+    private OrderProductBackInfoService orderProductBackInfoService;
+
 
     //远期全款打折率
     private static final BigDecimal allPayRate = new BigDecimal(0.99);
@@ -1075,6 +1078,8 @@ public class SellerOrdersAction {
                     orders.setOrderstatus(Quantity.STATE_7);
                     orders.setReason("订单已退货");
                     ordersService.updateSingleOrder(orders);
+
+
                 }
 
 
@@ -1209,6 +1214,19 @@ public class SellerOrdersAction {
             if(state!=null && (state == Quantity.STATE_1||state == Quantity.STATE_2 || state == Quantity.STATE_3
                     ||state == Quantity.STATE_7 || state == Quantity.STATE_8)){
                 wmsService.backOrders(orderProductBack);
+            }
+
+            if(state == Quantity.STATE_3) {
+                //将退货的商品信息记录到orderproductbackinfo表中
+                OrderProductBackInfo orderProductBackInfo = new OrderProductBackInfo();
+                orderProductBackInfo.setOrderno(orderProductBack.getOrderno());
+                orderProductBackInfo.setPdid(orderProductBack.getPdid());
+                orderProductBackInfo.setBackno("TH" + UUID.randomUUID());
+                orderProductBackInfo.setBacknum(orderProductBack.getPdnum());
+                orderProductBackInfo.setBacktype(Quantity.STATE_0);
+                orderProductBackInfo.setBackstate(Quantity.STATE_0);
+                orderProductBackInfo.setBacktime(new Date());
+                orderProductBackInfoService.addOrderProductBackInfo(orderProductBackInfo);
             }
 
             //用户日志
@@ -2669,6 +2687,19 @@ public class SellerOrdersAction {
             }
         }
 
+        for (OrderProduct orderProduct : orderProducts) {
+            //将退货的商品信息记录到orderproductbackinfo表中
+            OrderProductBackInfo orderProductBackInfo = new OrderProductBackInfo();
+            orderProductBackInfo.setOrderno(orderProduct.getOrderno());
+            orderProductBackInfo.setPdid(orderProduct.getPdid());
+            orderProductBackInfo.setBackno("TH" + UUID.randomUUID());
+            orderProductBackInfo.setBacknum(orderProduct.getNum());
+            orderProductBackInfo.setBacktype(Quantity.STATE_1);
+            orderProductBackInfo.setBackstate(Quantity.STATE_0);
+            orderProductBackInfo.setBacktime(new Date());
+            orderProductBackInfoService.addOrderProductBackInfo(orderProductBackInfo);
+        }
+
         //订单关闭
         orders.setOrderstatus(Quantity.STATE_7);
         ordersService.updateSingleOrder(orders);
@@ -2847,6 +2878,20 @@ public class SellerOrdersAction {
 
                     if (ordersService.updateOrderProduct(saveOrderProduct) != 1) {
                         throw new RuntimeException("修改订单商品id:" + saveOrderProduct.getId() + "失败，请联系网站管理员");
+                    }
+
+                    //将退货的商品信息记录到orderproductbackinfo表中
+                    int a = orderProduct.getNum().compareTo(saveOrderProduct.getNum());
+                    if(a!=0) {
+                        OrderProductBackInfo orderProductBackInfo = new OrderProductBackInfo();
+                        orderProductBackInfo.setOrderno(orderProduct.getOrderno());
+                        orderProductBackInfo.setPdid(orderProduct.getPdid());
+                        orderProductBackInfo.setBackno("TH" + UUID.randomUUID());
+                        orderProductBackInfo.setBacknum(orderProduct.getNum().subtract(saveOrderProduct.getNum()));
+                        orderProductBackInfo.setBacktype(Quantity.STATE_1);
+                        orderProductBackInfo.setBackstate(Quantity.STATE_0);
+                        orderProductBackInfo.setBacktime(new Date());
+                        orderProductBackInfoService.addOrderProductBackInfo(orderProductBackInfo);
                     }
                 }
             }

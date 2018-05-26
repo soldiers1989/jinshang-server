@@ -73,7 +73,11 @@ public interface ProductInfoMapper {
             "<if test=\"info.createEnd != null \"> and p.createtime &lt; #{info.createEnd} </if>"+
             "<if test=\"info.stand != null and info.stand !='' \"> and p.stand  like  '%${info.stand}%' </if>"+
             "<if test=\"info.productname != null\"> and p.productname like '%${info.productname}%' </if>" +
-            "</where>  order by P.id desc " +
+            "</where>  " +
+            "<choose>" +
+            "<when test=\"info.pdstate == 5\">order by P.downtime desc </when>" +
+            "<otherwise>order by P.uptime desc</otherwise>" +
+            "</choose>" +
             "</script>")
     List<Map<String,Object>> fastenerList(@Param("info") ProductInfoQuery info);
 

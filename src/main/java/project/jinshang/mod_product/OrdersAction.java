@@ -12,6 +12,7 @@ import io.swagger.annotations.ApiOperation;
 import mizuki.project.core.restserver.config.BasicRet;
 import mizuki.project.core.restserver.util.JsonUtil;
 import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -143,6 +144,9 @@ public class OrdersAction {
 
     @Autowired
     private OrderProductLogService orderProductLogService;
+
+    @Autowired
+    private OrderProductBackInfoService OrderProductBackInfoService;
 
 
     //远期全款打折率
@@ -4108,6 +4112,17 @@ public class OrdersAction {
                 //productStore.setPdstorenum(productStore.getPdstorenum().add(orderProduct.getNum()))
                 // pordersService.updateProductStore(productStore);
                 productStoreService.addStoreNumByPdidAndPdno(orderProduct.getPdid(),orderProduct.getPdno(),orderProduct.getNum());
+
+                //将退货的商品信息记录到orderproductbackinfo表中
+                OrderProductBackInfo orderProductBackInfo = new OrderProductBackInfo();
+                orderProductBackInfo.setOrderno(orderProduct.getOrderno());
+                orderProductBackInfo.setPdid(orderProduct.getPdid());
+                orderProductBackInfo.setBackno("TH" + UUID.randomUUID());
+                orderProductBackInfo.setBacknum(orderProduct.getNum());
+                orderProductBackInfo.setBacktype(Quantity.STATE_0);
+                orderProductBackInfo.setBackstate(Quantity.STATE_0);
+                orderProductBackInfo.setBacktime(new Date());
+                OrderProductBackInfoService.addOrderProductBackInfo(orderProductBackInfo);
             }
         }else if (orders.getIsonline() == Quantity.STATE_2) {
             Map<String, BigDecimal> proMap = new HashMap<String, BigDecimal>();
@@ -4987,4 +5002,27 @@ public class OrdersAction {
      String url =  ExpressUtils.searchkuaiDiInfo("zhongtong","478939321990");
      System.out.println(url);
   }*/
+
+    /**
+     *买家再次购买
+     */
+    @RequestMapping(value = "/repurchase", method = RequestMethod.POST)
+    @ApiOperation(value = "买家再次购买")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "orderno", value = "订单编号", required = true, paramType = "query", dataType = "string"),
+    })
+    public BasicExtRet repurchase(String orderno,HttpServletRequest request,Model model) {
+        BasicExtRet basicExtRet = new BasicExtRet();
+        basicExtRet.setMessage("返回成功");
+        basicExtRet.setResult(BasicRet.SUCCESS);
+        Member member= (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
+        Map<String, Object> repurchaseMap = ordersService.repurchase(orderno,member,request);
+        List<String> list =new ArrayList<>();
+        List<ShopCar> successfulList = (List<ShopCar>) repurchaseMap.get("successfulList");
+        List<String> offErrorList = (List<String>) repurchaseMap.get("offErrorList");
+        List<String> lackErrorList = (List<String>) repurchaseMap.get("lackErrorList");//记录库存不足
+        basicExtRet.setData(repurchaseMap);
+        return basicExtRet;
+    }
+
 }

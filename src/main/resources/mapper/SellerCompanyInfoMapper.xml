@@ -46,6 +46,10 @@
     <result column="isrecommend" property="isrecommend" jdbcType="SMALLINT" />
     <result column="deliverymode" property="deliverymode" jdbcType="SMALLINT" />
     <result column="smsnotify" property="smsnotify" jdbcType="SMALLINT" />
+    <result column="appid" property="appid" jdbcType="VARCHAR" />
+    <result column="appsecret" property="appsecret" jdbcType="VARCHAR" />
+    <result column="appurl" property="appurl" jdbcType="VARCHAR" />
+    <result column="disable" property="disable" jdbcType="BIT" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -112,7 +116,7 @@
     bankbrachaccount, bankprovince, bankcity, bankcitysmall, bankorgnumpic, alipayname, 
     alipayno, wxname, wxno, taxregistrationno, taxregistrationcertificate, taxregistrationnopic, 
     createdate, updatedate, validate, shopname, businesscategory, shopgradeid, shopperiod, 
-    shopstate, isrecommend, deliverymode, smsnotify
+    shopstate, isrecommend, deliverymode, smsnotify, appid, appsecret, appurl, disable
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_company.bean.SellerCompanyInfoExample" >
     select
@@ -160,9 +164,10 @@
       taxregistrationnopic, createdate, updatedate, 
       validate, shopname, businesscategory, 
       shopgradeid, shopperiod, shopstate, 
-      isrecommend, deliverymode, smsnotify
-      )
-    values ( #{memberid,jdbcType=BIGINT}, #{companyname,jdbcType=VARCHAR},
+      isrecommend, deliverymode, smsnotify, 
+      appid, appsecret, appurl, 
+      disable)
+    values (#{id,jdbcType=BIGINT}, #{memberid,jdbcType=BIGINT}, #{companyname,jdbcType=VARCHAR}, 
       #{province,jdbcType=VARCHAR}, #{city,jdbcType=VARCHAR}, #{citysmall,jdbcType=VARCHAR}, 
       #{address,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{companytel,jdbcType=VARCHAR}, 
       #{linkman,jdbcType=VARCHAR}, #{linkmantel,jdbcType=VARCHAR}, #{employeenum,jdbcType=INTEGER}, 
@@ -176,8 +181,9 @@
       #{taxregistrationnopic,jdbcType=VARCHAR}, #{createdate,jdbcType=TIMESTAMP}, #{updatedate,jdbcType=TIMESTAMP}, 
       #{validate,jdbcType=SMALLINT}, #{shopname,jdbcType=VARCHAR}, #{businesscategory,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
       #{shopgradeid,jdbcType=INTEGER}, #{shopperiod,jdbcType=VARCHAR}, #{shopstate,jdbcType=SMALLINT}, 
-      #{isrecommend,jdbcType=SMALLINT}, #{deliverymode,jdbcType=SMALLINT}, #{smsnotify,jdbcType=SMALLINT}
-      )
+      #{isrecommend,jdbcType=SMALLINT}, #{deliverymode,jdbcType=SMALLINT}, #{smsnotify,jdbcType=SMALLINT}, 
+      #{appid,jdbcType=VARCHAR}, #{appsecret,jdbcType=VARCHAR}, #{appurl,jdbcType=VARCHAR}, 
+      #{disable,jdbcType=BIT})
   </insert>
   <insert id="insertSelective" parameterType="project.jinshang.mod_company.bean.SellerCompanyInfo" >
     insert into sellercompanyinfo
@@ -314,6 +320,18 @@
       <if test="smsnotify != null" >
         smsnotify,
       </if>
+      <if test="appid != null" >
+        appid,
+      </if>
+      <if test="appsecret != null" >
+        appsecret,
+      </if>
+      <if test="appurl != null" >
+        appurl,
+      </if>
+      <if test="disable != null" >
+        disable,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="id != null" >
@@ -447,6 +465,18 @@
       </if>
       <if test="smsnotify != null" >
         #{smsnotify,jdbcType=SMALLINT},
+      </if>
+      <if test="appid != null" >
+        #{appid,jdbcType=VARCHAR},
+      </if>
+      <if test="appsecret != null" >
+        #{appsecret,jdbcType=VARCHAR},
+      </if>
+      <if test="appurl != null" >
+        #{appurl,jdbcType=VARCHAR},
+      </if>
+      <if test="disable != null" >
+        #{disable,jdbcType=BIT},
       </if>
     </trim>
   </insert>
@@ -591,6 +621,18 @@
       <if test="record.smsnotify != null" >
         smsnotify = #{record.smsnotify,jdbcType=SMALLINT},
       </if>
+      <if test="record.appid != null" >
+        appid = #{record.appid,jdbcType=VARCHAR},
+      </if>
+      <if test="record.appsecret != null" >
+        appsecret = #{record.appsecret,jdbcType=VARCHAR},
+      </if>
+      <if test="record.appurl != null" >
+        appurl = #{record.appurl,jdbcType=VARCHAR},
+      </if>
+      <if test="record.disable != null" >
+        disable = #{record.disable,jdbcType=BIT},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -641,7 +683,11 @@
       shopstate = #{record.shopstate,jdbcType=SMALLINT},
       isrecommend = #{record.isrecommend,jdbcType=SMALLINT},
       deliverymode = #{record.deliverymode,jdbcType=SMALLINT},
-      smsnotify = #{record.smsnotify,jdbcType=SMALLINT}
+      smsnotify = #{record.smsnotify,jdbcType=SMALLINT},
+      appid = #{record.appid,jdbcType=VARCHAR},
+      appsecret = #{record.appsecret,jdbcType=VARCHAR},
+      appurl = #{record.appurl,jdbcType=VARCHAR},
+      disable = #{record.disable,jdbcType=BIT}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -778,6 +824,18 @@
       <if test="smsnotify != null" >
         smsnotify = #{smsnotify,jdbcType=SMALLINT},
       </if>
+      <if test="appid != null" >
+        appid = #{appid,jdbcType=VARCHAR},
+      </if>
+      <if test="appsecret != null" >
+        appsecret = #{appsecret,jdbcType=VARCHAR},
+      </if>
+      <if test="appurl != null" >
+        appurl = #{appurl,jdbcType=VARCHAR},
+      </if>
+      <if test="disable != null" >
+        disable = #{disable,jdbcType=BIT},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -825,7 +883,11 @@
       shopstate = #{shopstate,jdbcType=SMALLINT},
       isrecommend = #{isrecommend,jdbcType=SMALLINT},
       deliverymode = #{deliverymode,jdbcType=SMALLINT},
-      smsnotify = #{smsnotify,jdbcType=SMALLINT}
+      smsnotify = #{smsnotify,jdbcType=SMALLINT},
+      appid = #{appid,jdbcType=VARCHAR},
+      appsecret = #{appsecret,jdbcType=VARCHAR},
+      appurl = #{appurl,jdbcType=VARCHAR},
+      disable = #{disable,jdbcType=BIT}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

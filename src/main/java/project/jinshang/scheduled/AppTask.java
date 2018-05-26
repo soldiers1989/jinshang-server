@@ -1,15 +1,24 @@
 package project.jinshang.scheduled;
 
+import mizuki.project.core.restserver.config.BasicRet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.utils.GsonUtils;
 import project.jinshang.common.utils.StringUtils;
+import project.jinshang.mod_company.bean.BuyerCompanyInfo;
+import project.jinshang.mod_company.service.BuyerCompanyService;
+import project.jinshang.mod_invoice.bean.InvoiceInfo;
+import project.jinshang.mod_invoice.service.InvoiceService;
+import project.jinshang.mod_member.bean.Member;
+import project.jinshang.mod_member.service.MemberService;
 import project.jinshang.mod_product.bean.*;
 import project.jinshang.mod_product.bean.dto.AttributetblDto1;
 import project.jinshang.mod_product.service.*;
 import project.jinshang.scheduled.mapper.AppTaskMapper;
 
+import java.util.Date;
 import java.util.List;
 
 @Component
@@ -39,6 +48,15 @@ public class AppTask {
 
     @Autowired
     private  ProductsService productsService;
+
+    @Autowired
+    InvoiceService invoiceService;
+
+    @Autowired
+    private BuyerCompanyService buyerCompanyService;
+
+    @Autowired
+    private MemberService memberService;
 
 
     //@Scheduled(cron = "0 4 10 * * ?")
@@ -135,6 +153,39 @@ public class AppTask {
                 p.setId(products.getId());
 
                 productsService.updateByPrimaryKeySelective(p);
+            }
+        }
+    }
+
+
+
+   // @Scheduled(cron = "*/5 * * * * ?")
+    public void autoAddInvoiceInfo() {
+        //BasicRet basicRet = new BasicRet();
+        //Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
+        List<Member> members = memberService.getAllMember();
+        for (Member member : members) {
+
+            List<InvoiceInfo> invoiceInfos = invoiceService.getInvoiceInfoListByMemberId(member.getId());
+            BuyerCompanyInfo buyerCompanyInfo = buyerCompanyService.getBuyerCompanyInfoByMemberId(member.getId());
+            InvoiceInfo invoiceInfo = new InvoiceInfo();
+            if (buyerCompanyInfo !=null && member.getCompany() && (invoiceInfos == null || invoiceInfos.size() == 0)) {
+                invoiceInfo.setDefaultbill((short) 1);
+                invoiceInfo.setMemberid(member.getId());
+                invoiceInfo.setCreatedate(new Date());
+                invoiceInfo.setUpdatedate(new Date());
+                invoiceInfo.setAvailable(Quantity.STATE_0);
+                invoiceInfo.setPhone(member.getMobile());
+                invoiceInfo.setInvoiceheadup(buyerCompanyInfo.getCompanyname());
+                invoiceInfo.setBankofaccounts(buyerCompanyInfo.getBankname());
+                invoiceInfo.setTexno(buyerCompanyInfo.getTaxregistrationcertificate());
+                invoiceInfo.setAccount(buyerCompanyInfo.getBankaccount());
+                invoiceInfo.setAddress(buyerCompanyInfo.getProvince() + "" + buyerCompanyInfo.getCity() + "" + buyerCompanyInfo.getCitysmall() + "" + buyerCompanyInfo.getAddress());
+                invoiceInfo.setReceiveaddress(buyerCompanyInfo.getProvince() + "" + buyerCompanyInfo.getCity() + "" + buyerCompanyInfo.getCitysmall() + "" + buyerCompanyInfo.getAddress());
+                invoiceInfo.setLinkman(buyerCompanyInfo.getBankuser());
+
+                invoiceService.addInvoiceInfo(invoiceInfo);
+                System.out.println("定时任务已执行…………自动为没有发票信息的公司用户添加发票");
             }
         }
     }

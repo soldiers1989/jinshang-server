@@ -41,6 +41,9 @@ public class Admin implements Serializable{
     @ApiParam(hidden = true)
     private Object roles;
 
+    @ApiParam(hidden = true)
+    private Object   members;
+
     public Long getId() {
         return id;
     }
@@ -136,4 +139,13 @@ public class Admin implements Serializable{
     public void setRoles(Object roles) {
         this.roles = roles;
     }
+
+    public Object getMembers() {
+        return members;
+    }
+
+    public void setMembers(Object members) {
+        this.members = members;
+    }
+
 }

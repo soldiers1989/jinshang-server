@@ -2,12 +2,18 @@ package project.jinshang.mod_product.service;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.netflix.discovery.converters.Auto;
+import mizuki.project.core.restserver.config.BasicRet;
 import org.apache.ibatis.annotations.Param;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
+import org.springframework.ui.Model;
+import project.jinshang.common.bean.MemberLogOperator;
 import project.jinshang.common.constant.AgentDeliveryAddressConst;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.Quantity;
@@ -44,8 +50,10 @@ import project.jinshang.mod_invoice.bean.InvoiceInfo;
 import project.jinshang.mod_member.MemberMapper;
 import project.jinshang.mod_member.SellerCategoryMapper;
 import project.jinshang.mod_member.bean.Member;
+import project.jinshang.mod_member.bean.MemberRateSetting;
 import project.jinshang.mod_member.bean.SellerCategory;
 import project.jinshang.mod_member.bean.SellerCategoryExample;
+import project.jinshang.mod_member.service.MemberRateSettingService;
 import project.jinshang.mod_member.service.MemberService;
 import project.jinshang.mod_pay.bean.Refund;
 import project.jinshang.mod_product.*;
@@ -55,6 +63,8 @@ import project.jinshang.mod_shippingaddress.bean.ShippingAddress;
 import project.jinshang.mod_shippingaddress.bean.ShippingAddressExample;
 import project.jinshang.mod_wms_middleware.WMSService;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
@@ -151,6 +161,8 @@ public class OrdersService {
     @Autowired
     private SellerCategoryMapper sellerCategoryMapper;
     @Autowired
+    private  ProductAttrMapper productAttrMapper;
+    @Autowired
     private WMSService wmsService;
 
     @Autowired
@@ -158,7 +170,7 @@ public class OrdersService {
 
 
     @Autowired
-    private  ProductStoreService productStoreService;
+    private ProductStoreService productStoreService;
 
 
     @Autowired
@@ -166,10 +178,16 @@ public class OrdersService {
 
 
     @Autowired
-    private  OrderProductServices orderProductServices;
-
-
-
+    private OrderProductServices orderProductServices;
+    @Autowired
+    private ShopCarService shopCarService;
+    @Autowired
+    private MemberOperateLogService memberOperateLogService;
+    @Autowired
+    private MemberRateSettingService memberRateSettingService;
+    //远期全款打折率
+    private static final BigDecimal allPayRate = new BigDecimal(0.99);
+    MemberLogOperator memberLogOperator = new MemberLogOperator();
     public void saveBuyerCapital(BuyerCapital buyerCapital) {
         buyerCapitalMapper.insertSelective(buyerCapital);
     }
@@ -1544,14 +1562,14 @@ public class OrdersService {
      * @param param
      * @return
      */
-    public List<Map<String, Object>> getExcelOrders(OrderQueryParam param) {
+    public List<LinkedHashMap<String, Object>> getExcelOrders(OrderQueryParam param) {
 
         List<Map<String, Object>> list = ordersMapper.getExcelOrders(param);
 
-        List<Map<String, Object>> list2 = new ArrayList<Map<String, Object>>();
+        List<LinkedHashMap<String, Object>> list2 = new ArrayList<LinkedHashMap<String, Object>>();
 
         for (Map<String, Object> map : list) {
-            Map<String, Object> maptemp = new HashMap<>();
+            LinkedHashMap<String, Object> maptemp = new LinkedHashMap<String, Object>();
             maptemp.put("订单号", map.get("orderno"));
             maptemp.put("下单时间", map.get("createtime"));
             maptemp.put("合同号", map.get("code"));
@@ -2929,7 +2947,271 @@ public class OrdersService {
         return brolerRate;
     }
 
+    /**
+     * 买家再次购买
+     */
+    public Map<String, Object> repurchase(String orderNo, Member member,HttpServletRequest request) {
+
+        Map<String, Object> retmap = new HashMap<>();
+        List<OrderProduct> orderProductsList = orderProductMapper.getRepurchaseList(orderNo);
+        List<ShopCar> successfulList = new ArrayList<>();//记录成功
+        List<String> offErrorList = new ArrayList<>();//记录商品下架
+        List<String> lackErrorList = new ArrayList<>();//记录库存不足
+
+        for (OrderProduct orderProduct : orderProductsList) {
+            ShopCar shopCar = new ShopCar();
+            String alertMsg = "";
+            ProductInfo productInfo = productInfoMapper.selectByPrimaryKey(orderProduct.getPdid());
+            ProductStore productStore = productStoreMapper.selectByPrimaryKey(orderProduct.getPdid());
+            Orders orders = ordersMapper.getOrdersByOrderNo(orderNo);
+//            //如果商品已上架、有相应库存并且购物车为空则加入购物车
+//            if (productInfo.getPdstate() == Quantity.STATE_4 && orderProduct.getNum().compareTo(productStore.getPdstorenum()) <= 0) {
+//                if (shopCar == null) {
+                    shopCar.setPdid(orderProduct.getPdid());
+                    shopCar.setPdno(orderProduct.getPdno());
+                    shopCar.setLimitid(orderProduct.getLimitid());
+                    shopCar.setPdnumber(orderProduct.getNum());
+                    shopCar.setStoreid(orderProduct.getStoreid());
+                    shopCar.setDelivertime(orderProduct.getDeliverytime());
+                    shopCar.setUnit(orderProduct.getUnit());
+                    shopCar.setProtype(orderProduct.getProtype());
+                    shopCar.setIsonline(orders.getIsonline());
+//                    shopCarMapper.insertSelective(shopCar);
+//                } else {
+//                    shopCarMapper.updateByPrimaryKeySelective(shopCar);
+//                }
+//                successfulList.add(orderProduct);
+//
+//                //商品已下架
+//            }else if (productInfo.getPdstate() != Quantity.STATE_4){
+//
+//                offErrorList.add(orderProduct);
+//
+//                //商品库存不足
+//            }else if(orderProduct.getNum().compareTo(productStore.getPdstorenum()) > 0){
+//                lackErrorList.add(orderProduct);
+//
+//            }
+            if (shopCar.getIsonline() == null) {
+                shopCar.setIsonline(Quantity.STATE_0);
+            }
+            BasicRet basicRet = new BasicRet();
+            //正常订单
+            if (shopCar.getIsonline() == Quantity.STATE_0) {
+                //判断商品是否下架
+                ProductInfo info = productInfoMapper.selectByPrimaryKey(shopCar.getPdid());
+                //判断买家卖家是否是同一人
+                Long sellerId = info.getMemberid();
+                if (sellerId == member.getId()) {
+                    continue;
+                }
+                if (info != null) {
+                    shopCar.setSaleid(info.getMemberid());
+                    if (info.getProducttype().equals("紧固件")) {
+                        shopCar.setProducttype(Quantity.STATE_1);
+                    } else {
+                        shopCar.setProducttype(Quantity.STATE_2);
+                    }
 
 
+                    BigDecimal convertNum = shopCar.getPdnumber();
+                    String convertUnit = shopCar.getUnit();
+                    if (AppConstant.FASTENER_PRO_TYPE.equals(info.getProducttype())) {
+                        Map<String, Object> map = JinshangUtils.toLowerUnit(info.getPackagetype(), shopCar.getPdnumber(), shopCar.getUnit());
+                        convertNum = (BigDecimal) map.get("num");
+                        convertUnit = (String) map.get("unit");
+                    }
+                    //商品没有上架
+                    if (info.getPdstate() != Quantity.STATE_4) {
+                        alertMsg = "下架:" + info.getProductname() + "已下架";
+                        offErrorList.add(alertMsg);
+                        continue;
+                    }
+                    ShopCar shopCar1 = shopCarService.getMemberShopCar(shopCar.getPdid(), member.getId(), shopCar.getDelivertime(), shopCar.getPdno(), shopCar.getProtype());
+                    if (shopCar1 != null) {
+                        convertNum = convertNum.add(shopCar1.getPdnumber());
+                    }
+                    //判断库存
+                    productStore = shopCarService.getProductStore(shopCar.getPdid(), shopCar.getPdno(), shopCar.getStoreid());
 
+
+                    if (productStore != null && productStore.getMinplus() != null && productStore.getMinplus().compareTo(Quantity.BIG_DECIMAL_0) > 0) {
+
+                        if (!this.checkBuyNum(convertNum, productStore.getMinplus())) {
+//                            basicRet.setMessage("购买量必须是加购量的倍数");
+//                            basicRet.setResult(BasicRet.ERR);
+//                            return basicRet;
+                            continue;
+                        }
+                    }
+
+
+                    shopCar.setStorename(productStore.getStorename());
+                    shopCar.setStoreid(productStore.getStoreid());
+                    if (productStore != null) {
+                        //库存不足
+                        if ((productStore.getPdstorenum().compareTo(convertNum)) == Quantity.STATE_) {
+//                            basicRet.setResult(BasicRet.ERR);
+//                            basicRet.setMessage("库存不足");
+//                            return basicRet;
+                            alertMsg = "库存不足:" + info.getProductname() + "库存不足";
+                            lackErrorList.add(alertMsg);
+                            continue;
+                        }
+                        //小于起定量
+                        if (productStore.getStartnum().compareTo(convertNum) == Quantity.STATE_1) {
+//                            basicRet.setResult(BasicRet.ERR);
+//                            basicRet.setMessage("小于起定量");
+//                            return basicRet;
+                            continue;
+                        }
+                    } else {
+                        continue;
+                    }
+                    boolean flag = false;
+                    //计算阶梯价格
+                    BigDecimal salePrice = updatePriceByNum(convertNum, productStore, shopCar.getDelivertime(), info.getMemberid(), info.getLevel3id(), member.getGradleid());
+                    //远期定金和全款计算
+                    BigDecimal allpap = salePrice.multiply(convertNum);
+                    //如果是远期，需计算远期定金，全款和余额
+                    if (shopCar.getProtype() != Quantity.STATE_0) {
+                        if (shopCar.getProtype() == Quantity.STATE_1) {
+                            //全款
+                            shopCar.setAllpay(allpap.multiply(allPayRate));
+                        } else {
+                            //定金
+                            shopCar.setPartpay(allpap.multiply(transactionSettingService.getTransactionSetting().getRemotepurchasingmargin().multiply(new BigDecimal(0.01))));
+                            //余款
+                            shopCar.setYupay(allpap.subtract(shopCar.getPartpay()));
+                        }
+                    }
+                    List<ProductAttr> productAttrs=productAttrMapper.getListByPidAndPdno(shopCar.getPdid(), shopCar.getPdno());
+                    //判断购物车里是否有该商品
+                    if (shopCar1 == null) {
+                        shopCar.setMemberid(member.getId());
+                        shopCar.setPrice(salePrice);
+                        shopCar.setUnit(convertUnit);
+                        shopCar.setPdnumber(convertNum);
+                        shopCar.setFrightmode(productStore.getFreightmode());
+                        StringBuffer sb = new StringBuffer();
+                        for (ProductAttr attr : productAttrs) {
+                            sb.append(attr.getValue()).append("*");
+                        }
+                        if (productAttrs.size() > 0) {
+                            sb.deleteCharAt(sb.length() - 1);
+                        }
+                        shopCar.setAttrjson(sb.toString());
+                        shopCarService.insertShopCar(shopCar);
+                    } else {
+                        shopCar1.setPdnumber(convertNum);
+                        shopCar1.setUnit(convertUnit);
+                        shopCar1.setPrice(salePrice);
+                        shopCar1.setFrightmode(productStore.getFreightmode());
+                        if (shopCar.getProtype() != Quantity.STATE_0) {
+                            BigDecimal appPap = salePrice.multiply(shopCar1.getPdnumber());
+                            shopCar1.setProtype(shopCar.getProtype());
+                            //全款
+                            shopCar1.setAllpay(appPap.multiply(allPayRate));
+                            //定金
+                            shopCar1.setPartpay(appPap.multiply(transactionSettingService.getTransactionSetting().getRemotepurchasingmargin().multiply(new BigDecimal(0.01))));
+                            //余款
+                            shopCar1.setYupay(appPap.subtract(shopCar1.getPartpay()));
+                        }
+                        shopCarService.updateShopCar(shopCar1);
+                    }
+                    successfulList.add(shopCar);
+                    //保存用户日志
+                    memberLogOperator.saveMemberLog(member, null, "新增商品到购物车", "/rest/buyer/shopcar/insertShopCar", request, memberOperateLogService);
+                } else {
+                    continue;
+                }
+            }
+        }
+        if (successfulList.size() > 0) {
+            retmap.put("successfulList", successfulList);
+        }
+        if (offErrorList.size() > 0) {
+            retmap.put("offErrorList", offErrorList);
+        }
+        if (lackErrorList.size() > 0) {
+            retmap.put("lackErrorList", lackErrorList);
+        }
+        return retmap;
+    }
+
+    private boolean checkBuyNum(BigDecimal buynum,BigDecimal minplus){
+        try {
+            BigDecimal a = buynum.divide(minplus);
+
+            //System.out.println(a.intValue());
+
+            if(new BigDecimal(a.intValue()).compareTo(a) != 0){
+                return false;
+            }
+
+            return  true;
+        } catch (Exception e) {
+            return  false;
+        }
+    }
+
+    private BigDecimal updatePriceByNum(BigDecimal num, ProductStore productStore, @NotNull String diliverTime, long sellerid, long levelid, long gradeid) {
+
+        //计算阶梯价格
+        BigDecimal basicPrice = new BigDecimal(0);
+
+        if (diliverTime.equals(Quantity.SANTIANFAHUO)) {
+            basicPrice = productStore.getThreeprice();
+        } else if (diliverTime.equals(Quantity.JIUSHITIANFAHUO)) {
+            basicPrice = productStore.getNinetyprice();
+        } else if (diliverTime.equals(Quantity.SANSHITIANFAHUO)) {
+            basicPrice = productStore.getThirtyprice();
+        } else if (diliverTime.equals(Quantity.LIUSHITIANFAHUO)) {
+            basicPrice = productStore.getSixtyprice();
+        } else {
+            basicPrice = productStore.getProdprice();
+        }
+        MemberRateSetting memberRateSetting = memberRateSettingService.getSetting(sellerid, levelid, gradeid);
+        basicPrice = basicPrice.multiply(memberRateSetting.getRate());
+        BigDecimal saleprice = new BigDecimal(0);
+        //判断是否开启阶梯价格
+        if (productStore.getStepwiseprice()) {
+            Gson gson = new Gson();
+            List<StepWisePrice> list = gson.fromJson(productStore.getIntervalprice(), new TypeToken<ArrayList<StepWisePrice>>() {
+            }.getType());
+            //是否匹配价格区间
+            boolean flag = false;
+            //最大价格区间百分比
+            BigDecimal lastPercent = new BigDecimal(0);
+            BigDecimal maxstart = new BigDecimal(0);
+            //匹配价格区间
+            for (StepWisePrice stepWisePrice : list) {
+                BigDecimal start = stepWisePrice.getStart();
+                BigDecimal end = stepWisePrice.getEnd();
+                BigDecimal percent = stepWisePrice.getRate();
+                //end为0是最大价格区间
+                if (end.compareTo(new BigDecimal(0)) == 0) {
+                    lastPercent = percent;
+                    maxstart = start;
+                }
+                if ((num.compareTo(start) == 1) && (num.compareTo(end) == -1 || num.compareTo(end) == 0)) {
+                    saleprice = basicPrice.multiply(percent.multiply(new BigDecimal(0.01)));
+                    flag = true;
+                    break;
+                }
+            }
+            //没有任何价格区间匹配，取最大的价格区间
+            if (!flag) {
+                if (num.compareTo(maxstart) == 1) {
+                    saleprice = basicPrice.multiply(lastPercent.multiply(new BigDecimal(0.01)));
+                } else {
+                    saleprice = basicPrice;
+                }
+            }
+        } else {
+            saleprice = basicPrice;
+        }
+
+        return saleprice;
+    }
 }

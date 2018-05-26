@@ -120,13 +120,63 @@ public class AdminOrdersAction {
     @Autowired
     private  OrderStoreStateLogService orderStoreStateLogService;
 
-
+    @Autowired
+    private OrderProductBackInfoService orderProductBackInfoService;
 
     //远期全款打折率
     private static final BigDecimal allPayRate = new BigDecimal(0.99);
 
     MemberLogOperator memberLogOperator = new MemberLogOperator();
 
+    private class OrderCarBackRet extends BasicRet{
+
+        private  class  Data{
+            private List<OrderProductBackInfo> orderProductBackInfos;
+            private OrderProductBackInfo orderProductBackInfo;
+            private List<OrderProduct> orderProducts;
+            private  OrderProduct orderProduct;
+
+            public List<OrderProductBackInfo> getOrderProductBackInfos() {
+                return orderProductBackInfos;
+            }
+
+            public void setOrderProductBackInfos(List<OrderProductBackInfo> orderProductBackInfos) {
+                this.orderProductBackInfos = orderProductBackInfos;
+            }
+
+            public OrderProductBackInfo getOrderProductBackInfo() {
+                return orderProductBackInfo;
+            }
+
+            public void setOrderProductBackInfo(OrderProductBackInfo orderProductBackInfo) {
+                this.orderProductBackInfo = orderProductBackInfo;
+            }
+
+            public List<OrderProduct> getOrderProducts() {
+                return orderProducts;
+            }
+
+            public void setOrderProducts(List<OrderProduct> orderProducts) {
+                this.orderProducts = orderProducts;
+            }
+
+            public OrderProduct getOrderProduct() {
+                return orderProduct;
+            }
+
+            public void setOrderProduct(OrderProduct orderProduct) {
+                this.orderProduct = orderProduct;
+            }
+        }
+        private  Data data = new Data();
+
+        public Data getData() {
+            return data;
+        }
+        public void setData(Data data) {
+            this.data = data;
+        }
+    }
 
     private  class  OrderCarRet extends  BasicRet{
         private  class  Data{
@@ -920,6 +970,9 @@ public class AdminOrdersAction {
 
         Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
 
+        /*//用来记录orderproduct表中还没有更新时购买商品的数量
+        List<Map<String,Object>>pdnumList = new ArrayList<Map<String,Object>>();*/
+
         Orders orders = ordersService.getOrdersByOrderNo(orderno);
 
         //运费
@@ -959,6 +1012,10 @@ public class AdminOrdersAction {
         }
 
         for(OrderProduct orderProduct : orderProductList) {
+/*            Map<String,Object>pdnumMap = new HashMap<String,Object>();
+            pdnumMap.put("pdid",orderProduct.getPdid());
+            pdnumMap.put("num",orderProduct.getNum());
+            pdnumList.add(pdnumMap);*/
             for (OrderProduct updateP : updateOrderProductList) {
                 if(orderProduct.getId().equals(updateP.getId())){
                     orderprodidSet.add(orderProduct.getId());
@@ -1026,6 +1083,20 @@ public class AdminOrdersAction {
 
                         if (ordersService.updateOrderProduct(saveOrderProduct) != 1) {
                             throw new RuntimeException("修改订单商品id:" + saveOrderProduct.getId() + "失败，请联系网站管理员");
+                        }
+
+                        //将退货的商品信息记录到orderproductbackinfo表中
+                        int a = orderProduct.getNum().compareTo(saveOrderProduct.getNum());
+                        if(a!=0) {
+                            OrderProductBackInfo orderProductBackInfo = new OrderProductBackInfo();
+                            orderProductBackInfo.setOrderno(orderProduct.getOrderno());
+                            orderProductBackInfo.setPdid(orderProduct.getPdid());
+                            orderProductBackInfo.setBackno("TH" + UUID.randomUUID());
+                            orderProductBackInfo.setBacknum(orderProduct.getNum().subtract(saveOrderProduct.getNum()));
+                            orderProductBackInfo.setBacktype(Quantity.STATE_2);
+                            orderProductBackInfo.setBackstate(Quantity.STATE_0);
+                            orderProductBackInfo.setBacktime(new Date());
+                            orderProductBackInfoService.addOrderProductBackInfo(orderProductBackInfo);
                         }
 
                     }
@@ -2866,4 +2937,30 @@ public class AdminOrdersAction {
         System.out.println(str);
 
     }*/
+
+    @RequestMapping(value = "/getOrderProductBackByOrderNo",method = RequestMethod.POST)
+    @ApiOperation(value = "根据订单编号获取退货商品信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "orderno",value = "订单编号",required = true,paramType = "query",dataType = "string"),
+    })
+    @PreAuthorize("hasAuthority('" + AdminAuthorityConst.ORDERMANAGEMENT + "')")
+    public OrderCarBackRet getOrderProductBackByOrderNo(String orderno){
+        OrderCarBackRet orderCarBackRet = new OrderCarBackRet();
+        orderCarBackRet.setMessage("返回成功");
+        orderCarBackRet.setResult(BasicRet.SUCCESS);
+        List<OrderProductBackInfo> orderProductBackInfos = orderProductBackInfoService.getOrderProductBackByOrderNo(orderno);
+        for(OrderProductBackInfo orderProductBackInfo:orderProductBackInfos){
+            List<OrderProduct> orderProducts = ordersService.getOrderProductByOrderNo(orderProductBackInfo.getOrderno());
+            /*List<OrderProduct> list = new ArrayList<OrderProduct>();*/
+            for(OrderProduct orderProduct:orderProducts){
+                if(orderProductBackInfo.getPdid()!=null && orderProductBackInfo.getPdid().equals(orderProduct.getPdid())) {
+                   /* list.add(orderProduct);*/
+                    orderProductBackInfo.setOrderProduct(orderProduct);
+                }
+            }
+        }
+        orderCarBackRet.data.orderProductBackInfos=orderProductBackInfos;
+        orderCarBackRet.data.orderProductBackInfos.forEach(orderProductBackInfo -> orderProductBackInfo.getExtend().put("productInfo",productInfoService.getById(orderProductBackInfo.getPdid())));
+        return orderCarBackRet;
+    }
 }

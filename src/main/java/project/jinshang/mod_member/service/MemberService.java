@@ -26,6 +26,7 @@ import project.jinshang.mod_member.bean.MemberExample;
 import project.jinshang.mod_member.bean.MemberGrade;
 import project.jinshang.mod_shop.bean.ShopGrade;
 import project.jinshang.mod_shop.service.ShopGradeService;
+import project.jinshang.scheduled.mapper.AppTaskMapper;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -66,6 +67,9 @@ public class MemberService {
 
     @Autowired
     private RedisUtils redisUtils;
+
+    @Autowired
+    private AppTaskMapper appTaskMapper;
 
 
     /**
@@ -675,5 +679,9 @@ public class MemberService {
 
     public Member getInviterIdByMemberId(Long memberid) {
         return  memberMapper.selectByPrimaryKey(memberid);
+    }
+
+    public List<Member> getAllMember(){
+        return  appTaskMapper.getAllMember();
     }
 }

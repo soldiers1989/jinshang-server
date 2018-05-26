@@ -113,7 +113,8 @@ public class AdminRestAction {
                                  @RequestParam(required = true) String mobile,
                                  @RequestParam(required = true) int groupid,
                                  @RequestParam(required = false) String password,
-                                 @RequestParam(required = true) String roles[], Model model){
+                                 @RequestParam(required = true) String roles[],
+                                 @RequestParam(required = false) Long[] members, Model model){
 
         BasicRet basicRet =  new BasicRet();
 
@@ -133,7 +134,7 @@ public class AdminRestAction {
         updateAdmin.setMobile(mobile);
         updateAdmin.setGroupid(groupid);
         updateAdmin.setRoles(roles);
-
+        updateAdmin.setMembers(members);
 
         AdminGroup adminGroup = adminGroupService.getById(new Long(updateAdmin.getGroupid()));
         if (adminGroup == null) {
@@ -239,7 +240,7 @@ public class AdminRestAction {
             @ApiImplicitParam(name = "groupid",value = "组id",required = false,paramType = "query",dataType = "int" ),
             @ApiImplicitParam(name = "parentid",value = "parentid",required = false,defaultValue = "0",paramType = "query",dataType = "int"),
     })
-    public  BasicRet addAdmin(Admin admin,@ApiParam(required = true) @RequestParam(required = true) String roles[]){
+    public  BasicRet addAdmin(Admin admin,@ApiParam(required = true) @RequestParam(required = true) String roles[],@ApiParam(required = false) @RequestParam(required = false) Long[] members){
         BasicRet basicRet = new BasicRet();
 
         if(admin.getGroupid() >0) {
@@ -257,7 +258,7 @@ public class AdminRestAction {
         }
 
         admin.setRoles(roles);
-
+        admin.setMembers(members);
         adminService.addAdmin(admin);
         return basicRet.setResult(BasicRet.SUCCESS);
     }

@@ -134,13 +134,24 @@ public class SellerCompanyInfo implements Serializable{
 
     @ApiModelProperty(notes = "发货模式 0-直发，1-代发")
     private Short deliverymode;
+    //**************************EXTEND*********************************************//
+    @ApiModelProperty(notes = "店铺等级")
+    private  String shopgrade;
 
     @ApiModelProperty(notes = "短信通知，0=不通知，1=通知 （买家下单、买家退货等）")
     private Short smsnotify;
 
-    //**************************EXTEND*********************************************//
-    @ApiModelProperty(notes = "店铺等级")
-    private  String shopgrade;
+    @ApiModelProperty(notes = "对接ID")
+    private String appid;
+
+    @ApiModelProperty(notes = "对接密钥")
+    private String appsecret;
+
+    @ApiModelProperty(notes = "对接连接地址")
+    private String appurl;
+
+    @ApiModelProperty(notes = "接口状态")
+    private Boolean disable;
 
     public String getShopgrade() {
         return shopgrade;
@@ -500,5 +511,37 @@ public class SellerCompanyInfo implements Serializable{
 
     public void setSmsnotify(Short smsnotify) {
         this.smsnotify = smsnotify;
+    }
+
+    public String getAppid() {
+        return appid;
+    }
+
+    public void setAppid(String appid) {
+        this.appid = appid == null ? null : appid.trim();
+    }
+
+    public String getAppsecret() {
+        return appsecret;
+    }
+
+    public void setAppsecret(String appsecret) {
+        this.appsecret = appsecret == null ? null : appsecret.trim();
+    }
+
+    public String getAppurl() {
+        return appurl;
+    }
+
+    public void setAppurl(String appurl) {
+        this.appurl = appurl == null ? null : appurl.trim();
+    }
+
+    public Boolean getDisable() {
+        return disable;
+    }
+
+    public void setDisable(Boolean disable) {
+        this.disable = disable;
     }
 }

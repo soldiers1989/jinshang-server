@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import project.jinshang.common.constant.AdminAuthorityConst;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.utils.ExcelGen;
+import project.jinshang.common.utils.ExcelUtils;
 import project.jinshang.mod_admin.mod_inte.bean.IntegralQueryParam;
 import project.jinshang.mod_admin.mod_inte.service.IntegralService;
 import project.jinshang.mod_company.service.AdminShopService;
@@ -35,10 +36,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/rest/admin/excelexport")
@@ -63,12 +61,13 @@ public class ExcepExportAction {
 
         XSSFWorkbook workbook = null;
         try {
-            String[] rowTitles = new String[]{"下单时间", "合同号", "订单号", "交易号", "买家", "卖家", "订单类型", "订单来源", "商品名称", "规格","商品分类", "材质", "牌号", "品牌", "印记", "表面处理", "包装方式", "单位", "单价", "订购量", "货款金额", "开票抬头", "税号", "开户行", "开户账号", "开票地址", "电话", "是否开票", "订单状态", "项目","收件人","收货地址","付款方式","物流公司","快递单号","业务员","第三方支付单号","业务单号"};
+            String[] rowTitles = new String[]{"订单号","下单时间", "合同号",  "交易号", "买家", "卖家", "订单类型", "订单来源", "商品名称", "规格","商品分类", "材质", "牌号", "品牌", "印记", "表面处理", "包装方式", "单位", "单价", "订购量", "货款金额", "开票抬头", "税号", "开户行", "开户账号", "开票地址", "电话", "是否开票", "订单状态", "项目","收件人","收货地址","付款方式","物流公司","快递单号","业务员","第三方支付单号","业务单号"};
             String[] sumCols = new String[]{"货款金额","订购量"};
 
-            List<Map<String, Object>> list = ordersService.getExcelOrders(param);
+            List<LinkedHashMap<String, Object>> list = ordersService.getExcelOrders(param);
 
-            workbook = ExcelGen.common("订单列表", rowTitles, list, sumCols);
+            workbook = ExcelUtils.poiSteColumnMergCeellExcel("订单列表",rowTitles,list,0,sumCols);
+            //workbook = ExcelGen.common("订单列表", rowTitles, list, sumCols);
             if (workbook != null) {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 workbook.write(baos);

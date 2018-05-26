@@ -372,6 +372,9 @@ public class TradeService {
             //创建订单资金明细
             BuyerCapital buyerOrderCapital = createBuyerOrderCapital(order, type, tranTime, transactionNo, transactionid);
 
+
+
+
             SalerCapital salerCapital = createSalerOrderCapital(order, tranTime, transactionNo, transactionid);
 
 
@@ -615,13 +618,13 @@ public class TradeService {
 
         List<Orders> ordersList = getOrdersByUUID(outTradeNo);
 
-//        if(ordersList != null && ordersList.size()>0){
-//            for(Orders order : ordersList) {
-//                if (order.getOrderstatus() == Quantity.STATE_7) {
-//                    order.setOrderstatus(Quantity.STATE_0);
-//                }
-//            }
-//        }
+        if(ordersList != null && ordersList.size()>0){
+            for(Orders order : ordersList) {
+                if (order.getOrderstatus() == Quantity.STATE_7) {
+                    order.setOrderstatus(Quantity.STATE_0);
+                }
+            }
+        }
 
         if (ordersList == null || ordersList.size() == 0) {
             ordersList = getOrdersByYUUUID(outTradeNo);

@@ -52,11 +52,10 @@ public class InvoiceAction {
             invoiceInfo.setDefaultbill((short) 0);
         }
 
-        if ((invoiceInfos != null || invoiceInfos.size() != 0) && member.getCompany()) {
+        if (invoiceInfos.size() != 0 && member.getCompany()) {
             basicRet.setResult(BasicRet.ERR);
             basicRet.setMessage("公司账户新增失败");
         }else {
-
             invoiceInfo.setMemberid(member.getId());
             invoiceInfo.setCreatedate(new Date());
             invoiceInfo.setUpdatedate(new Date());

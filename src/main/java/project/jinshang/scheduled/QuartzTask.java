@@ -40,7 +40,7 @@ import java.util.*;
 
 @Component
 @Transactional(rollbackFor = Exception.class)
-@Profile({"test","pro"})
+@Profile({"test","pro","dev"})
 public class QuartzTask {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -116,6 +116,9 @@ public class QuartzTask {
 //        Map<String,String> map = new HashMap<>();
 //        map.put("orderno","D201803310926224472");
 //        jinShangSms.send("18663868251","SMS_134313669",map);
+
+        //tradeService.notify("order-1000000441893963","alipay","2018052321001004580252021332");
+
     }
 
 

@@ -492,9 +492,9 @@ public class CashManageAction {
     @ApiOperation("资金管理-买家-买家明细-列表")
     @ApiImplicitParams({
             @ApiImplicitParam(value = "用户id",name = "memberid",required = false,paramType = "query",dataType = "int"),
-           /* @ApiImplicitParam(value = "会员名称",name = "realname",required = false,paramType = "query",dataType = "string"),*/
+           // @ApiImplicitParam(value = "会员名称",name = "realname",required = false,paramType = "query",dataType = "string"),
             @ApiImplicitParam(value = "会员用户名",name = "username",required = false,paramType = "query",dataType = "string"),
-            /*@ApiImplicitParam(value = "公司名称",name = "companyname",required = false,paramType = "query",dataType = "string"),*/
+            //@ApiImpli cfcitParam(value = "公司名称",name = "companyname",required = false,paramType = "query",dataType = "string"),
     })
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.FINANCIALDETAILS + "')")
     public  CashRet BuyerUserCapitalList(

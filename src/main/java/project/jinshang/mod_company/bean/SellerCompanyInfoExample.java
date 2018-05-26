@@ -3034,6 +3034,276 @@ public class SellerCompanyInfoExample {
             addCriterion("smsnotify not between", value1, value2, "smsnotify");
             return (Criteria) this;
         }
+
+        public Criteria andAppidIsNull() {
+            addCriterion("appid is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppidIsNotNull() {
+            addCriterion("appid is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppidEqualTo(String value) {
+            addCriterion("appid =", value, "appid");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppidNotEqualTo(String value) {
+            addCriterion("appid <>", value, "appid");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppidGreaterThan(String value) {
+            addCriterion("appid >", value, "appid");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppidGreaterThanOrEqualTo(String value) {
+            addCriterion("appid >=", value, "appid");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppidLessThan(String value) {
+            addCriterion("appid <", value, "appid");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppidLessThanOrEqualTo(String value) {
+            addCriterion("appid <=", value, "appid");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppidLike(String value) {
+            addCriterion("appid like", value, "appid");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppidNotLike(String value) {
+            addCriterion("appid not like", value, "appid");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppidIn(List<String> values) {
+            addCriterion("appid in", values, "appid");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppidNotIn(List<String> values) {
+            addCriterion("appid not in", values, "appid");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppidBetween(String value1, String value2) {
+            addCriterion("appid between", value1, value2, "appid");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppidNotBetween(String value1, String value2) {
+            addCriterion("appid not between", value1, value2, "appid");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppsecretIsNull() {
+            addCriterion("appsecret is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppsecretIsNotNull() {
+            addCriterion("appsecret is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppsecretEqualTo(String value) {
+            addCriterion("appsecret =", value, "appsecret");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppsecretNotEqualTo(String value) {
+            addCriterion("appsecret <>", value, "appsecret");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppsecretGreaterThan(String value) {
+            addCriterion("appsecret >", value, "appsecret");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppsecretGreaterThanOrEqualTo(String value) {
+            addCriterion("appsecret >=", value, "appsecret");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppsecretLessThan(String value) {
+            addCriterion("appsecret <", value, "appsecret");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppsecretLessThanOrEqualTo(String value) {
+            addCriterion("appsecret <=", value, "appsecret");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppsecretLike(String value) {
+            addCriterion("appsecret like", value, "appsecret");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppsecretNotLike(String value) {
+            addCriterion("appsecret not like", value, "appsecret");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppsecretIn(List<String> values) {
+            addCriterion("appsecret in", values, "appsecret");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppsecretNotIn(List<String> values) {
+            addCriterion("appsecret not in", values, "appsecret");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppsecretBetween(String value1, String value2) {
+            addCriterion("appsecret between", value1, value2, "appsecret");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppsecretNotBetween(String value1, String value2) {
+            addCriterion("appsecret not between", value1, value2, "appsecret");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppurlIsNull() {
+            addCriterion("appurl is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppurlIsNotNull() {
+            addCriterion("appurl is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppurlEqualTo(String value) {
+            addCriterion("appurl =", value, "appurl");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppurlNotEqualTo(String value) {
+            addCriterion("appurl <>", value, "appurl");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppurlGreaterThan(String value) {
+            addCriterion("appurl >", value, "appurl");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppurlGreaterThanOrEqualTo(String value) {
+            addCriterion("appurl >=", value, "appurl");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppurlLessThan(String value) {
+            addCriterion("appurl <", value, "appurl");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppurlLessThanOrEqualTo(String value) {
+            addCriterion("appurl <=", value, "appurl");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppurlLike(String value) {
+            addCriterion("appurl like", value, "appurl");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppurlNotLike(String value) {
+            addCriterion("appurl not like", value, "appurl");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppurlIn(List<String> values) {
+            addCriterion("appurl in", values, "appurl");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppurlNotIn(List<String> values) {
+            addCriterion("appurl not in", values, "appurl");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppurlBetween(String value1, String value2) {
+            addCriterion("appurl between", value1, value2, "appurl");
+            return (Criteria) this;
+        }
+
+        public Criteria andAppurlNotBetween(String value1, String value2) {
+            addCriterion("appurl not between", value1, value2, "appurl");
+            return (Criteria) this;
+        }
+
+        public Criteria andDisableIsNull() {
+            addCriterion("disable is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDisableIsNotNull() {
+            addCriterion("disable is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDisableEqualTo(Boolean value) {
+            addCriterion("disable =", value, "disable");
+            return (Criteria) this;
+        }
+
+        public Criteria andDisableNotEqualTo(Boolean value) {
+            addCriterion("disable <>", value, "disable");
+            return (Criteria) this;
+        }
+
+        public Criteria andDisableGreaterThan(Boolean value) {
+            addCriterion("disable >", value, "disable");
+            return (Criteria) this;
+        }
+
+        public Criteria andDisableGreaterThanOrEqualTo(Boolean value) {
+            addCriterion("disable >=", value, "disable");
+            return (Criteria) this;
+        }
+
+        public Criteria andDisableLessThan(Boolean value) {
+            addCriterion("disable <", value, "disable");
+            return (Criteria) this;
+        }
+
+        public Criteria andDisableLessThanOrEqualTo(Boolean value) {
+            addCriterion("disable <=", value, "disable");
+            return (Criteria) this;
+        }
+
+        public Criteria andDisableIn(List<Boolean> values) {
+            addCriterion("disable in", values, "disable");
+            return (Criteria) this;
+        }
+
+        public Criteria andDisableNotIn(List<Boolean> values) {
+            addCriterion("disable not in", values, "disable");
+            return (Criteria) this;
+        }
+
+        public Criteria andDisableBetween(Boolean value1, Boolean value2) {
+            addCriterion("disable between", value1, value2, "disable");
+            return (Criteria) this;
+        }
+
+        public Criteria andDisableNotBetween(Boolean value1, Boolean value2) {
+            addCriterion("disable not between", value1, value2, "disable");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

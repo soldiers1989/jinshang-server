@@ -5,6 +5,8 @@ import com.google.code.kaptcha.Constants;
 import io.swagger.annotations.*;
 import mizuki.project.core.restserver.config.BasicRet;
 
+import org.apache.commons.codec.digest.DigestUtils;
+import org.bouncycastle.crypto.Digest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.ui.Model;
@@ -16,6 +18,7 @@ import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.constant.SellerAuthorityConst;
 import project.jinshang.common.utils.Base64Utils;
 import project.jinshang.common.utils.CommonUtils;
+import project.jinshang.common.utils.MD5Tools;
 import project.jinshang.common.utils.RedisUtils;
 import project.jinshang.mod_admin.mod_transet.bean.TransactionSetting;
 import project.jinshang.mod_admin.mod_transet.service.TransactionSettingService;
@@ -24,9 +27,11 @@ import project.jinshang.mod_company.bean.SellerCompanyInfo;
 import project.jinshang.mod_company.service.BuyerCompanyService;
 import project.jinshang.mod_company.service.SellerCompanyCacheService;
 import project.jinshang.mod_company.service.SellerCompanyInfoService;
+import project.jinshang.mod_member.bean.ApiRecord;
 import project.jinshang.mod_member.bean.Member;
 import project.jinshang.mod_member.bean.MemberExample;
 import project.jinshang.mod_member.bean.SellerGroup;
+import project.jinshang.mod_member.bean.dto.ApiRecordViewDto;
 import project.jinshang.mod_member.service.AdvanceSellerPublish;
 import project.jinshang.mod_member.service.MemberService;
 import project.jinshang.mod_member.service.SellerGroupService;
@@ -34,6 +39,7 @@ import project.jinshang.mod_product.service.MemberOperateLogService;
 import project.jinshang.mod_shop.bean.ShopGrade;
 import project.jinshang.mod_shop.service.ShopGradeService;
 
+import javax.crypto.SecretKey;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.math.BigDecimal;
@@ -640,6 +646,63 @@ public class SellerRestAction {
     }
 
 
+    @RequestMapping(value = "/genAppSecret", method=RequestMethod.POST)
+    @ApiOperation("生成对接秘钥")
+    public AppSecretRet genAppSecret(Model model){
+        AppSecretRet appSecretRet=new AppSecretRet();
+        Member member= (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
+        String appSecret=MD5Tools.MD5(String.valueOf(member.getId())+System.currentTimeMillis());
+        SellerCompanyInfo sellerCompanyInfo=sellerCompanyInfoService.getSellerCompanyByMemberid(member.getId());
+        SellerCompanyInfo sellerCompanyInfo1=new SellerCompanyInfo();
+        sellerCompanyInfo1.setId(sellerCompanyInfo.getId());
+        sellerCompanyInfo1.setAppsecret(appSecret);
+        sellerCompanyInfoService.updateByPrimaryKeySelective(sellerCompanyInfo1);
+        appSecretRet.setAppsecret(appSecret);
+        appSecretRet.setMessage("appSecret生成成功");
+        appSecretRet.setResult(BasicRet.SUCCESS);
+        return appSecretRet;
+    }
+
+    @RequestMapping(value = "/genAppId",method = RequestMethod.POST)
+    @ApiOperation("生成对接ID")
+    public AppSecretRet genAppId(Model model){
+        AppSecretRet appSecretRet=new AppSecretRet();
+        Member member= (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
+        String appId=MD5Tools.MD5(String.valueOf(member.getId())).substring(8,24);
+        SellerCompanyInfo sellerCompanyInfo=sellerCompanyInfoService.getSellerCompanyByMemberid(member.getId());
+        SellerCompanyInfo sellerCompanyInfo1=new SellerCompanyInfo();
+        sellerCompanyInfo1.setId(sellerCompanyInfo.getId());
+        sellerCompanyInfo1.setAppid(appId);
+        sellerCompanyInfoService.updateByPrimaryKeySelective(sellerCompanyInfo1);
+        appSecretRet.setAppsecret(appId);
+        appSecretRet.setMessage("appId生成成功");
+        appSecretRet.setResult(BasicRet.SUCCESS);
+        return appSecretRet;
+    }
+
+    @RequestMapping(value = "/saveApiParam",method = RequestMethod.POST)
+    @ApiOperation("保存api接口对接设置的参数")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "appurl", value = "对接连接地址", required = true, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "disable", value = "接口状态", required = true, paramType = "query", dataType = "Boolean")
+            }
+    )
+    public BasicRet saveApiParam(Model model, HttpServletRequest request, SellerCompanyInfo dto){
+        BasicRet basicRet=new BasicRet();
+        Member member= (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
+        SellerCompanyInfo sellerCompanyInfo=sellerCompanyInfoService.getSellerCompanyByMemberid(member.getId());
+        SellerCompanyInfo sellerCompanyInfo1=new SellerCompanyInfo();
+        sellerCompanyInfo1.setId(sellerCompanyInfo.getId());
+        sellerCompanyInfo1.setAppurl(dto.getAppurl());
+        sellerCompanyInfo1.setDisable(dto.getDisable());
+        sellerCompanyInfoService.updateByPrimaryKeySelective(sellerCompanyInfo1);
+        basicRet.setMessage("商家接口对接参数设置成功");
+        basicRet.setResult(BasicRet.SUCCESS);
+        return basicRet;
+    }
+
+
+
 
     private  class  TransactionSettingRet extends  BasicRet {
         private  class  TransactionSettingData{
@@ -697,6 +760,18 @@ public class SellerRestAction {
 
         public void setData(Data data) {
             this.data = data;
+        }
+    }
+
+    private static class AppSecretRet extends BasicRet{
+        private String appsecret;
+
+        public String getAppsecret() {
+            return appsecret;
+        }
+
+        public void setAppsecret(String appsecret) {
+            this.appsecret = appsecret;
         }
     }
 }

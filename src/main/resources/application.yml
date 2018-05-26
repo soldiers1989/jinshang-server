@@ -38,6 +38,7 @@ spring:
       restart:
         enabled: true
 
+
 #  kafka:
 #    consumer:
 #      group-id: project.${var.appName}
@@ -54,7 +55,7 @@ spring:
 eureka:
  client:
    service-url:
-    defaultZone: http://${var.server}:10924/eureka/
+    defaultZone: http://${var.server}:12800/eureka
  instance:
    prefer-ip-address: true
 
@@ -65,7 +66,6 @@ logging:
   level:
       project.jinshang: debug
       mizuki.project.core: info
-
 
 
 
@@ -144,7 +144,6 @@ upload:
   dir:
     moduleIcon: /Users/wyh/Downloads
 
-   # moduleIcon: /Users/jacky/Downloads/
 
 ---
 
@@ -162,16 +161,10 @@ spring:
 eureka:
  client:
    service-url:
-    defaultZone: http://${var.server-test}:10924/eureka/
+    defaultZone: http://${var.server-test}:12800/eureka/
  instance:
    prefer-ip-address: true
 
-logging:
-  file: logs/console.log
-
-  level:
-    project.jinshang: debug
-    mizuki.project.core: info
 
 
 mybatis:
@@ -225,7 +218,7 @@ spring:
 eureka:
  client:
    service-url:
-    defaultZone: http://${var.server-test}:10924/eureka/
+    defaultZone: http://${var.server-test}:12800/eureka
  instance:
    prefer-ip-address: true
 
