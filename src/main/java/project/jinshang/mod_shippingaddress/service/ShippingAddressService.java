@@ -49,7 +49,7 @@ public class ShippingAddressService {
     }
 
     public PageInfo listAllShippingAddress(int pageNo,int pageSize,long memberid,short type){
-        PageHelper.startPage(pageNo,pageSize);
+        //PageHelper.startPage(pageNo,pageSize);
         ShippingAddressExample shippingAddressExample=new ShippingAddressExample();
         ShippingAddressExample.Criteria criteria= shippingAddressExample.createCriteria();
         criteria.andMemberidEqualTo(memberid).andTypeEqualTo(type);

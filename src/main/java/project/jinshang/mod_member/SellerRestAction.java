@@ -6,6 +6,7 @@ import io.swagger.annotations.*;
 import mizuki.project.core.restserver.config.BasicRet;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.crypto.Digest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -668,12 +669,15 @@ public class SellerRestAction {
     public AppSecretRet genAppId(Model model){
         AppSecretRet appSecretRet=new AppSecretRet();
         Member member= (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
-        String appId=MD5Tools.MD5(String.valueOf(member.getId())).substring(8,24);
         SellerCompanyInfo sellerCompanyInfo=sellerCompanyInfoService.getSellerCompanyByMemberid(member.getId());
-        SellerCompanyInfo sellerCompanyInfo1=new SellerCompanyInfo();
-        sellerCompanyInfo1.setId(sellerCompanyInfo.getId());
-        sellerCompanyInfo1.setAppid(appId);
-        sellerCompanyInfoService.updateByPrimaryKeySelective(sellerCompanyInfo1);
+        String appId=sellerCompanyInfo.getAppid();
+        if (StringUtils.isEmpty(appId)){
+            appId=MD5Tools.MD5(String.valueOf(member.getId())).substring(8,24);
+            SellerCompanyInfo sellerCompanyInfo1=new SellerCompanyInfo();
+            sellerCompanyInfo1.setId(sellerCompanyInfo.getId());
+            sellerCompanyInfo1.setAppid(appId);
+            sellerCompanyInfoService.updateByPrimaryKeySelective(sellerCompanyInfo1);
+        }
         appSecretRet.setAppsecret(appId);
         appSecretRet.setMessage("appId生成成功");
         appSecretRet.setResult(BasicRet.SUCCESS);
@@ -700,6 +704,20 @@ public class SellerRestAction {
         basicRet.setResult(BasicRet.SUCCESS);
         return basicRet;
     }
+
+
+    @RequestMapping(value = "/getApiParam",method = RequestMethod.POST)
+    @ApiOperation("获取api接口对接设置的参数")
+    public SellerCompanyRet getApiParam(Model model, HttpServletRequest request){
+        SellerCompanyRet ret=new SellerCompanyRet();
+        Member member= (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
+        SellerCompanyInfo sellerCompanyInfo=sellerCompanyInfoService.getSellerCompanyByMemberid(member.getId());
+        ret.data.setSellerCompanyInfo(sellerCompanyInfo);
+        ret.setResult(BasicRet.SUCCESS);
+        ret.setMessage("查询成功");
+        return ret;
+    }
+
 
 
 
@@ -774,4 +792,28 @@ public class SellerRestAction {
             this.appsecret = appsecret;
         }
     }
+
+    private static class SellerCompanyRet extends BasicRet{
+        private class Data{
+            private  SellerCompanyInfo sellerCompanyInfo;
+
+            public SellerCompanyInfo getSellerCompanyInfo() {
+                return sellerCompanyInfo;
+            }
+
+            public void setSellerCompanyInfo(SellerCompanyInfo sellerCompanyInfo) {
+                this.sellerCompanyInfo = sellerCompanyInfo;
+            }
+        }
+        private  Data  data=new Data();
+
+        public Data getData() {
+            return data;
+        }
+
+        public void setData(Data data) {
+            this.data = data;
+        }
+    }
+
 }

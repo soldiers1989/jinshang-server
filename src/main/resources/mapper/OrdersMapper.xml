@@ -61,6 +61,8 @@
     <result column="reason" property="reason" jdbcType="VARCHAR" />
     <result column="deliverytype" property="deliverytype" jdbcType="SMALLINT" />
     <result column="billtoserver" property="billtoserver" jdbcType="SMALLINT" />
+    <result column="clerkname" property="clerkname" jdbcType="VARCHAR" />
+    <result column="clerknamephone" property="clerknamephone" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -128,7 +130,7 @@
     logisticscompany, isbilling, billingtype, uuid, membercompany, isonline, allpay, 
     phone, shipto, isbackcredit, paytype, membername, sellername, shopname, brokepay, 
     frozepay, serverpay, yuuuid, delaydays, ifdelay, delaypenalty, ordertime, yuordertime, 
-    deliverybill, transactionid, reason, deliverytype, billtoserver
+    deliverybill, transactionid, reason, deliverytype, billtoserver,clerkname,clerknamephone
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_product.bean.OrdersExample" >
     select
@@ -181,7 +183,7 @@
       yuuuid, delaydays, ifdelay, 
       delaypenalty, ordertime, yuordertime, 
       deliverybill, transactionid, reason, 
-      deliverytype, billtoserver)
+      deliverytype, billtoserver,clerkname,clerknamephone)
     values (#{id,jdbcType=BIGINT}, #{memberid,jdbcType=BIGINT}, #{saleid,jdbcType=BIGINT}, 
       #{orderno,jdbcType=VARCHAR}, #{createtime,jdbcType=TIMESTAMP}, #{province,jdbcType=VARCHAR}, 
       #{city,jdbcType=VARCHAR}, #{area,jdbcType=VARCHAR}, #{receivingaddress,jdbcType=VARCHAR}, 
@@ -201,7 +203,7 @@
       #{yuuuid,jdbcType=VARCHAR}, #{delaydays,jdbcType=INTEGER}, #{ifdelay,jdbcType=SMALLINT}, 
       #{delaypenalty,jdbcType=NUMERIC}, #{ordertime,jdbcType=BIGINT}, #{yuordertime,jdbcType=BIGINT}, 
       #{deliverybill,jdbcType=SMALLINT}, #{transactionid,jdbcType=VARCHAR}, #{reason,jdbcType=VARCHAR}, 
-      #{deliverytype,jdbcType=SMALLINT}, #{billtoserver,jdbcType=SMALLINT})
+      #{deliverytype,jdbcType=SMALLINT}, #{billtoserver,jdbcType=SMALLINT},#{clerkname,jdbcType=VARCHAR},#{clerknamephone,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="project.jinshang.mod_product.bean.Orders" useGeneratedKeys="true" keyProperty="id">
     insert into orders
@@ -383,6 +385,12 @@
       <if test="billtoserver != null" >
         billtoserver,
       </if>
+      <if test="clerkname != null" >
+        clerkname,
+      </if>
+      <if test="clerknamephone != null" >
+        clerknamephone,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="id != null" >
@@ -561,6 +569,12 @@
       </if>
       <if test="billtoserver != null" >
         #{billtoserver,jdbcType=SMALLINT},
+      </if>
+      <if test="clerkname != null" >
+        #{clerkname,jdbcType=VARCHAR},
+      </if>
+      <if test="clerknamephone != null" >
+        #{clerknamephone,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -750,6 +764,12 @@
       <if test="record.billtoserver != null" >
         billtoserver = #{record.billtoserver,jdbcType=SMALLINT},
       </if>
+      <if test="record.clerkname != null" >
+        clerkname = #{record.clerkname,jdbcType=VARCHAR},
+      </if>
+      <if test="record.clerknamephone != null" >
+        clerknamephone = #{record.clerknamephone,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -815,7 +835,9 @@
       transactionid = #{record.transactionid,jdbcType=VARCHAR},
       reason = #{record.reason,jdbcType=VARCHAR},
       deliverytype = #{record.deliverytype,jdbcType=SMALLINT},
-      billtoserver = #{record.billtoserver,jdbcType=SMALLINT}
+      billtoserver = #{record.billtoserver,jdbcType=SMALLINT},
+      clerkname = #{record.clerkname,jdbcType=VARCHAR},
+      clerknamephone = #{record.clerknamephone,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -997,6 +1019,12 @@
       <if test="billtoserver != null" >
         billtoserver = #{billtoserver,jdbcType=SMALLINT},
       </if>
+      <if test="clerkname != null" >
+        clerkname = #{clerkname,jdbcType=VARCHAR},
+      </if>
+      <if test="clerknamephone != null" >
+        clerknamephone = #{clerknamephone,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -1059,7 +1087,9 @@
       transactionid = #{transactionid,jdbcType=VARCHAR},
       reason = #{reason,jdbcType=VARCHAR},
       deliverytype = #{deliverytype,jdbcType=SMALLINT},
-      billtoserver = #{billtoserver,jdbcType=SMALLINT}
+      billtoserver = #{billtoserver,jdbcType=SMALLINT},
+      clerkname = #{clerkname,jdbcType=VARCHAR},
+      clerknamephone = #{clerknamephone,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

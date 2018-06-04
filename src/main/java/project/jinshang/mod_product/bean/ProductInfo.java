@@ -116,7 +116,7 @@ public class ProductInfo {
     private Long productid;
 
     @ApiModelProperty(notes = "仓库单位")
-    private String prodstoreunit;;
+    private String prodstoreunit;
 
     @ApiModelProperty(notes = "基本单位与库存单位转化比率")
     private BigDecimal unitrate;

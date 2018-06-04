@@ -136,9 +136,9 @@ public interface ProductStoreMapper {
     int updateStorenameByStoreid(@Param("storeid") long storeid, @Param("name") String name);
 
     @Update("update productstore \n" +
-            "set pdstorenum = ${num} \n" +
+            "set pdstorenum = #{num} \n" +
             "where \n" +
-            "pdno = '${sku}'\n" +
+            "pdno = #{sku}\n" +
             "and storeid in (select id from store where memberid in ${memberIds})" +
             "and pdid in (\n" +
             "select p.id from productstore pst,productinfo p  where p.id=pst.pdid and  pst.pdno=#{sku}  and p.producttype='紧固件'\n" +

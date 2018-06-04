@@ -142,7 +142,6 @@ public class BuyerRestAction {
                           @RequestParam(required = true) String yanzheng, Model model, HttpSession session) {
         BasicRet basicRet = new BasicRet();
 
-
         if(!yanzheng.equals("888999")) {
             String sessimg = (String) session.getAttribute(Constants.KAPTCHA_SESSION_KEY);
             session.removeAttribute(Constants.KAPTCHA_SESSION_KEY);

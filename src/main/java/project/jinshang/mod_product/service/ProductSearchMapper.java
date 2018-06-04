@@ -31,7 +31,6 @@ public interface ProductSearchMapper {
     @SelectProvider(type = ProductSearchProvider.class,method = "search")
     List<Map> search(@Param("query")String query, int start, int max);
 
-//    @Cacheable(value = "jinshang-productsearch")
     @SelectProvider(type = ProductSearchProvider.class,method = "searchKeys")
     List<Map> searchKeys(String query,String level1,String level2,String level3,
                          String productname,String brand,String cardnum,String material, String surfacetreatment,Map<String,Object> attrs,Integer selfsupport,
@@ -42,8 +41,6 @@ public interface ProductSearchMapper {
     List<Map> otherProdSearchKeys(String query,String level1,String level2,String level3,
                          String productname,String brand, Map<String,Object> attrs,int type);
 
-
-//    @Cacheable(value = "jinshang-productsearch")
     @SelectProvider(type = ProductSearchProvider.class,method = "searchAttrKeys")
     List<Map> searchAttrKeys(String query,String level1,String level2,String level3,
                          String productname,String brand,String cardnum,String material,String surfacetreatment,
@@ -55,35 +52,22 @@ public interface ProductSearchMapper {
                              String productname,String brand,String cardnum,String material,String surfacetreatment,
                                      Map<String,Object> attrs,Integer selfsupport,Integer havestore,Integer forwardtime,String store);
 
-
-
     @SelectProvider(type = ProductSearchProvider.class,method = "otherProdSearchAttrKeys")
     List<Map> otherProdsearchAttrKeys(String query,String level1,String level2,String level3,
                              String productname,String brand, Map<String,Object> attrs,int type);
 
-
-//    @Cacheable(value = "jinshang-productsearch")
     @SelectProvider(type = ProductSearchProvider.class,method = "searchWithKeys")
     List<Map> searchWithKeys(String query,String level1,String level2,String level3,
                              String productname,String brand,String cardnum,String material,String surfacetreatment, Map<String,Object> attrs,int start, int max,
                              String sorttype,Integer selfsupport,Integer havestore,Integer forwardtime,String store);
 
-
-
     @SelectProvider(type = ProductSearchProvider.class,method = "otherProdSearchWithKeys")
     List<Map> otherProdSearchWithKeys(String query,String level1,String level2,String level3,
                              String productname,String brand, Map<String,Object> attrs,int start,int count,String sorttype,int type);
 
-
-
-
-
-//    @Cacheable(value = "jinshang-productsearch")
     @SelectProvider(type = ProductSearchProvider.class,method = "countSearchWithKeys")
     int countSearchWithKeys(String query,String level1,String level2,String level3,
                             String productname,String brand,String cardnum,String material,String surfacetreatment, Map<String,Object> attrs,Integer selfsupport,Integer havestore,Integer forwardtime,String store);
-
-
 
 
     @SelectProvider(type = ProductSearchProvider.class,method = "otherProdCountSearchWithKeys")

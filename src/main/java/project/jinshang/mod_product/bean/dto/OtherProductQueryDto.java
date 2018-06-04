@@ -1,6 +1,7 @@
 package project.jinshang.mod_product.bean.dto;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * create : wyh
@@ -28,17 +29,36 @@ public class OtherProductQueryDto {
 
     private  Date uptimeEnd;
 
+    private String pdids;
+
+    private List<Integer> pdid;
+
     private  Date createStart;
 
     private  Date createEnd;
 
+    private Date downtimeStart;
+
+    private Date downtimeEnd;
+
+    private Date updatetimeStart;
+
+    private Date updatetimeEnd;
+
     private String productname;
 
+    private String pdno;
 
-    private  String shopname;
+    private String shopname;
 
 
+    public String getPdno() {
+        return pdno;
+    }
 
+    public void setPdno(String pdno) {
+        this.pdno = pdno;
+    }
 
     public String getBrand() {
         return brand;
@@ -152,5 +172,53 @@ public class OtherProductQueryDto {
 
     public void setShopname(String shopname) {
         this.shopname = shopname;
+    }
+
+    public String getPdids() {
+        return pdids;
+    }
+
+    public void setPdids(String pdids) {
+        this.pdids = pdids;
+    }
+
+    public List<Integer> getPdid() {
+        return pdid;
+    }
+
+    public void setPdid(List<Integer> pdid) {
+        this.pdid = pdid;
+    }
+
+    public Date getDowntimeStart() {
+        return downtimeStart;
+    }
+
+    public void setDowntimeStart(Date downtimeStart) {
+        this.downtimeStart = downtimeStart;
+    }
+
+    public Date getDowntimeEnd() {
+        return downtimeEnd;
+    }
+
+    public void setDowntimeEnd(Date downtimeEnd) {
+        this.downtimeEnd = downtimeEnd;
+    }
+
+    public Date getUpdatetimeStart() {
+        return updatetimeStart;
+    }
+
+    public void setUpdatetimeStart(Date updatetimeStart) {
+        this.updatetimeStart = updatetimeStart;
+    }
+
+    public Date getUpdatetimeEnd() {
+        return updatetimeEnd;
+    }
+
+    public void setUpdatetimeEnd(Date updatetimeEnd) {
+        this.updatetimeEnd = updatetimeEnd;
     }
 }

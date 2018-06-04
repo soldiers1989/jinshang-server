@@ -6,7 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.utils.StringUtils;
+import project.jinshang.mod_member.AdminUserMapper;
 import project.jinshang.mod_member.MemberMapper;
+import project.jinshang.mod_member.bean.AdminUser;
 import project.jinshang.mod_member.bean.MemberExample;
 import project.jinshang.mod_member.bean.dto.MemberAdminQueryDto;
 import project.jinshang.mod_member.bean.dto.MemberAdminViewDto;
@@ -29,7 +31,8 @@ public class MemberAdminService {
 
     @Autowired
     private MemberMapper memberMapper;
-
+    @Autowired
+    private AdminUserMapper adminUserMapper;
     /**
      * 获取消费转化率
      * @return
@@ -92,17 +95,19 @@ public class MemberAdminService {
         }
 
         List<MemberAdminViewDto> list =  memberMapper.adminListMemberInfo(dto);
-
-        for(MemberAdminViewDto view : list){
-            if(view.getLabelid() != null){
-                view.setLabelidArr(view.getLabelid().split(","));
+        for (int i=0;i<list.size();i++){
+            if(list.get(i).getLabelid() != null){
+                list.get(i).setLabelidArr(list.get(i).getLabelid().split(","));
+            }
+            AdminUser adminUser= adminUserMapper.getAdminUserByUserid(list.get(i).getId());
+            System.out.println(list.get(i).getId());
+            if (adminUser!=null){
+                list.get(i).setManageState(adminUser.getAdminid());
             }
         }
 
         return  new PageInfo(list);
     }
-
-
 
 
     public List<Map<String,Object>> listForExportExcel(MemberAdminQueryDto dto){
@@ -179,6 +184,32 @@ public class MemberAdminService {
 
 
 
+    /**
+     * 查询没有添加管理发会员
+     * @param id
+     * @param companyname
+     * @param realname
+     * @param mobile
+     * @return
+     */
+    public PageInfo findNotAddMembers(Long id,String companyname,String realname,String mobile,int pageNo,int pageSize){
+        PageHelper.startPage(pageNo,pageSize);
+        List<MemberAdminViewDto> list =  memberMapper.findNotAddMembers(id, companyname, realname,mobile);
+        return  new PageInfo(list);
+    }
+    /**
+     * 查询没有添加管理发会员
+     * @param id
+     * @param companyname
+     * @param realname
+     * @param mobile
+     * @return
+     */
+    public PageInfo findManageMemberList(Long id,String companyname,String realname,String mobile,long adminid,int pageNo,int pageSize){
+        PageHelper.startPage(pageNo,pageSize);
+        List<MemberAdminViewDto> list =  memberMapper.findManageMemberList(id, companyname, realname,mobile,adminid);
+        return  new PageInfo(list);
+    }
 
 
 }

@@ -616,6 +616,11 @@ public class TradeService {
         // 注意重复消费的问题
         // 处理失败 则返回false, 并 logger.error
 
+
+
+
+
+
         List<Orders> ordersList = getOrdersByUUID(outTradeNo);
 
         if(ordersList != null && ordersList.size()>0){
@@ -640,8 +645,6 @@ public class TradeService {
         }
 
 
-
-
         //创建资金明细
         if (channel.equals("alipay")) {
             payMethod(ordersList, Quantity.STATE_0, transactionid);
@@ -659,7 +662,6 @@ public class TradeService {
             if (order.getOrderstatus() == Quantity.STATE_7) {
                 order.setOrderstatus(Quantity.STATE_0);
             }
-
 
             orderids.append(order.getId()).append(",");
             if (channel.equals("alipay")) {
@@ -708,8 +710,8 @@ public class TradeService {
 
         ordersService.smsNotifySellerToOrders(ordersList);
 
-        logger.info("第三方支付："+ JSONArray.fromObject(ordersList).toString());
-        logger.error("第三方支付："+ JSONArray.fromObject(ordersList).toString());
+        //logger.info("第三方支付："+ JSONArray.fromObject(ordersList).toString());
+        //logger.error("第三方支付："+ JSONArray.fromObject(ordersList).toString());
 
         wmsService.synOrders(ordersList);
         if (ordersList.size() > 0) {

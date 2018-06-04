@@ -696,8 +696,8 @@ public class ProductFrontAction {
             @ApiImplicitParam(value = "仓库", name = "storename", paramType = "query", dataType = "string"),
     })
     public ProductListRet list(
-            @RequestParam(required = true, defaultValue = "1") int pageNo,
-            @RequestParam(required = true, defaultValue = "20") int pageSize,
+            @RequestParam(required = false, defaultValue = "1") int pageNo,
+            @RequestParam(required = false, defaultValue = "20") int pageSize,
             @RequestParam(required = false,defaultValue = "") String searchKey,
             @RequestParam(required = false) String level1,
             @RequestParam(required = false) String level2,
@@ -715,31 +715,20 @@ public class ProductFrontAction {
             @RequestParam(required = false,defaultValue = "0") Integer forwardtime,
             @RequestParam(required = false,defaultValue = "") String storename,
             Model model) {
-
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
-
         String store = storename;
-
         searchKey = searchKey.toLowerCase();
-
         if(member != null){
             member =  memberService.getMemberById(member.getId());
         }
-
-
-
         ProductListRet productListRet = new ProductListRet();
-
         int start = (pageNo - 1) * pageSize;
 
         /*
         if(!StringUtils.hasText(searchKey) && sorttype == null){
             sorttype = 0;
         }*/
-
-
         Map<String, Object> attrs = new HashMap<>();
-
         if (StringUtils.hasText(searchJson)) {
             Gson gson = new Gson();
             if (!CommonUtils.isGoodJson(searchJson)) {
@@ -761,169 +750,148 @@ public class ProductFrontAction {
                 }
             }
         }
-
-        int count = productSearchService.countSearchWithKeys(StringUtils.nvl(searchKey), level1, level2, level3, productname, brand, cardnum, material,surfacetreatment, attrs,selfsupport, havestore,forwardtime,store);
-
-        List<Map> list = null;
-//        List<List<Map>> resultList = null;
-        Map<String, Set> resultGroupAttr = null;
-        Map<String, Set> resultGroupAttr2 = null;
-
+//        int count = productSearchService.countSearchWithKeys(StringUtils.nvl(searchKey), level1, level2, level3, productname, brand, cardnum, material,surfacetreatment, attrs,selfsupport, havestore,forwardtime,store);
         List<KeyValue> keyValues = new ArrayList<>();
-        if (count > 0) {
-            list = productSearchService.searchWithKeys(StringUtils.nvl(searchKey), level1, level2, level3, productname, brand, cardnum, material, surfacetreatment,attrs, start, pageSize,sorttype== null ? null :JinshangUtils.fastenSortType(sorttype),selfsupport, havestore,forwardtime,store);
+//        list = productSearchService.searchWithKeys(StringUtils.nvl(searchKey), level1, level2, level3, productname, brand, cardnum, material, surfacetreatment,attrs, start, pageSize,sorttype== null ? null :JinshangUtils.fastenSortType(sorttype),selfsupport, havestore,forwardtime,store);
+        Map<String,Object> data = productSearchService.search(StringUtils.nvl(searchKey), level1, level2, level3, productname, brand, cardnum, material, surfacetreatment,attrs, start, pageSize,sorttype== null ? null :JinshangUtils.fastenSortType(sorttype),selfsupport, havestore,forwardtime,store,null,AppConstant.FASTENER_PRO_TYPE);
+        int count = ((Long)data.get("total")).intValue();
+        List<Map<String,Object>> list = (List<Map<String,Object>>) data.get("list");
+        if (list != null && list.size() > 0) {
+            for (Map<String, Object> map : list) {
+                MemberRateSetting memberRateSetting = null;
+                if (member != null && map.get("membersettingstate") != null && map.get("membersettingstate").equals(1) && member.getGradleid() != null) {
+                    memberRateSetting = memberRateSettingService.getRecursiveSetting((Long) map.get("memberid"), (Long) map.get("level3id"), member.getGradleid());
+                }
+                if (memberRateSetting == null) {
+                    memberRateSetting = new MemberRateSetting();
+                    memberRateSetting.setRate(new BigDecimal(1));
+                }
+                List list1 = new ArrayList();
+                Map<String, Object> prodpriceMap = new HashMap<>();
+                Map<String, Object> threepriceMap = new HashMap<>();
+                Map<String, Object> ninetypriceMap = new HashMap<>();
+                Map<String, Object> thirtypriceMap = new HashMap<>();
+                Map<String, Object> sixtypriceMap = new HashMap<>();
 
-            if (list != null && list.size() > 0) {
-
-                for (Map<String, Object> map : list) {
-                    MemberRateSetting memberRateSetting = null;
-                    if (member != null && map.get("membersettingstate") != null && map.get("membersettingstate").equals(1) && member.getGradleid() != null) {
-                        memberRateSetting = memberRateSettingService.getRecursiveSetting((Long) map.get("memberid"), (Long) map.get("level3id"), member.getGradleid());
-                    }
-
-                    if (memberRateSetting == null) {
-                        memberRateSetting = new MemberRateSetting();
-                        memberRateSetting.setRate(new BigDecimal(1));
-                    }
-
-
-                    List list1 = new ArrayList();
-                    Map<String, Object> prodpriceMap = new HashMap<>();
-                    Map<String, Object> threepriceMap = new HashMap<>();
-                    Map<String, Object> ninetypriceMap = new HashMap<>();
-                    Map<String, Object> thirtypriceMap = new HashMap<>();
-                    Map<String, Object> sixtypriceMap = new HashMap<>();
-
-                    if (map.get("prodprice") != null && ((BigDecimal)map.get("prodprice")).compareTo(Quantity.BIG_DECIMAL_0) >0 ) {
-                        prodpriceMap.put("type", 0);
-                        prodpriceMap.put("name", Quantity.LIJIFAHUO);
-                        if(member != null) {
-                            prodpriceMap.put("price", ((BigDecimal) map.get("prodprice")).multiply(memberRateSetting.getRate()).setScale(5, BigDecimal.ROUND_HALF_UP));
-                        }else{
-                            prodpriceMap.put("price", ((BigDecimal) map.get("prodprice")).multiply(memberRateSetting.getRate()).setScale(5, BigDecimal.ROUND_HALF_UP));
-                        }
-                        list1.add(prodpriceMap);
-                    }
-
-
-                    if (map.get("thirtyprice") != null && ((BigDecimal)map.get("thirtyprice")).compareTo(Quantity.BIG_DECIMAL_0) >0) {
-                        thirtypriceMap.put("type", 30);
-                        thirtypriceMap.put("name", Quantity.SANSHITIANFAHUO);
-                        if(member != null) {
-                            thirtypriceMap.put("price", ((BigDecimal) map.get("thirtyprice")).multiply(memberRateSetting.getRate()).setScale(5, BigDecimal.ROUND_HALF_UP));
-                        }else{
-                            thirtypriceMap.put("price", ((BigDecimal) map.get("thirtyprice")).multiply(memberRateSetting.getRate()).setScale(5, BigDecimal.ROUND_HALF_UP));
-                        }
-                        list1.add(thirtypriceMap);
-                    }
-
-
-                    if (map.get("sixtyprice") != null && ((BigDecimal)map.get("sixtyprice")).compareTo(Quantity.BIG_DECIMAL_0) >0) {
-                        sixtypriceMap.put("type", 60);
-                        sixtypriceMap.put("name", Quantity.LIUSHITIANFAHUO);
-                        if(member != null) {
-                            sixtypriceMap.put("price", ((BigDecimal) map.get("sixtyprice")).multiply(memberRateSetting.getRate()).setScale(5, BigDecimal.ROUND_HALF_UP));
-                        }else{
-                            sixtypriceMap.put("price", ((BigDecimal) map.get("sixtyprice")).multiply(memberRateSetting.getRate()).setScale(5, BigDecimal.ROUND_HALF_UP));
-                        }
-
-                        list1.add(sixtypriceMap);
-                    }
-
-                    if (map.get("ninetyprice") != null && ((BigDecimal)map.get("ninetyprice")).compareTo(Quantity.BIG_DECIMAL_0) >0) {
-                        ninetypriceMap.put("type", 90);
-                        ninetypriceMap.put("name", Quantity.JIUSHITIANFAHUO);
-                        if(member != null) {
-                            ninetypriceMap.put("price", ((BigDecimal) map.get("ninetyprice")).multiply(memberRateSetting.getRate()).setScale(5, BigDecimal.ROUND_HALF_UP));
-                        }else{
-                            ninetypriceMap.put("price", ((BigDecimal) map.get("ninetyprice")).multiply(memberRateSetting.getRate()).setScale(5, BigDecimal.ROUND_HALF_UP));
-                        }
-                        list1.add(ninetypriceMap);
-                    }
-
-                    map.remove("threeprice");
-                    map.remove("thirtyprice");
-                    map.remove("sixtyprice");
-                    map.remove("ninetyprice");
-
-
+                if (map.get("prodprice") != null && (BigDecimal.valueOf((double)map.get("prodprice"))).compareTo(Quantity.BIG_DECIMAL_0) >0 ) {
+                    prodpriceMap.put("type", 0);
+                    prodpriceMap.put("name", Quantity.LIJIFAHUO);
                     if(member != null) {
-                        map.put("prices", list1);
-                        map.put("showprice",true);
+                        prodpriceMap.put("price", (BigDecimal.valueOf((double)map.get("prodprice"))).multiply(memberRateSetting.getRate()).setScale(5, BigDecimal.ROUND_HALF_UP));
                     }else{
-                        map.put("prices", list1);
-                        map.put("showprice",false);
+                        prodpriceMap.put("price", (BigDecimal.valueOf((double)map.get("prodprice"))).multiply(memberRateSetting.getRate()).setScale(5, BigDecimal.ROUND_HALF_UP));
+                    }
+                    list1.add(prodpriceMap);
+                }
+
+
+                if (map.get("thirtyprice") != null && (BigDecimal.valueOf((double)map.get("thirtyprice"))).compareTo(Quantity.BIG_DECIMAL_0) >0) {
+                    thirtypriceMap.put("type", 30);
+                    thirtypriceMap.put("name", Quantity.SANSHITIANFAHUO);
+                    if(member != null) {
+                        thirtypriceMap.put("price", (BigDecimal.valueOf((double)map.get("thirtyprice"))).multiply(memberRateSetting.getRate()).setScale(5, BigDecimal.ROUND_HALF_UP));
+                    }else{
+                        thirtypriceMap.put("price", (BigDecimal.valueOf((double)map.get("thirtyprice"))).multiply(memberRateSetting.getRate()).setScale(5, BigDecimal.ROUND_HALF_UP));
+                    }
+                    list1.add(thirtypriceMap);
+                }
+
+
+                if (map.get("sixtyprice") != null && (BigDecimal.valueOf((double)map.get("sixtyprice"))).compareTo(Quantity.BIG_DECIMAL_0) >0) {
+                    sixtypriceMap.put("type", 60);
+                    sixtypriceMap.put("name", Quantity.LIUSHITIANFAHUO);
+                    if(member != null) {
+                        sixtypriceMap.put("price", (BigDecimal.valueOf((double)map.get("sixtyprice"))).multiply(memberRateSetting.getRate()).setScale(5, BigDecimal.ROUND_HALF_UP));
+                    }else{
+                        sixtypriceMap.put("price", (BigDecimal.valueOf((double)map.get("sixtyprice"))).multiply(memberRateSetting.getRate()).setScale(5, BigDecimal.ROUND_HALF_UP));
                     }
 
-                    map.put("brandpic", map.get("pic"));
-                    map.remove("pic");
-
-                    //转换包装方式
-                    List packageList = JinshangUtils.toCovertPacking(StringUtils.nvl(map.get("packagetype")));
-                    map.put("packages", packageList);
-
-                    map.put("packageStr",JinshangUtils.packageToString((String)map.get("packagetype"),(BigDecimal)map.get("startnum"),(String) map.get("unit")));
-                }
-            }
-
-//            ProductGroup sort = new ProductGroup();
-//            resultList = sort.group(list);
-            List<Map> groupAttr = productSearchService.fetchSearchKeys(StringUtils.nvl(searchKey), level1, level2, level3, productname, brand, cardnum, material, surfacetreatment,attrs,selfsupport, havestore,forwardtime,store);
-
-
-            List<Map> groupAttr1 = new ArrayList<>();
-            if(attrs == null || attrs.size()== 0) {
-                groupAttr1 = productSearchService.fetchSearchAttrKeys(StringUtils.nvl(searchKey), level1, level2, level3, productname, brand, cardnum, material, surfacetreatment,attrs,selfsupport, havestore,forwardtime,store);
-            }else{
-                groupAttr1 = productSearchService.fetchSearchAttrKeysHashAttr(StringUtils.nvl(searchKey), level1, level2, level3, productname, brand, cardnum, material,surfacetreatment, attrs,selfsupport, havestore,forwardtime,store);
-            }
-
-            resultGroupAttr = productFrontService.groupAttr(groupAttr);
-
-            //在选择品名后,需要返回对应品名的所有属性条件作为筛选项
-            if(!StringUtils.hasText(productname)){
-                resultGroupAttr2 = productFrontService.groupAttrInAttr(groupAttr1);
-            }else{
-                resultGroupAttr2 = productFrontService.groupAttrInAttrbyProductname(groupAttr1);
-            }
-
-
-            resultGroupAttr.putAll(resultGroupAttr2);
-
-            Set<String> keySet = resultGroupAttr.keySet();
-            for (String key : keySet) {
-                KeyValue keyValue = new KeyValue();
-                keyValue.setKey(key);
-                keyValue.setValue(new ArrayList(resultGroupAttr.get(key)));
-                keyValue.setName(ProductSearchUtils.getName(key).replace("一级分类","大类")
-                .replace("二级分类","分类").replace("三级分类","标准"));
-                keyValue.setSort(ProductSearchUtils.getSort(key));
-
-                if(key.equals("长度")){
-                    keyValue.value.sort((String v1,String v2)->
-                        StringUtils.floatValue(v1) > StringUtils.floatValue(v2) ? 1 : -1
-                    );
+                    list1.add(sixtypriceMap);
                 }
 
-                if(key.equals("公称直径")){
-                    keyValue.value.sort((String::compareTo));
+                if (map.get("ninetyprice") != null && (BigDecimal.valueOf((double)map.get("ninetyprice"))).compareTo(Quantity.BIG_DECIMAL_0) >0) {
+                    ninetypriceMap.put("type", 90);
+                    ninetypriceMap.put("name", Quantity.JIUSHITIANFAHUO);
+                    if(member != null) {
+                        ninetypriceMap.put("price", (BigDecimal.valueOf((double)map.get("ninetyprice"))).multiply(memberRateSetting.getRate()).setScale(5, BigDecimal.ROUND_HALF_UP));
+                    }else{
+                        ninetypriceMap.put("price", (BigDecimal.valueOf((double)map.get("ninetyprice"))).multiply(memberRateSetting.getRate()).setScale(5, BigDecimal.ROUND_HALF_UP));
+                    }
+                    list1.add(ninetypriceMap);
                 }
 
+                map.remove("threeprice");
+                map.remove("thirtyprice");
+                map.remove("sixtyprice");
+                map.remove("ninetyprice");
 
-                if(key.equals("level1")){
-                    keyValue.value.sort((String v1, String v2) -> {return ProductSearchUtils.getBigSort(v1).compareTo(ProductSearchUtils.getBigSort(v2));
-                    });
+
+                if(member != null) {
+                    map.put("prices", list1);
+                    map.put("showprice",true);
+                }else{
+                    map.put("prices", list1);
+                    map.put("showprice",false);
                 }
 
-                keyValues.add(keyValue);
+                map.put("brandpic", map.get("pic"));
+                map.remove("pic");
 
+                //转换包装方式
+                List packageList = JinshangUtils.toCovertPacking(StringUtils.nvl(map.get("packagetype")));
+                map.put("packages", packageList);
 
+                map.put("packageStr",JinshangUtils.packageToString((String)map.get("packagetype"),BigDecimal.valueOf((double)map.get("startnum")),(String) map.get("unit")));
             }
         }
 
+        Map<String, List> resultGroupAttr = (Map<String, List>) data.get("aggs");
+        Map<String, List> resultGroupAttr2 = (Map<String, List>) data.get("aggs_attr");
+//        List<Map> groupAttr = productSearchService.fetchSearchKeys(StringUtils.nvl(searchKey), level1, level2, level3, productname, brand, cardnum, material, surfacetreatment,attrs,selfsupport, havestore,forwardtime,store);
+//        List<Map> groupAttr1 = new ArrayList<>();
+//        if(attrs == null || attrs.size()== 0) {
+//            groupAttr1 = productSearchService.fetchSearchAttrKeys(StringUtils.nvl(searchKey), level1, level2, level3, productname, brand, cardnum, material, surfacetreatment,attrs,selfsupport, havestore,forwardtime,store);
+//        }else{
+//            groupAttr1 = productSearchService.fetchSearchAttrKeysHashAttr(StringUtils.nvl(searchKey), level1, level2, level3, productname, brand, cardnum, material,surfacetreatment, attrs,selfsupport, havestore,forwardtime,store);
+//        }
+//        resultGroupAttr = productFrontService.groupAttr(groupAttr);
+
+        //在选择品名后,需要返回对应品名的所有属性条件作为筛选项
+//        if(!StringUtils.hasText(productname)){
+//            resultGroupAttr2 = productFrontService.groupAttrInAttr(groupAttr1);
+//        }else{
+//            resultGroupAttr2 = productFrontService.groupAttrInAttrbyProductname(groupAttr1);
+//        }
+        resultGroupAttr.putAll(resultGroupAttr2);
+
+        Set<String> keySet = resultGroupAttr.keySet();
+        for (String key : keySet) {
+            KeyValue keyValue = new KeyValue();
+            keyValue.setKey(key);
+            keyValue.setValue(new ArrayList(resultGroupAttr.get(key)));
+            keyValue.setName(ProductSearchUtils.getName(key).replace("一级分类","大类")
+            .replace("二级分类","分类").replace("三级分类","标准"));
+            keyValue.setSort(ProductSearchUtils.getSort(key));
+
+            if(key.equals("长度")){
+                keyValue.value.sort((String v1,String v2)->
+                    StringUtils.floatValue(v1) >= StringUtils.floatValue(v2) ? 1 : -1
+                );
+            }
+
+            if(key.equals("公称直径")){
+                keyValue.value.sort((String::compareTo));
+            }
+
+            if(key.equals("level1")){
+                keyValue.value.sort((String v1, String v2) -> {return ProductSearchUtils.getBigSort(v1).compareTo(ProductSearchUtils.getBigSort(v2));
+                });
+            }
+
+            keyValues.add(keyValue);
 
 
-
+        }
         keyValues.sort((KeyValue kv1,KeyValue kv2)->kv1.getSort().compareTo(kv2.getSort()));
         Page page = new Page();
         page.setPageNo(pageNo);
@@ -955,18 +923,19 @@ public class ProductFrontAction {
             @ApiImplicitParam(value = "排序方式  1=价格升序，2=价格降序", name = "sorttype", paramType = "query", dataType = "int"),
             @ApiImplicitParam(value = "搜索类型 0=生活类和工业品、1=工业品、2=生活类", name = "type", paramType = "query", dataType = "int"),
     })
-    public ProductListRet otherProdList(@RequestParam(required = true, defaultValue = "1") int pageNo,
-                                        @RequestParam(required = true, defaultValue = "20") int pageSize,
-                                        @RequestParam(required = false) String searchKey,
-                                        @RequestParam(required = false) String level1,
-                                        @RequestParam(required = false) String level2,
-                                        @RequestParam(required = false) String level3,
-                                        @RequestParam(required = false) String productname,
-                                        @RequestParam(required = false) String brand,
-                                        @RequestParam(required = false) String searchJson,
-                                        @RequestParam(required = false,defaultValue = "0") int sorttype,
-                                        @RequestParam(required = false,defaultValue = "0") int type,
-                                        Model model) {
+    public ProductListRet otherProdList(
+            @RequestParam(required = false, defaultValue = "1") int pageNo,
+            @RequestParam(required = false, defaultValue = "20") int pageSize,
+            @RequestParam(required = false) String searchKey,
+            @RequestParam(required = false) String level1,
+            @RequestParam(required = false) String level2,
+            @RequestParam(required = false) String level3,
+            @RequestParam(required = false) String productname,
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false) String searchJson,
+            @RequestParam(required = false,defaultValue = "0") int sorttype,
+            @RequestParam(required = false,defaultValue = "0") int type,
+            Model model) {
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
 
         if(member != null){
@@ -999,29 +968,20 @@ public class ProductFrontAction {
             }
         }
 
-        int count = productSearchService.otherProdCountSearchWithKeys(StringUtils.nvl(searchKey), level1, level2, level3, productname, brand, attrs,type);
-
-        List<Map> list = null;
-        List<List<Map>> resultList = null;
-        Map<String, Set> resultGroupAttr = null;
-        Map<String, Set> resultGroupAttr2 = null;
-
         List<KeyValue> keyValues = new ArrayList<>();
+//        list = productSearchService.searchWithKeys(StringUtils.nvl(searchKey), level1, level2, level3, productname, brand, cardnum, material, surfacetreatment,attrs, start, pageSize,sorttype== null ? null :JinshangUtils.fastenSortType(sorttype),selfsupport, havestore,forwardtime,store);
+        Map<String,Object> data = productSearchService.search(StringUtils.nvl(searchKey), level1, level2, level3, productname, brand, null, null, null,attrs, start, pageSize,null,null, null,null,null,type,AppConstant.OTHER_PRO_TYPE);
+        int count = ((Long)data.get("total")).intValue();
+        List<Map<String,Object>> list = (List<Map<String,Object>>) data.get("list");
         if (count > 0) {
-            list = productSearchService.otherProdSearchWithKeys(StringUtils.nvl(searchKey), level1, level2, level3, productname, brand, attrs, pageNo, pageSize,JinshangUtils.otherProdSortType(sorttype),type);
-
-
-
-
-
-
-
-
-            List<Map> groupAttr = productSearchService.otherProdFetchSearchKeys(StringUtils.nvl(searchKey), level1, level2, level3, productname, brand, attrs,type);
-            List<Map> groupAttr1 = productSearchService.otherProdFetchSearchAttrKeys(StringUtils.nvl(searchKey), level1, level2, level3, productname, brand, attrs,type);
-
-            resultGroupAttr = productFrontService.groupAttr(groupAttr);
-            resultGroupAttr2 = productFrontService.groupAttrInAttr(groupAttr1);
+//            list = productSearchService.otherProdSearchWithKeys(StringUtils.nvl(searchKey), level1, level2, level3, productname, brand, attrs, pageNo, pageSize,JinshangUtils.otherProdSortType(sorttype),type);
+//            List<Map> groupAttr = productSearchService.otherProdFetchSearchKeys(StringUtils.nvl(searchKey), level1, level2, level3, productname, brand, attrs,type);
+//            List<Map> groupAttr1 = productSearchService.otherProdFetchSearchAttrKeys(StringUtils.nvl(searchKey), level1, level2, level3, productname, brand, attrs,type);
+//
+//            resultGroupAttr = productFrontService.groupAttr(groupAttr);
+//            resultGroupAttr2 = productFrontService.groupAttrInAttr(groupAttr1);
+            Map<String, List> resultGroupAttr = (Map<String, List>) data.get("aggs");
+            Map<String, List> resultGroupAttr2 = (Map<String, List>) data.get("aggs_attr");
             resultGroupAttr.putAll(resultGroupAttr2);
 
             Set<String> keySet = resultGroupAttr.keySet();
@@ -1032,12 +992,9 @@ public class ProductFrontAction {
                 keyValue.setValue(new ArrayList(resultGroupAttr.get(key)));
                 keyValue.setName(ProductSearchUtils.getName(key));
                 keyValue.setSort(ProductSearchUtils.getSort(key));
-
                 keyValues.add(keyValue);
             }
-
         }
-
         keyValues.sort((KeyValue kv1,KeyValue kv2)->kv1.getSort().compareTo(kv2.getSort()));
 
 
@@ -1047,7 +1004,6 @@ public class ProductFrontAction {
         page.setTotalRows(count);
         page.setList(list);
         page.setTotalPages(count > 0 ? (count - 1) / pageSize + 1 : 0);
-
         productListRet.data.pageInfo = page;
         productListRet.data.keyValues = keyValues;
 

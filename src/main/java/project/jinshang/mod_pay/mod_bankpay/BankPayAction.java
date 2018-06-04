@@ -18,10 +18,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.exception.CashException;
+import project.jinshang.common.utils.StringUtils;
+import project.jinshang.mod_pay.bean.PayLogs;
 import project.jinshang.mod_pay.bean.Trade;
 import project.jinshang.mod_pay.bean.ret.PayUrlRet;
+import project.jinshang.mod_pay.service.PayLogsService;
 import project.jinshang.mod_pay.service.TradeService;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -127,6 +131,10 @@ public class BankPayAction {
         return ret;
     }
 
+
+    @Resource
+    private PayLogsService payLogsService;
+
     @RequestMapping(value="/notify",method= {RequestMethod.POST, RequestMethod.GET})
     public String notify(HttpServletRequest request) throws TrxException {
 
@@ -135,7 +143,8 @@ public class BankPayAction {
         //2、判断支付结果处理状态，进行后续操作
         // 展示给用户的结果url todo ??
         String tMerchantPage = webConfBean.getProjectDomainMain();
-        logger.info("abc:   "+tResult.isSuccess());
+        logger.error("abc: "+tResult.isSuccess());
+
 //        if (tResult.isSuccess()) {
 //            //3、支付成功并且验签、解析成功
 //            tMerchantPage = "http://120.27.226.95";
@@ -148,6 +157,19 @@ public class BankPayAction {
 
         String orderNo = tResult.getValue("OrderNo");
         String[] orderNo_array = orderNo.split("-");
+
+        String total_amount = tResult.getValue("OrderAmount");
+        if(StringUtils.hasText(total_amount) && StringUtils.isNumeric(total_amount)){
+            PayLogs payLogs = new PayLogs();
+            payLogs.setTransactionid("");
+            payLogs.setOuttradeno(orderNo);
+            payLogs.setMoney(new BigDecimal(total_amount).setScale(2,BigDecimal.ROUND_HALF_UP));
+            payLogs.setCreatetime(new Date());
+            payLogs.setChannel("bank");
+            payLogsService.insertSelective(payLogs);
+        }
+
+
         boolean res = false;
         if(orderNo_array.length==2){
             if(orderNo_array[0].equals("order")){

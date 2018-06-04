@@ -38,7 +38,12 @@ public class BuyerCapitalAccountDto {
     private String payno;
     @ApiModelProperty(notes = "备注")
     private String remark;
-
+    @ApiModelProperty(notes = "状态0=待处理1=成功2=失败3=待审核4=审核通过5=审核不通过")
+    private Short rechargestate;
+    @ApiModelProperty(notes = "会员名称")
+    private String username;
+    @ApiModelProperty(notes = "充值平台0=微信1=支付宝2=线下平台3=银行卡")
+    private Short rechargeperform;
     public Date getTradetime() {
         return tradetime;
     }
@@ -141,5 +146,29 @@ public class BuyerCapitalAccountDto {
 
     public void setCapitaltypename(String capitaltypename) {
         this.capitaltypename = capitaltypename;
+    }
+
+    public Short getRechargestate() {
+        return rechargestate;
+    }
+
+    public void setRechargestate(Short rechargestate) {
+        this.rechargestate = rechargestate;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public Short getRechargeperform() {
+        return rechargeperform;
+    }
+
+    public void setRechargeperform(Short rechargeperform) {
+        this.rechargeperform = rechargeperform;
     }
 }

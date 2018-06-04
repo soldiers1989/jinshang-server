@@ -593,7 +593,7 @@ public class JinshangUtils {
 
 
 
-
+    /** 固定格式 sortname+空格+orderType */
     public  static String fastenSortType(Integer sorttype){
        String type = "";
        if(sorttype == 0){
@@ -603,8 +603,6 @@ public class JinshangUtils {
        }
        return  type;
    }
-
-
 
     public  static String otherProdSortType(int sorttype){
         String type = "";

@@ -61,6 +61,14 @@ public class NlpUtils {
         return tranlatePGVector(keys);
     }
 
+    public String seqForVectorNoSynonym(String... origin){
+        for(int i=0;i<origin.length;i++) {
+            if(origin[i]==null) origin[i]="";
+        }
+        List<String> keys = seq_hanlp(origin);
+        return tranlatePGVector(keys);
+    }
+
     /**
      * seq for pgsql tsquery , or关系. for 查询字段
      */

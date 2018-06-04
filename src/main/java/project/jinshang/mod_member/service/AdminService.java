@@ -61,7 +61,6 @@ public class AdminService {
         if(list != null && list.size()==1){
             return  list.get(0);
         }
-
         return  null;
     }
 
@@ -102,5 +101,10 @@ public class AdminService {
     public  List<Admin> getAdminByRoles(String roles){
         return  adminMapper.getAdminByRoles(roles);
     }
+    public  List<Admin> findAdminList(){
+        return  adminMapper.findAdminList();
+    }
+
+
 
 }

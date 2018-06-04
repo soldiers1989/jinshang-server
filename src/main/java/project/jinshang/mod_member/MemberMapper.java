@@ -274,4 +274,39 @@ public interface MemberMapper {
             "</script>")
     List<Map<String,Object>> findAllMemberList();
 
+
+    @Select("<script>SELECT m.id,m.username,m.realname,b.companyname,m.mobile,m.clerkname  FROM  member m left join buyercompanyinfo b on m.id=b.memberid where 1=1 " +
+            "<if test='id != null and id != \"\" '>AND m.id=#{id}</if>"+
+            "<if test='companyname != null and companyname != \"\"'>AND b.companyname LIKE CONCAT('%',#{companyname,jdbcType=VARCHAR},'%')</if>"+
+            "<if test='realname != null and realname != \"\"'>AND m.realname LIKE CONCAT('%',#{realname,jdbcType=VARCHAR},'%')</if>"+
+            "<if test='mobile != null and mobile != \"\"'>AND m.mobile LIKE CONCAT('%',#{mobile,jdbcType=VARCHAR},'%')</if>"+
+            "</script>")
+    List<MemberAdminViewDto> findNotAddMembers(@Param("id") Long id,@Param("companyname") String companyname,@Param("realname") String realname,@Param("mobile") String mobile);
+
+
+    @Select("<script>SELECT m.id,m.username,m.realname,b.companyname,m.mobile FROM  member m left join buyercompanyinfo b on m.id=b.memberid where 1=1 " +
+            "<if test='id != null and id != \"\" '>AND m.id=#{id}</if>"+
+            "<if test='companyname != null and companyname != \"\"'>AND b.companyname LIKE CONCAT('%',#{companyname,jdbcType=VARCHAR},'%')</if>"+
+            "<if test='realname != null and realname != \"\"'>AND m.realname LIKE CONCAT('%',#{realname,jdbcType=VARCHAR},'%')</if>"+
+            "<if test='mobile != null and mobile != \"\"'>AND m.mobile LIKE CONCAT('%',#{mobile,jdbcType=VARCHAR},'%')</if>"+
+            "and m.id IN(SELECT userid FROM adminuser where  adminid=#{adminid})"+
+            "</script>")
+    List<MemberAdminViewDto> findManageMemberList(@Param("id") Long id,@Param("companyname") String companyname,@Param("realname") String realname,@Param("mobile") String mobile,@Param("adminid") Long adminid);
+
+
+    @Select("<script>SELECT DISTINCT BG.invoiceheadup,m.id,m.username,m.realname,b.companyname,m.mobile  FROM  member m left join buyercompanyinfo b on m.id=b.memberid LEFT JOIN billingrecord BG ON m.id=BG.memberid where 1=1 " +
+            "<if test='username != null and username != \"\" '>AND m.username LIKE CONCAT('%',#{username,jdbcType=VARCHAR},'%')</if>"+
+            "<if test='companyname != null and companyname != \"\"'>AND b.companyname LIKE CONCAT('%',#{companyname,jdbcType=VARCHAR},'%')</if>"+
+            "<if test='realname != null and realname != \"\"'>AND m.realname LIKE CONCAT('%',#{realname,jdbcType=VARCHAR},'%')</if>"+
+            "<if test='mobile != null and mobile != \"\"'>AND m.mobile LIKE CONCAT('%',#{mobile,jdbcType=VARCHAR},'%')</if>"+
+            "<if test='invoiceheadup !=null and invoiceheadup != \"\"'>AND BG.invoiceheadup LIKE CONCAT('%',#{invoiceheadup,jdbcType=VARCHAR},'%')</if>"+
+            "</script>")
+    List<Map<String,Object>> findMembersByFuzzy(@Param("username") String username,@Param("companyname") String companyname,@Param("realname") String realname,@Param("mobile") String mobile,@Param("invoiceheadup") String invoiceheadup);
+
+    @Update("update member set clerkname=#{clerkname}where id=#{id}")
+    int  updateMemberClerknameByid(@Param("id") Long id,@Param("clerkname") String clerkname);
+
+
+
+
 }

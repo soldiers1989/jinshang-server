@@ -44,7 +44,10 @@ import project.jinshang.mod_company.bean.BuyerCompanyInfo;
 import project.jinshang.mod_company.service.AgentDeliveryAddressService;
 import project.jinshang.mod_company.service.BuyerCompanyService;
 import project.jinshang.mod_member.bean.Admin;
+import project.jinshang.mod_member.bean.AdminUser;
 import project.jinshang.mod_member.bean.Member;
+import project.jinshang.mod_member.service.AdminService;
+import project.jinshang.mod_member.service.AdminUserService;
 import project.jinshang.mod_member.service.MemberRateSettingService;
 import project.jinshang.mod_member.service.MemberService;
 import project.jinshang.mod_pay.bean.Refund;
@@ -140,7 +143,13 @@ public class SellerOrdersAction {
 
     @Autowired
     private OrderProductBackInfoService orderProductBackInfoService;
-
+    //2018年6月1日14:09:57
+    //添加业务员信息
+    @Autowired
+    private AdminUserService adminUserService;
+    //添加业务员信息
+    @Autowired
+    private AdminService adminService;
 
     //远期全款打折率
     private static final BigDecimal allPayRate = new BigDecimal(0.99);
@@ -592,8 +601,14 @@ public class SellerOrdersAction {
                     }
                 }
             }
-
-            orders.setOrderProducts(orderProductList);
+            //取消时间：2018年6月2日10:08:44 原因:直接添加到订单保存数据库了
+//            orders.setOrderProducts(orderProductList);
+//            AdminUser AdminUser = adminUserService.getAdminUserByUserid(orders.getMemberid());
+//            if (AdminUser != null) {
+//                Admin admin = adminService.getById(AdminUser.getAdminid());
+//                orders.setClerkname(admin.getRealname());
+//                orders.setClerknamePhone(admin.getMobile());
+//            }
         }
 
         ordersRet.getData().setOrdersList(list);
@@ -616,7 +631,13 @@ public class SellerOrdersAction {
         orderCarRet.setMessage("返回成功");
         orderCarRet.setResult(BasicRet.SUCCESS);
         Orders orders = ordersService.getOrdersByOrderNo(orderno);
-
+      //取消时间：2018年6月2日10:08:44 原因:直接添加到订单保存数据库了
+//        AdminUser AdminUser = adminUserService.getAdminUserByUserid(orders.getMemberid());
+//        if (AdminUser != null) {
+//            Admin admin = adminService.getById(AdminUser.getAdminid());
+//            orders.setClerkname(admin.getRealname());
+//            orders.setClerknamePhone(admin.getMobile());
+//        }
         if(orders.getDeliverytype() == 1){  //如果是代理发货，设置为代理发货地址
 //            AgentDeliveryAddress agentDeliveryAddress = agentDeliveryAddressService.getBySellerid(orders.getSaleid());
 //            if(agentDeliveryAddress != null){
@@ -1355,7 +1376,7 @@ public class SellerOrdersAction {
                                     result = abcService.refund(refund);
                                 }
                             }catch (Exception e){
-
+                                logger.error("退款失败",e);
                             }
 
                             //System.out.println("退货通道："+refund.getChannel()+"退货结果："+result);
@@ -1371,6 +1392,7 @@ public class SellerOrdersAction {
                                 buyerCapitals.add(buyerCapital1);
                                 salerCapitals.add(salerCapital1);
                             }else{
+
                                 throw  new RuntimeException("退款失败");
                             }
                         }
@@ -2910,7 +2932,7 @@ public class SellerOrdersAction {
         totalPrice.setScale(2,BigDecimal.ROUND_HALF_UP);
 
         //退款金额
-        BigDecimal backMoney = orderTotalprice.subtract(totalPrice);
+        BigDecimal backMoney = orderTotalprice.subtract(totalPrice).setScale(2,BigDecimal.ROUND_HALF_UP);
 
 
         /**

@@ -8,8 +8,11 @@ import mizuki.project.core.restserver.modules.oss_ali.AliOssModConfig;
 import mizuki.project.core.restserver.modules.session.SpringSessionConfig;
 import mizuki.project.core.restserver.modules.sms.SmsModConfig;
 import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import project.jinshang.mod_product.service.ProductSearchService;
+import project.jinshang.mod_product.service.ProductSearchServiceImplEs;
 
 /**
  * Created by ycj on 2017/3/12.
@@ -34,5 +37,10 @@ import org.springframework.context.annotation.Import;
         "mizuki.project.core.restserver"
 })
 public class RestCoreConfig {
+
+    @Bean
+    public ProductSearchService productSearchService(){
+        return new ProductSearchServiceImplEs();
+    }
 
 }

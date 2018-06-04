@@ -15,16 +15,19 @@ import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.utils.CommonUtils;
 import project.jinshang.common.utils.ProductCategoryUtils;
 import project.jinshang.common.utils.StringUtils;
+import project.jinshang.mod_admin.mod_floor.bean.FloorViewDto;
 import project.jinshang.mod_admin.mod_showcategory.bean.ShowCate;
 import project.jinshang.mod_admin.mod_showcategory.bean.ShowCatedetail;
 import project.jinshang.mod_admin.mod_showcategory.bean.dto.ShowCateView;
 import project.jinshang.mod_admin.mod_showcategory.bean.dto.ShowCategory;
 import project.jinshang.mod_admin.mod_showcategory.service.ShowCategoryDetailService;
 import project.jinshang.mod_admin.mod_showcategory.service.ShowCategoryService;
+import project.jinshang.mod_front.bean.ShowCateFrontView;
 import project.jinshang.mod_member.bean.Admin;
 import project.jinshang.mod_product.bean.Categories;
 import project.jinshang.mod_product.service.CategoriesService;
 import project.jinshang.mod_product.service.MemberOperateLogService;
+import project.jinshang.mod_system.mod_redis.service.RedisCacheService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
@@ -56,6 +59,9 @@ public class ShowCategoryAdminAction {
 
     @Autowired
     MemberOperateLogService memberOperateLogService;
+
+    @Autowired
+    private RedisCacheService redisCacheService;
 
 
     @PostMapping("/addcate")
@@ -120,6 +126,8 @@ public class ShowCategoryAdminAction {
             showCategoryDetailService.insertSelective(detail);
         }
         memberLogOperator.saveMemberLog(null, admin, "添加展示类目:" + type, request, memberOperateLogService);
+        //List<ShowCateFrontView> list = redisCacheService.addShowCate();
+        //List<FloorViewDto> dtoList = redisCacheService.addIndexFloor();
         return new BasicRet(BasicRet.SUCCESS, "添加成功");
     }
 
@@ -194,6 +202,8 @@ public class ShowCategoryAdminAction {
             showCategoryDetailService.insertSelective(detail);
         }
         memberLogOperator.saveMemberLog(null, admin, "修改展示类目:" + type, request, memberOperateLogService);
+        //List<ShowCateFrontView> list = redisCacheService.addShowCate();
+        //List<FloorViewDto> dtoList = redisCacheService.addIndexFloor();
         return new BasicRet(BasicRet.SUCCESS, "添加成功");
     }
 
@@ -209,6 +219,8 @@ public class ShowCategoryAdminAction {
         showCategoryService.delCate(id);
         showCategoryDetailService.delByShowId(id);
         memberLogOperator.saveMemberLog(null, admin, "删除展示类目:" + showCate.getType(), request, memberOperateLogService);
+        //List<ShowCateFrontView> list = redisCacheService.addShowCate();
+        //List<FloorViewDto> dtoList = redisCacheService.addIndexFloor();
         return new BasicRet(BasicRet.SUCCESS, "删除成功");
     }
 

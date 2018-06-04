@@ -44,9 +44,9 @@ import project.jinshang.mod_company.bean.AgentDeliveryAddress;
 import project.jinshang.mod_company.bean.SellerCompanyInfo;
 import project.jinshang.mod_company.service.SellerCompanyInfoService;
 import project.jinshang.mod_invoice.bean.InvoiceInfo;
-import project.jinshang.mod_member.bean.Member;
-import project.jinshang.mod_member.bean.MemberRateSetting;
-import project.jinshang.mod_member.bean.SellerCategory;
+import project.jinshang.mod_member.bean.*;
+import project.jinshang.mod_member.service.AdminService;
+import project.jinshang.mod_member.service.AdminUserService;
 import project.jinshang.mod_member.service.MemberRateSettingService;
 import project.jinshang.mod_member.service.MemberService;
 import project.jinshang.mod_pay.bean.Refund;
@@ -123,14 +123,14 @@ public class OrdersAction {
 
 
     @Autowired
-    private  OrderProductBackService orderProductBackService;
+    private OrderProductBackService orderProductBackService;
 
 
     @Autowired
-    private  ProductStoreService productStoreService;
+    private ProductStoreService productStoreService;
 
     @Autowired
-    private  OrderProductServices orderProductServices;
+    private OrderProductServices orderProductServices;
 
 
     @Autowired
@@ -160,7 +160,13 @@ public class OrdersAction {
 
     private String lock = new String("lock");
 
-
+    //2018年6月1日14:09:57
+    //添加业务员信息
+    @Autowired
+    private AdminUserService adminUserService;
+    //添加业务员信息
+    @Autowired
+    private AdminService adminService;
 
     /**
      * 买家获取收货地址
@@ -184,6 +190,7 @@ public class OrdersAction {
 
     /**
      * 单件商品买家提交订单
+     *
      * @param model
      * @param billingRecord
      * @param orders
@@ -221,10 +228,10 @@ public class OrdersAction {
         OrderCarRet basicRet = new OrderCarRet();
 
         //判断收货地址
-        if(!StringUtils.hasText(orders.getProvince()) || !StringUtils.hasText(orders.getCity()) || !StringUtils.hasText(orders.getArea()) || !StringUtils.hasText(orders.getReceivingaddress())){
+        if (!StringUtils.hasText(orders.getProvince()) || !StringUtils.hasText(orders.getCity()) || !StringUtils.hasText(orders.getArea()) || !StringUtils.hasText(orders.getReceivingaddress())) {
             basicRet.setMessage("请填写收货地址");
             basicRet.setResult(BasicRet.ERR);
-            return  basicRet;
+            return basicRet;
         }
 
         OrderProductLog orderProductLog = new OrderProductLog();
@@ -246,16 +253,15 @@ public class OrdersAction {
         orderProductLog.setProductattrjson(GsonUtils.toJson(productAttrs));
 
 
-
         if (orders.getIsonline() == Quantity.STATE_0) {  //普通订单
             ProductInfo productInfo = ordersService.getProductInfoByPrimeKey(orderProduct.getPdid());
 
-            if(productInfo == null){
-                return new BasicRet(BasicRet.ERR,"商品不存在");
+            if (productInfo == null) {
+                return new BasicRet(BasicRet.ERR, "商品不存在");
             }
 
-            if(productInfo.getPdstate() != Quantity.STATE_4){
-                return  new BasicRet(BasicRet.ERR,"商品处于下架状态");
+            if (productInfo.getPdstate() != Quantity.STATE_4) {
+                return new BasicRet(BasicRet.ERR, "商品处于下架状态");
             }
 
             //判断买家卖家是否是同一家
@@ -265,7 +271,7 @@ public class OrdersAction {
                 return basicRet;
             }
 
-            ProductStore productStore = shopCarService.getProductStore(orderProduct.getPdid(), orderProduct.getPdno(),orderProduct.getStoreid());
+            ProductStore productStore = shopCarService.getProductStore(orderProduct.getPdid(), orderProduct.getPdno(), orderProduct.getStoreid());
             Brand brand = shopCarService.getBrandById(productInfo.getBrandid());
 
             if (productInfo != null && productStore != null && brand != null) {
@@ -349,7 +355,6 @@ public class OrdersAction {
                 }
 
 
-
                 //计算运费
                 BigDecimal figtht = ordersService.countSinglePdFight(productInfo, productStore, orders.getProvince(), orders.getCity(), convertNum);
                 orderProduct.setFreight(figtht);
@@ -414,13 +419,13 @@ public class OrdersAction {
                 //获取公司名称
                 SellerCompanyInfo sellerCompanyInfo = sellerCompanyInfoService.getSellerCompanyByMemberid(orderProduct.getSellerid());
                 if (sellerCompanyInfo == null) {
-                    throw  new RuntimeException("卖家不存在");
+                    throw new RuntimeException("卖家不存在");
                 }
 
                 orders.setMembercompany(sellerCompanyInfo.getCompanyname());
                 orders.setShopname(sellerCompanyInfo.getShopname());
                 //发货模式为平台代发
-                if(sellerCompanyInfo.getDeliverymode() == Quantity.STATE_1){
+                if (sellerCompanyInfo.getDeliverymode() == Quantity.STATE_1) {
                     orders.setDeliverytype(Quantity.STATE_1);
                 }
 
@@ -441,6 +446,16 @@ public class OrdersAction {
                 //仓库名称
                 orders.setStorename(orderProduct.getStorename());
                 orders.setCreatetime(new Date());
+
+                //查询是否有业务员
+                AdminUser AdminUser = adminUserService.getAdminUserByUserid(member.getId());
+                if (AdminUser != null) {
+                    //添加业务员/业务员联系方式
+                    Admin admin = adminService.getById(AdminUser.getAdminid());
+                    orders.setClerkname(admin.getRealname());
+                    orders.setClerknamephone(admin.getMobile());
+                }
+
                 ordersService.insertOrders(orders);
                 orderProduct.setOrderid(orders.getId());
                 ordersService.insertOrderProduct(orderProduct);
@@ -486,7 +501,7 @@ public class OrdersAction {
 
 
                 List<String> ordernoList = new ArrayList<>();
-                ordersList.forEach(o->ordernoList.add(o.getOrderno()));
+                ordersList.forEach(o -> ordernoList.add(o.getOrderno()));
                 //提前计算出该订单及该订单商品的佣金
                 ordersService.jisuanOrdersBreakPay(ordernoList);
 
@@ -515,7 +530,7 @@ public class OrdersAction {
                 basicRet.setMessage("没有该商品");
                 return basicRet;
             }
-        }else if (orders.getIsonline() == Quantity.STATE_2) {  ////限时购
+        } else if (orders.getIsonline() == Quantity.STATE_2) {  ////限时购
             LimitTimeProd prod = shopCarService.getLimitTimeProd(orderProduct.getPdid(), orderProduct.getLimitid());
             //判断活动是否开始
             Date startTime = prod.getBegintime();
@@ -547,15 +562,14 @@ public class OrdersAction {
 
 
                 //查询订单商品，查看是否之前有买过该限时购的商品
-                BigDecimal buyTotalNum = orderProductServices.getTotalNumByLimitid(member.getId(),orderProduct.getLimitid());
-                buyTotalNum = buyTotalNum==null ? new BigDecimal(0) : buyTotalNum;
+                BigDecimal buyTotalNum = orderProductServices.getTotalNumByLimitid(member.getId(), orderProduct.getLimitid());
+                buyTotalNum = buyTotalNum == null ? new BigDecimal(0) : buyTotalNum;
 
-                if(prod.getBuylimit().compareTo(buyTotalNum.add(orderProduct.getNum())) == -1){
-                    basicRet.setMessage("您本次最多可购买"+prod.getBuylimit().subtract(buyTotalNum)+orderProduct.getUnit());
+                if (prod.getBuylimit().compareTo(buyTotalNum.add(orderProduct.getNum())) == -1) {
+                    basicRet.setMessage("您本次最多可购买" + prod.getBuylimit().subtract(buyTotalNum) + orderProduct.getUnit());
                     basicRet.setResult(BasicRet.ERR);
-                    return  basicRet;
+                    return basicRet;
                 }
-
 
 
                 LimitTimeStore limitTimeStore = shopCarService.getLimitTimeStore(orderProduct.getLimitid(), orderProduct.getPdid(), orderProduct.getPdno());
@@ -573,10 +587,10 @@ public class OrdersAction {
                 //limitTimeStore.setSalesnum(limitTimeStore.getSalesnum().add(orderProduct.getNum()));
                 //shopCarService.updateLimitTimeStore(limitTimeStore);
                 //替换上面的代码块
-                limitTimeStoreService.updateLimitStoreNum(limitTimeStore.getId(),orderProduct.getNum().multiply(new BigDecimal(-1)),orderProduct.getNum());
+                limitTimeStoreService.updateLimitStoreNum(limitTimeStore.getId(), orderProduct.getNum().multiply(new BigDecimal(-1)), orderProduct.getNum());
 
                 LimitTimeStore newLimitStore = limitTimeStoreService.selectByPrimaryKey(limitTimeStore.getId());
-                if(newLimitStore == null || newLimitStore.getStorenum().compareTo(new BigDecimal(0))==-1){
+                if (newLimitStore == null || newLimitStore.getStorenum().compareTo(new BigDecimal(0)) == -1) {
                     throw new Exception("库存不足");
                 }
 
@@ -584,7 +598,7 @@ public class OrdersAction {
                 //prod.setSalestotalnum(prod.getSalestotalnum().add(orderProduct.getNum()));
                 //shopCarService.updateLimitTimeProd(prod);
                 //更新总的销量
-                limitTimeProdService.updateSalestotalnumInDB(prod.getId(),orderProduct.getNum());
+                limitTimeProdService.updateSalestotalnumInDB(prod.getId(), orderProduct.getNum());
 
 
                 //商品基本属性
@@ -681,12 +695,12 @@ public class OrdersAction {
                 //获取公司名称
                 SellerCompanyInfo sellerCompanyInfo = sellerCompanyInfoService.getSellerCompanyByMemberid(orderProduct.getSellerid());
                 if (sellerCompanyInfo == null) {
-                   throw  new RuntimeException("卖家不存在");
+                    throw new RuntimeException("卖家不存在");
                 }
 
                 orders.setMembercompany(sellerCompanyInfo.getCompanyname());
                 orders.setShopname(sellerCompanyInfo.getShopname());
-                if(sellerCompanyInfo.getDeliverymode() == Quantity.STATE_1){
+                if (sellerCompanyInfo.getDeliverymode() == Quantity.STATE_1) {
                     orders.setDeliverytype(Quantity.STATE_1);
                 }
 
@@ -702,7 +716,7 @@ public class OrdersAction {
                 //合同编号
                 orders.setCode(GenerateNo.getContractNo());
 //                ProductStore productStore = shopCarService.getProductStore(orderProduct.getPdid(), orderProduct.getPdno(),orderProduct.getStoreid());
-                ProductStore productStore = productStoreService.getByPdidAndPdno(orderProduct.getPdid(),orderProduct.getPdno());
+                ProductStore productStore = productStoreService.getByPdidAndPdno(orderProduct.getPdid(), orderProduct.getPdno());
                 //仓库id
                 orders.setStoreid(productStore.getStoreid());
                 //仓库名称
@@ -752,7 +766,7 @@ public class OrdersAction {
 
 
                 List<String> ordernoList = new ArrayList<>();
-                ordersList.forEach(o->ordernoList.add(o.getOrderno()));
+                ordersList.forEach(o -> ordernoList.add(o.getOrderno()));
                 //提前计算出该订单及该订单商品的佣金
                 ordersService.jisuanOrdersBreakPay(ordernoList);
 
@@ -888,19 +902,19 @@ public class OrdersAction {
     }
 
 
-    private boolean checkBuyNum(BigDecimal buynum,BigDecimal minplus){
+    private boolean checkBuyNum(BigDecimal buynum, BigDecimal minplus) {
         try {
             BigDecimal a = buynum.divide(minplus);
 
             //System.out.println(a.intValue());
 
-            if(new BigDecimal(a.intValue()).compareTo(a) != 0){
+            if (new BigDecimal(a.intValue()).compareTo(a) != 0) {
                 return false;
             }
 
-            return  true;
+            return true;
         } catch (Exception e) {
-            return  false;
+            return false;
         }
     }
 
@@ -933,7 +947,7 @@ public class OrdersAction {
     })
     public BasicRet submitOrders(
             Model model, BillingRecord billingRecord,
-            Orders orders, String ids,String mailornotPidArray,
+            Orders orders, String ids, String mailornotPidArray,
             HttpServletRequest request) throws Exception {
 
         OrderCarRet basicRet = new OrderCarRet();
@@ -949,7 +963,7 @@ public class OrdersAction {
             longIds.add(Long.parseLong(id));
         }
 
-        List<Long> mailornotPids = (List<Long>) JsonUtil.toObject(mailornotPidArray,List.class);
+        List<Long> mailornotPids = (List<Long>) JsonUtil.toObject(mailornotPidArray, List.class);
 
         //定义订单拆分map
         Map<String, List<ShopCar>> opMap = new TreeMap<String, List<ShopCar>>();
@@ -970,7 +984,7 @@ public class OrdersAction {
 
             if (orders.getIsonline() == Quantity.STATE_0) {
                 //更新库存
-                ProductStore productStore = ordersService.getProductStore(pdid,pdno ,storeid);
+                ProductStore productStore = ordersService.getProductStore(pdid, pdno, storeid);
                 if (productStore != null) {
                     BigDecimal storeNum = productStore.getPdstorenum();
                     if (convertNum.compareTo(storeNum) == Quantity.STATE_1) {
@@ -978,9 +992,9 @@ public class OrdersAction {
                     }
 
 
-                    if(productStore.getMinplus() != null && productStore.getMinplus().compareTo(Quantity.BIG_DECIMAL_0)>0){
-                        if(!this.checkBuyNum(convertNum,productStore.getMinplus())){
-                            throw  new RuntimeException("购买量必须是加购量的倍数");
+                    if (productStore.getMinplus() != null && productStore.getMinplus().compareTo(Quantity.BIG_DECIMAL_0) > 0) {
+                        if (!this.checkBuyNum(convertNum, productStore.getMinplus())) {
+                            throw new RuntimeException("购买量必须是加购量的倍数");
                         }
                     }
 
@@ -1006,7 +1020,7 @@ public class OrdersAction {
 //                    basicRet.setResult(BasicRet.ERR);
 //                    basicRet.setMessage("没有该商品");
 //                    return basicRet;
-                    throw  new RuntimeException("没有该商品");
+                    throw new RuntimeException("没有该商品");
                 }
             }
             //限时购
@@ -1018,30 +1032,30 @@ public class OrdersAction {
                 Date startTime = limitTimeProd.getBegintime();
                 Date endTime = limitTimeProd.getEndtime();
                 Date now = new Date();
-                if(limitTimeProd.getState()==Quantity.STATE_4) {
+                if (limitTimeProd.getState() == Quantity.STATE_4) {
                     if (startTime.compareTo(now) == 1) {
-                        throw  new Exception("活动还未开始");
+                        throw new Exception("活动还未开始");
                     }
                     if (endTime.compareTo(now) == -1) {
                         throw new Exception("活动已结束");
                     }
                     Long sellerId = limitTimeProd.getMemberid();
                     if (sellerId == member.getId()) {
-                        throw  new Exception("不能购买自己的商品");
+                        throw new Exception("不能购买自己的商品");
                     }
-                }else{
+                } else {
                     throw new Exception("活动未开始");
                 }
 
 
-                LimitTimeStore limitTimeStore = shopCarService.getLimitTimeStore(shopCar.getLimitid(),shopCar.getPdid(),shopCar.getPdno());
+                LimitTimeStore limitTimeStore = shopCarService.getLimitTimeStore(shopCar.getLimitid(), shopCar.getPdid(), shopCar.getPdno());
                 //更新库存
-                limitTimeStoreService.updateLimitStoreNum(limitTimeStore.getId(),shopCar.getPdnumber().multiply(new BigDecimal(-1)),shopCar.getPdnumber());
+                limitTimeStoreService.updateLimitStoreNum(limitTimeStore.getId(), shopCar.getPdnumber().multiply(new BigDecimal(-1)), shopCar.getPdnumber());
                 LimitTimeStore newLimitStore = limitTimeStoreService.selectByPrimaryKey(limitTimeStore.getId());
-                if(newLimitStore == null || newLimitStore.getStorenum().compareTo(new BigDecimal(0))==-1){
+                if (newLimitStore == null || newLimitStore.getStorenum().compareTo(new BigDecimal(0)) == -1) {
                     throw new Exception("库存不足");
                 }
-                limitTimeProdService.updateSalestotalnumInDB(shopCar.getLimitid(),shopCar.getPdnumber());
+                limitTimeProdService.updateSalestotalnumInDB(shopCar.getLimitid(), shopCar.getPdnumber());
 
 
                 //发货时间
@@ -1092,12 +1106,12 @@ public class OrdersAction {
                     op.setDeliverytime(shop.getDelivertime());
                     ProductInfo productInfo = ordersService.getProductInfoByPrimeKey(shop.getPdid());
 
-                    if(productInfo == null){
-                        throw  new RuntimeException("商品id为"+shop.getPdid()+"的商品不存在");
+                    if (productInfo == null) {
+                        throw new RuntimeException("商品id为" + shop.getPdid() + "的商品不存在");
                     }
 
-                    if(productInfo.getPdstate() != Quantity.STATE_4){
-                        throw  new RuntimeException(productInfo.getProductname()+"的商品现在处于下架状态，不可购买");
+                    if (productInfo.getPdstate() != Quantity.STATE_4) {
+                        throw new RuntimeException(productInfo.getProductname() + "的商品现在处于下架状态，不可购买");
                     }
 
                     Brand brand = shopCarService.getBrandById(productInfo.getBrandid());
@@ -1170,17 +1184,17 @@ public class OrdersAction {
                     if (shop.getLimitid() != null) {
                         op.setLimitid(shop.getLimitid());
                     }
-                    op.setIsmailornot((short)0);
+                    op.setIsmailornot((short) 0);
                     // 设置是否自提
-                    if(mailornotPids!=null && mailornotPids.contains(op.getPdid())){
-                        op.setIsmailornot((short)1);
+                    if (mailornotPids != null && mailornotPids.contains(op.getPdid())) {
+                        op.setIsmailornot((short) 1);
                     }
                     //设置远期支付方式
                     op.setProtype(shop.getProtype());
                     op.setAllpay(shop.getAllpay());
                     op.setPartpay(shop.getPartpay());
                     op.setYupay(shop.getYupay());
-                    ProductStore productStore1 = ordersService.getProductStore(shop.getPdid(), shop.getPdno(),shop.getStoreid());
+                    ProductStore productStore1 = ordersService.getProductStore(shop.getPdid(), shop.getPdno(), shop.getStoreid());
                     //计算运费
                     BigDecimal figtht = BigDecimal.valueOf(0);
                     if (orders.getIsonline() == Quantity.STATE_0) {
@@ -1222,7 +1236,7 @@ public class OrdersAction {
                     orderProductLog.setProductstorejson(GsonUtils.toJson(productStore1));
                     orderProductLog.setProductattrjson(GsonUtils.toJson(productAttrs));
 
-                    op.getExtend().put("OrderProductLog",orderProductLog);
+                    op.getExtend().put("OrderProductLog", orderProductLog);
 
                 }
 
@@ -1261,16 +1275,16 @@ public class OrdersAction {
                 }
                 //卖家id
                 order.setSaleid(orderProduct.getSellerid());
-               // 获取公司名称
+                // 获取公司名称
                 SellerCompanyInfo sellerCompanyInfo = sellerCompanyInfoService.getSellerCompanyByMemberid(orderProduct.getSellerid());
                 if (sellerCompanyInfo == null) {
-                    throw  new RuntimeException("卖家不存在");
+                    throw new RuntimeException("卖家不存在");
                 }
 
                 order.setMembercompany(sellerCompanyInfo.getCompanyname());
                 order.setShopname(sellerCompanyInfo.getShopname());
                 //平台代发模式
-                if(sellerCompanyInfo.getDeliverymode() == Quantity.STATE_1){
+                if (sellerCompanyInfo.getDeliverymode() == Quantity.STATE_1) {
                     order.setDeliverytype(Quantity.STATE_1);
                 }
 
@@ -1299,6 +1313,14 @@ public class OrdersAction {
                     order.setOrdertype(Quantity.STATE_2);
                 }
                 order.setCreatetime(new Date());
+                //查询是否有业务员
+                AdminUser AdminUser = adminUserService.getAdminUserByUserid(member.getId());
+                if (AdminUser != null) {
+                    //添加业务员/业务员联系方式
+                    Admin admin = adminService.getById(AdminUser.getAdminid());
+                    orders.setClerkname(admin.getRealname());
+                    orders.setClerknamephone(admin.getMobile());
+                }
                 //保存订单
                 ordersService.insertOrders(order);
                 for (OrderProduct orderProduct1 : orderProductsList) {
@@ -1313,7 +1335,6 @@ public class OrdersAction {
                 }
                 //批量保存产品订单表
                 //ordersService.insertAllOrderProduct(orderProductsList);
-
 
 
                 ordersList.add(order);
@@ -1366,7 +1387,6 @@ public class OrdersAction {
 //                        ordersService.insertAll(billOrders);
 
 
-
                         for (Orders orders1 : ordersList) {
                             //创建开票记录
                             billingRecord.setInvoiceheadup(invoiceInfo.getInvoiceheadup());
@@ -1403,9 +1423,8 @@ public class OrdersAction {
         shopCarService.deleteAll(longIds);
 
         List<String> ordernoList = new ArrayList<>();
-        ordersList.forEach(o->ordernoList.add(o.getOrderno()));
+        ordersList.forEach(o -> ordernoList.add(o.getOrderno()));
         ordersService.jisuanOrdersBreakPay(ordernoList);
-
 
 
         //批量保存订单
@@ -1711,7 +1730,7 @@ public class OrdersAction {
                 //定金付
                 if (orderProduct.getPaystate() == Quantity.STATE_0) {
                     orderProduct.setPaystate(Quantity.STATE_2);
-                   // sumpay = sumpay.add(orderProduct.getPartpay()).add(orderProduct.getFreight());
+                    // sumpay = sumpay.add(orderProduct.getPartpay()).add(orderProduct.getFreight());
 
                     sumpay = sumpay.add(orderProduct.getPartpay()); //订金不加运费
 
@@ -1748,9 +1767,9 @@ public class OrdersAction {
             //判断定金和余款是否是同一支付方式
             for (Orders order : ordersList) {
 
-                if(!member.getId().equals(order.getMemberid())){
+                if (!member.getId().equals(order.getMemberid())) {
                     basicRet.setResult(BasicRet.ERR);
-                    basicRet.setMessage(order.getOrderno()+"的订单不属于你");
+                    basicRet.setMessage(order.getOrderno() + "的订单不属于你");
                     return basicRet;
                 }
 
@@ -1784,9 +1803,9 @@ public class OrdersAction {
 //                    member.setIsbuy(Quantity.STATE_2);
 
                     //ordersService.saveMember(member);
-                    memberService.updateBuyerMemberBalanceInDb(member.getId(),payMoney.multiply(Quantity.BIG_DECIMAL_MINUS_1));
+                    memberService.updateBuyerMemberBalanceInDb(member.getId(), payMoney.multiply(Quantity.BIG_DECIMAL_MINUS_1));
                     Member newMember = memberService.getMemberById(member.getId());
-                    if(newMember.getBalance().compareTo(Quantity.BIG_DECIMAL_0)<0){
+                    if (newMember.getBalance().compareTo(Quantity.BIG_DECIMAL_0) < 0) {
                         throw new CashException("账户余额不足");
                     }
 
@@ -1804,13 +1823,13 @@ public class OrdersAction {
 
 
                     ordersService.smsNotifySellerToOrders(ordersList);
-                    logger.info("余额支付："+ JSONArray.fromObject(ordersListWMS).toString());
-                    logger.error("余额支付："+ JSONArray.fromObject(ordersListWMS).toString());
+                    logger.info("余额支付：" + JSONArray.fromObject(ordersListWMS).toString());
+                    logger.error("余额支付：" + JSONArray.fromObject(ordersListWMS).toString());
                     wmsService.synOrders(ordersListWMS);
                     basicRet.setResult(BasicRet.SUCCESS);
                     basicRet.setMessage("支付成功");
                 }
-            }else if (type == Quantity.STATE_1) { //授信支付
+            } else if (type == Quantity.STATE_1) { //授信支付
                 //判断可用授信金额是否足够
                 BigDecimal availablelimit = member.getAvailablelimit();
                 BigDecimal usedLimit = member.getUsedlimit();
@@ -1826,9 +1845,9 @@ public class OrdersAction {
                     //member.setIsbuy(Quantity.STATE_2);
                     //ordersService.saveMember(member);
 
-                    memberService.updateBuyerMemberCreditBalanceInDb(member.getId(),payMoney,payMoney.multiply(Quantity.BIG_DECIMAL_MINUS_1));
+                    memberService.updateBuyerMemberCreditBalanceInDb(member.getId(), payMoney, payMoney.multiply(Quantity.BIG_DECIMAL_MINUS_1));
                     Member newMember = memberService.getMemberById(member.getId());
-                    if(member.getAvailablelimit().compareTo(Quantity.BIG_DECIMAL_0)<0){
+                    if (member.getAvailablelimit().compareTo(Quantity.BIG_DECIMAL_0) < 0) {
                         throw new CashException("授信可用金额不足");
                     }
 
@@ -1841,8 +1860,8 @@ public class OrdersAction {
                     ordersService.smsNotifySellerToOrders(ordersList);
 
                     List<Orders> ordersListWMS = ordersService.getWMSOrdersByInIds(orders);
-                    logger.info("授信支付："+ JSONArray.fromObject(ordersListWMS).toString());
-                    logger.error("授信支付："+ JSONArray.fromObject(ordersListWMS).toString());
+                    logger.info("授信支付：" + JSONArray.fromObject(ordersListWMS).toString());
+                    logger.error("授信支付：" + JSONArray.fromObject(ordersListWMS).toString());
                     wmsService.synOrders(ordersListWMS);
                     basicRet.setResult(BasicRet.SUCCESS);
                     basicRet.setMessage("支付成功");
@@ -1865,7 +1884,8 @@ public class OrdersAction {
         }
         memberLogOperator.saveMemberLog(member, null, "订单支付完成", "/rest/buyer/orders/payByBanlance", request, memberOperateLogService);
 
-
+        //进行订单的主动下单，向中间件管理平台post数据
+        initiativeOrderIssue(orders);
         return basicRet;
     }
 
@@ -2096,12 +2116,12 @@ public class OrdersAction {
     @RequestMapping(value = "/getMemberOrderList", method = RequestMethod.POST)
     @ApiOperation(value = "买家获取订单列表")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "memberName",value = "买家名称",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "sellerName",value = "卖家名称",required = false,paramType = "query",dataType = "string"),
+            @ApiImplicitParam(name = "memberName", value = "买家名称", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "sellerName", value = "卖家名称", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "pdName", value = "商品名称", required = false, paramType = "query", dataType = "string"),
-            @ApiImplicitParam(name = "orderNo",value = "订单号",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "code",value = "合同号",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "tranNo",value = "交易号",required = false,paramType = "query",dataType = "string"),
+            @ApiImplicitParam(name = "orderNo", value = "订单号", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "code", value = "合同号", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "tranNo", value = "交易号", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "startTime", value = "开始时间", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "endTime", value = "结束时间", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "orderState", value = "订单状态0=待付款1=待发货3=待收货4=待验货5=已完成7=已关闭8=备货中9=备货完成", required = false, paramType = "query", dataType = "int"),
@@ -2176,6 +2196,14 @@ public class OrdersAction {
         orderCarRet.setMessage("返回成功");
         orderCarRet.setResult(BasicRet.SUCCESS);
         Orders orders = ordersService.getOrdersByOrderNo(orderno);
+        //取消时间：2018年6月2日10:08:44 原因:直接添加到订单保存数据库了
+//        AdminUser AdminUser = adminUserService.getAdminUserByUserid(orders.getMemberid());
+//        if (AdminUser != null) {
+//            Admin admin = adminService.getById(AdminUser.getAdminid());
+//            orders.setClerkname(admin.getRealname());
+//            orders.setClerknamePhone(admin.getMobile());
+//        }
+
         IntegralRecord integralRecord = integralService.getIntegralRecordByOrderId(orders.getId());
         if (integralRecord != null) {
             orderCarRet.data.integralRecord = integralRecord.getScope();
@@ -2281,6 +2309,7 @@ public class OrdersAction {
 
     /**
      * 买家卖家订单改变状态接口
+     *
      * @param model
      * @param orderno
      * @param state
@@ -2299,13 +2328,13 @@ public class OrdersAction {
         member = memberService.getMemberById(member.getId());
 
         Member oldMember = new Member();
-        BeanUtils.copyProperties(member,oldMember);
+        BeanUtils.copyProperties(member, oldMember);
 
         BasicRet basicRet = new BasicRet();
         Orders orders = ordersService.getOrdersByOrderNo(orderno);
 
-        if(!member.getId().equals(orders.getMemberid())){
-            return  new BasicRet(BasicRet.ERR,"该订单不属于你，不可操作");
+        if (!member.getId().equals(orders.getMemberid())) {
+            return new BasicRet(BasicRet.ERR, "该订单不属于你，不可操作");
         }
 
 //        member = ordersService.getById(member.getId());
@@ -2322,16 +2351,16 @@ public class OrdersAction {
                 orders.setOrderstatus(state);
                 ordersService.updateSingleOrder(orders);
 
-            }else if (state == Quantity.STATE_5) {
+            } else if (state == Quantity.STATE_5) {
 
-                if(orders.getOrderstatus() != Quantity.STATE_4){
+                if (orders.getOrderstatus() != Quantity.STATE_4) {
                     basicRet.setResult(BasicRet.ERR);
                     basicRet.setMessage("订单状态不合法，不可确认验货");
                     return basicRet;
                 }
 
 
-                if(!StringUtils.hasText(paySecret)){
+                if (!StringUtils.hasText(paySecret)) {
                     basicRet.setResult(BasicRet.ERR);
                     basicRet.setMessage("支付密码不能为空");
                     return basicRet;
@@ -2339,7 +2368,7 @@ public class OrdersAction {
 
                 paySecret = Base64Utils.decode(paySecret);
                 String ps = CommonUtils.genMd5Password(paySecret, member.getPaypasswordsalt());
-                if(!ps.equals(member.getPaypassword())){
+                if (!ps.equals(member.getPaypassword())) {
                     basicRet.setResult(BasicRet.ERR);
                     basicRet.setMessage("支付密码不正确");
                     return basicRet;
@@ -2384,7 +2413,7 @@ public class OrdersAction {
                             pdsaleNumMap.put(orderProduct.getPdid(), orderProduct.getNum().add(saleNum));
                         }
 
-                                               //计算佣金
+                        //计算佣金
                         Long classifyid = orderProduct.getClassifyid();
                         BigDecimal rate = BigDecimal.valueOf(0);
 
@@ -2411,14 +2440,13 @@ public class OrdersAction {
                         Categories categories = ordersService.getCategories(classifyid);
                         if (categories != null) {
                             //佣金比率
-                            BigDecimal brolerRate =rate.multiply(BigDecimal.valueOf(0.01));
-                            if(brolerRate.compareTo(BigDecimal.valueOf(0))<0){
+                            BigDecimal brolerRate = rate.multiply(BigDecimal.valueOf(0.01));
+                            if (brolerRate.compareTo(BigDecimal.valueOf(0)) < 0) {
                                 brolerRate = categoriesService.getBrokerRate(classifyid).multiply(BigDecimal.valueOf(0.01));
                             }
 
                             //服务费比率 用的是category中设置的
                             BigDecimal serverRate = categoriesService.getServerRate(classifyid).multiply(BigDecimal.valueOf(0.01));
-
 
 
                             //商品单位佣金=销售单价*商品佣金比例
@@ -2467,11 +2495,11 @@ public class OrdersAction {
 
                 BigDecimal integralValue = Quantity.BIG_DECIMAL_0;
 
-                if(scope.compareTo(Quantity.BIG_DECIMAL_0) >0){
-                   integralValue = allPdPay.divideToIntegralValue(scope);
+                if (scope.compareTo(Quantity.BIG_DECIMAL_0) > 0) {
+                    integralValue = allPdPay.divideToIntegralValue(scope);
                 }
 
-                if(integralValue.compareTo(Quantity.BIG_DECIMAL_0)>0) {
+                if (integralValue.compareTo(Quantity.BIG_DECIMAL_0) > 0) {
                     IntegralRecord integralRecord = new IntegralRecord();
                     integralRecord.setMemberid(member.getId());
                     integralRecord.setMembername(member.getUsername());
@@ -2485,21 +2513,21 @@ public class OrdersAction {
 
                 member.setIntegrals(member.getIntegrals().add(integralValue));
                 member.setAvailableintegral(member.getAvailableintegral().add(integralValue));
-                ordersService.saveMember(member,oldMember);
+                ordersService.saveMember(member, oldMember);
 
 
-                if(orders.getIsbilling() == Quantity.STATE_1){  //提交订单时选择开票  将billingrecord表中的state 字段由-1更改为0（待开票状态）
-                                                                  //并且要查询该订单中是否有退款的，如果有开票金额减去退款金额
+                if (orders.getIsbilling() == Quantity.STATE_1) {  //提交订单时选择开票  将billingrecord表中的state 字段由-1更改为0（待开票状态）
+                    //并且要查询该订单中是否有退款的，如果有开票金额减去退款金额
                     //查询是否有退货或退款的，如果有退货开票金额要减去退货的钱
-                    List<OrderProductBack> orderProductBackList =  orderProductBackService.getByOrderNo(orderno);
-                    BigDecimal subApply =  new BigDecimal(0);
-                    for(OrderProductBack opb : orderProductBackList){
-                        if(opb.getState() == 10) {
+                    List<OrderProductBack> orderProductBackList = orderProductBackService.getByOrderNo(orderno);
+                    BigDecimal subApply = new BigDecimal(0);
+                    for (OrderProductBack opb : orderProductBackList) {
+                        if (opb.getState() == 10) {
                             subApply = subApply.add(opb.getBackmoney());
                         }
                     }
 
-                    billingRecordService.updateForwordBillingState(orders.getId().toString(),orders.getMemberid(),subApply.multiply(new BigDecimal(-1)));
+                    billingRecordService.updateForwordBillingState(orders.getId().toString(), orders.getMemberid(), subApply.multiply(new BigDecimal(-1)));
                 }
 
 
@@ -2517,10 +2545,10 @@ public class OrdersAction {
 
                 Member seller = memberService.getMemberById(orders.getSaleid());
                 //BigDecimal frozepay = sellerpay.subtract(totalBroke).setScale(2,BigDecimal.ROUND_HALF_UP);
-                BigDecimal frozepay = sellerpay.setScale(2,BigDecimal.ROUND_HALF_UP);
+                BigDecimal frozepay = sellerpay.setScale(2, BigDecimal.ROUND_HALF_UP);
                 if (seller != null) {
                     //增加卖家冻结金额
-                    memberService.updateSellerMemberBalanceInDb(seller.getId(),Quantity.BIG_DECIMAL_0,frozepay);
+                    memberService.updateSellerMemberBalanceInDb(seller.getId(), Quantity.BIG_DECIMAL_0, frozepay);
                 }
                 orders.setBrokepay(totalBroke);
                 orders.setFrozepay(frozepay);
@@ -2528,8 +2556,8 @@ public class OrdersAction {
 
                 //订单验货完成需要更新的数据
                 int count = ordersService.updateOrdersConfirmgoods(orders);
-                if(count != 1){
-                    throw new CashException("买家订单自动确认验货出现错误，可能出现并发更新问题，所有操作已回撤，订单id:"+orders.getId());
+                if (count != 1) {
+                    throw new CashException("买家订单自动确认验货出现错误，可能出现并发更新问题，所有操作已回撤，订单id:" + orders.getId());
                 }
             }
 
@@ -2616,7 +2644,6 @@ public class OrdersAction {
 //        }
 //
 //    }
-
 
 
     /**
@@ -2707,7 +2734,7 @@ public class OrdersAction {
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
 
         OrderProduct orderProduct = ordersService.getOrderProductById(orderProductBack.getOrderpdid());
-        if(orderProduct == null) {
+        if (orderProduct == null) {
             basicRet.setResult(BasicRet.ERR);
             basicRet.setMessage("没有找到此商品");
             return basicRet;
@@ -2717,16 +2744,16 @@ public class OrdersAction {
         Member member1 = memberService.getMemberById(orderProduct.getSellerid());
 
         Orders orders = ordersService.getSingleOrder(orderProduct.getOrderid());
-        if(orders == null){
-            return  new BasicRet(BasicRet.ERR,"订单不存在");
+        if (orders == null) {
+            return new BasicRet(BasicRet.ERR, "订单不存在");
         }
 
-        if(orderProductBack.getBacktype() != 1 && orderProductBack.getBacktype() != 2){
-            return  new BasicRet(BasicRet.ERR,"请选择退货类型");
+        if (orderProductBack.getBacktype() != 1 && orderProductBack.getBacktype() != 2) {
+            return new BasicRet(BasicRet.ERR, "请选择退货类型");
         }
 
-        if(orderProductBack.getBacktype() == 1 && orderProduct.getBackstate() != 0){
-            return  new BasicRet(BasicRet.ERR,"退货状态不正常");
+        if (orderProductBack.getBacktype() == 1 && orderProduct.getBackstate() != 0) {
+            return new BasicRet(BasicRet.ERR, "退货状态不正常");
         }
 
 
@@ -2807,7 +2834,7 @@ public class OrdersAction {
 
 
                         OrderProductLog orderProductLog = orderProductLogService.getByOrderproductid(orderProduct.getId());
-                        if(orderProductLog != null){
+                        if (orderProductLog != null) {
                             orderProductLog.setId(null);
                             orderProductLog.setOrderproductid(orderProduct1.getId());
                             orderProductLogService.add(orderProductLog);
@@ -2928,9 +2955,9 @@ public class OrdersAction {
         orderProduct.setActualpayment(totalPay);
         orderProduct.setOrderno(orderProductBack.getOrderno());
 
-        Orders orders =  ordersService.getOrdersByOrderNo(orderProductBack.getOrderno());
+        Orders orders = ordersService.getOrdersByOrderNo(orderProductBack.getOrderno());
 
-        if(orders.getDeliverytype() == Quantity.STATE_1){  //如果订单为代理发货模式，显示平台地址
+        if (orders.getDeliverytype() == Quantity.STATE_1) {  //如果订单为代理发货模式，显示平台地址
             orderProductBack.setContact(AgentDeliveryAddressConst.linkman);
             orderProductBack.setContactphone(AgentDeliveryAddressConst.tel);
             orderProductBack.setProvince(AgentDeliveryAddressConst.province);
@@ -2965,6 +2992,7 @@ public class OrdersAction {
 
     /**
      * 根据商品id获取退货详情
+     *
      * @param id
      * @return
      */
@@ -3040,10 +3068,10 @@ public class OrdersAction {
 
         Short state = productBackModel.getState();
 
-        if(state!=Quantity.STATE_0 && state != Quantity.STATE_5 && state != Quantity.STATE_6 && state != Quantity.STATE_11 && state != 12){
+        if (state != Quantity.STATE_0 && state != Quantity.STATE_5 && state != Quantity.STATE_6 && state != Quantity.STATE_11 && state != 12) {
             basicRet.setMessage("操作状态不合法");
             basicRet.setResult(BasicRet.ERR);
-            return  basicRet;
+            return basicRet;
         }
 
         productBackModel.setAdminstate(null);
@@ -3100,12 +3128,12 @@ public class OrdersAction {
             OrderProduct orderProduct = ordersService.getOrderProductById(orderProductBack.getOrderpdid());
             Orders orders = ordersService.getOrdersById(orderProductBack.getOrderid());
 
-            if(state == Quantity.STATE_5){  //买家同意验货
+            if (state == Quantity.STATE_5) {  //买家同意验货
                 orderProduct.setBackstate(Quantity.STATE_0);
-            }else if(state == Quantity.STATE_6){//买家申请异议
+            } else if (state == Quantity.STATE_6) {//买家申请异议
                 orderProduct.setBackstate(Quantity.STATE_4);
                 orderProductBack.setDissidencetime(new Date());
-            }else if(state == Quantity.STATE_11){  //撤销
+            } else if (state == Quantity.STATE_11) {  //撤销
                 //部分退货
                 if (orderProductBack.getBacktype() == Quantity.STATE_2) {
                     List<OrderProduct> list = ordersService.getOrderProductByOrderId(orderProductBack.getOrderid());
@@ -3128,7 +3156,7 @@ public class OrdersAction {
                 } else {
                     orderProduct.setBackstate(Quantity.STATE_0);
                 }
-            }else if(state == 12){  //买家发货给卖家，卖家待收货
+            } else if (state == 12) {  //买家发货给卖家，卖家待收货
 
             }
 
@@ -3535,7 +3563,7 @@ public class OrdersAction {
     private WMSService wmsService;
 
     @Autowired
-    private  OrderStoreStateLogService orderStoreStateLogService;
+    private OrderStoreStateLogService orderStoreStateLogService;
 
     @RequestMapping(value = "/cancelOrders", method = RequestMethod.POST)
     @ApiOperation(value = "取消订单")
@@ -3549,18 +3577,18 @@ public class OrdersAction {
         member = memberService.getMemberById(member.getId());
 
         Member oldMember = new Member();
-        BeanUtils.copyProperties(member,oldMember);
+        BeanUtils.copyProperties(member, oldMember);
 
         Orders orders = ordersService.getSingleOrder(id);
         Member seller = memberService.getMemberById(orders.getSaleid());
         Member oldSeller = new Member();
-        BeanUtils.copyProperties(seller,oldSeller);
+        BeanUtils.copyProperties(seller, oldSeller);
 
 
         try {
             OrderStoreStateLog orderStoreStateLog = orderStoreStateLogService.getStoreState(orders);
-            if(orderStoreStateLog != null && orderStoreStateLog.getLaststate() == 99){
-                return  new BasicRet(BasicRet.ERR,"该订单已出库，不可取消");
+            if (orderStoreStateLog != null && (orderStoreStateLog.getLaststate() >= 2)) {
+                return new BasicRet(BasicRet.ERR, "该订单已出库，不可取消");
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -3655,9 +3683,9 @@ public class OrdersAction {
                                 refund.setOutTradeNo(uuid);
                                 if (orders.getPaytype() == Quantity.STATE_0) {
                                     refund.setChannel("alipay");
-                                } else if(orders.getPaytype() == Quantity.STATE_1){
+                                } else if (orders.getPaytype() == Quantity.STATE_1) {
                                     refund.setChannel("wxpay");
-                                }else if(orders.getPaytype() == Quantity.STATE_2){
+                                } else if (orders.getPaytype() == Quantity.STATE_2) {
                                     refund.setChannel("bank");
                                 }
                                 refund.setRefundAmount((backPay.multiply(new BigDecimal(100))).longValue());
@@ -3674,27 +3702,27 @@ public class OrdersAction {
                                         result = alipayService.refund(refund);
                                     } else if ("wxpay".equals(refund.getChannel())) {
                                         result = wxPayService.refund(refund);
-                                    }else if("bank".equals(refund.getChannel())){
+                                    } else if ("bank".equals(refund.getChannel())) {
                                         result = abcService.refund(refund);
                                     }
                                 } catch (Exception e) {
-                                    throw  e;
+                                    throw e;
                                 }
 
                                 System.out.println("退货通道：" + refund.getChannel() + "退货结果：" + result);
                                 if (result) {
                                     if (orders.getPaytype() == Quantity.STATE_0) {
                                         buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_0);
-                                    } else if(orders.getPaytype() == Quantity.STATE_1){
+                                    } else if (orders.getPaytype() == Quantity.STATE_1) {
                                         buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_1);
-                                    } else if(orders.getPaytype() == Quantity.STATE_2){
-                                        buyerCapital1 = createBuyerBackPay(orders,backPay,tranTime,Quantity.STATE_2);
+                                    } else if (orders.getPaytype() == Quantity.STATE_2) {
+                                        buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_2);
                                     }
                                     salerCapital1 = createSalerBackPay(orders, orders.getTotalprice(), tranTime);
                                     buyerCapitals.add(buyerCapital1);
                                     salerCapitals.add(salerCapital1);
-                                }else{
-                                    throw  new RuntimeException("退款失败");
+                                } else {
+                                    throw new RuntimeException("退款失败");
                                 }
 
                             }
@@ -3768,9 +3796,9 @@ public class OrdersAction {
                                 refund.setOutTradeNo(uuid);
                                 if (orders.getPaytype() == Quantity.STATE_0) {
                                     refund.setChannel("alipay");
-                                } else if(orders.getPaytype()==Quantity.STATE_1){
+                                } else if (orders.getPaytype() == Quantity.STATE_1) {
                                     refund.setChannel("wxpay");
-                                }else if(orders.getPaytype()== Quantity.STATE_2){
+                                } else if (orders.getPaytype() == Quantity.STATE_2) {
                                     refund.setChannel("bank");
                                 }
                                 refund.setRefundAmount((backPay.multiply(new BigDecimal(100))).longValue());
@@ -3787,7 +3815,7 @@ public class OrdersAction {
                                         result = alipayService.refund(refund);
                                     } else if ("wxpay".equals(refund.getChannel())) {
                                         result = wxPayService.refund(refund);
-                                    }else if("bank".equals(refund.getChannel())){
+                                    } else if ("bank".equals(refund.getChannel())) {
                                         result = abcService.refund(refund);
                                     }
                                 } catch (Exception e) {
@@ -3796,16 +3824,16 @@ public class OrdersAction {
                                 if (result) {
                                     if (orders.getPaytype() == Quantity.STATE_0) {
                                         buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_0);
-                                    } else if(orders.getPaytype() == Quantity.STATE_1){
+                                    } else if (orders.getPaytype() == Quantity.STATE_1) {
                                         buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_1);
-                                    }else if(orders.getPaytype() == Quantity.STATE_2){
-                                        buyerCapital1 = createBuyerBackPay(orders,backPay,tranTime,Quantity.STATE_2);
+                                    } else if (orders.getPaytype() == Quantity.STATE_2) {
+                                        buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_2);
                                     }
                                     salerCapital1 = createSalerBackPay(orders, orders.getTotalprice(), tranTime);
                                     buyerCapitals.add(buyerCapital1);
                                     salerCapitals.add(salerCapital1);
-                                }else{
-                                    throw  new RuntimeException("退款失败");
+                                } else {
+                                    throw new RuntimeException("退款失败");
                                 }
 
                             }
@@ -3953,9 +3981,9 @@ public class OrdersAction {
                     BuyerCapital depositBuyerCapital = ordersService.getBuyerCapitalByNoType(orders.getOrderno(), Quantity.STATE_7);
                     if (productType == Quantity.STATE_1) {
                         //违约金
-                        backMoney1 = partPay.subtract(partPay.multiply(getLiquidated)).setScale(2,BigDecimal.ROUND_HALF_UP);
-                        backMoney2 = yuPay.subtract(yuPay.multiply(getLiquidated)).setScale(2,BigDecimal.ROUND_HALF_UP);
-                    }else{
+                        backMoney1 = partPay.subtract(partPay.multiply(getLiquidated)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                        backMoney2 = yuPay.subtract(yuPay.multiply(getLiquidated)).setScale(2, BigDecimal.ROUND_HALF_UP);
+                    } else {
                         backMoney1 = partPay;
                         backMoney2 = yuPay;
                     }
@@ -3964,7 +3992,7 @@ public class OrdersAction {
                     backMoney2 = backMoney2.add(orders.getFreight());
 
                     //backPay = backMoney1.add(backMoney2);
-                    penaltyPay = (partPay.add(yuPay)).multiply(getLiquidated).setScale(2,BigDecimal.ROUND_HALF_UP);
+                    penaltyPay = (partPay.add(yuPay)).multiply(getLiquidated).setScale(2, BigDecimal.ROUND_HALF_UP);
 
 
                     backPay = orders.getActualpayment().subtract(penaltyPay);
@@ -3991,7 +4019,7 @@ public class OrdersAction {
                         //退回到支付宝或微信
                         if (depositBuyerCapital.getPaytype() == Quantity.STATE_0 ||
                                 depositBuyerCapital.getPaytype() == Quantity.STATE_1 ||
-                                depositBuyerCapital.getPaytype()== Quantity.STATE_2) {
+                                depositBuyerCapital.getPaytype() == Quantity.STATE_2) {
                             String uuid = orders.getUuid();
                             String yuuuid = orders.getYuuuid();
                             if (uuid != null && yuuuid != null) {
@@ -4004,10 +4032,10 @@ public class OrdersAction {
                                 if (orders.getPaytype() == Quantity.STATE_0) {
                                     refund1.setChannel("alipay");
                                     refund2.setChannel("alipay");
-                                } else if(orders.getPaytype() == Quantity.STATE_1){
+                                } else if (orders.getPaytype() == Quantity.STATE_1) {
                                     refund1.setChannel("wxpay");
                                     refund2.setChannel("wxpay");
-                                }else if(orders.getPaytype() == Quantity.STATE_3){
+                                } else if (orders.getPaytype() == Quantity.STATE_3) {
                                     refund1.setChannel("bank");
                                     refund2.setChannel("bank");
                                 }
@@ -4035,7 +4063,7 @@ public class OrdersAction {
                                     } else if ("wxpay".equals(refund1.getChannel())) {
                                         result1 = wxPayService.refund(refund1);
                                         result2 = wxPayService.refund(refund2);
-                                    }else  if("bank".equals(refund1.getChannel())){
+                                    } else if ("bank".equals(refund1.getChannel())) {
                                         result1 = abcService.refund(refund1);
                                         result2 = abcService.refund(refund2);
                                     }
@@ -4045,16 +4073,16 @@ public class OrdersAction {
                                 if (result1 && result2) {
                                     if (orders.getPaytype() == Quantity.STATE_0) {
                                         buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_0);
-                                    } else if(orders.getPaytype() == Quantity.STATE_1){
+                                    } else if (orders.getPaytype() == Quantity.STATE_1) {
                                         buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_1);
-                                    }else if(orders.getPaytype() == Quantity.STATE_2){
-                                        buyerCapital1 = createBuyerBackPay(orders,backPay,tranTime,Quantity.STATE_2);
+                                    } else if (orders.getPaytype() == Quantity.STATE_2) {
+                                        buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_2);
                                     }
                                     salerCapital1 = createSalerBackPay(orders, orders.getActualpayment(), tranTime);
                                     buyerCapitals.add(buyerCapital1);
                                     salerCapitals.add(salerCapital1);
-                                }else{
-                                    throw  new RuntimeException("退款失败");
+                                } else {
+                                    throw new RuntimeException("退款失败");
                                 }
 
                             }
@@ -4078,11 +4106,11 @@ public class OrdersAction {
                 }
 
                 //保存用户余额和授信
-                ordersService.saveMember(member,oldMember);
-                ordersService.saveMember(seller,oldSeller);
+                ordersService.saveMember(member, oldMember);
+                ordersService.saveMember(seller, oldSeller);
 
 
-                if(buyerCapitals.size()>0) {
+                if (buyerCapitals.size() > 0) {
                     ordersService.insertBuyerCapital(buyerCapitals);
                 }
 
@@ -4102,8 +4130,6 @@ public class OrdersAction {
         }
 
 
-
-
         //普通订单
         if (orders.getIsonline() == Quantity.STATE_0) {
             //加库存
@@ -4111,7 +4137,7 @@ public class OrdersAction {
                 //ProductStore productStore = ordersService.getProductStore(orderProduct.getPdid(), orderProduct.getPdno(),orderProduct.getStoreid());
                 //productStore.setPdstorenum(productStore.getPdstorenum().add(orderProduct.getNum()))
                 // pordersService.updateProductStore(productStore);
-                productStoreService.addStoreNumByPdidAndPdno(orderProduct.getPdid(),orderProduct.getPdno(),orderProduct.getNum());
+                productStoreService.addStoreNumByPdidAndPdno(orderProduct.getPdid(), orderProduct.getPdno(), orderProduct.getNum());
 
                 //将退货的商品信息记录到orderproductbackinfo表中
                 OrderProductBackInfo orderProductBackInfo = new OrderProductBackInfo();
@@ -4124,7 +4150,7 @@ public class OrdersAction {
                 orderProductBackInfo.setBacktime(new Date());
                 OrderProductBackInfoService.addOrderProductBackInfo(orderProductBackInfo);
             }
-        }else if (orders.getIsonline() == Quantity.STATE_2) {
+        } else if (orders.getIsonline() == Quantity.STATE_2) {
             Map<String, BigDecimal> proMap = new HashMap<String, BigDecimal>();
             //加库存
             for (OrderProduct orderProduct : orderProducts) {
@@ -4160,7 +4186,7 @@ public class OrdersAction {
 
         // syn wms
         wmsService.cancelOrders(orders, WMSService.CANCEL_ORDER_TYPE);
-        ordersService.updateReason(orders,"买家取消订单");
+        ordersService.updateReason(orders, "买家取消订单");
 
         //保存操作日志
         OperateLog operateLog = new OperateLog();
@@ -4175,6 +4201,8 @@ public class OrdersAction {
         //保存用户日志
         memberLogOperator.saveMemberLog(member, null, "订单id：" + id + "取消", "/rest/buyer/orders/cancelOrders", request, memberOperateLogService);
 
+        //执行订单主动取消，post数据到中间件中间平台
+        initiativeOrderCancel(id);
         basicRet.setResult(BasicRet.SUCCESS);
         basicRet.setMessage("取消订单成功");
         return basicRet;
@@ -4229,6 +4257,7 @@ public class OrdersAction {
 
     /**
      * 创建卖家退款资金明细
+     *
      * @param order
      * @param backPay
      * @param tranTime
@@ -4440,14 +4469,14 @@ public class OrdersAction {
                 Orders orders = ordersService.getOrdersById(Long.parseLong(orderid));
 
                 //查询是否有退货或退款的，如果有退货开票金额要减去退货的钱
-                List<OrderProductBack> orderProductBackList =  orderProductBackService.getByOrderNo(orders.getOrderno());
-                BigDecimal subApply =  new BigDecimal(0);
-                for(OrderProductBack opb : orderProductBackList){
-                    if(opb.getState() == 10) {
+                List<OrderProductBack> orderProductBackList = orderProductBackService.getByOrderNo(orders.getOrderno());
+                BigDecimal subApply = new BigDecimal(0);
+                for (OrderProductBack opb : orderProductBackList) {
+                    if (opb.getState() == 10) {
                         subApply = subApply.add(opb.getBackmoney());
                     }
                 }
-                if(subApply.compareTo(new BigDecimal(0)) >0){
+                if (subApply.compareTo(new BigDecimal(0)) > 0) {
                     orders.setTotalprice(orders.getTotalprice().subtract(subApply));
                 }
 
@@ -4526,8 +4555,6 @@ public class OrdersAction {
     }
 
 
-
-
     /**
      * 买家个人中心订单各状态数量
      *
@@ -4575,7 +4602,6 @@ public class OrdersAction {
     }
 
 
-
     @RequestMapping(value = "/getOrderStoreLogAndDevLog", method = RequestMethod.POST)
     @ApiOperation(value = "获取订单仓库及物流跟踪信息")
     @ApiImplicitParams({
@@ -4584,25 +4610,25 @@ public class OrdersAction {
         OrderCarRet orderCarRet = new OrderCarRet();
 
         Orders orders = ordersService.getOrdersByOrderNo(orderno);
-        List<OperateLog> list = ordersService.getOperatelog(orders.getId(), Quantity.STATE_0,null);
+        List<OperateLog> list = ordersService.getOperatelog(orders.getId(), Quantity.STATE_0, null);
 
         List<OperateLog> olList = new ArrayList<>();
 
-        List<OperateLog> operateLogfinalList =new ArrayList<>();
-        for(OperateLog ol : list){
-            if(!ol.getContent().equals("订单已收货") && !ol.getContent().equals("订单已验货")){
+        List<OperateLog> operateLogfinalList = new ArrayList<>();
+        for (OperateLog ol : list) {
+            if (!ol.getContent().equals("订单已收货") && !ol.getContent().equals("订单已验货")) {
                 olList.add(ol);
-            }else {
+            } else {
                 operateLogfinalList.add(ol);
             }
         }
 
 
-        if(orders.getOrderstatus() != 0){
+        if (orders.getOrderstatus() != 0) {
             try {
                 OrderStoreStateLog orderStoreStateLog = orderStoreStateLogService.getStoreState(orders);
 
-                if(orderStoreStateLog != null){
+                if (orderStoreStateLog != null) {
                     Collections.reverse(orderStoreStateLog.getList());
                     orderStoreStateLog.getList().forEach(storeState -> {
                         OperateLog operateLog = new OperateLog();
@@ -4626,10 +4652,6 @@ public class OrdersAction {
         orderCarRet.setResult(BasicRet.SUCCESS);
         return orderCarRet;
     }
-
-
-
-
 
 
     /**
@@ -4914,11 +4936,11 @@ public class OrdersAction {
 
         Member seller = memberService.getMemberById(orders.getSaleid());
         Member oldSeller = new Member();
-        BeanUtils.copyProperties(seller,oldSeller);
+        BeanUtils.copyProperties(seller, oldSeller);
 
         Member buyer = memberService.getMemberById(orders.getMemberid());
         Member oldBuyer = new Member();
-        BeanUtils.copyProperties(buyer,oldBuyer);
+        BeanUtils.copyProperties(buyer, oldBuyer);
 
         Integer delaydays = orders.getDelaydays();
         BigDecimal bigDecimalDays = new BigDecimal(delaydays);
@@ -4936,8 +4958,8 @@ public class OrdersAction {
             }
             buyer.setBalance(buyer.getBalance().add(penaltyPay.multiply(forwardsalesmargin)));
             seller.setSellerbanlance(seller.getSellerbanlance().subtract(penaltyPay));
-            ordersService.saveMember(buyer,oldBuyer);
-            ordersService.saveMember(seller,oldSeller);
+            ordersService.saveMember(buyer, oldBuyer);
+            ordersService.saveMember(seller, oldSeller);
 
             BuyerCapital buyerCapital = createBuyerPenaltyPay(orders, penaltyPay, new Date(), Quantity.STATE_10, orders.getActualpayment().subtract(orders.getFreight()), "延期发货违约");
             SalerCapital salerCapital = createSalerPenaltyPay(orders, penaltyPay, new Date(), Quantity.STATE_7, orders.getActualpayment().subtract(orders.getFreight()), "延期发货违约");
@@ -5004,25 +5026,48 @@ public class OrdersAction {
   }*/
 
     /**
-     *买家再次购买
+     * 买家再次购买
      */
     @RequestMapping(value = "/repurchase", method = RequestMethod.POST)
     @ApiOperation(value = "买家再次购买")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "orderno", value = "订单编号", required = true, paramType = "query", dataType = "string"),
     })
-    public BasicExtRet repurchase(String orderno,HttpServletRequest request,Model model) {
+    public BasicExtRet repurchase(String orderno, HttpServletRequest request, Model model) {
         BasicExtRet basicExtRet = new BasicExtRet();
         basicExtRet.setMessage("返回成功");
         basicExtRet.setResult(BasicRet.SUCCESS);
-        Member member= (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
-        Map<String, Object> repurchaseMap = ordersService.repurchase(orderno,member,request);
-        List<String> list =new ArrayList<>();
+        Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
+        Map<String, Object> repurchaseMap = ordersService.repurchase(orderno, member, request);
+        List<String> list = new ArrayList<>();
         List<ShopCar> successfulList = (List<ShopCar>) repurchaseMap.get("successfulList");
         List<String> offErrorList = (List<String>) repurchaseMap.get("offErrorList");
         List<String> lackErrorList = (List<String>) repurchaseMap.get("lackErrorList");//记录库存不足
         basicExtRet.setData(repurchaseMap);
         return basicExtRet;
+    }
+
+
+    /**
+     *订单下达主动
+     * @author xiazy
+     * @date  2018/6/4 16:51
+     * @param orders 订单编码
+     * @return void
+     */
+    public void  initiativeOrderIssue(String orders){
+
+    }
+
+    /**
+     *订单取消主动
+     * @author xiazy
+     * @date  2018/6/4 17:48
+     * @param orderId 订单编码
+     * @return void
+     */
+    public void initiativeOrderCancel(Long orderId){
+
     }
 
 }

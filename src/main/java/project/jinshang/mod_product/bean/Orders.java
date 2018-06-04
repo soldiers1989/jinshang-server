@@ -196,6 +196,13 @@ public class Orders {
 
     private List<OrderProduct> orderProducts;
 
+    //添加业务员
+    @ApiModelProperty(notes = "业务员")
+    private String clerkname;
+    ///业务员联系方式
+    @ApiModelProperty(notes = "业务员")
+    private String clerknamephone;
+
     public Long getYuordertime() {
         return yuordertime;
     }
@@ -699,5 +706,21 @@ public class Orders {
 
     public void setBuyerRealname(String buyerRealname) {
         this.buyerRealname = buyerRealname;
+    }
+
+    public String getClerkname() {
+        return clerkname;
+    }
+
+    public void setClerkname(String clerkname) {
+        this.clerkname = clerkname;
+    }
+
+    public String getClerknamephone() {
+        return clerknamephone;
+    }
+
+    public void setClerknamephone(String clerknamephone) {
+        this.clerknamephone = clerknamephone;
     }
 }

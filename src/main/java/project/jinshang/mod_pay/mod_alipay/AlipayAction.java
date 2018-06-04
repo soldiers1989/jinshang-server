@@ -3,6 +3,7 @@ package project.jinshang.mod_pay.mod_alipay;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.internal.util.AlipaySignature;
+import com.alipay.api.internal.util.StringUtils;
 import com.alipay.api.request.AlipayTradePagePayRequest;
 import com.alipay.api.request.AlipayTradeWapPayRequest;
 import io.swagger.annotations.*;
@@ -18,11 +19,14 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import project.jinshang.common.constant.Quantity;
+import project.jinshang.mod_pay.bean.PayLogs;
 import project.jinshang.mod_pay.bean.Trade;
+import project.jinshang.mod_pay.service.PayLogsService;
 import project.jinshang.mod_pay.service.TradeService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -37,6 +41,10 @@ public class AlipayAction {
     private TradeService tradeService;
     @Autowired
     private AlipayConfig alipayConfig;
+
+    @Autowired
+    private PayLogsService payLogsService;
+
 
     @RequestMapping(value="/wap/toPay",method= {RequestMethod.POST,RequestMethod.GET})
     @ApiImplicitParams({
@@ -179,6 +187,18 @@ public class AlipayAction {
 
                 //交易状态
                 String trade_status = request.getParameter("trade_status");
+
+                //支付金额
+                String total_amount = request.getParameter("total_amount");
+                if(project.jinshang.common.utils.StringUtils.hasText(total_amount)){
+                    PayLogs payLogs = new PayLogs();
+                    payLogs.setTransactionid(trade_no);
+                    payLogs.setOuttradeno(out_trade_no);
+                    payLogs.setMoney(new BigDecimal(total_amount));
+                    payLogs.setCreatetime(new Date());
+                    payLogs.setChannel("alipay");
+                    payLogsService.insertSelective(payLogs);
+                }
 
 //                if(trade_status.equals("TRADE_FINISHED")){
                 // 这里的订单支付完成关闭后

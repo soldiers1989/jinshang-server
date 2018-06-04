@@ -147,6 +147,10 @@ public class StringUtils {
         return false;
     }
 
+    public static void main(String[] args) {
+        System.out.println(hasText(""));
+    }
+
     /**
      * 检查一个字符串是否符合Email地址的格式
      *

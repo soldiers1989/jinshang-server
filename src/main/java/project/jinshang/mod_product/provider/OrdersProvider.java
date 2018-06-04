@@ -18,7 +18,7 @@ public class OrdersProvider {
       */
     public  String  getAllMemberOrdersList(OrderQueryParam param){
         SQL sql =  new SQL();
-        sql.SELECT("o.*,bc.companyname as buyercompanyname, m.realname as realname ");
+        sql.SELECT("o.*,bc.companyname as buyercompanyname, m.realname as realname,m.clerkname ");
         sql.FROM(" orders o ");
         sql.LEFT_OUTER_JOIN("member m on o.memberid=m.id ");
         sql.LEFT_OUTER_JOIN("buyercompanyinfo bc on o.memberid=bc.memberid ");

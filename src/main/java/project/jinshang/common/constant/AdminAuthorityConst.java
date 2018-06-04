@@ -103,6 +103,10 @@ public class AdminAuthorityConst {
     //商家佣金管理
     public  final  static  String SELLERBROKEMANAGEMENT = "sellerBrokeManagement";
 
+    //开放平台对接记录
+    public final static  String DOCKINGRECORD = "DockingRecord";
+
+
 
 //    站点设置
     public   final  static String SITESETTING="SiteSetting";
@@ -164,6 +168,10 @@ public class AdminAuthorityConst {
     public   final  static String PURCHASERATE="Purchaserate";
 
 
+
+
+
+
     //授信管理
 //    审核员
     public  final  static  String CREDITVALIDATE="creditvalidate";
@@ -175,5 +183,10 @@ public class AdminAuthorityConst {
     public  final  static  String CREDITWRITEIN="creditwritein";
 //    复核员
     public  final  static  String CREDITCHECK="creditcheck";
+
+
+
+    ///
+    ///
 
 }

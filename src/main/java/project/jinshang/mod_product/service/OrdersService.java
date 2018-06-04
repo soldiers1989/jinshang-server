@@ -1562,14 +1562,14 @@ public class OrdersService {
      * @param param
      * @return
      */
-    public List<LinkedHashMap<String, Object>> getExcelOrders(OrderQueryParam param) {
+    public List<Map<String, Object>> getExcelOrders(OrderQueryParam param) {
 
         List<Map<String, Object>> list = ordersMapper.getExcelOrders(param);
 
-        List<LinkedHashMap<String, Object>> list2 = new ArrayList<LinkedHashMap<String, Object>>();
+        List<Map<String, Object>> list2 = new ArrayList<Map<String, Object>>();
 
         for (Map<String, Object> map : list) {
-            LinkedHashMap<String, Object> maptemp = new LinkedHashMap<String, Object>();
+            Map<String, Object> maptemp = new HashMap<String, Object>();
             maptemp.put("订单号", map.get("orderno"));
             maptemp.put("下单时间", map.get("createtime"));
             maptemp.put("合同号", map.get("code"));
@@ -3021,9 +3021,9 @@ public class OrdersService {
                         convertNum = (BigDecimal) map.get("num");
                         convertUnit = (String) map.get("unit");
                     }
-                    //商品没有上架
+                    //商品没有上架A
                     if (info.getPdstate() != Quantity.STATE_4) {
-                        alertMsg = "下架:" + info.getProductname() + "已下架";
+                        alertMsg = "下架:" + info.getProductname() + info.getLevel3() + info.getStand() + info.getMaterial() + "/" + info.getCardnum() + "/" + info.getSurfacetreatment() + "已下架";
                         offErrorList.add(alertMsg);
                         continue;
                     }
@@ -3054,7 +3054,7 @@ public class OrdersService {
 //                            basicRet.setResult(BasicRet.ERR);
 //                            basicRet.setMessage("库存不足");
 //                            return basicRet;
-                            alertMsg = "库存不足:" + info.getProductname() + "库存不足";
+                            alertMsg = "库存不足:" + info.getProductname() + info.getLevel3() + info.getStand() + info.getMaterial() + "/" + info.getCardnum() + "/" + info.getSurfacetreatment() + "库存不足";
                             lackErrorList.add(alertMsg);
                             continue;
                         }

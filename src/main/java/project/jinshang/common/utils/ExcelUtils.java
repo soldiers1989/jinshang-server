@@ -7,6 +7,7 @@ import jxl.write.Label;
 import jxl.write.WritableCellFormat;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.util.CellRangeAddress;
@@ -384,4 +385,44 @@ public class ExcelUtils {
         }
         return workbook;
     }
+
+    /**
+     * 向excel中插入一列
+     * @param xwb XSSFWorkbook 对象
+     * @param sheetName sheet名称
+     * @param insertStartRow 从第几行插入新的一行
+     * @param insertCell 向第几个单元格插入值
+     * @param content 要插入的值
+     * @return
+     */
+    public static XSSFWorkbook insertRows(XSSFWorkbook xwb,String sheetName,int insertStartRow,short insertCell,String content){
+        XSSFSheet sheet = StringUtils.isEmpty(sheetName)?xwb.getSheetAt(0):xwb.getSheet(sheetName);
+        XSSFRow row = null;
+        if (sheet.getRow(insertStartRow) != null) {
+            int lastRowNo = sheet.getLastRowNum();
+            sheet.shiftRows(insertStartRow, lastRowNo, 1);
+        }
+        row = sheet.createRow(insertStartRow);
+        XSSFCell cell = row.createCell((short) insertCell);
+        cell.setCellValue(content);
+        return xwb;
+    }
+
+    /**
+     * 删除excel指定的一列
+     * @param xwb XSSFWorkbook对象
+     * @param sheetName sheet名称
+     * @param deleteRow 要删除的哪一行
+     * @return
+     */
+    public static XSSFWorkbook deleteRow(XSSFWorkbook xwb,String sheetName,int deleteRow){
+        XSSFSheet sheet = StringUtils.isEmpty(sheetName)?xwb.getSheetAt(0):xwb.getSheet(sheetName);
+        XSSFRow row = null;
+        if (sheet.getRow(deleteRow) != null) {
+            int lastRowNo = sheet.getLastRowNum();
+            sheet.shiftRows(deleteRow, lastRowNo, -1);
+        }
+        return xwb;
+    }
+
 }

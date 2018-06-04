@@ -4,6 +4,8 @@ import org.apache.ibatis.annotations.Param;
 import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_product.bean.dto.OtherProductQueryDto;
 
+import java.util.List;
+
 /**
  * create : wyh
  * date : 2018/1/4
@@ -13,7 +15,7 @@ public class OtherProdProvider {
     public  String listOtherProd(@Param("queryDto")OtherProductQueryDto queryDto){
         StringBuilder sql = new StringBuilder();
 
-        sql.append("select P.*,M.username,SC.companyname,SC.shopname from productinfo P,Member M,sellercompanyinfo SC where P.memberid=M.id and M.id=SC.memberid and  producttype='其他' and pdstate != 6 ");
+        sql.append("select P.*,S.pdno,M.username,SC.companyname,SC.shopname from productinfo P join productStore S on P.id=S.pdid ,Member M,sellercompanyinfo SC where P.memberid=M.id and M.id=SC.memberid and  producttype='其他' and pdstate != 6 ");
         if(queryDto.getMemberid() != null && queryDto.getMemberid()>0){
             sql.append(" and P.memberid=#{queryDto.memberid} ");
         }
@@ -50,10 +52,28 @@ public class OtherProdProvider {
         }
 
         if(queryDto.getUptimeStart() != null){
-            sql.append(" and P.updatetime >= #{queryDto.uptimeStart} ");
+            sql.append(" and P.uptime >= #{queryDto.uptimeStart} ");
         }
         if(queryDto.getUptimeEnd() != null){
-            sql.append(" and P.updatetime < #{queryDto.uptimeEnd} ");
+            sql.append(" and P.uptime < #{queryDto.uptimeEnd} ");
+        }
+
+        if(queryDto.getDowntimeStart() != null){
+            sql.append(" and P.downtime >= #{queryDto.downtimeStart} ");
+        }
+        if(queryDto.getDowntimeEnd() != null){
+            sql.append(" and P.downtime < #{queryDto.downtimeEnd} ");
+        }
+
+        if(queryDto.getUpdatetimeStart() != null){
+            sql.append(" and P.updatetime >= #{queryDto.updatetimeStart} ");
+        }
+        if(queryDto.getUpdatetimeEnd() != null){
+            sql.append(" and P.updatetime < #{queryDto.updatetimeEnd} ");
+        }
+
+        if(queryDto.getPdids() != null && queryDto.getPdids() !=""){
+            sql.append(" and P.id in ( "+queryDto.getPdids() +" ) ");
         }
 
         if(queryDto.getCreateStart() != null){
@@ -64,9 +84,16 @@ public class OtherProdProvider {
             sql.append(" and P.createtime < #{queryDto.createEnd} ");
         }
 
+        if(queryDto.getPdno() != null){
+            sql.append(" and S.pdno like '%"+queryDto.getPdno()+"%' ");
+        }
 
         if(queryDto.getProductname() != null && !"".equals(queryDto.getProductname())){
             sql.append(" and P.productname like '%"+queryDto.getProductname()+"%' ");
+        }
+
+        if(queryDto.getPdstate()==5){
+            sql.append(" order by P.downtime desc" );
         }
 
         return  sql.toString();
@@ -178,10 +205,28 @@ public class OtherProdProvider {
         }
 
         if(queryDto.getUptimeStart() != null){
-            sql.append(" and P.updatetime >= #{queryDto.uptimeStart} ");
+            sql.append(" and P.uptime >= #{queryDto.uptimeStart} ");
         }
         if(queryDto.getUptimeEnd() != null){
-            sql.append(" and P.updatetime < #{queryDto.uptimeEnd} ");
+            sql.append(" and P.uptime < #{queryDto.uptimeEnd} ");
+        }
+
+        if(queryDto.getDowntimeStart() != null){
+            sql.append(" and P.downtime >= #{queryDto.downtimeStart} ");
+        }
+        if(queryDto.getDowntimeEnd() != null){
+            sql.append(" and P.downtime < #{queryDto.downtimeEnd} ");
+        }
+
+        if(queryDto.getUpdatetimeStart() != null){
+            sql.append(" and P.updatetime >= #{queryDto.updatetimeStart} ");
+        }
+        if(queryDto.getUpdatetimeEnd() != null){
+            sql.append(" and P.updatetime < #{queryDto.updatetimeEnd} ");
+        }
+
+        if(queryDto.getPdids() != null && queryDto.getPdids() != ""){
+            sql.append(" and P.id in ( "+ queryDto.getPdids() +" ) ");
         }
 
         if(queryDto.getCreateStart() != null){
@@ -195,6 +240,10 @@ public class OtherProdProvider {
 
         if(queryDto.getProductname() != null && !"".equals(queryDto.getProductname())){
             sql.append(" and P.productname like '%"+queryDto.getProductname()+"%' ");
+        }
+
+        if(queryDto.getPdstate()==5){
+            sql.append(" order by P.downtime desc" );
         }
 
         return  sql.toString();

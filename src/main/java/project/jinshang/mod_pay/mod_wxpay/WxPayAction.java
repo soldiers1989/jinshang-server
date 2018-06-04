@@ -24,13 +24,17 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.utils.GsonUtils;
+import project.jinshang.mod_pay.bean.PayLogs;
 import project.jinshang.mod_pay.bean.Trade;
 import project.jinshang.mod_pay.bean.ret.PayUrlRet;
+import project.jinshang.mod_pay.service.PayLogsService;
 import project.jinshang.mod_pay.service.TradeService;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.io.ByteArrayInputStream;
+import java.math.BigDecimal;
+import java.util.Date;
 
 @RestController
 @RequestMapping("/rest/wxpay")
@@ -44,6 +48,9 @@ public class WxPayAction {
     private TradeService tradeService;
     @Autowired
     private WebConfBean webConfBean;
+
+    @Resource
+    private PayLogsService payLogsService;
 
     @RequestMapping(value="/toPay",method= {RequestMethod.POST})
     @ApiOperation(value = "去支付. 返回的url需要调用url2qr生成支付二维码")
@@ -197,6 +204,17 @@ public class WxPayAction {
             if("SUCCESS".equals(result.getReturnCode()) && "SUCCESS".equals(result.getResultCode())) {
                 String orderNo = result.getOutTradeNo();
                 String[] orderNo_array = orderNo.split("-");
+
+                //支付金额
+                Integer total_amount = result.getTotalFee();
+                PayLogs payLogs = new PayLogs();
+                payLogs.setTransactionid(result.getTransactionId());
+                payLogs.setOuttradeno(orderNo);
+                payLogs.setMoney(new BigDecimal(total_amount).divide(new BigDecimal(100)).setScale(2,BigDecimal.ROUND_HALF_UP));
+                payLogs.setCreatetime(new Date());
+                payLogs.setChannel("wxpay");
+                payLogsService.insertSelective(payLogs);
+
                 boolean res = false;
                 if(orderNo_array.length==2){
                     if(orderNo_array[0].equals("order")){

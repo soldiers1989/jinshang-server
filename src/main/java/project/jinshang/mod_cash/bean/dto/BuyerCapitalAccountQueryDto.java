@@ -25,7 +25,8 @@ public class BuyerCapitalAccountQueryDto {
     private String realname;
     @ApiModelProperty(notes = "手机号码")
     private String mobile;
-
+    @ApiModelProperty(notes = "会员名称")
+    private String username;
 
     public Date getTradetimeStart() {
         return tradetimeStart;
@@ -81,5 +82,13 @@ public class BuyerCapitalAccountQueryDto {
 
     public void setInvoicename(String invoicename) {
         this.invoicename = invoicename;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

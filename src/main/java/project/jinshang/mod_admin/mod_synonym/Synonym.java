@@ -1,7 +1,5 @@
 package project.jinshang.mod_admin.mod_synonym;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;

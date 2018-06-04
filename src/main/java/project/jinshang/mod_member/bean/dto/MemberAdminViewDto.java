@@ -50,7 +50,10 @@ public class MemberAdminViewDto implements Serializable {
 
     private  String[] labelidArr;
 
-
+    @ApiModelProperty(notes = "联系手机")
+    private  String mobile;
+    @ApiModelProperty(notes = "管理下單")
+    private  Long manageState;
 
     public Long getId() {
         return id;
@@ -139,5 +142,20 @@ public class MemberAdminViewDto implements Serializable {
 
     public void setCompanyname(String companyname) {
         this.companyname = companyname;
+    }
+
+    public String getMobile() {
+        return mobile;
+    }
+
+    public void setMobile(String mobile) {
+        this.mobile = mobile;
+    }
+    public Long getManageState() {
+        return manageState;
+    }
+
+    public void setManageState(Long manageState) {
+        this.manageState = manageState;
     }
 }

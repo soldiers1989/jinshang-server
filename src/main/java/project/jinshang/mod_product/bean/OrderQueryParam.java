@@ -65,7 +65,9 @@ public class OrderQueryParam {
     @ApiModelProperty(notes = "发货方式 0-卖家直发，1-平台代发")
     private Short deliverytype;
 
-
+    //添加业务员
+    @ApiModelProperty(notes = "业务员")
+    private String clerkname;
     private int pageNo;
 
     private int pageSize;
@@ -279,5 +281,11 @@ public class OrderQueryParam {
         this.deliverytype = deliverytype;
     }
 
+    public String getClerkname() {
+        return clerkname;
+    }
 
+    public void setClerkname(String clerkname) {
+        this.clerkname = clerkname;
+    }
 }

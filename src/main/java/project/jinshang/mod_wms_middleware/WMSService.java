@@ -93,10 +93,8 @@ public class WMSService {
     private  String jskjjgjc;
 
     @Scheduled(cron = "0 0/1 * * * ?")
-    @Profile("pro")
     public void checkUnSend() {
         List<WmsMidMsg> list = wmsMiddlewareMsgMapper.list(0);
-        System.out.println(list.size());
         for (WmsMidMsg msg : list) {
             cachedThreadPool.execute(() -> {
                 Map<String, Object> ret = HttpClientUtils.post(msg.getUrl(), JsonUtil.toMap(msg.getParams()));
@@ -124,6 +122,32 @@ public class WMSService {
 
     private void send(String url, Map<String, String> params) {
         cachedThreadPool.execute(() -> {
+
+            WmsMidMsg wmsMidMsg = new WmsMidMsg()
+                    .setCreateDt(new Timestamp(System.currentTimeMillis()))
+                    .setParams(JsonUtil.toJson(params)).setUrl(url);
+
+            try {
+                Map<String, Object> ret = HttpClientUtils.post(url, params);
+                //logger.warn("send middleware ret: " + url + " ; " + ret.toString());
+                if (((int) ret.getOrDefault("result", -100)) < 0) {
+                    wmsMidMsg.setStatus(0);
+                    wmsMiddlewareMsgMapper.save(wmsMidMsg);
+                }else{
+
+                }
+            } catch (Exception e) {
+                wmsMidMsg.setStatus(0);
+                wmsMiddlewareMsgMapper.save(wmsMidMsg);
+                logger.error(e.getMessage(),e);
+            }
+        });
+    }
+
+
+
+    private void sendSynOrders(String url, Map<String, String> params) {
+         cachedThreadPool.execute(() -> {
 
             WmsMidMsg wmsMidMsg = new WmsMidMsg()
                     .setCreateDt(new Timestamp(System.currentTimeMillis()))
@@ -162,13 +186,14 @@ public class WMSService {
         });
     }
 
+
+
+
     /**
      * 同步订单
      */
     public void synOrders(List<Orders> ordersList) {
-        //System.out.println("执行订单同步");
-        logger.error("执行订单同步");
-
+        logger.error("执行订单同步开始");
         List<String> shopSelfSupportIds = Arrays.asList(jskjjgjc.split("\\|"));
 //        List<String> shopSelfSupportIds = Arrays.asList(shopSelfSupportid.split("\\|"));
         List<String> aoZhanidList = Arrays.asList(aozhanids.split("\\|"));
@@ -214,8 +239,6 @@ public class WMSService {
                             orders.setInvoiceName(buyerCompanyInfos.get(0).getCompanyname());
                         }
                     }
-                    logger.error("紧商--："+ JSONArray.fromObject(list));
-                    logger.info("紧商--："+JSONArray.fromObject(list));
                     list.add(orders);
                 } else if (aoZhanidList.contains(String.valueOf(orders.getSaleid()))) {
                     if (orders.getIsbilling() == 1) {
@@ -240,9 +263,6 @@ public class WMSService {
                             orders.setInvoiceName(buyerCompanyInfos.get(0).getCompanyname());
                         }
                     }
-
-                    logger.error("奥展--："+ JSONArray.fromObject(orderProducts));
-                    logger.info("奥展--："+JSONArray.fromObject(orderProducts));
                     orders.setOrderProducts(orderProducts);
                     aoZhanList.add(orders);
                 }
@@ -263,21 +283,14 @@ public class WMSService {
             });
 
             orderSynLogService.batchAdd(synLogs);
-
             logger.error("紧商中间件："+ JSONArray.fromObject(list));
-            logger.info("紧商中间件："+JSONArray.fromObject(list));
-//            System.out.println("紧商中间件："+JSONArray.fromObject(list));
-            logger.error("执行订单jswms同步");
-            logger.error(JsonUtil.toJson(list));
             params.put("saleOrderJsonList", JsonUtil.toJson(list));
-            send(middleware_url + "/jinshang/saleOrder", params);
+            sendSynOrders(middleware_url + "/jinshang/saleOrder", params);
         }
 
         //奥展中间件抛接
         if (!aoZhanList.isEmpty() && !"".equals(aozhan_middleware_url)) {
             logger.error("奥展中间件"+JSONArray.fromObject(aoZhanList));
-            logger.info("奥展中间件"+JSONArray.fromObject(aoZhanList));
-
             List<OrderSynLog> synLogs = new ArrayList<>();
             aoZhanList.forEach(orders -> {
                 OrderSynLog log = new OrderSynLog();
@@ -287,18 +300,9 @@ public class WMSService {
                 log.setType(Quantity.STATE_1);
                 synLogs.add(log);
             });
-
             orderSynLogService.batchAdd(synLogs);
-
-            try {
-                params.put("saleOrderJsonList", JsonUtil.toJson(aoZhanList));
-                send(aozhan_middleware_url + "/aoZhan/saleOrder", params);
-                logger.error(JsonUtil.toJson(aoZhanList));
-
-            }catch (Exception e){
-                logger.error("向奥展中间件抛转订单异常信息"+ e.getMessage()+"\n\r"+e.getStackTrace().toString());
-            }
-
+            params.put("saleOrderJsonList", JsonUtil.toJson(aoZhanList));
+            sendSynOrders(aozhan_middleware_url + "/aoZhan/saleOrder", params);
         }
     }
 
@@ -319,10 +323,6 @@ public class WMSService {
             params.put("orderType", type);
             send(middleware_url + "/jinshang/cancel", params);
         }else if(aozhanIdsList.contains(String.valueOf(orders.getSaleid())) && !"".equals(aozhan_middleware_url)){
-            logger.error("奥展订单取消地址指向："+aozhan_middleware_url + "/aoZhan/cancel");
-            logger.info("奥展订单取消地址指向："+aozhan_middleware_url + "/aoZhan/cancel");
-            logger.error("奥展订单取消传递参数信息：orderNo"+orders.getOrderno()+"******orderType"+type);
-            logger.info("奥展订单取消传递参数信息：orderNo"+orders.getOrderno()+"******orderType"+type);
             Map<String, String> params = new HashMap<>();
             params.put("orderNo", orders.getOrderno());
             params.put("orderType", type);
@@ -353,10 +353,6 @@ public class WMSService {
             Map<String, String> params = new HashMap<>();
 //            params.put("saleOrderBackJson", JsonUtil.toJson(orders));
             params.put("saleOrderBackJsonList", JsonUtil.toJson(orderProductBack));
-          //  logger.error("平台奥展中间件退货传递参数："+JSONArray.fromObject(orderProductBack));
-           // logger.error("平台奥展中间件退货地址指向："+aozhan_middleware_url + "/aoZhan/saleOrderBack");
-           // logger.info("平台奥展中间件退货传递参数："+JSONArray.fromObject(orderProductBack));
-           // logger.info("平台奥展中间件退货地址指向："+aozhan_middleware_url + "/aoZhan/saleOrderBack");
             send(aozhan_middleware_url + "/aoZhan/saleOrderBack", params);
         }
     }

@@ -224,7 +224,7 @@ public class IndexService {
                 }
 
                 showCateFrontView.setShowCateFastenerDetailList(showCateFastenerDetailList);
-            }else if("其他".equals(showCate.getType())){
+            }else {
                 List<ShowCateOtherDetail> showCateOtherDetailList = new ArrayList<>();
                 for(ShowCatedetail cateDetail : showCatedetailList){
                     ShowCateOtherDetail showCateOtherDetail = new ShowCateOtherDetail();

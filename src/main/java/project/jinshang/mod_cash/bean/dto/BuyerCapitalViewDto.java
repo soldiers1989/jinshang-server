@@ -95,7 +95,8 @@ public class BuyerCapitalViewDto {
     private String deliveryno;
     @ApiModelProperty(notes = "发票抬头")
     private String invoiceheadup;
-
+    @ApiModelProperty(notes = "会员名称")
+    private String username;
     public Long getId() {
         return id;
     }
@@ -334,5 +335,13 @@ public class BuyerCapitalViewDto {
 
     public void setInvoiceheadup(String invoiceheadup) {
         this.invoiceheadup = invoiceheadup;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 }

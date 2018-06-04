@@ -3,6 +3,7 @@ package project.jinshang.mod_product.bean;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public class ProductStore {
     private Long id;
@@ -76,6 +77,17 @@ public class ProductStore {
 //********************EXTEND**************************************************//
     @ApiModelProperty(notes = "是否存在库存")
     private  short haveStorenum;
+
+    private List<ProductAttr> attrList;
+
+    public List<ProductAttr> getAttrList() {
+        return attrList;
+    }
+
+    public ProductStore setAttrList(List<ProductAttr> attrList) {
+        this.attrList = attrList;
+        return this;
+    }
 
     public short getHaveStorenum() {
         return haveStorenum;

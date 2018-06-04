@@ -55,6 +55,7 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * create : wyh
@@ -1415,7 +1416,16 @@ public class ProductSellerAction {
 
             //保存日志
             //0=放入仓库 1=待审核(立即发布) 2=审核通过 3=未通过 4=已上架(上架) 5=下架 6=删除 7-违规下架
-            memberLogOperator.saveMemberLog(member, null, "修改商品" + productInfo.getId() + "状态为" + pdstate, request, memberOperateLogService);
+            Map pdstatemap = new HashMap();
+            pdstatemap.put(0,"放入仓库");
+            pdstatemap.put(1,"待审核(立即发布)");
+            pdstatemap.put(2,"审核通过");
+            pdstatemap.put(3,"未通过");
+            pdstatemap.put(4,"已上架(上架)");
+            pdstatemap.put(5,"下架");
+            pdstatemap.put(6,"删除");
+            pdstatemap.put(7,"违规下架");
+            memberLogOperator.saveMemberLog(member, null, "修改商品" + productInfo.getProductname() + "状态为" + pdstatemap.get((int)pdstate), request, memberOperateLogService);
 
 
             basicRet.setMessage("修改成功");
@@ -2140,6 +2150,12 @@ public class ProductSellerAction {
             @ApiImplicitParam(value = "商品状态 0=放入仓库 1=待审核(立即发布) 2=审核通过 3=未通过 4=已上架(上架) 5=下架 6=删除 7-违规下架", name = "pdstate", paramType = "query", dataType = "int", required = false, defaultValue = "-1"),
             @ApiImplicitParam(value = "卖家id", name = "memberid", paramType = "query", dataType = "int", required = false, defaultValue = "0"),
             @ApiImplicitParam(value = "用户名", name = "username", paramType = "query", dataType = "string", required = false, defaultValue = ""),
+            @ApiImplicitParam(value = "商品id，多个商品id用英文逗号隔开", name = "pdids", paramType = "query", dataType = "String", required = false),
+            @ApiImplicitParam(value = "商品编号", name = "pdno", paramType = "query", dataType = "int", required = false),
+            @ApiImplicitParam(value = "下架时间", name = "downtimeStart", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "下架时间", name = "downtimeEnd", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "最后修改价格时间", name = "updatetimeStart", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "最后修改价格时间", name = "updatetimeEnd", paramType = "query", dataType = "date", required = false),
             @ApiImplicitParam(value = "上架时间", name = "uptimeStart", paramType = "query", dataType = "date", required = false),
             @ApiImplicitParam(value = "上架时间", name = "uptimeEnd", paramType = "query", dataType = "date", required = false),
             @ApiImplicitParam(value = "发布时间区间", name = "createStart", paramType = "query", dataType = "date", required = false),
@@ -2171,6 +2187,32 @@ public class ProductSellerAction {
             queryDto.setCreateEnd(DateUtils.addDays(queryDto.getCreateEnd(), 1));
         }
 
+        if (queryDto.getDowntimeEnd() != null) {
+            queryDto.setDowntimeEnd(DateUtils.addDays(queryDto.getDowntimeEnd(), 1));
+        }
+
+        if (queryDto.getUpdatetimeEnd() != null) {
+            queryDto.setUpdatetimeEnd(DateUtils.addDays(queryDto.getUpdatetimeEnd(), 1));
+        }
+
+        if(queryDto.getPdids() != null && queryDto.getPdids()!="") {
+            /*String[] str = pdids.split(",");
+            int[] intTemp = new int[str.length];
+            for (int i = 0; i <str.length; i++) {
+                intTemp[i] = Integer.parseInt(str[i]);
+            }*/
+            try {
+                List<Integer> PdidList = Arrays.asList(queryDto.getPdids().split(",")).stream().map(s -> Integer.parseInt(s.trim())).collect(Collectors.toList());
+                queryDto.setPdid(PdidList);
+                String pdidStr = org.apache.commons.lang3.StringUtils.join(PdidList, ",");
+                queryDto.setPdids(pdidStr);
+            }catch (NumberFormatException e){
+                pageRet.setResult(BasicRet.ERR);
+                pageRet.setMessage("输入商品id格式错误，多个商品id请用一个英文逗号隔开");
+                return pageRet;
+            }
+        }
+
         PageInfo pageInfo = otherProdService.listOtherProd(queryDto, pageNo, pageSize);
 
         pageRet.data.setPageInfo(pageInfo);
@@ -2192,6 +2234,11 @@ public class ProductSellerAction {
             @ApiImplicitParam(value = "商品状态 0=放入仓库 1=待审核(立即发布) 2=审核通过 3=未通过 4=已上架(上架) 5=下架 6=删除 7-违规下架", name = "pdstate", paramType = "query", dataType = "int", required = false, defaultValue = "-1"),
             @ApiImplicitParam(value = "卖家id", name = "memberid", paramType = "query", dataType = "int", required = false, defaultValue = "0"),
             @ApiImplicitParam(value = "用户名", name = "username", paramType = "query", dataType = "string", required = false, defaultValue = ""),
+            @ApiImplicitParam(value = "商品id，多个商品id用英文逗号隔开", name = "pdids", paramType = "query", dataType = "String", required = false),
+            @ApiImplicitParam(value = "下架时间", name = "downtimeStart", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "下架时间", name = "downtimeEnd", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "最后修改价格时间", name = "updatetimeStart", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "最后修改价格时间", name = "updatetimeEnd", paramType = "query", dataType = "date", required = false),
             @ApiImplicitParam(value = "上架时间", name = "uptimeStart", paramType = "query", dataType = "date", required = false),
             @ApiImplicitParam(value = "上架时间", name = "uptimeEnd", paramType = "query", dataType = "date", required = false),
             @ApiImplicitParam(value = "发布时间区间", name = "createStart", paramType = "query", dataType = "date", required = false),
@@ -2221,6 +2268,32 @@ public class ProductSellerAction {
 
         if (queryDto.getCreateEnd() != null) {
             queryDto.setCreateEnd(DateUtils.addDays(queryDto.getCreateEnd(), 1));
+        }
+
+        if (queryDto.getDowntimeEnd() != null) {
+            queryDto.setDowntimeEnd(DateUtils.addDays(queryDto.getDowntimeEnd(), 1));
+        }
+
+        if (queryDto.getUpdatetimeEnd() != null) {
+            queryDto.setUpdatetimeEnd(DateUtils.addDays(queryDto.getUpdatetimeEnd(), 1));
+        }
+
+        if(queryDto.getPdids() != null && queryDto.getPdids()!="") {
+            /*String[] str = pdids.split(",");
+            int[] intTemp = new int[str.length];
+            for (int i = 0; i <str.length; i++) {
+                intTemp[i] = Integer.parseInt(str[i]);
+            }*/
+            try {
+                List<Integer> PdidList = Arrays.asList(queryDto.getPdids().split(",")).stream().map(s -> Integer.parseInt(s.trim())).collect(Collectors.toList());
+                queryDto.setPdid(PdidList);
+                String pdidStr = org.apache.commons.lang3.StringUtils.join(PdidList, ",");
+                queryDto.setPdids(pdidStr);
+            }catch (NumberFormatException e){
+               /* pageRet.setResult(BasicRet.ERR);
+                pageRet.setMessage("输入商品id格式错误，多个商品id请用一个英文逗号隔开");
+                return pageRet;*/
+            }
         }
 
         List<Map<String,Object>> resList = otherProdService.listOtherProdForSellerExportExcel(queryDto);
@@ -2711,10 +2784,16 @@ public class ProductSellerAction {
             @ApiImplicitParam(value = "规格", name = "stand", paramType = "query", dataType = "string", required = false),
             @ApiImplicitParam(value = "是否有库存,0-全部,1-有，2-没有", name = "haveStorenum", paramType = "query", dataType = "int", required = false, defaultValue = "0"),
             @ApiImplicitParam(value = "商品状态0=放入仓库1=待审核2=审核通过3=未通过4=已上架5=下架6=删除7=违规下架", name = "pdstate", paramType = "query", dataType = "int", required = false, defaultValue = "-1"),
+            @ApiImplicitParam(value = "商品id，多个商品id用英文逗号隔开", name = "pdids", paramType = "query", dataType = "String", required = false),
+            @ApiImplicitParam(value = "商品编号", name = "pdno", paramType = "query", dataType = "int", required = false),
             @ApiImplicitParam(value = "材质id", name = "materialid", paramType = "query", dataType = "int", required = false, defaultValue = "-1"),
             @ApiImplicitParam(value = "牌号id", name = "cardnumid", paramType = "query", dataType = "int", required = false, defaultValue = "-1"),
             @ApiImplicitParam(value = "上架时间", name = "uptimeStart", paramType = "query", dataType = "date", required = false),
             @ApiImplicitParam(value = "上架时间", name = "uptimeEnd", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "下架时间", name = "downtimeStart", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "下架时间", name = "downtimeEnd", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "最后修改价格时间", name = "updatetimeStart", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "最后修改价格时间", name = "updatetimeEnd", paramType = "query", dataType = "date", required = false),
             @ApiImplicitParam(value = "发布时间区间", name = "createStart", paramType = "query", dataType = "date", required = false),
             @ApiImplicitParam(value = "发布时间区间", name = "createEnd", paramType = "query", dataType = "date", required = false),
     })
@@ -2726,10 +2805,16 @@ public class ProductSellerAction {
                                        @RequestParam(required = false) String stand,
                                        @RequestParam(required = false, defaultValue = "0") short haveStorenum,
                                        @RequestParam(required = false, defaultValue = "-1") short pdstate,
+                                       @RequestParam(required = false) String pdids,
+                                       @RequestParam(required = false) String pdno,
                                        @RequestParam(required = false, defaultValue = "-1") long materialid,
                                        @RequestParam(required = true, defaultValue = "-1") long cardnumid,
                                        @RequestParam(required = false) Date uptimeStart,
                                        @RequestParam(required = false) Date uptimeEnd,
+                                       @RequestParam(required = false) Date downtimeStart,
+                                       @RequestParam(required = false) Date downtimeEnd,
+                                       @RequestParam(required = false) Date updatetimeStart,
+                                       @RequestParam(required = false) Date updatetimeEnd,
                                        @RequestParam(required = false) Date createStart,
                                        @RequestParam(required = false) Date createEnd,
                                        Model model) {
@@ -2743,6 +2828,10 @@ public class ProductSellerAction {
 
         if (StringUtils.hasText(productname)) {
             productInfo.setProductname(productname);
+        }
+
+        if (StringUtils.hasText(pdno)) {
+            productInfo.setPdno(pdno);
         }
 
         if (StringUtils.hasText(brand)) {
@@ -2780,6 +2869,38 @@ public class ProductSellerAction {
 
         if (uptimeEnd != null) {
             productInfo.setUptimeEnd(DateUtils.addDays(uptimeEnd, 1));
+        }
+
+        if(pdids != null && pdids !="") {
+            /*String[] str = pdids.split(",");
+            int[] intTemp = new int[str.length];
+            for (int i = 0; i <str.length; i++) {
+                intTemp[i] = Integer.parseInt(str[i]);
+            }*/
+            try {
+                List<Integer> PdidList = Arrays.asList(pdids.split(",")).stream().map(s -> Integer.parseInt(s.trim())).collect(Collectors.toList());
+                productInfo.setPdids(PdidList);
+            }catch (NumberFormatException e){
+                pageRet.setResult(BasicRet.ERR);
+                pageRet.setMessage("输入商品id格式错误，多个商品id请用一个英文逗号隔开");
+                return pageRet;
+            }
+        }
+
+        if (downtimeStart != null) {
+            productInfo.setDowntimeStart(downtimeStart);
+        }
+
+        if (downtimeEnd != null) {
+            productInfo.setDowntimeEnd(DateUtils.addDays(downtimeEnd, 1));
+        }
+
+        if (updatetimeStart != null) {
+            productInfo.setUpdatetimeStart(updatetimeStart);
+        }
+
+        if (updatetimeEnd != null) {
+            productInfo.setUpdatetimeEnd(DateUtils.addDays(updatetimeEnd, 1));
         }
 
         if (createStart != null) {
@@ -2810,10 +2931,15 @@ public class ProductSellerAction {
             @ApiImplicitParam(value = "是否有库存,0-全部,1-有，2-没有", name = "haveStorenum", paramType = "query", dataType = "int", required = false, defaultValue = "0"),
             @ApiImplicitParam(value = "商品状态0=放入仓库1=待审核2=审核通过3=未通过4=已上架5=下架6=删除7=违规下架", name = "pdstate", paramType = "query", dataType = "int", required = false, defaultValue = "-1"),
             @ApiImplicitParam(value = "是否有库存,0-全部,1-有，2-没有", name = "haveStorenum", paramType = "query", dataType = "int", required = false, defaultValue = "0"),
+            @ApiImplicitParam(value = "商品id，多个商品id用英文逗号隔开", name = "pdids", paramType = "query", dataType = "String", required = false),
             @ApiImplicitParam(value = "材质id", name = "materialid", paramType = "query", dataType = "int", required = false, defaultValue = "-1"),
             @ApiImplicitParam(value = "牌号id", name = "cardnumid", paramType = "query", dataType = "int", required = false, defaultValue = "-1"),
             @ApiImplicitParam(value = "上架时间", name = "uptimeStart", paramType = "query", dataType = "date", required = false),
             @ApiImplicitParam(value = "上架时间", name = "uptimeEnd", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "下架时间", name = "downtimeStart", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "下架时间", name = "downtimeEnd", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "最后修改价格时间", name = "updatetimeStart", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "最后修改价格时间", name = "updatetimeEnd", paramType = "query", dataType = "date", required = false),
             @ApiImplicitParam(value = "发布时间区间", name = "createStart", paramType = "query", dataType = "date", required = false),
             @ApiImplicitParam(value = "发布时间区间", name = "createEnd", paramType = "query", dataType = "date", required = false),
     })
@@ -2824,10 +2950,15 @@ public class ProductSellerAction {
                                        @RequestParam(required = false) String stand,
                                        @RequestParam(required = false, defaultValue = "0") short haveStorenum,
                                        @RequestParam(required = false, defaultValue = "-1") short pdstate,
+                                       @RequestParam(required = false) String pdids,
                                        @RequestParam(required = false, defaultValue = "-1") long materialid,
                                        @RequestParam(required = true, defaultValue = "-1") long cardnumid,
                                        @RequestParam(required = false) Date uptimeStart,
                                        @RequestParam(required = false) Date uptimeEnd,
+                                       @RequestParam(required = false) Date downtimeStart,
+                                       @RequestParam(required = false) Date downtimeEnd,
+                                       @RequestParam(required = false) Date updatetimeStart,
+                                       @RequestParam(required = false) Date updatetimeEnd,
                                        @RequestParam(required = false) Date createStart,
                                        @RequestParam(required = false) Date createEnd,
                                        Model model) {
@@ -2878,6 +3009,38 @@ public class ProductSellerAction {
 
         if (uptimeEnd != null) {
             productInfo.setUptimeEnd(DateUtils.addDays(uptimeEnd, 1));
+        }
+
+        if(pdids != null && pdids !="") {
+            /*String[] str = pdids.split(",");
+            int[] intTemp = new int[str.length];
+            for (int i = 0; i <str.length; i++) {
+                intTemp[i] = Integer.parseInt(str[i]);
+            }*/
+            try {
+                List<Integer> PdidList = Arrays.asList(pdids.split(",")).stream().map(s -> Integer.parseInt(s.trim())).collect(Collectors.toList());
+                productInfo.setPdids(PdidList);
+            }catch (NumberFormatException e){
+                /*pageRet.setResult(BasicRet.ERR);
+                pageRet.setMessage("输入商品id格式错误，多个商品id请用一个英文逗号隔开");
+                return pageRet;*/
+            }
+        }
+
+        if (downtimeStart != null) {
+            productInfo.setDowntimeStart(downtimeStart);
+        }
+
+        if (downtimeEnd != null) {
+            productInfo.setDowntimeEnd(DateUtils.addDays(downtimeEnd, 1));
+        }
+
+        if (updatetimeStart != null) {
+            productInfo.setUpdatetimeStart(updatetimeStart);
+        }
+
+        if (updatetimeEnd != null) {
+            productInfo.setUpdatetimeEnd(DateUtils.addDays(updatetimeEnd, 1));
         }
 
         if (createStart != null) {

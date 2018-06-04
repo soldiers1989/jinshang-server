@@ -3,6 +3,7 @@ package project.jinshang.mod_member.service;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import mizuki.project.core.restserver.config.BasicRet;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
@@ -24,6 +25,7 @@ import project.jinshang.mod_member.MemberMapper;
 import project.jinshang.mod_member.bean.Member;
 import project.jinshang.mod_member.bean.MemberExample;
 import project.jinshang.mod_member.bean.MemberGrade;
+import project.jinshang.mod_member.bean.dto.MemberAdminViewDto;
 import project.jinshang.mod_shop.bean.ShopGrade;
 import project.jinshang.mod_shop.service.ShopGradeService;
 import project.jinshang.scheduled.mapper.AppTaskMapper;
@@ -164,7 +166,9 @@ public class MemberService {
             //查询是谁邀请的，设置邀请者的id
             if(null != customInvitecode) {
                 Member inviterMember = getByInvitecode(customInvitecode);
-                member.setInviterid(inviterMember.getId());
+                if(inviterMember != null) {
+                    member.setInviterid(inviterMember.getId());
+                }
             }
 
             MemberGrade memberGrade = memberGradeService.getDefaultMemberGrade();
@@ -582,6 +586,20 @@ public class MemberService {
 
 
     /**
+     * 根据条件一次进行模糊查询
+     * @param username 用户名称
+     * @param companyname 用户所属的公司名称
+     * @param realname 用户姓名
+     * @param mobile 用户手机号码
+     * @param invoiceheadup 发票抬头
+     * @return
+     */
+    public List<Map<String,Object>> findMembersByFuzzy(String username, String companyname, String realname, String mobile, String invoiceheadup){
+        return memberMapper.findMembersByFuzzy(username,companyname,realname,mobile,invoiceheadup);
+    }
+
+
+    /**
      * 子帐号列表
      *
      * @param member
@@ -683,5 +701,10 @@ public class MemberService {
 
     public List<Member> getAllMember(){
         return  appTaskMapper.getAllMember();
+    }
+
+
+    public int updateMemberClerknameByid(Long id, String clerkname) {
+        return memberMapper.updateMemberClerknameByid(  id, clerkname);
     }
 }

@@ -710,6 +710,32 @@ public class CommonController {
 
 
 
+    /*
+    沪铝连续AL0
+    沪锌连续ZN0
+    沪铜连续CU0
+    黄金连续AU0
+    螺纹钢连续RB0
+    线材连续WR0
+    沪铅连续PB0
+    白银连续AG0
+    热轧卷板连续HC0
+    沪锡连续SN0
+    沪镍连续NI0
+    燃油连续FU0
+     */
+    @RequestMapping(value = "/getSinaFutures",method = RequestMethod.POST)
+    @ApiOperation(value = "获取新浪期货数据")
+    @ResponseBody
+    public BasicRet getSinaFutures() throws IOException {
+        String url = "http://hq.sinajs.cn/list=AL0,ZN0,CU0,AU0,RB0,WR0,PB0,AG0,HC0,SN0,NI0,FU0";
+        String content =  HttpClientUtils.get(url,"gbk");
+       // System.out.println(content);
+        BasicExtRet basicRet = new BasicExtRet();
+        basicRet.setData(content);
+        basicRet.setResult(BasicRet.SUCCESS);
+        return basicRet;
+    }
 
 
 }

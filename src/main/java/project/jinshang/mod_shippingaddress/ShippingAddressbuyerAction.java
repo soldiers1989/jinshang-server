@@ -57,9 +57,9 @@ public class ShippingAddressbuyerAction {
             ShippingAddressExample.Criteria criteria = example.createCriteria();
             criteria.andMemberidEqualTo(member.getId()).andTypeEqualTo(Quantity.STATE_2);
             int count =  shippingAddressService.countByExample(example);
-            if(count>=10){
+            /*if(count>=10){
                 return  new BasicRet(BasicRet.ERR,"最多可添加10条");
-            }
+            }*/
 
             if(shippingAddress.getIsdefault() == Quantity.STATE_1){  //如果设置为默认，首先全部取消默认
                 shippingAddressService.upateAllToNotDefault(member.getId(),Quantity.STATE_2);

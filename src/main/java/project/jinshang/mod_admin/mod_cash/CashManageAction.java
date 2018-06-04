@@ -1,11 +1,9 @@
 package project.jinshang.mod_admin.mod_cash;
 
 import com.github.pagehelper.PageInfo;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import mizuki.project.core.restserver.config.BasicRet;
+import org.apache.ibatis.annotations.Case;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -21,10 +19,7 @@ import project.jinshang.common.constant.AdminAuthorityConst;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.BuyerCapitalConst;
 import project.jinshang.common.constant.Quantity;
-import project.jinshang.common.utils.DateUtils;
-import project.jinshang.common.utils.ExcelGen;
-import project.jinshang.common.utils.GenerateNo;
-import project.jinshang.common.utils.StringUtils;
+import project.jinshang.common.utils.*;
 import project.jinshang.mod_admin.mod_cash.dto.AdvanceCapitalQueryDto;
 import project.jinshang.mod_admin.mod_cash.dto.AdvanceCapitalSellerQueryDto;
 import project.jinshang.mod_cash.BuyerCapitalAction;
@@ -35,6 +30,8 @@ import project.jinshang.mod_cash.service.BuyerCapitalService;
 import project.jinshang.mod_cash.service.SalerCapitalService;
 import project.jinshang.mod_member.bean.Admin;
 import project.jinshang.mod_member.bean.Member;
+import project.jinshang.mod_member.bean.MemberExample;
+import project.jinshang.mod_member.bean.dto.MemberAdminViewDto;
 import project.jinshang.mod_member.service.MemberService;
 
 import java.io.ByteArrayInputStream;
@@ -946,168 +943,17 @@ public class CashManageAction {
             @ApiImplicitParam(name = "tradetimeStart",value = "开始日期",required = false,paramType = "query",dataType = "date"),
             @ApiImplicitParam(name = "tradetimeEnd",value = "结束日期",required = false,paramType = "query",dataType = "date"),
             @ApiImplicitParam(name = "memberid",value = "会员编号",required = false,paramType = "query",dataType = "string"),
+            @ApiImplicitParam(name = "username",value = "会员名称",required = false,paramType = "query",dataType = "string"),
             @ApiImplicitParam(name = "companyname",value = "公司名称",required = false,paramType = "query",dataType = "string"),
             @ApiImplicitParam(name = "invoicename",value = "开票名称",required = false,paramType = "query",dataType = "string"),
             @ApiImplicitParam(name = "realname",value = "会员姓名",required = false,paramType = "query",dataType = "string"),
             @ApiImplicitParam(name = "mobile",value = "手机号码",required = false,paramType = "query",dataType = "string")
     })
+    @PreAuthorize("hasAuthority('" + AdminAuthorityConst.FINANCIALDETAILS + "')")
     public BuyerCapitalAccountRet accountList(BuyerCapitalAccountQueryDto dto,
                                                                  Model model){
         BuyerCapitalAccountRet buyerCapitalAccountRet=new BuyerCapitalAccountRet();
-        List<BuyerCapitalAccountDto> buyerCapitalAccountDtos=new ArrayList<BuyerCapitalAccountDto>();
-
-        //核定用户，具体暂做分析
-        List<BuyerCapitalViewDto> buyerCapitalViewDtos=buyerCapitalService.listForAccount(dto);
-        if(buyerCapitalViewDtos!=null && buyerCapitalViewDtos.size()>0){
-            final BigDecimal[] sumDeliveryAmount = {new BigDecimal(0.00)};
-            final BigDecimal[] sumReceiptAmount = {new BigDecimal(0.00)};
-            final BigDecimal[] sumOtherAmount = {new BigDecimal(0.00)};
-            BigDecimal sumReceivableAccount =new BigDecimal(0.00);
-            BigDecimal sumInvoiceBalance    =new BigDecimal(0.00);
-            sumDeliveryAmount[0].setScale(2,BigDecimal.ROUND_HALF_UP);
-            sumReceiptAmount[0].setScale(2,BigDecimal.ROUND_HALF_UP);
-            sumOtherAmount[0].setScale(2,BigDecimal.ROUND_HALF_UP);
-            sumReceivableAccount.setScale(2,BigDecimal.ROUND_HALF_UP);
-            sumInvoiceBalance.setScale(2,BigDecimal.ROUND_HALF_UP);
-            for (int i = 0; i < buyerCapitalViewDtos.size(); i++) {
-                BuyerCapitalViewDto buyerCapitalViewDto=buyerCapitalViewDtos.get(i);
-                short payType=buyerCapitalViewDto.getPaytype();
-                short capitalType=buyerCapitalViewDto.getCapitaltype();
-                BuyerCapitalAccountDto buyerCapitalAccountDto=null;
-                //根据capitalType进行分组计算
-                switch  (capitalType){
-                    case BuyerCapitalConst.CAPITALTYPE_CONSUM:
-                    {
-                        if (payType == BuyerCapitalConst.PAYMETHOD_ALIPAY || payType == BuyerCapitalConst.PAYMETHOD_WEIXIN || payType == BuyerCapitalConst.PAYMETHOD_BANKCARD) {
-                            //当记录为网络支付时，先添加一条收款记录，【应收账款】减钱
-                            buyerCapitalAccountDto = this.transferViewDto2AccountDto(buyerCapitalViewDto);
-                            buyerCapitalAccountDto.setDeliveryamount(null);
-                            buyerCapitalAccountDto.setOtheramount(null);
-                            buyerCapitalAccountDto.setCapitaltypename("收款");
-                            sumReceivableAccount=sumReceivableAccount.subtract(buyerCapitalAccountDto.getReceiptamount());
-                            buyerCapitalAccountDto.setReceivableaccount(sumReceivableAccount);
-                            buyerCapitalAccountDto.setInvoicebalance(sumInvoiceBalance);
-                            buyerCapitalAccountDto.setRemark((buyerCapitalViewDto.getInvoiceheadup()==null?"":buyerCapitalViewDto.getInvoiceheadup())+"$"+buyerCapitalViewDto.getMemberid());
-                            //添加到对应的结果集合中去
-                            buyerCapitalAccountDtos.add(buyerCapitalAccountDto);
-                            //然后再添加一条发货记录，【应收账款】加钱
-                            buyerCapitalAccountDto = this.transferViewDto2AccountDto(buyerCapitalViewDto);
-                            buyerCapitalAccountDto.setReceiptamount(null);
-                            buyerCapitalAccountDto.setOtheramount(null);
-                            buyerCapitalAccountDto.setCapitaltypename("发货");
-                            //填写对应的发货单编号
-                            buyerCapitalAccountDto.setOddnumber(buyerCapitalViewDto.getDeliveryno());
-                            sumReceivableAccount=sumReceivableAccount.add(buyerCapitalAccountDto.getDeliveryamount());
-                            buyerCapitalAccountDto.setReceivableaccount(sumReceivableAccount);
-                            //当发货=加法，发票结余进行累加，其他情况不处理
-                            sumInvoiceBalance=sumInvoiceBalance.add(buyerCapitalAccountDto.getDeliveryamount());
-                            buyerCapitalAccountDto.setInvoicebalance(sumInvoiceBalance);
-                            buyerCapitalAccountDto.setRemark((buyerCapitalViewDto.getInvoiceheadup()==null?"":buyerCapitalViewDto.getInvoiceheadup())+"$"+buyerCapitalViewDto.getMemberid());
-                            //添加到对应的结果集合中去
-                            buyerCapitalAccountDtos.add(buyerCapitalAccountDto);
-                        } else if (payType == BuyerCapitalConst.PAYMETHOD_BALANCE || payType == BuyerCapitalConst.PAYMETHOD_CREDIT) {
-                            //这两种情况下，均是新增一条发货记录，同时累加发票结余
-                            buyerCapitalAccountDto = this.transferViewDto2AccountDto(buyerCapitalViewDto);
-                            buyerCapitalAccountDto.setReceiptamount(null);
-                            buyerCapitalAccountDto.setOtheramount(null);
-                            buyerCapitalAccountDto.setCapitaltypename("发货");
-                            //填写对应的发货单编号
-                            buyerCapitalAccountDto.setOddnumber(buyerCapitalViewDto.getDeliveryno());
-                            sumReceivableAccount=sumReceivableAccount.add(buyerCapitalAccountDto.getDeliveryamount());
-                            buyerCapitalAccountDto.setReceivableaccount(sumReceivableAccount);
-                            sumInvoiceBalance=sumInvoiceBalance.add(buyerCapitalAccountDto.getDeliveryamount());
-                            buyerCapitalAccountDto.setInvoicebalance(sumInvoiceBalance);
-                            buyerCapitalAccountDto.setRemark((buyerCapitalViewDto.getInvoiceheadup()==null?"":buyerCapitalViewDto.getInvoiceheadup())+"$"+buyerCapitalViewDto.getMemberid());
-                            buyerCapitalAccountDtos.add(buyerCapitalAccountDto);
-                        }
-                        break;
-                    }
-                    case BuyerCapitalConst.CAPITALTYPE_RECHARGE:
-                    {
-                        buyerCapitalAccountDto = this.transferViewDto2AccountDto(buyerCapitalViewDto);
-                        //此时的单号获取的为充值平台的单号
-                        buyerCapitalAccountDto.setOddnumber(buyerCapitalViewDto.getRechargenumber());
-                        buyerCapitalAccountDto.setDeliveryamount(null);
-                        buyerCapitalAccountDto.setOtheramount(null);
-                        buyerCapitalAccountDto.setCapitaltypename("充值");
-                        sumReceivableAccount=sumReceivableAccount.subtract(buyerCapitalAccountDto.getReceiptamount());
-                        buyerCapitalAccountDto.setReceivableaccount(sumReceivableAccount);
-                        buyerCapitalAccountDto.setInvoicebalance(sumInvoiceBalance);
-                        //添加到对应的结果集合中去
-                        buyerCapitalAccountDtos.add(buyerCapitalAccountDto);
-                        break;
-                    }
-                    //买家违约，金额归为其他，进行相加
-                    case BuyerCapitalConst.CAPITALTYPE_PENALTY:
-                    {
-                        buyerCapitalAccountDto=this.transferViewDto2AccountDto(buyerCapitalViewDto);
-                        buyerCapitalAccountDto.setDeliveryamount(null);
-                        buyerCapitalAccountDto.setReceiptamount(null);
-                        buyerCapitalAccountDto.setCapitaltypename("违约金");
-                        sumReceivableAccount=sumReceivableAccount.add(buyerCapitalAccountDto.getOtheramount());
-                        buyerCapitalAccountDto.setReceivableaccount(sumReceivableAccount);
-                        buyerCapitalAccountDto.setInvoicebalance(sumInvoiceBalance);
-                        buyerCapitalAccountDto.setPaytype((short)5);
-                        //capitalType类型为违约时，显示remark字段的内容
-                        buyerCapitalAccountDto.setRemark("买家违约");
-                        buyerCapitalAccountDtos.add(buyerCapitalAccountDto);
-                        break;
-                    }
-                    //卖家违约，金额归为其他，金额变为负数，进行相加
-                    case BuyerCapitalConst.CAPITALTYPE_PENALTY_SELLER:
-                    {
-                        buyerCapitalAccountDto=this.transferViewDto2AccountDto(buyerCapitalViewDto);
-                        buyerCapitalAccountDto.setDeliveryamount(null);
-                        buyerCapitalAccountDto.setReceiptamount(null);
-                        buyerCapitalAccountDto.setCapitaltypename("违约金");
-                        buyerCapitalAccountDto.setOtheramount(buyerCapitalAccountDto.getOtheramount().multiply(new BigDecimal(-1)));
-                        sumReceivableAccount=sumReceivableAccount.add(buyerCapitalAccountDto.getOtheramount());
-                        buyerCapitalAccountDto.setReceivableaccount(sumReceivableAccount);
-                        buyerCapitalAccountDto.setInvoicebalance(sumInvoiceBalance);
-                        //违约金没有支付方式
-                        buyerCapitalAccountDto.setPaytype((short)5);
-                        //capitalType类型为违约时，显示remark字段的内容
-                        buyerCapitalAccountDto.setRemark("卖家违约");
-                        buyerCapitalAccountDtos.add(buyerCapitalAccountDto);
-                        break;
-                    }
-                    //退款、提现，收款金额变成负数，进行相减
-                    case BuyerCapitalConst.CAPITALTYPE_REFUND:
-                    case BuyerCapitalConst.CAPITALTYPE_WITHDRAWAL:
-                    {
-                        buyerCapitalAccountDto=this.transferViewDto2AccountDto(buyerCapitalViewDto);
-                        buyerCapitalAccountDto.setDeliveryamount(null);
-                        buyerCapitalAccountDto.setOtheramount(null);
-                        buyerCapitalAccountDto.setCapitaltypename(capitalType==BuyerCapitalConst.CAPITALTYPE_REFUND?"退款":"提现");
-                        buyerCapitalAccountDto.setReceiptamount(buyerCapitalAccountDto.getReceiptamount().multiply(new BigDecimal(-1)));
-                        sumReceivableAccount= sumReceivableAccount.subtract(buyerCapitalAccountDto.getReceiptamount());
-                        buyerCapitalAccountDto.setReceivableaccount(sumReceivableAccount);
-                        buyerCapitalAccountDto.setInvoicebalance(sumInvoiceBalance);
-                        buyerCapitalAccountDtos.add(buyerCapitalAccountDto);
-                        break;
-                    }
-                    default:
-                }
-
-            }
-            //计算发货金额当期结算、收款金额当期结算、其他当期结算
-            buyerCapitalAccountDtos.stream().forEach(buyerCapitalAccountDto -> {
-                        sumDeliveryAmount[0] = buyerCapitalAccountDto.getDeliveryamount() == null ? sumDeliveryAmount[0] : sumDeliveryAmount[0].add(buyerCapitalAccountDto.getDeliveryamount());
-                        sumReceiptAmount[0] = buyerCapitalAccountDto.getReceiptamount() == null ? sumReceiptAmount[0] : sumReceiptAmount[0].add(buyerCapitalAccountDto.getReceiptamount());
-                        sumOtherAmount[0] = buyerCapitalAccountDto.getOtheramount() == null ? sumOtherAmount[0] : sumOtherAmount[0].add(buyerCapitalAccountDto.getOtheramount());
-                    }
-            );
-            sumReceivableAccount=buyerCapitalAccountDtos.get(buyerCapitalAccountDtos.size()-1).getReceivableaccount();
-            sumInvoiceBalance=buyerCapitalAccountDtos.get(buyerCapitalAccountDtos.size()-1).getInvoicebalance();
-            //当期结算的金额统计数据,最后一个Dto
-            BuyerCapitalAccountDto buyerCapitalAccountDto1=new BuyerCapitalAccountDto();
-            buyerCapitalAccountDto1.setDeliveryamount(sumDeliveryAmount[0]);
-            buyerCapitalAccountDto1.setReceiptamount(sumReceiptAmount[0]);
-            buyerCapitalAccountDto1.setOtheramount(sumOtherAmount[0]);
-            buyerCapitalAccountDto1.setReceivableaccount(sumReceivableAccount);
-            buyerCapitalAccountDto1.setInvoicebalance(sumInvoiceBalance);
-            buyerCapitalAccountDtos.add(buyerCapitalAccountDto1);
-        }
+        List<BuyerCapitalAccountDto> buyerCapitalAccountDtos=buyerCapitalService.listForAccount(dto);
         buyerCapitalAccountRet.setMessage("查询成功");
         buyerCapitalAccountRet.setResult(BasicRet.SUCCESS);
         buyerCapitalAccountRet.setList(buyerCapitalAccountDtos);
@@ -1115,24 +961,108 @@ public class CashManageAction {
     }
 
 
-    /**
-     * 进行BuyerCapitalViewDto至BuyerCapitalAccountDto之间的转换
-     * @param dto
-     * @return
-     */
-    private BuyerCapitalAccountDto transferViewDto2AccountDto(BuyerCapitalViewDto dto){
-        BuyerCapitalAccountDto buyerCapitalAccountDto=new BuyerCapitalAccountDto();
-        buyerCapitalAccountDto.setTradetime(dto.getTradetime());
-        buyerCapitalAccountDto.setOddnumber(dto.getOrderno());
-        buyerCapitalAccountDto.setCapitaltype(dto.getCapitaltype());
-        buyerCapitalAccountDto.setReceiptamount(dto.getCapital());
-        buyerCapitalAccountDto.setDeliveryamount(dto.getCapital());
-        buyerCapitalAccountDto.setOtheramount(dto.getCapital());
-        buyerCapitalAccountDto.setPaytype(dto.getPaytype()==null?0:dto.getPaytype());
-        buyerCapitalAccountDto.setPayno(dto.getTransactionid());
-        buyerCapitalAccountDto.setRemark("操作人: "+(dto.getOperation()==null?"":dto.getOperation())+"$"+"审核人: "+(dto.getVerify()==null?"":dto.getVerify())+"$"+dto.getMemberid());
-        return buyerCapitalAccountDto;
+
+
+
+    @RequestMapping(value = "/excelExport/accountList",method = RequestMethod.GET)
+    @ApiOperation("Excel导出-买家对账单")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "tradetimeStart",value = "开始日期",required = false,paramType = "query",dataType = "date"),
+            @ApiImplicitParam(name = "tradetimeEnd",value = "结束日期",required = false,paramType = "query",dataType = "date"),
+            @ApiImplicitParam(name = "memberid",value = "会员编号",required = false,paramType = "query",dataType = "string"),
+            @ApiImplicitParam(name = "username",value = "会员名称",required = false,paramType = "query",dataType = "string"),
+            @ApiImplicitParam(name = "companyname",value = "公司名称",required = false,paramType = "query",dataType = "string"),
+            @ApiImplicitParam(name = "invoicename",value = "开票名称",required = false,paramType = "query",dataType = "string"),
+            @ApiImplicitParam(name = "realname",value = "会员姓名",required = false,paramType = "query",dataType = "string"),
+            @ApiImplicitParam(name = "mobile",value = "手机号码",required = false,paramType = "query",dataType = "string")
+    })
+    @PreAuthorize("hasAuthority('" + AdminAuthorityConst.FINANCIALDETAILS + "')")
+    public ResponseEntity<InputStreamResource> ExcelExportAccountList(
+            @RequestParam(required = false) Date tradetimeStart,
+            @RequestParam(required = false) Date tradetimeEnd,
+            @RequestParam(required = false) Long memberid,
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String companyname,
+            @RequestParam(required = false) String invoicename,
+            @RequestParam(required = false) String realname,
+            @RequestParam(required = false) String mobile) {
+        List<Map<String,Object>> resList = new ArrayList<>();
+        XSSFWorkbook workbook = null;
+        try {
+            String[] rowTitles = new String[]{"日期","合同编号","类别","发货金额","收款金额","其他","应收账款","开票金额","发票结余","支付方式","支付单号","备注"};
+            BuyerCapitalAccountQueryDto dto=new BuyerCapitalAccountQueryDto();
+            dto.setTradetimeStart(tradetimeStart);
+            dto.setTradetimeEnd(tradetimeEnd);
+            dto.setMemberid(memberid);
+            dto.setUsername(username);
+            dto.setCompanyname(companyname);
+            dto.setInvoicename(invoicename);
+            dto.setRealname(realname);
+            dto.setMobile(mobile);
+            String content="";
+            if(org.apache.commons.lang3.StringUtils.isNotEmpty(mobile)){
+                List<Map<String,Object>> memberList=memberService.findMembersByFuzzy(null,null,null,mobile,null);
+                content= (String) memberList.get(0).get("realname");
+            }
+            if(memberid!=null&&org.apache.commons.lang3.StringUtils.isNotEmpty(memberid+"")){
+                String membername=memberService.getMemberById(memberid).getRealname();
+                content=membername;
+            }
+            if (org.apache.commons.lang3.StringUtils.isNotEmpty(username)){
+                List<Map<String,Object>> memberList=memberService.findMembersByFuzzy(username,null,null,null,null);
+                content= (String) memberList.get(0).get("realname");
+            }
+            if (org.apache.commons.lang3.StringUtils.isNotEmpty(realname)){
+                List<Map<String,Object>> memberList=memberService.findMembersByFuzzy(null,null,realname,null,null);
+                content= (String) memberList.get(0).get("realname");
+            }
+            if (org.apache.commons.lang3.StringUtils.isNotEmpty(companyname)){
+                List<Map<String,Object>> memberList=memberService.findMembersByFuzzy(null,companyname,null,null,null);
+                content= (String) memberList.get(0).get("companyname");
+            }
+            if (org.apache.commons.lang3.StringUtils.isNotEmpty(invoicename)){
+                List<Map<String,Object>> memberList=memberService.findMembersByFuzzy(null,null,null,null,invoicename);
+                content= (String) memberList.get(0).get("invoiceheadup");
+            }
+            resList = buyerCapitalService.excelExportListForAccount(dto);
+            workbook = ExcelGen.common("买家对账单明细", rowTitles, resList, null);
+            if (tradetimeStart==null&&tradetimeEnd==null&&(resList!=null&&resList.size()>0)){
+                tradetimeStart=(Date) resList.get(1).get("日期");
+                tradetimeEnd= (Date) resList.get(resList.size()-2).get("日期");
+            }
+            workbook=ExcelUtils.insertRows(workbook,"Sheet0",0,(short) 0,"日期:"+(tradetimeStart!=null?(DateUtils.format(tradetimeStart,"yyyy.MM.dd")):"")+"-"+(tradetimeEnd!=null?(DateUtils.format(DateUtils.addDays(tradetimeEnd,-1),"yyyy.MM.dd")):""));
+            workbook=ExcelUtils.insertRows(workbook,"Sheet0",0,(short) 0,"紧商科技股份有限公司");
+            workbook=ExcelUtils.insertRows(workbook,"Sheet0",0,(short) 0,"FM:紧商/财务");
+            workbook=ExcelUtils.insertRows(workbook,"Sheet0",0,(short) 0,"TO:"+content);
+            workbook=ExcelUtils.deleteRow(workbook,"Sheet0",5);
+            if (workbook != null) {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                workbook.write(baos);
+                System.out.println(baos.toByteArray().length);
+                HttpHeaders headers = new HttpHeaders();
+                headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+                headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", new String("买家对账单.xlsx".getBytes(), "iso-8859-1")));
+                headers.add("Pragma", "no-cache");
+                headers.add("Expires", "0");
+                String contentType = "application/vnd.ms-excel";
+                return ResponseEntity.ok().headers(headers).contentType(MediaType.parseMediaType(contentType))
+                        .body(new InputStreamResource(new ByteArrayInputStream(baos.toByteArray())));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (workbook != null) {
+                try {
+                    workbook.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return null;
+
     }
+
 
     @RequestMapping(value = "/advanceCapitalList/buyer",method = RequestMethod.POST)
     @ApiOperation("预付款管理-买家-预付款充值-列表")
@@ -1936,7 +1866,7 @@ public class CashManageAction {
         }
     }
 
-    private static class BuyerCapitalAccountRet extends BasicRet{
+    private  class BuyerCapitalAccountRet extends BasicRet{
         private List<BuyerCapitalAccountDto> list;
 
         public List<BuyerCapitalAccountDto> getList() {

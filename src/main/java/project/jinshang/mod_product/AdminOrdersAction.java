@@ -33,7 +33,10 @@ import project.jinshang.mod_cash.service.BuyerCapitalService;
 import project.jinshang.mod_company.bean.BuyerCompanyInfo;
 import project.jinshang.mod_company.service.BuyerCompanyService;
 import project.jinshang.mod_member.bean.Admin;
+import project.jinshang.mod_member.bean.AdminUser;
 import project.jinshang.mod_member.bean.Member;
+import project.jinshang.mod_member.service.AdminService;
+import project.jinshang.mod_member.service.AdminUserService;
 import project.jinshang.mod_member.service.MemberRateSettingService;
 import project.jinshang.mod_member.service.MemberService;
 import project.jinshang.mod_pay.bean.Refund;
@@ -59,8 +62,8 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/rest/admin/orders")
 @SessionAttributes({AppConstant.ADMIN_SESSION_NAME})
-@Api(tags = "后台订单模块",description = "后台订单模块")
-@Transactional(rollbackFor =Exception.class)
+@Api(tags = "后台订单模块", description = "后台订单模块")
+@Transactional(rollbackFor = Exception.class)
 public class AdminOrdersAction {
 
     @Autowired
@@ -111,30 +114,37 @@ public class AdminOrdersAction {
 
 
     @Autowired
-    private  OrderProductLogService orderProductLogService;
+    private OrderProductLogService orderProductLogService;
 
 
     @Autowired
     private OrderProductServices orderProductServices;
 
     @Autowired
-    private  OrderStoreStateLogService orderStoreStateLogService;
+    private OrderStoreStateLogService orderStoreStateLogService;
 
     @Autowired
     private OrderProductBackInfoService orderProductBackInfoService;
 
+    //2018年6月1日14:09:57
+    //添加业务员信息
+    @Autowired
+    private AdminUserService adminUserService;
+    //添加业务员信息
+    @Autowired
+    private AdminService adminService;
     //远期全款打折率
     private static final BigDecimal allPayRate = new BigDecimal(0.99);
 
     MemberLogOperator memberLogOperator = new MemberLogOperator();
 
-    private class OrderCarBackRet extends BasicRet{
+    private class OrderCarBackRet extends BasicRet {
 
-        private  class  Data{
+        private class Data {
             private List<OrderProductBackInfo> orderProductBackInfos;
             private OrderProductBackInfo orderProductBackInfo;
             private List<OrderProduct> orderProducts;
-            private  OrderProduct orderProduct;
+            private OrderProduct orderProduct;
 
             public List<OrderProductBackInfo> getOrderProductBackInfos() {
                 return orderProductBackInfos;
@@ -168,24 +178,26 @@ public class AdminOrdersAction {
                 this.orderProduct = orderProduct;
             }
         }
-        private  Data data = new Data();
+
+        private Data data = new Data();
 
         public Data getData() {
             return data;
         }
+
         public void setData(Data data) {
             this.data = data;
         }
     }
 
-    private  class  OrderCarRet extends  BasicRet{
-        private  class  Data{
+    private class OrderCarRet extends BasicRet {
+        private class Data {
 
             List<BillRecordComplex> listComplex;
             private List<BillType> billTypes;
 
             private SellerBillRecord sellerBillRecord;
-            private  List<Orders> ordersList;
+            private List<Orders> ordersList;
 
             private OrderProductBack orderProductBack;
 
@@ -197,17 +209,17 @@ public class AdminOrdersAction {
 
             private List<OrderProduct> orderProducts;
 
-            private  OrderProduct orderProduct;
+            private OrderProduct orderProduct;
 
             private BillingRecord billingRecord;
 
             private BillRecordComplex billRecordComplex;
 
-            private Map<String,BigDecimal> map;
+            private Map<String, BigDecimal> map;
 
             List<OperateLog> operateLogs;
 
-            private  String expressurl;
+            private String expressurl;
 
             public String getExpressurl() {
                 return expressurl;
@@ -349,54 +361,56 @@ public class AdminOrdersAction {
                 this.billTypes = billTypes;
             }
         }
-        private  Data data = new Data();
+
+        private Data data = new Data();
 
         public Data getData() {
             return data;
         }
+
         public void setData(Data data) {
             this.data = data;
         }
     }
 
 
-    @RequestMapping(value = "/getMemberOperateLogList",method = RequestMethod.POST)
+    @RequestMapping(value = "/getMemberOperateLogList", method = RequestMethod.POST)
     @ApiOperation(value = "后台获取操作日志列表")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "ipaddress",value = "买家名称",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "memberid",value = "卖家名称",required = false,paramType = "query",dataType = "long"),
-            @ApiImplicitParam(name = "membername",value = "线上线下订单标识0=线上1=线下",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "content",value = "支付方式0=支付宝1=微信2=银行卡3=余额4=授信",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "startTime",value = "开始时间",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "endTime",value = "结束时间",required = false,paramType = "query",dataType = "string"),
+            @ApiImplicitParam(name = "ipaddress", value = "买家名称", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "memberid", value = "卖家名称", required = false, paramType = "query", dataType = "long"),
+            @ApiImplicitParam(name = "membername", value = "线上线下订单标识0=线上1=线下", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "content", value = "支付方式0=支付宝1=微信2=银行卡3=余额4=授信", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "startTime", value = "开始时间", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "endTime", value = "结束时间", required = false, paramType = "query", dataType = "string"),
     })
-    public PageRet getMemberOperateLogList(Model model,int pageNo,int pageSize,MemberQueryParam param){
+    public PageRet getMemberOperateLogList(Model model, int pageNo, int pageSize, MemberQueryParam param) {
         PageRet pageRet = new PageRet();
-        PageInfo pageInfo = ordersService.getMemberOperateLogList(pageNo,pageSize,param);
+        PageInfo pageInfo = ordersService.getMemberOperateLogList(pageNo, pageSize, param);
         pageRet.data.setPageInfo(pageInfo);
         pageRet.setResult(BasicRet.SUCCESS);
         pageRet.setMessage("返回成功");
         return pageRet;
     }
 
-    @RequestMapping(value = "/getAllMemberOrderList",method = RequestMethod.POST)
+    @RequestMapping(value = "/getAllMemberOrderList", method = RequestMethod.POST)
     @ApiOperation(value = "后台获取订单列表")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "memberName",value = "买家名称",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "sellerName",value = "卖家名称",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "isonline",value = "线上线下订单标识0=线上1=线下",required = false,paramType = "query",dataType = "int"),
-            @ApiImplicitParam(name = "payType",value = "支付方式0=支付宝1=微信2=银行卡3=余额4=授信",required = false,paramType = "query",dataType = "int"),
-            @ApiImplicitParam(name = "orderType",value = "订单类型0=立即发货1=远期全款2=远期定金3=远期余款",required = false,paramType = "query",dataType = "int"),
-            @ApiImplicitParam(name = "orderNo",value = "订单号",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "code",value = "合同号",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "tranNo",value = "交易号",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "startTime",value = "开始时间",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "endTime",value = "结束时间",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "orderState",value = "订单状态0=待付款1=待发货3=待收货4=待验货5=已完成7=已关闭8=备货中9=备货完成11=卖家违约订单",required = false,paramType = "query",dataType = "int"),
-            @ApiImplicitParam(name = "deliverytype",value = "发货模式 0-卖家直发，1-平台代发",required = false,paramType = "query",dataType = "int"),
+            @ApiImplicitParam(name = "memberName", value = "买家名称", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "sellerName", value = "卖家名称", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "isonline", value = "线上线下订单标识0=线上1=线下", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "payType", value = "支付方式0=支付宝1=微信2=银行卡3=余额4=授信", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "orderType", value = "订单类型0=立即发货1=远期全款2=远期定金3=远期余款", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "orderNo", value = "订单号", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "code", value = "合同号", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "tranNo", value = "交易号", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "startTime", value = "开始时间", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "endTime", value = "结束时间", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "orderState", value = "订单状态0=待付款1=待发货3=待收货4=待验货5=已完成7=已关闭8=备货中9=备货完成11=卖家违约订单", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "deliverytype", value = "发货模式 0-卖家直发，1-平台代发", required = false, paramType = "query", dataType = "int"),
     })
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.ORDERMANAGEMENT + "')")
-    public PageRet getAllMemberOrderList(Model model,OrderQueryParam param){
+    public PageRet getAllMemberOrderList(Model model, OrderQueryParam param) {
         PageRet pageRet = new PageRet();
         PageInfo pageInfo = ordersService.getAllMemberOrdersList(param);
         pageRet.data.setPageInfo(pageInfo);
@@ -420,7 +434,7 @@ public class AdminOrdersAction {
 
         BasicRet basicRet = new BasicRet();
         Orders orders = ordersService.getOrdersByOrderNo(orderno);
-        if (orders != null && orders.getDeliverytype() == Quantity.STATE_1 ) {
+        if (orders != null && orders.getDeliverytype() == Quantity.STATE_1) {
             if (orders.getOrderstatus() == Quantity.STATE_3) {
 
                 orders.setLogisticscompany(logisticscompany);
@@ -444,9 +458,9 @@ public class AdminOrdersAction {
                 basicRet.setMessage("发货成功");
                 basicRet.setResult(BasicRet.SUCCESS);
                 //用户日志
-                memberLogOperator.saveMemberLog(null, admin, "代发货订单由平台发货完成,订单编号为：" + orderno, "",request, memberOperateLogService);
+                memberLogOperator.saveMemberLog(null, admin, "代发货订单由平台发货完成,订单编号为：" + orderno, "", request, memberOperateLogService);
                 return basicRet;
-            }else if(orders.getOrderstatus() == Quantity.STATE_7) {
+            } else if (orders.getOrderstatus() == Quantity.STATE_7) {
                 basicRet.setMessage("买家已取消订单，发货失败");
                 basicRet.setResult(BasicRet.ERR);
                 return basicRet;
@@ -463,68 +477,64 @@ public class AdminOrdersAction {
     }
 
 
-
-
-
-    @RequestMapping(value = "/getOrderTotalNum",method = RequestMethod.POST)
+    @RequestMapping(value = "/getOrderTotalNum", method = RequestMethod.POST)
     @ApiOperation(value = "后台获取订单总额货款，总销售额，总订货量，总发货量,总佣金数")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "memberName",value = "买家名称",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "sellerName",value = "卖家名称",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "isonline",value = "线上线下订单标识0=线上1=线下",required = false,paramType = "query",dataType = "int"),
-            @ApiImplicitParam(name = "payType",value = "支付方式0=支付宝1=微信2=银行卡3=余额4=授信",required = false,paramType = "query",dataType = "int"),
-            @ApiImplicitParam(name = "orderType",value = "订单类型0=立即发货1=远期全款2=远期定金3=远期余款",required = false,paramType = "query",dataType = "int"),
-            @ApiImplicitParam(name = "orderNo",value = "订单号",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "code",value = "合同号",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "tranNo",value = "交易号",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "startTime",value = "开始时间",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "endTime",value = "结束时间",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "orderState",value = "订单状态0=待付款1=待发货3=待收货4=待验货5=已完成7=已关闭8=备货中9=备货完成11=卖家违约订单",required = false,paramType = "query",dataType = "int"),
+            @ApiImplicitParam(name = "memberName", value = "买家名称", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "sellerName", value = "卖家名称", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "isonline", value = "线上线下订单标识0=线上1=线下", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "payType", value = "支付方式0=支付宝1=微信2=银行卡3=余额4=授信", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "orderType", value = "订单类型0=立即发货1=远期全款2=远期定金3=远期余款", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "orderNo", value = "订单号", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "code", value = "合同号", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "tranNo", value = "交易号", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "startTime", value = "开始时间", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "endTime", value = "结束时间", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "orderState", value = "订单状态0=待付款1=待发货3=待收货4=待验货5=已完成7=已关闭8=备货中9=备货完成11=卖家违约订单", required = false, paramType = "query", dataType = "int"),
     })
-    public OrderCarRet getOrderTotalNum(OrderQueryParam param){
+    public OrderCarRet getOrderTotalNum(OrderQueryParam param) {
         OrderCarRet orderCarRet = new OrderCarRet();
-        Map<String,BigDecimal> map = new HashMap<String,BigDecimal>();
+        Map<String, BigDecimal> map = new HashMap<String, BigDecimal>();
 
-        OrderQueryParam q1= new OrderQueryParam();
-        BeanUtils.copyProperties(param,q1);
+        OrderQueryParam q1 = new OrderQueryParam();
+        BeanUtils.copyProperties(param, q1);
         BigDecimal ordersSum = ordersService.getOrdersSum(q1);
 
-        OrderQueryParam q2= new OrderQueryParam();
-        BeanUtils.copyProperties(param,q2);
+        OrderQueryParam q2 = new OrderQueryParam();
+        BeanUtils.copyProperties(param, q2);
         BigDecimal orderSellSum = ordersService.getOrderSellSum(q2);
 
-        OrderQueryParam q3= new OrderQueryParam();
-        BeanUtils.copyProperties(param,q3);
+        OrderQueryParam q3 = new OrderQueryParam();
+        BeanUtils.copyProperties(param, q3);
         BigDecimal ordersTotalNum = ordersService.getOrdersTotalNum(q3);
 
-        OrderQueryParam q4= new OrderQueryParam();
-        BeanUtils.copyProperties(param,q4);
+        OrderQueryParam q4 = new OrderQueryParam();
+        BeanUtils.copyProperties(param, q4);
         BigDecimal ordersTotalDeliveryNum = ordersService.getOrdersTotalDeliveryNum(q4);
 
         BigDecimal orderSumBroker = ordersService.getOrdersSumBroker(param);
 
-        map.put("ordersSum",ordersSum);
-        map.put("orderSellSum",orderSellSum);
-        map.put("ordersTotalNum",ordersTotalNum);
-        map.put("ordersTotalDeliveryNum",ordersTotalDeliveryNum);
-        map.put("orderSumBroker",orderSumBroker);
+        map.put("ordersSum", ordersSum);
+        map.put("orderSellSum", orderSellSum);
+        map.put("ordersTotalNum", ordersTotalNum);
+        map.put("ordersTotalDeliveryNum", ordersTotalDeliveryNum);
+        map.put("orderSumBroker", orderSumBroker);
 
         orderCarRet.data.map = map;
         orderCarRet.setMessage("返回成功");
         orderCarRet.setResult(BasicRet.SUCCESS);
-        return  orderCarRet;
+        return orderCarRet;
     }
-
 
 
     @RequestMapping(value = "/getOrdersByOrderNoArr", method = RequestMethod.POST)
     @ApiOperation(value = "根据订单编号获取订单[一组订单编号]")
-    public OrdersRet getOrdersByOrderNoArr(Long[] orderids){
+    public OrdersRet getOrdersByOrderNoArr(Long[] orderids) {
         OrdersRet ordersRet = new OrdersRet();
 
         List<Orders> list = ordersService.getOrdersByIds(orderids);
-        for(Orders orders : list){
-            if(orders.getDeliverytype() == 1){  //如果是代理发货，设置为代理发货地址
+        for (Orders orders : list) {
+            if (orders.getDeliverytype() == 1) {  //如果是代理发货，设置为代理发货地址
                 orders.setProvince(AgentDeliveryAddressConst.province);
                 orders.setCity(AgentDeliveryAddressConst.city);
                 orders.setArea(AgentDeliveryAddressConst.province);
@@ -536,17 +546,17 @@ public class AdminOrdersAction {
             List<OrderProduct> orderProductList = ordersService.getOrderProductByOrderId(orders.getId());
 
             List<Long> orderproductids = new ArrayList<>();
-            orderProductList.stream().forEach(orderProduct ->orderproductids.add(orderProduct.getId()));
+            orderProductList.stream().forEach(orderProduct -> orderproductids.add(orderProduct.getId()));
             List<OrderProductLog> orderProductLogList = orderProductLogService.getProductinfoByOrderproductids(orderproductids);
 
 
-            for(OrderProduct orderProduct : orderProductList){
+            for (OrderProduct orderProduct : orderProductList) {
                 List packageList = JinshangUtils.toCovertPacking(StringUtils.nvl(orderProduct.getPddesc()));
                 orderProduct.setPackageList(packageList);
 
-                for(OrderProductLog opl : orderProductLogList){
-                    if(opl.getOrderproductid().equals(orderProduct.getId())){
-                        orderProduct.getExtend().put("productinfo",opl.getProductinfojson());
+                for (OrderProductLog opl : orderProductLogList) {
+                    if (opl.getOrderproductid().equals(orderProduct.getId())) {
+                        orderProduct.getExtend().put("productinfo", opl.getProductinfojson());
                     }
                 }
             }
@@ -555,11 +565,18 @@ public class AdminOrdersAction {
 
             BuyerCompanyInfo buyerCompanyInfo = buyerCompanyService.getBuyerCompanyInfoByMemberId(orders.getMemberid());
             Member member = memberService.getMemberById(orders.getMemberid());
-            if(buyerCompanyInfo != null){
+            if (buyerCompanyInfo != null) {
                 orders.setBuyercompanyname(buyerCompanyInfo.getCompanyname());
             }
 
             orders.setBuyerRealname(member.getRealname());
+            //取消时间：2018年6月2日10:08:44 原因:直接添加到订单保存数据库了
+//            AdminUser AdminUser = adminUserService.getAdminUserByUserid(orders.getMemberid());
+//            if (AdminUser != null) {
+//                Admin admin = adminService.getById(AdminUser.getAdminid());
+//                orders.setClerkname(admin.getRealname());
+//                orders.setClerknamePhone(admin.getMobile());
+//            }
 
         }
 
@@ -571,12 +588,10 @@ public class AdminOrdersAction {
     }
 
 
-
-
-    @RequestMapping(value = "/getOrdersByOrderNo",method = RequestMethod.POST)
+    @RequestMapping(value = "/getOrdersByOrderNo", method = RequestMethod.POST)
     @ApiOperation(value = "根据订单编号获取订单")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "orderno",value = "订单编号",required = true,paramType = "query",dataType = "string"),
+            @ApiImplicitParam(name = "orderno", value = "订单编号", required = true, paramType = "query", dataType = "string"),
     })
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.ORDERMANAGEMENT + "')")
     public OrderCarRet getOrdersByOrderNo(String orderno) throws IOException {
@@ -584,20 +599,27 @@ public class AdminOrdersAction {
         orderCarRet.setMessage("返回成功");
         orderCarRet.setResult(BasicRet.SUCCESS);
         Orders orders = ordersService.getOrdersByOrderNo(orderno);
+        //取消时间：2018年6月2日10:08:44 原因:直接添加到订单保存数据库了
+//        AdminUser AdminUser = adminUserService.getAdminUserByUserid(orders.getMemberid());
+//        if (AdminUser != null) {
+//            Admin admin = adminService.getById(AdminUser.getAdminid());
+//            orders.setClerkname(admin.getRealname());
+//            orders.setClerknamePhone(admin.getMobile());
+//        }
         orderCarRet.data.orders = orders;
+
         String url = "";
-        if(StringUtils.hasText(orders.getLogisticscompany())&&StringUtils.hasText(orders.getCouriernumber())){
+        if (StringUtils.hasText(orders.getLogisticscompany()) && StringUtils.hasText(orders.getCouriernumber())) {
             List<String> list = commonDataValueService.getcommonDataValue("物流公司");
-            for(String vl:list){
+            for (String vl : list) {
                 String[] vlStr = vl.split("-");
-                if(orders.getLogisticscompany().equals(vlStr[0])){
+                if (orders.getLogisticscompany().equals(vlStr[0])) {
                     //物流查询
-                    url =  ExpressUtils.searchkuaiDiInfo(vlStr[1],orders.getCouriernumber());
+                    url = ExpressUtils.searchkuaiDiInfo(vlStr[1], orders.getCouriernumber());
                     break;
                 }
             }
         }
-
 
 
         orderCarRet.data.expressurl = url;
@@ -605,23 +627,31 @@ public class AdminOrdersAction {
     }
 
 
-    @RequestMapping(value = "/getOrdersByOrderNoWithBuyerinfo",method = RequestMethod.POST)
+    @RequestMapping(value = "/getOrdersByOrderNoWithBuyerinfo", method = RequestMethod.POST)
     @ApiOperation(value = "根据订单编号获取订单-包含买家和买家公司信息")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "orderno",value = "订单编号",required = true,paramType = "query",dataType = "string"),
+            @ApiImplicitParam(name = "orderno", value = "订单编号", required = true, paramType = "query", dataType = "string"),
     })
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.ORDERMANAGEMENT + "')")
-    public OrdersBuyerRet getOrdersByOrderNoWithBuyerinfo(String orderno){
+    public OrdersBuyerRet getOrdersByOrderNoWithBuyerinfo(String orderno) {
         OrdersBuyerRet orderCarRet = new OrdersBuyerRet();
 
         Orders orders = ordersService.getOrdersByOrderNo(orderno);
+
+// //取消时间：2018年6月2日10:08:44 原因:直接添加到订单保存数据库了
+//        AdminUser AdminUser = adminUserService.getAdminUserByUserid(orders.getMemberid());
+//        if (AdminUser != null) {
+//            Admin admin = adminService.getById(AdminUser.getAdminid());
+//            orders.setClerkname(admin.getRealname());
+//            orders.setClerknamePhone(admin.getMobile());
+//        }
         orderCarRet.data.orders = orders;
 
-        if(orders != null){
+        if (orders != null) {
             Member member = memberService.getMemberById(orders.getMemberid());
             BuyerCompanyInfo buyerCompanyInfo = buyerCompanyService.getBuyerCompanyInfoByMemberId(orders.getMemberid());
 
-            orderCarRet.data.buyMember =member;
+            orderCarRet.data.buyMember = member;
             orderCarRet.data.buyerCompanyInfo = buyerCompanyInfo;
         }
 
@@ -631,11 +661,11 @@ public class AdminOrdersAction {
     }
 
 
-    private  class  OrdersBuyerRet extends  BasicRet{
-        private class OrderData{
-            private  Orders orders;
-            private  Member buyMember;
-            private  BuyerCompanyInfo buyerCompanyInfo;
+    private class OrdersBuyerRet extends BasicRet {
+        private class OrderData {
+            private Orders orders;
+            private Member buyMember;
+            private BuyerCompanyInfo buyerCompanyInfo;
 
             public Orders getOrders() {
                 return orders;
@@ -663,7 +693,7 @@ public class AdminOrdersAction {
         }
 
 
-        private  OrderData data = new OrderData();
+        private OrderData data = new OrderData();
 
         public OrderData getData() {
             return data;
@@ -675,44 +705,43 @@ public class AdminOrdersAction {
     }
 
 
-
-    @RequestMapping(value = "/getOrderProductByOrderNo",method = RequestMethod.POST)
+    @RequestMapping(value = "/getOrderProductByOrderNo", method = RequestMethod.POST)
     @ApiOperation(value = "根据订单编号获取商品信息")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "orderno",value = "订单编号",required = true,paramType = "query",dataType = "string"),
+            @ApiImplicitParam(name = "orderno", value = "订单编号", required = true, paramType = "query", dataType = "string"),
     })
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.ORDERMANAGEMENT + "')")
-    public OrderCarRet getOrderProductByOrderNo(String orderno){
+    public OrderCarRet getOrderProductByOrderNo(String orderno) {
         OrderCarRet orderCarRet = new OrderCarRet();
         orderCarRet.setMessage("返回成功");
         orderCarRet.setResult(BasicRet.SUCCESS);
         orderCarRet.data.orderProducts = ordersService.getOrderProductByOrderNo(orderno);
-        orderCarRet.data.orderProducts.forEach(orderProduct -> orderProduct.getExtend().put("productInfo",productInfoService.getById(orderProduct.getPdid())));
+        orderCarRet.data.orderProducts.forEach(orderProduct -> orderProduct.getExtend().put("productInfo", productInfoService.getById(orderProduct.getPdid())));
         return orderCarRet;
     }
 
-    @RequestMapping(value = "/getOrderProductById",method = RequestMethod.POST)
+    @RequestMapping(value = "/getOrderProductById", method = RequestMethod.POST)
     @ApiOperation(value = "根据商品订章id获取商品信息")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "id",value = "订单商品id",required = true,paramType = "query",dataType = "long"),
+            @ApiImplicitParam(name = "id", value = "订单商品id", required = true, paramType = "query", dataType = "long"),
     })
-    public OrderCarRet getOrderProductById(long id){
+    public OrderCarRet getOrderProductById(long id) {
         OrderCarRet orderCarRet = new OrderCarRet();
         orderCarRet.setMessage("返回成功");
         orderCarRet.setResult(BasicRet.SUCCESS);
         OrderProduct orderProduct = ordersService.getOrderProductById(id);
         ProductInfo info = ordersService.getProductInfoByPrimeKey(orderProduct.getPdid());
-        orderCarRet.data.orderProduct =  orderProduct;
+        orderCarRet.data.orderProduct = orderProduct;
         orderCarRet.data.selfsupport = info.getSelfsupport();
         return orderCarRet;
     }
 
-    @RequestMapping(value = "/getBillingRecordByOrderNo",method = RequestMethod.POST)
+    @RequestMapping(value = "/getBillingRecordByOrderNo", method = RequestMethod.POST)
     @ApiOperation(value = "根据订单编号获取开票信息")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "orderid",value = "订单id",required = true,paramType = "query",dataType = "string"),
+            @ApiImplicitParam(name = "orderid", value = "订单id", required = true, paramType = "query", dataType = "string"),
     })
-    public OrderCarRet getBillingRecordByOrderNo(String orderid){
+    public OrderCarRet getBillingRecordByOrderNo(String orderid) {
         OrderCarRet orderCarRet = new OrderCarRet();
         orderCarRet.setMessage("返回成功");
         orderCarRet.setResult(BasicRet.SUCCESS);
@@ -720,107 +749,106 @@ public class AdminOrdersAction {
         return orderCarRet;
     }
 
-    @RequestMapping(value = "/getOrderProductBack",method = RequestMethod.POST)
+    @RequestMapping(value = "/getOrderProductBack", method = RequestMethod.POST)
     @ApiOperation(value = "获取退货列表")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "startTime",value = "开始时间",required = false,paramType = "query",dataType = "int"),
-            @ApiImplicitParam(name = "endTime",value = "结束时间",required = false,paramType = "query",dataType = "String"),
-            @ApiImplicitParam(name = "code",value = "交易号",required = false,paramType = "query",dataType = "String"),
-            @ApiImplicitParam(name = "pdName",value = "商品名称",required = false,paramType = "query",dataType = "String"),
-            @ApiImplicitParam(name = "memberName",value = "买家",required = false,paramType = "query",dataType = "String"),
-            @ApiImplicitParam(name = "sellerName",value = "卖家",required = false,paramType = "query",dataType = "String"),
-            @ApiImplicitParam(name = "orderNo",value = "订单号",required = false,paramType = "query",dataType = "String"),
-            @ApiImplicitParam(name = "backNo",value = "退货号",required = false,paramType = "query",dataType = "String"),
-            @ApiImplicitParam(name = "state",value = "退货状态0=待卖家处理1=卖家同意待收货2=卖家同意直接退款3=卖家收到货同意退款4=卖家不同意5=买家同意验货6=买家申请异议7=平台同意退货不扣违约金8=平台同意退货扣违约金9=平台转入待验收10=退货成功",required = true,paramType = "query",dataType = "String"),
-            @ApiImplicitParam(name = "pageNo",value = "开始页",required = true,paramType = "query",dataType = "int"),
-            @ApiImplicitParam(name = "pageSize",value = "页数",required = true,paramType = "query",dataType = "int"),
+            @ApiImplicitParam(name = "startTime", value = "开始时间", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "endTime", value = "结束时间", required = false, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "code", value = "交易号", required = false, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "pdName", value = "商品名称", required = false, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "memberName", value = "买家", required = false, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "sellerName", value = "卖家", required = false, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "orderNo", value = "订单号", required = false, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "backNo", value = "退货号", required = false, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "state", value = "退货状态0=待卖家处理1=卖家同意待收货2=卖家同意直接退款3=卖家收到货同意退款4=卖家不同意5=买家同意验货6=买家申请异议7=平台同意退货不扣违约金8=平台同意退货扣违约金9=平台转入待验收10=退货成功", required = true, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "pageNo", value = "开始页", required = true, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "pageSize", value = "页数", required = true, paramType = "query", dataType = "int"),
     })
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.RETURNMANAGEMENT + "')")
-    public PageRet getOrderProductBack(BackQueryParam backQueryParam,int pageNo,int pageSize){
+    public PageRet getOrderProductBack(BackQueryParam backQueryParam, int pageNo, int pageSize) {
         PageRet pageRet = new PageRet();
         pageRet.setMessage("返回成功");
         pageRet.setResult(BasicRet.SUCCESS);
 
-        PageInfo<OrderProductBackView> pageInfo =ordersService.getOrderProductBackList(pageNo,pageSize,backQueryParam);
+        PageInfo<OrderProductBackView> pageInfo = ordersService.getOrderProductBackList(pageNo, pageSize, backQueryParam);
 
 
         pageRet.data.setPageInfo(pageInfo);
         return pageRet;
     }
 
-    @RequestMapping(value = "/listShippingAddress",method = RequestMethod.POST)
+    @RequestMapping(value = "/listShippingAddress", method = RequestMethod.POST)
     @ApiOperation("列出卖家收货地址列表")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "sellerid",value = "卖家id",required = true,paramType = "query"  ,dataType = "int"),
+            @ApiImplicitParam(name = "sellerid", value = "卖家id", required = true, paramType = "query", dataType = "int"),
     })
-    public PageRet listSellerShippingAddress(@RequestParam(required = true,defaultValue = "1") int pageNo,
-                                             @RequestParam(required = true,defaultValue = "10")  int pageSize, Model model,Long sellerid){
+    public PageRet listSellerShippingAddress(@RequestParam(required = true, defaultValue = "1") int pageNo,
+                                             @RequestParam(required = true, defaultValue = "10") int pageSize, Model model, Long sellerid) {
         PageRet pageRet = new PageRet();
-        PageInfo pageInfo = shippingAddressService.listAllShippingAddress(pageNo,pageSize,sellerid,Quantity.STATE_1);
+        PageInfo pageInfo = shippingAddressService.listAllShippingAddress(pageNo, pageSize, sellerid, Quantity.STATE_1);
         pageRet.data.setPageInfo(pageInfo);
         pageRet.setResult(BasicRet.SUCCESS);
-        return  pageRet;
+        return pageRet;
     }
 
 
-    @RequestMapping(value = "/getOrderProductBackByOrderProductId",method = RequestMethod.POST)
+    @RequestMapping(value = "/getOrderProductBackByOrderProductId", method = RequestMethod.POST)
     @ApiOperation(value = "根据商品id获取退货详情")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "id",value = "订单商品id",required = true,paramType = "query",dataType = "long"),
+            @ApiImplicitParam(name = "id", value = "订单商品id", required = true, paramType = "query", dataType = "long"),
     })
-    public BasicRet getOrderProductBackByOrderProductId(Long id){
-          OrderCarRet orderCarRet = new OrderCarRet();
-          OrderProductBack orderProductBack = ordersService.getOrderProductBackByOrderProductID(id);
+    public BasicRet getOrderProductBackByOrderProductId(Long id) {
+        OrderCarRet orderCarRet = new OrderCarRet();
+        OrderProductBack orderProductBack = ordersService.getOrderProductBackByOrderProductID(id);
 
-          if(orderProductBack != null){
+        if (orderProductBack != null) {
 //              orderProductBack.setActualpayment( ordersService.getAllpayByOrderNoAndPdidAndPdNo(orderProductBack.getOrderno(),orderProductBack.getPdid(),orderProductBack.getPdno()));
 
-            List<OrderProduct> orderProductList  = ordersService.getOrderProdByOrderNoAndPdidAndPdNo(orderProductBack.getOrderno(),orderProductBack.getPdid(),orderProductBack.getPdno());
+            List<OrderProduct> orderProductList = ordersService.getOrderProdByOrderNoAndPdidAndPdNo(orderProductBack.getOrderno(), orderProductBack.getPdid(), orderProductBack.getPdno());
             BigDecimal actualpayment = new BigDecimal(0);
-            for(OrderProduct op : orderProductList){
+            for (OrderProduct op : orderProductList) {
                 actualpayment = op.getActualpayment().subtract(op.getFreight()).add(actualpayment);
             }
             orderProductBack.setActualpayment(actualpayment);
-          }
+        }
 
-          orderCarRet.data.orderProductBack = orderProductBack;
-          String url = "";
-          if(StringUtils.hasText(orderProductBack.getLogisticscompany())&&StringUtils.hasText(orderProductBack.getLogisticsno())){
-              List<String> lists = commonDataValueService.getcommonDataValue("物流公司");
-              for(String vl:lists){
-                  String[] vlStr = vl.split("-");
-                  if(orderProductBack.getLogisticscompany().equals(vlStr[0])){
-                      //物流查询
-                      url =  ExpressUtils.searchkuaiDiInfo(vlStr[1],orderProductBack.getLogisticsno());
-                      break;
-                  }
-              }
-          }
-          orderCarRet.data.expressurl = url;
-          orderCarRet.setMessage("返回成功");
-          orderCarRet.setResult(BasicRet.SUCCESS);
-          return orderCarRet;
+        orderCarRet.data.orderProductBack = orderProductBack;
+        String url = "";
+        if (StringUtils.hasText(orderProductBack.getLogisticscompany()) && StringUtils.hasText(orderProductBack.getLogisticsno())) {
+            List<String> lists = commonDataValueService.getcommonDataValue("物流公司");
+            for (String vl : lists) {
+                String[] vlStr = vl.split("-");
+                if (orderProductBack.getLogisticscompany().equals(vlStr[0])) {
+                    //物流查询
+                    url = ExpressUtils.searchkuaiDiInfo(vlStr[1], orderProductBack.getLogisticsno());
+                    break;
+                }
+            }
+        }
+        orderCarRet.data.expressurl = url;
+        orderCarRet.setMessage("返回成功");
+        orderCarRet.setResult(BasicRet.SUCCESS);
+        return orderCarRet;
     }
 
 
-
-    @RequestMapping(value = "/updateOrderProductBack",method = RequestMethod.POST)
+    @RequestMapping(value = "/updateOrderProductBack", method = RequestMethod.POST)
     @ApiOperation(value = "修改退货申请")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "id",value = "退货申请id",required = true,paramType = "query",dataType = "long"),
-            @ApiImplicitParam(name = "state",value = "退货状态0=待卖家处理1=卖家同意待收货2=卖家同意直接退款3=卖家收到货同意退款4=卖家不同意5=买家同意验货6=买家申请异议7=平台同意退货不扣违约金8=平台同意退货扣违约金9=平台转入待验收10=退货成功11=撤消",required = false,paramType = "query",dataType = "int"),
-            @ApiImplicitParam(name = "logisticsno",value = "退货单号",required = false,paramType = "query",dataType = "String"),
-            @ApiImplicitParam(name = "logisticscompany",value = "退货物流公司",required = false,paramType = "query",dataType = "String"),
-            @ApiImplicitParam(name = "backaddress",value = "退货地址",required = false,paramType = "query",dataType = "String"),
-            @ApiImplicitParam(name = "contact",value = "退货联系人",required = false,paramType = "query",dataType = "String"),
-            @ApiImplicitParam(name = "contactphone",value = "退货联系人电话",required = false,paramType = "query",dataType = "String"),
-            @ApiImplicitParam(name = "sellernotagree",value = "卖家不同意原因",required = false,paramType = "query",dataType = "String"),
-            @ApiImplicitParam(name = "adminreason",value = "平台处理说明",required = false,paramType = "query",dataType = "String"),
-            @ApiImplicitParam(name = "adminstate",value = "平台处理意见0=正常1=不扣违约金2=扣违约金3=转入待验收",required = false,paramType = "query",dataType = "int"),
-            @ApiImplicitParam(name = "province",value = "省",required = false,paramType = "query",dataType = "String"),
-            @ApiImplicitParam(name = "city",value = "市",required = false,paramType = "query",dataType = "String"),
-            @ApiImplicitParam(name = "area",value = "区",required = false,paramType = "query",dataType = "String"),
-            @ApiImplicitParam(name = "backtype",value = "退货类型0=仅退款1=退货退款2=部分退货",required = true,paramType = "query",dataType = "int"),
+            @ApiImplicitParam(name = "id", value = "退货申请id", required = true, paramType = "query", dataType = "long"),
+            @ApiImplicitParam(name = "state", value = "退货状态0=待卖家处理1=卖家同意待收货2=卖家同意直接退款3=卖家收到货同意退款4=卖家不同意5=买家同意验货6=买家申请异议7=平台同意退货不扣违约金8=平台同意退货扣违约金9=平台转入待验收10=退货成功11=撤消", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "logisticsno", value = "退货单号", required = false, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "logisticscompany", value = "退货物流公司", required = false, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "backaddress", value = "退货地址", required = false, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "contact", value = "退货联系人", required = false, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "contactphone", value = "退货联系人电话", required = false, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "sellernotagree", value = "卖家不同意原因", required = false, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "adminreason", value = "平台处理说明", required = false, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "adminstate", value = "平台处理意见0=正常1=不扣违约金2=扣违约金3=转入待验收", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "province", value = "省", required = false, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "city", value = "市", required = false, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "area", value = "区", required = false, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "backtype", value = "退货类型0=仅退款1=退货退款2=部分退货", required = true, paramType = "query", dataType = "int"),
     })
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.RETURNMANAGEMENT + "')")
     public BasicRet updateOrderProductBack(Model model, ProductBackModel productBackModel, HttpServletRequest request) throws CashException {
@@ -831,7 +859,7 @@ public class AdminOrdersAction {
 
         Short state = productBackModel.getState();
 
-        if(state != Quantity.STATE_7 && state != Quantity.STATE_8 && state != Quantity.STATE_9){
+        if (state != Quantity.STATE_7 && state != Quantity.STATE_8 && state != Quantity.STATE_9) {
             basicRet.setMessage("操作状态不合法");
             basicRet.setResult(BasicRet.ERR);
             return basicRet;
@@ -842,48 +870,48 @@ public class AdminOrdersAction {
         productBackModel.setPic(null);
         productBackModel.setBackexplain(null);
         OrderProductBack orderProductBack = ordersService.getBackgoodsOrderProductBack(productBackModel);
-        if(orderProductBack == null){
-            return  new BasicRet(BasicRet.ERR,"未查询到退货商品信息");
+        if (orderProductBack == null) {
+            return new BasicRet(BasicRet.ERR, "未查询到退货商品信息");
         }
 
 
-        if(orderProductBack.getState()==Quantity.STATE_11){
+        if (orderProductBack.getState() == Quantity.STATE_11) {
             basicRet.setMessage("退货已撤消");
             basicRet.setResult(BasicRet.ERR);
             return basicRet;
-        }else if(orderProductBack.getState()==Quantity.STATE_10){
+        } else if (orderProductBack.getState() == Quantity.STATE_10) {
             basicRet.setMessage("退货已完成");
             basicRet.setResult(BasicRet.ERR);
             return basicRet;
-        }else {
+        } else {
             orderProductBack.setState(state);
             ProductStore store = null;
             LimitTimeStore limitTimeStore = null;
             LimitTimeProd limitTimeProd = null;
             Orders orders = ordersService.getOrdersById(orderProductBack.getOrderid());
-            if(orders.getIsonline()==Quantity.STATE_0){
-                store = ordersService.getProductStore(orderProductBack.getPdid(),orderProductBack.getPdno(),orderProductBack.getStoreid());
+            if (orders.getIsonline() == Quantity.STATE_0) {
+                store = ordersService.getProductStore(orderProductBack.getPdid(), orderProductBack.getPdno(), orderProductBack.getStoreid());
             }
-            if(orders.getIsonline()==Quantity.STATE_2){
+            if (orders.getIsonline() == Quantity.STATE_2) {
                 limitTimeStore = shopCarService.getLimitTimeStore(orderProductBack.getStoreid());
-                limitTimeProd = shopCarService.getLimitTimeProd(orderProductBack.getPdid(),orderProductBack.getLimitid());
+                limitTimeProd = shopCarService.getLimitTimeProd(orderProductBack.getPdid(), orderProductBack.getLimitid());
             }
 
-            if(orderProductBack!=null){
+            if (orderProductBack != null) {
                 OrderProduct orderProduct = ordersService.getOrderProductById(orderProductBack.getOrderpdid());
                 List<OrderProduct> list1 = ordersService.getOrderProductByOrderId(orderProductBack.getOrderid());
-                if(state!=null){
-                     if(state==Quantity.STATE_7){
-                            //退货验收
-                            orderProduct.setBackstate(Quantity.STATE_2);
+                if (state != null) {
+                    if (state == Quantity.STATE_7) {
+                        //退货验收
+                        orderProduct.setBackstate(Quantity.STATE_2);
 
                         //平台同意退货扣违约金
-                    }else if(state==Quantity.STATE_8){
-                            //退货验收
-                            orderProduct.setBackstate(Quantity.STATE_2);
+                    } else if (state == Quantity.STATE_8) {
+                        //退货验收
+                        orderProduct.setBackstate(Quantity.STATE_2);
 
                         //平台转入待验收
-                    }else if(state==Quantity.STATE_9){
+                    } else if (state == Quantity.STATE_9) {
                         //部分退货
                         if (orderProductBack.getBacktype() == Quantity.STATE_2) {
                             for (OrderProduct op : list1) {
@@ -907,27 +935,27 @@ public class AdminOrdersAction {
                     ordersService.updateOrderProduct(orderProduct);
                     ordersService.updateOrderProductBack(orderProductBack);
 
-                    List<OrderProduct> list = ordersService.getOrderProductByOrderId(orderProductBack.getOrderid(),orderProductBack.getOrderpdid());
+                    List<OrderProduct> list = ordersService.getOrderProductByOrderId(orderProductBack.getOrderid(), orderProductBack.getOrderpdid());
 
                     boolean flag = true;
-                    for(OrderProduct op:list){
-                        if(op.getBackstate()!=Quantity.STATE_3){
-                            flag =false;
+                    for (OrderProduct op : list) {
+                        if (op.getBackstate() != Quantity.STATE_3) {
+                            flag = false;
                             break;
                         }
                     }
                     //判断订单中商品是否都退货完成，就结束订单
-                    if(orderProduct.getBackstate()==Quantity.STATE_3&&flag){
+                    if (orderProduct.getBackstate() == Quantity.STATE_3 && flag) {
                         //删除开票申请记录
                         ordersService.deleteBillRecord(orders.getOrderno());
                         orders.setOrderstatus(Quantity.STATE_7);
                         ordersService.updateSingleOrder(orders);
                     }
                 }
-            }else{
+            } else {
                 basicRet.setMessage("没有退货申请记录");
                 basicRet.setResult(BasicRet.ERR);
-                return  basicRet;
+                return basicRet;
             }
 
             //保存操作日志
@@ -942,31 +970,27 @@ public class AdminOrdersAction {
             operateLog.setOrderpdid(orderProductBack.getOrderpdid());
 
 
-
             operateLog.setContent(JinshangUtils.orderProductBackStateMess(orderProductBack.getState()));
             ordersService.saveOperatelog(operateLog);
 
 
             //保存用户日志
-            memberLogOperator.saveMemberLog(null,admin,"修改退货申请，退货申请id为："+productBackModel.getId(),"/rest/admin/orders/updateOrderProductBack",request,memberOperateLogService);
+            memberLogOperator.saveMemberLog(null, admin, "修改退货申请，退货申请id为：" + productBackModel.getId(), "/rest/admin/orders/updateOrderProductBack", request, memberOperateLogService);
             basicRet.setMessage("修改成功");
             basicRet.setResult(BasicRet.SUCCESS);
-            return  basicRet;
+            return basicRet;
         }
     }
 
 
-
-
-
-    @RequestMapping(value = "/updateOrderProductNum",method = RequestMethod.POST)
+    @RequestMapping(value = "/updateOrderProductNum", method = RequestMethod.POST)
     @ApiOperation(value = "修改订单商品数量")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "orderno",value = "退货单号",required = true,paramType = "query",dataType = "String"),
-            @ApiImplicitParam(name = "orderProductJson",value = "订单产品json [{\"id\":1909,\"num\":0.10}]",required = true,paramType = "query",dataType = "String"),
+            @ApiImplicitParam(name = "orderno", value = "退货单号", required = true, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "orderProductJson", value = "订单产品json [{\"id\":1909,\"num\":0.10}]", required = true, paramType = "query", dataType = "String"),
     })
     public BasicRet updateOrderProductNum(@RequestParam(required = true) String orderno,
-                                          @RequestParam(required = true) String orderProductJson,Model model) throws WxPayException, AlipayApiException {
+                                          @RequestParam(required = true) String orderProductJson, Model model) throws WxPayException, AlipayApiException {
 
         Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
 
@@ -983,146 +1007,143 @@ public class AdminOrdersAction {
         BigDecimal orderActualpayment = orders.getActualpayment();
 
 
-        if(orders == null){
-            return  new BasicRet(BasicRet.ERR,"订单不存在");
+        if (orders == null) {
+            return new BasicRet(BasicRet.ERR, "订单不存在");
         }
 
-        if(orders.getOrderstatus() != Quantity.STATE_1){ //未发货订单可以修改商品数量
-            return  new BasicRet(BasicRet.ERR,"只有未发货订单可以修改商品数量");
+        if (orders.getOrderstatus() != Quantity.STATE_1) { //未发货订单可以修改商品数量
+            return new BasicRet(BasicRet.ERR, "只有未发货订单可以修改商品数量");
         }
 
-        if(orders.getIsonline() == Quantity.STATE_2){
-            return  new BasicRet(BasicRet.ERR,"限时购订单不可修改");
+        if (orders.getIsonline() == Quantity.STATE_2) {
+            return new BasicRet(BasicRet.ERR, "限时购订单不可修改");
         }
 
-        if(orders.getOrdertype() != Quantity.STATE_0){
-            return  new BasicRet(BasicRet.ERR,"远期订单不可修改");
+        if (orders.getOrdertype() != Quantity.STATE_0) {
+            return new BasicRet(BasicRet.ERR, "远期订单不可修改");
         }
 
-
-        List<OrderProduct> updateOrderProductList = GsonUtils.toList(orderProductJson,OrderProduct.class);
+        List<OrderProduct> updateOrderProductList = GsonUtils.toList(orderProductJson, OrderProduct.class);
         List<OrderProduct> orderProductList = ordersService.getOrderProductByOrderId(orders.getId());
 
         Set<Long> orderprodidSet = new HashSet<>();
 
 
-
-        if(updateOrderProductList.size() != orderProductList.size()){
-            return  new BasicRet(BasicRet.ERR,"提交订单商品的数量与实际数量不符");
+        if (updateOrderProductList.size() != orderProductList.size()) {
+            return new BasicRet(BasicRet.ERR, "提交订单商品的数量与实际数量不符");
         }
 
-        for(OrderProduct orderProduct : orderProductList) {
+        for (OrderProduct orderProduct : orderProductList) {
 /*            Map<String,Object>pdnumMap = new HashMap<String,Object>();
             pdnumMap.put("pdid",orderProduct.getPdid());
             pdnumMap.put("num",orderProduct.getNum());
             pdnumList.add(pdnumMap);*/
             for (OrderProduct updateP : updateOrderProductList) {
-                if(orderProduct.getId().equals(updateP.getId())){
+                if (orderProduct.getId().equals(updateP.getId())) {
                     orderprodidSet.add(orderProduct.getId());
                 }
             }
         }
 
-        if(orderProductList.size() != orderprodidSet.size()){
-          return  new BasicRet(BasicRet.ERR,"提交订单商品与实际商品不对应");
+        if (orderProductList.size() != orderprodidSet.size()) {
+            return new BasicRet(BasicRet.ERR, "提交订单商品与实际商品不对应");
         }
 
 
         List<OrderProduct> saveOrderProductList = new ArrayList<>();
 
-            for (OrderProduct orderProduct : orderProductList) {
-                for (OrderProduct updateP : updateOrderProductList) {
-                    if (orderProduct.getId().equals(updateP.getId())) {
+        for (OrderProduct orderProduct : orderProductList) {
+            for (OrderProduct updateP : updateOrderProductList) {
+                if (orderProduct.getId().equals(updateP.getId())) {
 
-                        if (orderProduct.getNum().compareTo(updateP.getNum()) < 0) {
-                            throw new RuntimeException(orderProduct.getPdname() + "要修改的数量不可比原订单数量多");
-                        }
-
-                        if (orderProduct.getProtype() != Quantity.STATE_0) {
-                            throw new RuntimeException(orderProduct.getPdname() + "为远期订单商品，远期订单不可修改");
-                        }
-
-
-                        ProductInfo productInfo = ordersService.getProductInfoByPrimeKey(orderProduct.getPdid());
-
-                        if (productInfo == null) {
-                            throw new RuntimeException("商品id为" + orderProduct.getPdid() + "的商品不存在");
-                        }
-
-                        ProductStore productStore1 = ordersService.getProductStore(orderProduct.getPdid(), orderProduct.getPdno(), orderProduct.getStoreid());
-
-                        if (productStore1 == null) {
-                            throw new RuntimeException("商品id为" + orderProduct.getPdid() + "的库存信息不存在");
-                        }
-
-                        OrderProduct saveOrderProduct = new OrderProduct();
-                        saveOrderProduct.setId(updateP.getId());
-
-                        if(updateP.getNum().compareTo(Quantity.BIG_DECIMAL_0) ==0){ //全部不发了
-                            saveOrderProduct.setNum(updateP.getNum());
-                            saveOrderProduct.setPrice(orderProduct.getPrice());
-                            saveOrderProduct.setFreight(Quantity.BIG_DECIMAL_0);
-                            saveOrderProduct.setActualpayment(Quantity.BIG_DECIMAL_0);
-                        }else {
-                            saveOrderProduct.setNum(updateP.getNum());
-                            saveOrderProduct.setPrice(orderProduct.getPrice());
-
-                            //计算运费
-                            BigDecimal figtht = BigDecimal.valueOf(0);
-                            if (orders.getIsonline() == Quantity.STATE_0) {
-                                figtht = ordersService.countSinglePdFight(productInfo, productStore1, orders.getProvince(), orders.getCity(), saveOrderProduct.getNum());
-                                saveOrderProduct.setFreight(figtht);
-                            } else if (orders.getIsonline() == Quantity.STATE_2) {
-                                saveOrderProduct.setFreight(BigDecimal.valueOf(0));
-                            }
-
-                            saveOrderProduct.setActualpayment(figtht.add(saveOrderProduct.getPrice().multiply(saveOrderProduct.getNum())));
-                        }
-
-                        saveOrderProductList.add(saveOrderProduct);
-
-                        if (ordersService.updateOrderProduct(saveOrderProduct) != 1) {
-                            throw new RuntimeException("修改订单商品id:" + saveOrderProduct.getId() + "失败，请联系网站管理员");
-                        }
-
-                        //将退货的商品信息记录到orderproductbackinfo表中
-                        int a = orderProduct.getNum().compareTo(saveOrderProduct.getNum());
-                        if(a!=0) {
-                            OrderProductBackInfo orderProductBackInfo = new OrderProductBackInfo();
-                            orderProductBackInfo.setOrderno(orderProduct.getOrderno());
-                            orderProductBackInfo.setPdid(orderProduct.getPdid());
-                            orderProductBackInfo.setBackno("TH" + UUID.randomUUID());
-                            orderProductBackInfo.setBacknum(orderProduct.getNum().subtract(saveOrderProduct.getNum()));
-                            orderProductBackInfo.setBacktype(Quantity.STATE_2);
-                            orderProductBackInfo.setBackstate(Quantity.STATE_0);
-                            orderProductBackInfo.setBacktime(new Date());
-                            orderProductBackInfoService.addOrderProductBackInfo(orderProductBackInfo);
-                        }
-
+                    if (orderProduct.getNum().compareTo(updateP.getNum()) < 0) {
+                        throw new RuntimeException(orderProduct.getPdname() + "要修改的数量不可比原订单数量多");
                     }
+
+                    if (orderProduct.getProtype() != Quantity.STATE_0) {
+                        throw new RuntimeException(orderProduct.getPdname() + "为远期订单商品，远期订单不可修改");
+                    }
+
+
+                    ProductInfo productInfo = ordersService.getProductInfoByPrimeKey(orderProduct.getPdid());
+
+                    if (productInfo == null) {
+                        throw new RuntimeException("商品id为" + orderProduct.getPdid() + "的商品不存在");
+                    }
+
+                    ProductStore productStore1 = ordersService.getProductStore(orderProduct.getPdid(), orderProduct.getPdno(), orderProduct.getStoreid());
+
+                    if (productStore1 == null) {
+                        throw new RuntimeException("商品id为" + orderProduct.getPdid() + "的库存信息不存在");
+                    }
+
+                    OrderProduct saveOrderProduct = new OrderProduct();
+                    saveOrderProduct.setId(updateP.getId());
+
+                    if (updateP.getNum().compareTo(Quantity.BIG_DECIMAL_0) == 0) { //全部不发了
+                        saveOrderProduct.setNum(updateP.getNum());
+                        saveOrderProduct.setPrice(orderProduct.getPrice());
+                        saveOrderProduct.setFreight(Quantity.BIG_DECIMAL_0);
+                        saveOrderProduct.setActualpayment(Quantity.BIG_DECIMAL_0);
+                    } else {
+                        saveOrderProduct.setNum(updateP.getNum());
+                        saveOrderProduct.setPrice(orderProduct.getPrice());
+
+                        //计算运费
+                        BigDecimal figtht = BigDecimal.valueOf(0);
+                        if (orders.getIsonline() == Quantity.STATE_0) {
+                            figtht = ordersService.countSinglePdFight(productInfo, productStore1, orders.getProvince(), orders.getCity(), saveOrderProduct.getNum());
+                            saveOrderProduct.setFreight(figtht);
+                        } else if (orders.getIsonline() == Quantity.STATE_2) {
+                            saveOrderProduct.setFreight(BigDecimal.valueOf(0));
+                        }
+
+                        saveOrderProduct.setActualpayment(figtht.add(saveOrderProduct.getPrice().multiply(saveOrderProduct.getNum())));
+                    }
+
+                    saveOrderProductList.add(saveOrderProduct);
+
+                    if (ordersService.updateOrderProduct(saveOrderProduct) != 1) {
+                        throw new RuntimeException("修改订单商品id:" + saveOrderProduct.getId() + "失败，请联系网站管理员");
+                    }
+
+                    //将退货的商品信息记录到orderproductbackinfo表中
+                    int a = orderProduct.getNum().compareTo(saveOrderProduct.getNum());
+                    if (a != 0) {
+                        OrderProductBackInfo orderProductBackInfo = new OrderProductBackInfo();
+                        orderProductBackInfo.setOrderno(orderProduct.getOrderno());
+                        orderProductBackInfo.setPdid(orderProduct.getPdid());
+                        orderProductBackInfo.setBackno("TH" + UUID.randomUUID());
+                        orderProductBackInfo.setBacknum(orderProduct.getNum().subtract(saveOrderProduct.getNum()));
+                        orderProductBackInfo.setBacktype(Quantity.STATE_2);
+                        orderProductBackInfo.setBackstate(Quantity.STATE_0);
+                        orderProductBackInfo.setBacktime(new Date());
+                        orderProductBackInfoService.addOrderProductBackInfo(orderProductBackInfo);
+                    }
+
                 }
             }
-
+        }
 
 
         BigDecimal totalFreight = Quantity.BIG_DECIMAL_0;
         BigDecimal totalPrice = Quantity.BIG_DECIMAL_0;
-        for(OrderProduct op : saveOrderProductList){
-           totalFreight = totalFreight.add(op.getFreight());
-           totalPrice =  totalPrice.add(op.getActualpayment());
+        for (OrderProduct op : saveOrderProductList) {
+            totalFreight = totalFreight.add(op.getFreight());
+            totalPrice = totalPrice.add(op.getActualpayment());
         }
 
-        totalFreight.setScale(2,BigDecimal.ROUND_HALF_UP);
-        totalPrice.setScale(2,BigDecimal.ROUND_HALF_UP);
+        totalFreight.setScale(2, BigDecimal.ROUND_HALF_UP);
+        totalPrice.setScale(2, BigDecimal.ROUND_HALF_UP);
 
         //退款金额
-        BigDecimal backMoney = orderTotalprice.subtract(totalPrice);
+        BigDecimal backMoney = orderTotalprice.subtract(totalPrice).setScale(2, BigDecimal.ROUND_HALF_UP);
 
-        if(backMoney.compareTo(Quantity.BIG_DECIMAL_0) <0){
-            throw  new RuntimeException("退款金额不可少于0");
+        if (backMoney.compareTo(Quantity.BIG_DECIMAL_0) < 0) {
+            throw new RuntimeException("退款金额不可少于0");
         }
 
-        if(backMoney.compareTo(Quantity.BIG_DECIMAL_0)>0) {
+        if (backMoney.compareTo(Quantity.BIG_DECIMAL_0) > 0) {
             //买家退款资金明细
             BuyerCapital buyerCapital1 = null;
 
@@ -1164,7 +1185,10 @@ public class AdminOrdersAction {
                         for (Orders od : ordersList) {
                             totalAmout = totalAmout.add(od.getActualpayment());
                         }
+
+
                         refund.setTotalAmount((totalAmout.multiply(new BigDecimal(100))).longValue());
+
                         boolean result = false;
                         try {
                             if ("alipay".equals(refund.getChannel())) {
@@ -1207,21 +1231,21 @@ public class AdminOrdersAction {
         updateOrders.setId(orders.getId());
 
         //如果退款金额与订单总额相等
-        if(backMoney.compareTo(orderTotalprice) ==0){
+        if (backMoney.compareTo(orderTotalprice) == 0) {
             updateOrders.setOrderstatus(Quantity.STATE_7);
             updateOrders.setReason("平台取消订单");
             updateOrders.setTotalprice(Quantity.BIG_DECIMAL_0);
             updateOrders.setActualpayment(Quantity.BIG_DECIMAL_0);
             updateOrders.setFreight(Quantity.BIG_DECIMAL_0);
             ordersService.deleteBillRecord(orders.getId().toString());
-        }else{
+        } else {
             updateOrders.setFreight(totalFreight);
             updateOrders.setTotalprice(totalPrice);
             updateOrders.setActualpayment(totalPrice);
 
             //修改开票金额
-            if(orders.getIsbilling() == Quantity.STATE_1){
-                billingRecordService.updateAdminDecOrderProductnum(orders.getId().toString(),orders.getMemberid(),backMoney.multiply(new BigDecimal(-1)));
+            if (orders.getIsbilling() == Quantity.STATE_1) {
+                billingRecordService.updateAdminDecOrderProductnum(orders.getId().toString(), orders.getMemberid(), backMoney.multiply(new BigDecimal(-1)));
             }
         }
 
@@ -1231,7 +1255,7 @@ public class AdminOrdersAction {
 
         //操作日志
         OperateLog operateLog = new OperateLog();
-        operateLog.setContent("后台修改订单商品数量，退款"+backMoney);
+        operateLog.setContent("后台修改订单商品数量，退款" + backMoney);
         operateLog.setOpid(admin.getId());
         operateLog.setOpname(admin.getUsername());
         operateLog.setOptime(new Date());
@@ -1241,7 +1265,7 @@ public class AdminOrdersAction {
         ordersService.saveOperatelog(operateLog);
 
 
-        return  new BasicRet(BasicRet.SUCCESS,"修改成功");
+        return new BasicRet(BasicRet.SUCCESS, "修改成功");
     }
 
 
@@ -1890,27 +1914,27 @@ public class AdminOrdersAction {
     */
 
 
-
     /**
      * 退款操作
+     *
      * @param orderProductBack
      * @param orderProduct
      * @param order
-     * @param operatorId   操作者id
+     * @param operatorId       操作者id
      * @param operatorUsername 操作者用户名
      * @throws CashException
      */
-    private void handleBackGoods(OrderProductBack orderProductBack, OrderProduct orderProduct, Orders order,Long operatorId,String operatorUsername) throws CashException {
+    private void handleBackGoods(OrderProductBack orderProductBack, OrderProduct orderProduct, Orders order, Long operatorId, String operatorUsername) throws CashException {
 
         //卖家
         Member sellerMember = memberService.getMemberById(order.getSaleid());
         Member oldSellerMember = new Member();
-        BeanUtils.copyProperties(sellerMember,oldSellerMember);
+        BeanUtils.copyProperties(sellerMember, oldSellerMember);
 
         //退款申请人
         Member buyer = memberService.getMemberById(order.getMemberid());
         Member oldBuyer = new Member();
-        BeanUtils.copyProperties(buyer,oldBuyer);
+        BeanUtils.copyProperties(buyer, oldBuyer);
 
 
         //违约金占比
@@ -1942,7 +1966,7 @@ public class AdminOrdersAction {
                 //退回的金额,异议扣违约金
                 if (orderProductBack.getAdminstate() == Quantity.STATE_2) {
                     //违约金
-                    penaltyPay = orderPay.multiply(getLiquidated).setScale(2,BigDecimal.ROUND_HALF_UP);
+                    penaltyPay = orderPay.multiply(getLiquidated).setScale(2, BigDecimal.ROUND_HALF_UP);
                 }
 
                 backPay = backPayMoney;
@@ -1952,8 +1976,8 @@ public class AdminOrdersAction {
                 if (buyerCapital != null) {
                     //退回到余额
                     if (buyerCapital.getPaytype() == Quantity.STATE_3) {
-                        buyer.setBalance(buyer.getBalance().add(backPay.subtract(penaltyPay)).setScale(2,BigDecimal.ROUND_HALF_UP));
-                        buyerCapital1 = createBuyerBackPay(order, backPay.subtract(penaltyPay).setScale(2,BigDecimal.ROUND_HALF_UP), tranTime, Quantity.STATE_3);
+                        buyer.setBalance(buyer.getBalance().add(backPay.subtract(penaltyPay)).setScale(2, BigDecimal.ROUND_HALF_UP));
+                        buyerCapital1 = createBuyerBackPay(order, backPay.subtract(penaltyPay).setScale(2, BigDecimal.ROUND_HALF_UP), tranTime, Quantity.STATE_3);
                         salerCapital1 = createSalerBackPay(order, backPay, tranTime);
                         buyerCapitals.add(buyerCapital1);
                         salerCapitals.add(salerCapital1);
@@ -1962,9 +1986,9 @@ public class AdminOrdersAction {
 
                     //退回到授信
                     if (buyerCapital.getPaytype() == Quantity.STATE_4) {
-                        buyer.setAvailablelimit(buyer.getAvailablelimit().add(backPay.subtract(penaltyPay)).setScale(2,BigDecimal.ROUND_HALF_UP));
+                        buyer.setAvailablelimit(buyer.getAvailablelimit().add(backPay.subtract(penaltyPay)).setScale(2, BigDecimal.ROUND_HALF_UP));
                         buyer.setUsedlimit(buyer.getUsedlimit().subtract(backPay.subtract(penaltyPay)));
-                        buyerCapital1 = createBuyerBackPay(order, backPay.subtract(penaltyPay).setScale(2,BigDecimal.ROUND_HALF_UP), tranTime, Quantity.STATE_4);
+                        buyerCapital1 = createBuyerBackPay(order, backPay.subtract(penaltyPay).setScale(2, BigDecimal.ROUND_HALF_UP), tranTime, Quantity.STATE_4);
                         salerCapital1 = createSalerBackPay(order, backPay, tranTime);
                         buyerCapitals.add(buyerCapital1);
                         salerCapitals.add(salerCapital1);
@@ -1972,50 +1996,50 @@ public class AdminOrdersAction {
 
 
                     //退回到支付宝\微信\银行卡
-                    if(buyerCapital.getPaytype()==Quantity.STATE_0||buyerCapital.getPaytype()==Quantity.STATE_1||buyerCapital.getPaytype()==Quantity.STATE_2){
+                    if (buyerCapital.getPaytype() == Quantity.STATE_0 || buyerCapital.getPaytype() == Quantity.STATE_1 || buyerCapital.getPaytype() == Quantity.STATE_2) {
                         String uuid = order.getUuid();
                         Long ordertime = order.getOrdertime();
-                        if(uuid!=null){
+                        if (uuid != null) {
                             Refund refund = new Refund();
                             refund.setDatetime(ordertime);
                             refund.setOutTradeNo(uuid);
-                            if(order.getPaytype()==Quantity.STATE_0){
+                            if (order.getPaytype() == Quantity.STATE_0) {
                                 refund.setChannel("alipay");
-                            }else if(order.getPaytype()==Quantity.STATE_1){
+                            } else if (order.getPaytype() == Quantity.STATE_1) {
                                 refund.setChannel("wxpay");
-                            }else {
+                            } else {
                                 refund.setChannel("bank");
                             }
 
-                            refund.setRefundAmount((backPay.subtract(penaltyPay).multiply(new BigDecimal(100))).setScale(2,BigDecimal.ROUND_HALF_UP).longValue());
+                            refund.setRefundAmount((backPay.subtract(penaltyPay).multiply(new BigDecimal(100))).setScale(2, BigDecimal.ROUND_HALF_UP).longValue());
                             refund.setRefundReason("订单退款");
                             List<Orders> ordersList = ordersService.getOrdersByUUID(uuid);
                             BigDecimal totalAmout = new BigDecimal(0);
-                            for(Orders od : ordersList){
+                            for (Orders od : ordersList) {
                                 totalAmout = totalAmout.add(od.getActualpayment());
                             }
-                            refund.setTotalAmount((totalAmout.multiply(new BigDecimal(100))).setScale(2,BigDecimal.ROUND_HALF_UP).longValue());
+                            refund.setTotalAmount((totalAmout.multiply(new BigDecimal(100))).setScale(2, BigDecimal.ROUND_HALF_UP).longValue());
                             boolean result = false;
                             try {
-                                if("alipay".equals(refund.getChannel())){
+                                if ("alipay".equals(refund.getChannel())) {
                                     result = alipayService.refund(refund);
-                                }else if("wxpay".equals(refund.getChannel())){
+                                } else if ("wxpay".equals(refund.getChannel())) {
                                     result = wxPayService.refund(refund);
-                                }else {
+                                } else {
                                     result = abcService.refund(refund);
                                 }
-                            }catch (Exception e){
+                            } catch (Exception e) {
 
                             }
 
-                            System.out.println("退货通道："+refund.getChannel()+"退货结果："+result);
-                            if(result){
-                                if(order.getPaytype()==Quantity.STATE_0){
-                                    buyerCapital1 = createBuyerBackPay(order, backPay.subtract(penaltyPay).setScale(2,BigDecimal.ROUND_HALF_UP), tranTime, Quantity.STATE_0);
-                                }else if(order.getPaytype()==Quantity.STATE_1){
-                                    buyerCapital1 = createBuyerBackPay(order, backPay.subtract(penaltyPay).setScale(2,BigDecimal.ROUND_HALF_UP), tranTime, Quantity.STATE_1);
-                                }else {
-                                    buyerCapital1 = createBuyerBackPay(order, backPay.subtract(penaltyPay).setScale(2,BigDecimal.ROUND_HALF_UP), tranTime, Quantity.STATE_2);
+                            System.out.println("退货通道：" + refund.getChannel() + "退货结果：" + result);
+                            if (result) {
+                                if (order.getPaytype() == Quantity.STATE_0) {
+                                    buyerCapital1 = createBuyerBackPay(order, backPay.subtract(penaltyPay).setScale(2, BigDecimal.ROUND_HALF_UP), tranTime, Quantity.STATE_0);
+                                } else if (order.getPaytype() == Quantity.STATE_1) {
+                                    buyerCapital1 = createBuyerBackPay(order, backPay.subtract(penaltyPay).setScale(2, BigDecimal.ROUND_HALF_UP), tranTime, Quantity.STATE_1);
+                                } else {
+                                    buyerCapital1 = createBuyerBackPay(order, backPay.subtract(penaltyPay).setScale(2, BigDecimal.ROUND_HALF_UP), tranTime, Quantity.STATE_2);
                                 }
                                 salerCapital1 = createSalerBackPay(order, backPay, tranTime);
                                 buyerCapitals.add(buyerCapital1);
@@ -2027,14 +2051,14 @@ public class AdminOrdersAction {
 
                     //异议扣违约金,记录资金明细
                     if (orderProductBack.getAdminstate() == Quantity.STATE_2) {
-                        BigDecimal sellerPenaltyPay = penaltyPay.multiply(forwardsalesmargin).setScale(2,BigDecimal.ROUND_HALF_UP);
-                        if(sellerPenaltyPay.compareTo(Quantity.BIG_DECIMAL_0)>0){
+                        BigDecimal sellerPenaltyPay = penaltyPay.multiply(forwardsalesmargin).setScale(2, BigDecimal.ROUND_HALF_UP);
+                        if (sellerPenaltyPay.compareTo(Quantity.BIG_DECIMAL_0) > 0) {
                             sellerMember.setSellerbanlance(sellerMember.getSellerbanlance().add(sellerPenaltyPay));
                             salerCapital2 = createSalerPenaltyPay(order, sellerPenaltyPay, tranTime, Quantity.STATE_6, orderPay, Quantity.BUYER_BACK_REASON);
                             salerCapitals.add(salerCapital2);
                         }
 
-                        if(penaltyPay.compareTo(Quantity.BIG_DECIMAL_0)>0) {
+                        if (penaltyPay.compareTo(Quantity.BIG_DECIMAL_0) > 0) {
                             buyerCapital2 = createBuyerPenaltyPay(order, penaltyPay, tranTime, Quantity.STATE_6, orderPay, Quantity.BUYER_BACK_REASON);
                             buyerCapital2.setPaytype(order.getPaytype());
                             buyerCapitals.add(buyerCapital2);
@@ -2042,7 +2066,7 @@ public class AdminOrdersAction {
                     }
 
                     //如果退货类型为全部退货   将运费加到卖家货款金额里
-                    if(orderProductBack.getBacktype() == Quantity.STATE_1){
+                    if (orderProductBack.getBacktype() == Quantity.STATE_1) {
                         sellerMember.setGoodsbanlance(sellerMember.getGoodsbanlance().add(orderProduct.getActualpayment().subtract(backPay)));
                     }
                 }
@@ -2061,7 +2085,7 @@ public class AdminOrdersAction {
                 //退回的金额,异议扣违约金
                 if (orderProductBack.getAdminstate() == Quantity.STATE_2) {
                     //违约金
-                    penaltyPay = orderPay.multiply(getLiquidated).setScale(2,BigDecimal.ROUND_HALF_UP);
+                    penaltyPay = orderPay.multiply(getLiquidated).setScale(2, BigDecimal.ROUND_HALF_UP);
                 }
 
                 backPay = orderPay;
@@ -2072,17 +2096,17 @@ public class AdminOrdersAction {
                 if (buyerCapital != null) {
                     //退回到余额
                     if (buyerCapital.getPaytype() == Quantity.STATE_3) {
-                        buyer.setBalance(buyer.getBalance().add(backPay).subtract(penaltyPay).setScale(2,BigDecimal.ROUND_HALF_UP));
-                        buyerCapital1 = createBuyerBackPay(order, backPay.subtract(penaltyPay).setScale(2,BigDecimal.ROUND_HALF_UP), tranTime, Quantity.STATE_3);
+                        buyer.setBalance(buyer.getBalance().add(backPay).subtract(penaltyPay).setScale(2, BigDecimal.ROUND_HALF_UP));
+                        buyerCapital1 = createBuyerBackPay(order, backPay.subtract(penaltyPay).setScale(2, BigDecimal.ROUND_HALF_UP), tranTime, Quantity.STATE_3);
                         salerCapital1 = createSalerBackPay(order, backPay, tranTime);
                         buyerCapitals.add(buyerCapital1);
                         salerCapitals.add(salerCapital1);
                     }
                     //退回到授信
                     if (buyerCapital.getPaytype() == Quantity.STATE_4) {
-                        buyer.setAvailablelimit(buyer.getAvailablelimit().add(backPay.subtract(penaltyPay)).setScale(2,BigDecimal.ROUND_HALF_UP));
-                        buyer.setUsedlimit(buyer.getUsedlimit().subtract(backPay.subtract(penaltyPay)).setScale(2,BigDecimal.ROUND_HALF_UP));
-                        buyerCapital1 = createBuyerBackPay(order, backPay.subtract(penaltyPay).setScale(2,BigDecimal.ROUND_HALF_UP), tranTime, Quantity.STATE_4);
+                        buyer.setAvailablelimit(buyer.getAvailablelimit().add(backPay.subtract(penaltyPay)).setScale(2, BigDecimal.ROUND_HALF_UP));
+                        buyer.setUsedlimit(buyer.getUsedlimit().subtract(backPay.subtract(penaltyPay)).setScale(2, BigDecimal.ROUND_HALF_UP));
+                        buyerCapital1 = createBuyerBackPay(order, backPay.subtract(penaltyPay).setScale(2, BigDecimal.ROUND_HALF_UP), tranTime, Quantity.STATE_4);
                         salerCapital1 = createSalerBackPay(order, backPay, tranTime);
                         buyerCapitals.add(buyerCapital1);
                         salerCapitals.add(salerCapital1);
@@ -2090,47 +2114,47 @@ public class AdminOrdersAction {
 
 
                     //退回到支付宝或微信
-                    if(buyerCapital.getPaytype()==Quantity.STATE_0||buyerCapital.getPaytype()==Quantity.STATE_1||buyerCapital.getPaytype()==Quantity.STATE_2){
+                    if (buyerCapital.getPaytype() == Quantity.STATE_0 || buyerCapital.getPaytype() == Quantity.STATE_1 || buyerCapital.getPaytype() == Quantity.STATE_2) {
                         String uuid = order.getUuid();
                         Long ordertime = order.getOrdertime();
-                        if(uuid!=null){
+                        if (uuid != null) {
                             Refund refund = new Refund();
                             refund.setOutTradeNo(uuid);
                             refund.setDatetime(ordertime);
-                            if(order.getPaytype()==Quantity.STATE_0){
+                            if (order.getPaytype() == Quantity.STATE_0) {
                                 refund.setChannel("alipay");
-                            }else if(order.getPaytype()==Quantity.STATE_1){
+                            } else if (order.getPaytype() == Quantity.STATE_1) {
                                 refund.setChannel("wxpay");
-                            }else {
+                            } else {
                                 refund.setChannel("bank");
                             }
-                            refund.setRefundAmount((backPay.subtract(penaltyPay).setScale(2,BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100))).longValue());
+                            refund.setRefundAmount((backPay.subtract(penaltyPay).setScale(2, BigDecimal.ROUND_HALF_UP).multiply(new BigDecimal(100))).longValue());
                             refund.setRefundReason("订单退款");
                             List<Orders> ordersList = ordersService.getOrdersByUUID(uuid);
                             BigDecimal totalAmout = new BigDecimal(0);
-                            for(Orders od : ordersList){
+                            for (Orders od : ordersList) {
                                 totalAmout = totalAmout.add(od.getActualpayment());
                             }
                             refund.setTotalAmount((totalAmout.multiply(new BigDecimal(100))).longValue());
                             boolean result = false;
                             try {
-                                if("alipay".equals(refund.getChannel())){
+                                if ("alipay".equals(refund.getChannel())) {
                                     result = alipayService.refund(refund);
-                                }else if("wxpay".equals(refund.getChannel())){
+                                } else if ("wxpay".equals(refund.getChannel())) {
                                     result = wxPayService.refund(refund);
-                                }else {
+                                } else {
                                     result = abcService.refund(refund);
                                 }
-                            }catch (Exception e){
+                            } catch (Exception e) {
 
                             }
-                            if(result){
-                                if(order.getPaytype()==Quantity.STATE_0){
-                                    buyerCapital1 = createBuyerBackPay(order, backPay.subtract(penaltyPay).setScale(2,BigDecimal.ROUND_HALF_UP), tranTime, Quantity.STATE_0);
-                                }else if(order.getPaytype()==Quantity.STATE_1){
-                                    buyerCapital1 = createBuyerBackPay(order, backPay.subtract(penaltyPay).setScale(2,BigDecimal.ROUND_HALF_UP), tranTime, Quantity.STATE_1);
-                                }else {
-                                    buyerCapital1 = createBuyerBackPay(order, backPay.subtract(penaltyPay).setScale(2,BigDecimal.ROUND_HALF_UP), tranTime, Quantity.STATE_2);
+                            if (result) {
+                                if (order.getPaytype() == Quantity.STATE_0) {
+                                    buyerCapital1 = createBuyerBackPay(order, backPay.subtract(penaltyPay).setScale(2, BigDecimal.ROUND_HALF_UP), tranTime, Quantity.STATE_0);
+                                } else if (order.getPaytype() == Quantity.STATE_1) {
+                                    buyerCapital1 = createBuyerBackPay(order, backPay.subtract(penaltyPay).setScale(2, BigDecimal.ROUND_HALF_UP), tranTime, Quantity.STATE_1);
+                                } else {
+                                    buyerCapital1 = createBuyerBackPay(order, backPay.subtract(penaltyPay).setScale(2, BigDecimal.ROUND_HALF_UP), tranTime, Quantity.STATE_2);
                                 }
                                 salerCapital1 = createSalerBackPay(order, backPay, tranTime);
                                 buyerCapitals.add(buyerCapital1);
@@ -2142,14 +2166,14 @@ public class AdminOrdersAction {
 
                     //异议扣违约金,记录资金明细
                     if (orderProductBack.getAdminstate() == Quantity.STATE_2) {
-                        BigDecimal sellerPenaltyPay = penaltyPay.multiply(forwardsalesmargin).setScale(2,BigDecimal.ROUND_HALF_UP);
-                        if(sellerPenaltyPay.compareTo(Quantity.BIG_DECIMAL_0)>0){
+                        BigDecimal sellerPenaltyPay = penaltyPay.multiply(forwardsalesmargin).setScale(2, BigDecimal.ROUND_HALF_UP);
+                        if (sellerPenaltyPay.compareTo(Quantity.BIG_DECIMAL_0) > 0) {
                             sellerMember.setSellerbanlance(sellerMember.getSellerbanlance().add(sellerPenaltyPay));
                             salerCapital2 = createSalerPenaltyPay(order, sellerPenaltyPay, tranTime, Quantity.STATE_6, orderPay, Quantity.BUYER_BACK_REASON);
                             salerCapitals.add(salerCapital2);
                         }
 
-                        if(penaltyPay.compareTo(Quantity.BIG_DECIMAL_0)>0) {
+                        if (penaltyPay.compareTo(Quantity.BIG_DECIMAL_0) > 0) {
                             buyerCapital2 = createBuyerPenaltyPay(order, penaltyPay, tranTime, Quantity.STATE_6, orderPay, Quantity.BUYER_BACK_REASON);
                             buyerCapital2.setPaytype(order.getPaytype());
                             buyerCapitals.add(buyerCapital2);
@@ -2158,7 +2182,7 @@ public class AdminOrdersAction {
 
 
                     //如果退货类型为全部退货   将运费加到卖家货款金额里
-                    if(orderProductBack.getBacktype() == Quantity.STATE_1){
+                    if (orderProductBack.getBacktype() == Quantity.STATE_1) {
                         sellerMember.setGoodsbanlance(sellerMember.getGoodsbanlance().add(orderProduct.getActualpayment().subtract(backPay)));
                     }
                 }
@@ -2189,16 +2213,16 @@ public class AdminOrdersAction {
                     //退回的金额,异议扣违约金
                     if (orderProductBack.getAdminstate() == Quantity.STATE_2) {
                         //违约金
-                        partPaypenal = partPay.multiply(getLiquidated).setScale(2,BigDecimal.ROUND_HALF_UP);
-                        yuPayPenal = yuPay.multiply(getLiquidated).setScale(2,BigDecimal.ROUND_HALF_UP);
+                        partPaypenal = partPay.multiply(getLiquidated).setScale(2, BigDecimal.ROUND_HALF_UP);
+                        yuPayPenal = yuPay.multiply(getLiquidated).setScale(2, BigDecimal.ROUND_HALF_UP);
                     }
 
 
                     //买家退款金额
-                    BigDecimal buyerBackPay = partPay.subtract(partPaypenal).add(yuPay.subtract(yuPayPenal)).setScale(2,BigDecimal.ROUND_HALF_UP);
+                    BigDecimal buyerBackPay = partPay.subtract(partPaypenal).add(yuPay.subtract(yuPayPenal)).setScale(2, BigDecimal.ROUND_HALF_UP);
 
                     //卖家退款金额
-                    BigDecimal salerBackPay = partPay.add(yuPay).setScale(2,BigDecimal.ROUND_HALF_UP);
+                    BigDecimal salerBackPay = partPay.add(yuPay).setScale(2, BigDecimal.ROUND_HALF_UP);
 
 
                     //退回到余额
@@ -2221,12 +2245,12 @@ public class AdminOrdersAction {
                         salerCapitals.add(salerCapital1);
                     }
                     //退回到支付宝或微信
-                    if(depositBuyerCapital.getPaytype()==Quantity.STATE_0||depositBuyerCapital.getPaytype()==Quantity.STATE_1||depositBuyerCapital.getPaytype()==Quantity.STATE_2){
+                    if (depositBuyerCapital.getPaytype() == Quantity.STATE_0 || depositBuyerCapital.getPaytype() == Quantity.STATE_1 || depositBuyerCapital.getPaytype() == Quantity.STATE_2) {
                         String uuid = order.getUuid();
                         String yuuuid = order.getYuuuid();
                         Long ordertime = order.getOrdertime();
                         Long yuordertime = order.getYuordertime();
-                        if(uuid!=null&&yuuuid!=null&&ordertime!=null&&yuordertime!=null){
+                        if (uuid != null && yuuuid != null && ordertime != null && yuordertime != null) {
                             //定金
                             Refund refund1 = new Refund();
                             //余款
@@ -2236,13 +2260,13 @@ public class AdminOrdersAction {
                             refund2.setOutTradeNo(yuuuid);
                             refund2.setDatetime(yuordertime);
 
-                            if(order.getPaytype()==Quantity.STATE_0){
+                            if (order.getPaytype() == Quantity.STATE_0) {
                                 refund1.setChannel("alipay");
                                 refund2.setChannel("alipay");
-                            }else if(order.getPaytype()==Quantity.STATE_1){
+                            } else if (order.getPaytype() == Quantity.STATE_1) {
                                 refund1.setChannel("wxpay");
                                 refund2.setChannel("wxpay");
-                            }else {
+                            } else {
                                 refund1.setChannel("bank");
                                 refund2.setChannel("bank");
                             }
@@ -2254,7 +2278,7 @@ public class AdminOrdersAction {
                             List<Orders> ordersList = ordersService.getOrdersByUUID(uuid);
                             BigDecimal totalPartPay = new BigDecimal(0);
                             BigDecimal totalYuPay = new BigDecimal(0);
-                            for(Orders od : ordersList){
+                            for (Orders od : ordersList) {
                                 totalPartPay = totalPartPay.add(od.getDeposit());
                                 totalYuPay = totalYuPay.add(od.getBalance());
                             }
@@ -2264,25 +2288,25 @@ public class AdminOrdersAction {
                             boolean result1 = false;
                             boolean result2 = false;
                             try {
-                                if("alipay".equals(refund1.getChannel())){
+                                if ("alipay".equals(refund1.getChannel())) {
                                     result1 = alipayService.refund(refund1);
                                     result2 = alipayService.refund(refund2);
-                                }else if("wxpay".equals(refund1.getChannel())){
+                                } else if ("wxpay".equals(refund1.getChannel())) {
                                     result1 = wxPayService.refund(refund1);
                                     result2 = wxPayService.refund(refund2);
-                                }else {
+                                } else {
                                     result1 = abcService.refund(refund1);
                                     result2 = abcService.refund(refund2);
                                 }
-                            }catch (Exception e){
+                            } catch (Exception e) {
 
                             }
-                            if(result1&&result2){
-                                if(order.getPaytype()==Quantity.STATE_0){
-                                    buyerCapital1 = createBuyerBackPay(order,buyerBackPay , tranTime, Quantity.STATE_0);
-                                }else if(order.getPaytype()==Quantity.STATE_1){
+                            if (result1 && result2) {
+                                if (order.getPaytype() == Quantity.STATE_0) {
+                                    buyerCapital1 = createBuyerBackPay(order, buyerBackPay, tranTime, Quantity.STATE_0);
+                                } else if (order.getPaytype() == Quantity.STATE_1) {
                                     buyerCapital1 = createBuyerBackPay(order, buyerBackPay, tranTime, Quantity.STATE_1);
-                                }else {
+                                } else {
                                     buyerCapital1 = createBuyerBackPay(order, buyerBackPay, tranTime, Quantity.STATE_2);
                                 }
                                 salerCapital1 = createSalerBackPay(order, salerBackPay, tranTime);
@@ -2296,14 +2320,14 @@ public class AdminOrdersAction {
                     //异议扣违约金,记录资金明细
                     if (orderProductBack.getAdminstate() == Quantity.STATE_2) {
                         penaltyPay = partPaypenal.add(yuPayPenal);
-                        BigDecimal sellerPenaltyPay = penaltyPay.multiply(forwardsalesmargin).setScale(2,BigDecimal.ROUND_HALF_UP);
-                        if(sellerPenaltyPay.compareTo(Quantity.BIG_DECIMAL_0)>0){
+                        BigDecimal sellerPenaltyPay = penaltyPay.multiply(forwardsalesmargin).setScale(2, BigDecimal.ROUND_HALF_UP);
+                        if (sellerPenaltyPay.compareTo(Quantity.BIG_DECIMAL_0) > 0) {
                             sellerMember.setSellerbanlance(sellerMember.getSellerbanlance().add(sellerPenaltyPay));
                             salerCapital2 = createSalerPenaltyPay(order, sellerPenaltyPay, tranTime, Quantity.STATE_6, orderPay, Quantity.BUYER_BACK_REASON);
                             salerCapitals.add(salerCapital2);
                         }
 
-                        if(penaltyPay.compareTo(Quantity.BIG_DECIMAL_0)>0) {
+                        if (penaltyPay.compareTo(Quantity.BIG_DECIMAL_0) > 0) {
                             buyerCapital2 = createBuyerPenaltyPay(order, penaltyPay, tranTime, Quantity.STATE_6, orderPay, Quantity.BUYER_BACK_REASON);
                             buyerCapital2.setPaytype(order.getPaytype());
                             buyerCapitals.add(buyerCapital2);
@@ -2311,7 +2335,7 @@ public class AdminOrdersAction {
                     }
 
                     //如果退货类型为全部退货   将运费加到卖家货款金额里
-                    if(orderProductBack.getBacktype() == Quantity.STATE_1){
+                    if (orderProductBack.getBacktype() == Quantity.STATE_1) {
                         sellerMember.setGoodsbanlance(sellerMember.getGoodsbanlance().add(orderProduct.getActualpayment().subtract(partPay).subtract(yuPay)));
                     }
                 }
@@ -2319,10 +2343,10 @@ public class AdminOrdersAction {
 
 
             //保存用户余额和授信
-            ordersService.saveMember(buyer,oldBuyer);
-            ordersService.saveMember(sellerMember,oldSellerMember);
+            ordersService.saveMember(buyer, oldBuyer);
+            ordersService.saveMember(sellerMember, oldSellerMember);
 
-            if(buyerCapitals.size()>0){
+            if (buyerCapitals.size() > 0) {
 
                 ordersService.insertBuyerCapital(buyerCapitals);
                 //保存操作日志
@@ -2341,24 +2365,23 @@ public class AdminOrdersAction {
                 ordersService.saveOperatelog(operateLog);
             }
 
-            if(salerCapitals.size()>0){
+            if (salerCapitals.size() > 0) {
                 ordersService.insertSallerCapital(salerCapitals);
             }
         }
     }
 
 
-
-
     /**
      * 创建买家退款资金明细
+     *
      * @param order
      * @param backPay
      * @param tranTime
-     * @param type 3=退到余额4=退到授信
+     * @param type     3=退到余额4=退到授信
      * @return
      */
-    private BuyerCapital createBuyerBackPay(Orders order,BigDecimal backPay,Date tranTime,Short type){
+    private BuyerCapital createBuyerBackPay(Orders order, BigDecimal backPay, Date tranTime, Short type) {
 
         BuyerCapital buyerCapital = new BuyerCapital();
         buyerCapital.setOrderno(order.getOrderno());
@@ -2374,13 +2397,14 @@ public class AdminOrdersAction {
 
     /**
      * 创建买家违约金资金明细
+     *
      * @param order
      * @param penaltyPay
      * @param tranTime
-     * @param type 6=买家违约10=卖家违约
+     * @param type       6=买家违约10=卖家违约
      * @return
      */
-    private BuyerCapital createBuyerPenaltyPay(Orders order,BigDecimal penaltyPay,Date tranTime,Short type,BigDecimal orderPay,String reason){
+    private BuyerCapital createBuyerPenaltyPay(Orders order, BigDecimal penaltyPay, Date tranTime, Short type, BigDecimal orderPay, String reason) {
 
         BuyerCapital buyerCapital = new BuyerCapital();
         buyerCapital.setOrderno(order.getOrderno());
@@ -2392,9 +2416,9 @@ public class AdminOrdersAction {
         buyerCapital.setAllpay(orderPay);
         buyerCapital.setRemark(reason);
         buyerCapital.setSellerid(order.getSaleid());
-        if(type==Quantity.STATE_6){
+        if (type == Quantity.STATE_6) {
             buyerCapital.setRemark("买家违约金额");
-        }else {
+        } else {
             buyerCapital.setRemark("卖家违约金额");
         }
         return buyerCapital;
@@ -2402,12 +2426,13 @@ public class AdminOrdersAction {
 
     /**
      * 创建卖家退款资金明细
+     *
      * @param order
      * @param backPay
      * @param tranTime
      * @return
      */
-    private SalerCapital createSalerBackPay(Orders order,BigDecimal backPay,Date tranTime){
+    private SalerCapital createSalerBackPay(Orders order, BigDecimal backPay, Date tranTime) {
         SalerCapital salerCapital = new SalerCapital();
         salerCapital.setMemberid(order.getSaleid());
         salerCapital.setTradeno(order.getTransactionnumber());
@@ -2421,8 +2446,7 @@ public class AdminOrdersAction {
 //        Member seller = ordersService.getById(order.getSaleid());
 //        seller.setSellerfreezebanlance(seller.getSellerfreezebanlance().subtract(backPay));
 //        ordersService.saveMember(seller);
-          memberService.updateSellerMemberBalanceInDb(order.getSaleid(),Quantity.BIG_DECIMAL_0,backPay.multiply(Quantity.BIG_DECIMAL_MINUS_1));
-
+        memberService.updateSellerMemberBalanceInDb(order.getSaleid(), Quantity.BIG_DECIMAL_0, backPay.multiply(Quantity.BIG_DECIMAL_MINUS_1));
 
 
         return salerCapital;
@@ -2430,13 +2454,14 @@ public class AdminOrdersAction {
 
     /**
      * 创建卖家违约金资金明细
+     *
      * @param order
      * @param penaltyPay
      * @param tranTime
-     * @param type 6=买家违约7=卖家违约
+     * @param type       6=买家违约7=卖家违约
      * @return
      */
-    private SalerCapital createSalerPenaltyPay(Orders order,BigDecimal penaltyPay,Date tranTime,Short type,BigDecimal orderPay,String reason){
+    private SalerCapital createSalerPenaltyPay(Orders order, BigDecimal penaltyPay, Date tranTime, Short type, BigDecimal orderPay, String reason) {
         SalerCapital salerCapital = new SalerCapital();
         salerCapital.setMemberid(order.getSaleid());
         salerCapital.setTradeno(order.getTransactionnumber());
@@ -2447,48 +2472,48 @@ public class AdminOrdersAction {
         salerCapital.setAllpay(orderPay);
         salerCapital.setRemark(reason);
         salerCapital.setBuyerid(order.getMemberid());
-        if(type==Quantity.STATE_6){
+        if (type == Quantity.STATE_6) {
             salerCapital.setRemark("买家违约金额");
-        }else {
+        } else {
             salerCapital.setRemark("卖家违约金额");
         }
         return salerCapital;
     }
 
-    @RequestMapping(value = "/updateBillRecord",method = RequestMethod.POST)
+    @RequestMapping(value = "/updateBillRecord", method = RequestMethod.POST)
     @ApiOperation(value = "更新开票申请记录")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "id",value = "开票申请记录id",required = true,paramType = "query",dataType = "long"),
-            @ApiImplicitParam(name = "state",value = "开票状态0=待开票1=未收到2=确认",required = true,paramType = "query",dataType = "int"),
-            @ApiImplicitParam(name = "expressno",value = "物流单号",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "expresscom",value = "物流公司",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "billtype",value = "开票类型",required = false,paramType = "query",dataType = "string"),
+            @ApiImplicitParam(name = "id", value = "开票申请记录id", required = true, paramType = "query", dataType = "long"),
+            @ApiImplicitParam(name = "state", value = "开票状态0=待开票1=未收到2=确认", required = true, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "expressno", value = "物流单号", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "expresscom", value = "物流公司", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "billtype", value = "开票类型", required = false, paramType = "query", dataType = "string"),
     })
-    public BasicRet updateBillRecord(Model model,BillingRecord billingRecord,HttpServletRequest request){
+    public BasicRet updateBillRecord(Model model, BillingRecord billingRecord, HttpServletRequest request) {
         BasicRet basicRet = new BasicRet();
         ordersService.updateBillRecord(billingRecord);
         basicRet.setResult(BasicRet.SUCCESS);
         basicRet.setMessage("修改成功");
         Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
         //保存用户日志
-        memberLogOperator.saveMemberLog(null,admin,"更新开票申请记录，开票申请记录id:"+billingRecord.getId(),"/rest/admin/orders/updateBillRecord",request,memberOperateLogService);
-        return  basicRet;
+        memberLogOperator.saveMemberLog(null, admin, "更新开票申请记录，开票申请记录id:" + billingRecord.getId(), "/rest/admin/orders/updateBillRecord", request, memberOperateLogService);
+        return basicRet;
     }
 
-    @RequestMapping(value = "/batchUpdateBillRecord",method = RequestMethod.POST)
+    @RequestMapping(value = "/batchUpdateBillRecord", method = RequestMethod.POST)
     @ApiOperation(value = "批量更新开票申请记录")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "ids",value = "开票申请记录ids",required = true,paramType = "query",dataType = "long"),
-            @ApiImplicitParam(name = "state",value = "开票状态0=待开票1=未收到2=确认",required = true,paramType = "query",dataType = "int"),
-            @ApiImplicitParam(name = "expressno",value = "物流单号",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "expresscom",value = "物流公司",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "billtype",value = "开票类型",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "billno",value = "开票号",required = false,paramType = "query",dataType = "string"),
+            @ApiImplicitParam(name = "ids", value = "开票申请记录ids", required = true, paramType = "query", dataType = "long"),
+            @ApiImplicitParam(name = "state", value = "开票状态0=待开票1=未收到2=确认", required = true, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "expressno", value = "物流单号", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "expresscom", value = "物流公司", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "billtype", value = "开票类型", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "billno", value = "开票号", required = false, paramType = "query", dataType = "string"),
     })
-    public BasicRet batchUpdateBillRecord(Model model,HttpServletRequest request,String ids,Short state,String expressno,String expresscom,String billtype,String billno){
+    public BasicRet batchUpdateBillRecord(Model model, HttpServletRequest request, String ids, Short state, String expressno, String expresscom, String billtype, String billno) {
         BasicRet basicRet = new BasicRet();
         List<BillingRecord> list = ordersService.getBillRecordList(ids);
-        for(BillingRecord billingRecord:list){
+        for (BillingRecord billingRecord : list) {
             billingRecord.setExpressno(expressno);
             billingRecord.setExpresscom(expresscom);
             billingRecord.setState(state);
@@ -2500,108 +2525,108 @@ public class AdminOrdersAction {
         basicRet.setMessage("修改成功");
         Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
         //保存用户日志
-        memberLogOperator.saveMemberLog(null,admin,"批量更新开票申请记录，开票申请记录id:"+ids,"/rest/admin/orders/batchUpdateBillRecord",request,memberOperateLogService);
-        return  basicRet;
+        memberLogOperator.saveMemberLog(null, admin, "批量更新开票申请记录，开票申请记录id:" + ids, "/rest/admin/orders/batchUpdateBillRecord", request, memberOperateLogService);
+        return basicRet;
     }
 
     /**
      * 获取开票列表
+     *
      * @param model
      * @param billQueryParam
      * @param pageNo
      * @param pageSize
      * @return
      */
-    @RequestMapping(value = "/getBillRecordList",method = RequestMethod.POST)
+    @RequestMapping(value = "/getBillRecordList", method = RequestMethod.POST)
     @ApiOperation(value = "获取开票列表")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "pageNo",value = "页码",required = true,paramType = "query",dataType = "int"),
-            @ApiImplicitParam(name = "pageSize",value = "页数",required = true,paramType = "query",dataType = "int"),
+            @ApiImplicitParam(name = "pageNo", value = "页码", required = true, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "pageSize", value = "页数", required = true, paramType = "query", dataType = "int"),
     })
-    public PageRet getBillRecordList(Model model,BillQueryParam billQueryParam,int pageNo,int pageSize){
+    public PageRet getBillRecordList(Model model, BillQueryParam billQueryParam, int pageNo, int pageSize) {
         PageRet pageRet = new PageRet();
         pageRet.setMessage("返回成功");
         pageRet.setResult(BasicRet.SUCCESS);
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
-        if(member!=null){
+        if (member != null) {
             billQueryParam.setMemberid(member.getId());
-            pageRet.data.setPageInfo(ordersService.getBillRecordList(billQueryParam,pageNo,pageSize));
+            pageRet.data.setPageInfo(ordersService.getBillRecordList(billQueryParam, pageNo, pageSize));
             return pageRet;
-        }else{
-            pageRet.data.setPageInfo(ordersService.getBillRecordList(billQueryParam,pageNo,pageSize));
-            return  pageRet;
+        } else {
+            pageRet.data.setPageInfo(ordersService.getBillRecordList(billQueryParam, pageNo, pageSize));
+            return pageRet;
         }
     }
 
 
-
-    @RequestMapping(value = "/loadSellerBillRecordList",method = RequestMethod.POST)
+    @RequestMapping(value = "/loadSellerBillRecordList", method = RequestMethod.POST)
     @ApiOperation("获取卖家开票列表")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "startTime",value = "开始时间",required = false,paramType = "query"  ,dataType = "string"),
-            @ApiImplicitParam(name = "endTime",value = "结束时间",required = false,paramType = "query"  ,dataType = "string"),
-            @ApiImplicitParam(name = "billno",value = "发票号",required = false,paramType = "query"  ,dataType = "string"),
-            @ApiImplicitParam(name = "sellerid",value = "卖家编号",required = false,paramType = "query"  ,dataType = "string"),
-            @ApiImplicitParam(name = "sellername",value = "卖家名称",required = false,paramType = "query"  ,dataType = "string"),
-            @ApiImplicitParam(name = "diliveryno",value = "物流单号",required = false,paramType = "query"  ,dataType = "string"),
+            @ApiImplicitParam(name = "startTime", value = "开始时间", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "endTime", value = "结束时间", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "billno", value = "发票号", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "sellerid", value = "卖家编号", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "sellername", value = "卖家名称", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "diliveryno", value = "物流单号", required = false, paramType = "query", dataType = "string"),
     })
-    public PageRet loadSellerBillRecordList(Model model,int pageNo,int pageSize,SellerBillRecordQueryParam param){
+    public PageRet loadSellerBillRecordList(Model model, int pageNo, int pageSize, SellerBillRecordQueryParam param) {
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
         PageRet pageRet = new PageRet();
-        PageInfo pageInfo = ordersService.getSellerBillRecord(pageNo,pageSize,param,member);
+        PageInfo pageInfo = ordersService.getSellerBillRecord(pageNo, pageSize, param, member);
         pageRet.data.setPageInfo(pageInfo);
         pageRet.setResult(BasicRet.SUCCESS);
-        return  pageRet;
+        return pageRet;
     }
 
-    @RequestMapping(value = "/updateSellerBillRecord",method = RequestMethod.POST)
+    @RequestMapping(value = "/updateSellerBillRecord", method = RequestMethod.POST)
     @ApiOperation("修改卖家开票")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "id",value = "开票申请id",required = false,paramType = "query"  ,dataType = "long"),
-            @ApiImplicitParam(name = "state",value = "状态0=未确认1=确认",required = false,paramType = "query"  ,dataType = "int"),
+            @ApiImplicitParam(name = "id", value = "开票申请id", required = false, paramType = "query", dataType = "long"),
+            @ApiImplicitParam(name = "state", value = "状态0=未确认1=确认", required = false, paramType = "query", dataType = "int"),
 
     })
-    public BasicRet updateSellerBillRecord(Model model,SellerBillRecord sellerBillRecord,HttpServletRequest request){
+    public BasicRet updateSellerBillRecord(Model model, SellerBillRecord sellerBillRecord, HttpServletRequest request) {
         BasicRet basicRet = new BasicRet();
         ordersService.updateSellerBillRecord(sellerBillRecord);
         basicRet.setResult(BasicRet.SUCCESS);
         basicRet.setMessage("修改成功");
-        Admin admin = (Admin)model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
         //保存用户日志
-        memberLogOperator.saveMemberLog(null,admin,"修改卖家开票，开票申请记录id:"+sellerBillRecord.getId(),"/rest/admin/orders/updateSellerBillRecord",request,memberOperateLogService);
-        return  basicRet;
+        memberLogOperator.saveMemberLog(null, admin, "修改卖家开票，开票申请记录id:" + sellerBillRecord.getId(), "/rest/admin/orders/updateSellerBillRecord", request, memberOperateLogService);
+        return basicRet;
     }
 
-    @RequestMapping(value = "/getOrdersByBillRecordId",method = RequestMethod.POST)
+    @RequestMapping(value = "/getOrdersByBillRecordId", method = RequestMethod.POST)
     @ApiOperation(value = "根据记录id获取开票信息")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "id",value = "开票申请记录id",required = true,paramType = "query",dataType = "long"),
+            @ApiImplicitParam(name = "id", value = "开票申请记录id", required = true, paramType = "query", dataType = "long"),
     })
-    public OrderCarRet getOrdersByBillRecordId(Long id){
+    public OrderCarRet getOrdersByBillRecordId(Long id) {
         OrderCarRet orderCarRet = new OrderCarRet();
         orderCarRet.setResult(BasicRet.SUCCESS);
         orderCarRet.setMessage("返回成功");
         BillingRecord billingRecord = ordersService.getBillRecordByID(id);
         BillRecordComplex billRecordComplex = new BillRecordComplex();
-        if(billingRecord!=null){
-            if(billingRecord.getBillno()!=null){
+        if (billingRecord != null) {
+            if (billingRecord.getBillno() != null) {
                 billRecordComplex.setBillNo(billingRecord.getBillno());
             }
-           if(billingRecord.getBilltime()!=null){
-               billRecordComplex.setBillTime(billingRecord.getCreatetime());
-           }
-           if(billingRecord.getBilltype()!=null){
-               billRecordComplex.setBillType(billingRecord.getBilltype());
-           }
-           if(billingRecord.getExpressno()!=null){
-               billRecordComplex.setExpressNo(billingRecord.getExpressno());
-           }
-           if(billingRecord.getBillingrecordtype()!=null){
-               billRecordComplex.setBillingrecordtype(billingRecord.getBillingrecordtype());
-           }
-           if(billingRecord.getExpresscom()!=null){
+            if (billingRecord.getBilltime() != null) {
+                billRecordComplex.setBillTime(billingRecord.getCreatetime());
+            }
+            if (billingRecord.getBilltype() != null) {
+                billRecordComplex.setBillType(billingRecord.getBilltype());
+            }
+            if (billingRecord.getExpressno() != null) {
+                billRecordComplex.setExpressNo(billingRecord.getExpressno());
+            }
+            if (billingRecord.getBillingrecordtype() != null) {
+                billRecordComplex.setBillingrecordtype(billingRecord.getBillingrecordtype());
+            }
+            if (billingRecord.getExpresscom() != null) {
                 billRecordComplex.setExpressCompany(billingRecord.getExpresscom());
-           }
+            }
             billRecordComplex.setMemberId(billingRecord.getMemberid());
             billRecordComplex.setMemberName(billingRecord.getMembername());
 
@@ -2615,20 +2640,18 @@ public class AdminOrdersAction {
                 Orders orders = ordersService.getOrdersById(Long.parseLong(orderid));
 
 
-
                 //查询是否有退货或退款的，如果有退货开票金额要减去退货的钱
-                List<OrderProductBack> orderProductBackList =  orderProductBackService.getByOrderNo(orders.getOrderno());
-                BigDecimal subApply =  new BigDecimal(0);
-                for(OrderProductBack opb : orderProductBackList){
-                    if(opb.getState() == 10) {
+                List<OrderProductBack> orderProductBackList = orderProductBackService.getByOrderNo(orders.getOrderno());
+                BigDecimal subApply = new BigDecimal(0);
+                for (OrderProductBack opb : orderProductBackList) {
+                    if (opb.getState() == 10) {
                         subApply = subApply.add(opb.getBackmoney());
                     }
                 }
 
-                if(subApply.compareTo(new BigDecimal(0)) >0){
+                if (subApply.compareTo(new BigDecimal(0)) > 0) {
                     orders.setTotalprice(orders.getTotalprice().subtract(subApply));
                 }
-
 
 
                 if (orders != null) {
@@ -2641,45 +2664,45 @@ public class AdminOrdersAction {
         return orderCarRet;
     }
 
-    @RequestMapping(value = "/getOrdersByBillRecordIds",method = RequestMethod.POST)
+    @RequestMapping(value = "/getOrdersByBillRecordIds", method = RequestMethod.POST)
     @ApiOperation(value = "根据记录ids获取开票信息")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "ids",value = "批量开票申请记录id集合",required = true,paramType = "query",dataType = "string"),
+            @ApiImplicitParam(name = "ids", value = "批量开票申请记录id集合", required = true, paramType = "query", dataType = "string"),
     })
-    public OrderCarRet getOrdersByBillRecordIds(String ids){
+    public OrderCarRet getOrdersByBillRecordIds(String ids) {
         OrderCarRet orderCarRet = new OrderCarRet();
         orderCarRet.setResult(BasicRet.SUCCESS);
         orderCarRet.setMessage("返回成功");
         List<BillingRecord> billingRecords = ordersService.getBillRecordList(ids);
         List<BillRecordComplex> listComplex = new ArrayList<>();
-        for(BillingRecord billingRecord:billingRecords){
+        for (BillingRecord billingRecord : billingRecords) {
             BillRecordComplex billRecordComplex = new BillRecordComplex();
 
-            if(billingRecord.getBillno()!=null){
+            if (billingRecord.getBillno() != null) {
                 billRecordComplex.setBillNo(billingRecord.getBillno());
             }
-            if(billingRecord.getBilltime()!=null){
+            if (billingRecord.getBilltime() != null) {
                 billRecordComplex.setBillTime(billingRecord.getCreatetime());
             }
-            if(billingRecord.getBilltype()!=null){
+            if (billingRecord.getBilltype() != null) {
                 billRecordComplex.setBillType(billingRecord.getBilltype());
             }
-            if(billingRecord.getExpressno()!=null){
+            if (billingRecord.getExpressno() != null) {
                 billRecordComplex.setExpressNo(billingRecord.getExpressno());
             }
-            if(billingRecord.getBillingrecordtype()!=null){
+            if (billingRecord.getBillingrecordtype() != null) {
                 billRecordComplex.setBillingrecordtype(billingRecord.getBillingrecordtype());
             }
-            if(billingRecord.getExpresscom()!=null){
+            if (billingRecord.getExpresscom() != null) {
                 billRecordComplex.setExpressCompany(billingRecord.getExpresscom());
             }
             billRecordComplex.setMemberId(billingRecord.getMemberid());
             billRecordComplex.setMemberName(billingRecord.getMembername());
             String[] ordernoArray = billingRecord.getOrderno().split(",");
             List<Orders> list = new ArrayList<Orders>();
-            for(String orderid : ordernoArray){
-                Orders orders =  ordersService.getOrdersById(Long.parseLong(orderid));
-                if(orders!=null){
+            for (String orderid : ordernoArray) {
+                Orders orders = ordersService.getOrdersById(Long.parseLong(orderid));
+                if (orders != null) {
                     list.add(orders);
                 }
 
@@ -2693,20 +2716,20 @@ public class AdminOrdersAction {
     }
 
 
-    @RequestMapping(value = "/getProductEvaList",method = RequestMethod.POST)
+    @RequestMapping(value = "/getProductEvaList", method = RequestMethod.POST)
     @ApiOperation(value = "获取评价列表")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "pageNo",value = "页码",required = true,paramType = "query",dataType = "int"),
-            @ApiImplicitParam(name = "pageSize",value = "页数",required = true,paramType = "query",dataType = "int"),
-            @ApiImplicitParam(name = "startTime",value = "开始时间",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "endTime",value = "结束时间",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "orderNo",value = "订单编号",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "sellerName",value = "所属商家",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "memberName",value = "评价人",required = false,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "pdName",value = "商品名称",required = false,paramType = "query",dataType = "string"),
+            @ApiImplicitParam(name = "pageNo", value = "页码", required = true, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "pageSize", value = "页数", required = true, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "startTime", value = "开始时间", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "endTime", value = "结束时间", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "orderNo", value = "订单编号", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "sellerName", value = "所属商家", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "memberName", value = "评价人", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "pdName", value = "商品名称", required = false, paramType = "query", dataType = "string"),
 
     })
-    public PageRet getProductEvaList(OrderQueryParam param){
+    public PageRet getProductEvaList(OrderQueryParam param) {
         PageRet orderCarRet = new PageRet();
 
         PageInfo pageInfo = ordersService.getOrderProductEva(param);
@@ -2718,19 +2741,19 @@ public class AdminOrdersAction {
         return orderCarRet;
     }
 
-    @RequestMapping(value = "/deleteProductEva",method = RequestMethod.POST)
+    @RequestMapping(value = "/deleteProductEva", method = RequestMethod.POST)
     @ApiOperation(value = "删除评价")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "orderProductId",value = "评价id",required = true,paramType = "query",dataType = "long"),
+            @ApiImplicitParam(name = "orderProductId", value = "评价id", required = true, paramType = "query", dataType = "long"),
     })
-    public BasicRet deleteProductEva(Model model,Long orderProductId,HttpServletRequest request){
+    public BasicRet deleteProductEva(Model model, Long orderProductId, HttpServletRequest request) {
         BasicRet orderCarRet = new BasicRet();
         ordersService.deleteMemberEva(orderProductId);
         orderCarRet.setMessage("删除成功");
         orderCarRet.setResult(BasicRet.SUCCESS);
-        Admin admin = (Admin)model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
         //保存用户日志
-        memberLogOperator.saveMemberLog(null,admin,"删除评价,id为："+orderProductId,"/rest/admin/orders/deleteProductEva",request,memberOperateLogService);
+        memberLogOperator.saveMemberLog(null, admin, "删除评价,id为：" + orderProductId, "/rest/admin/orders/deleteProductEva", request, memberOperateLogService);
         return orderCarRet;
     }
 
@@ -2742,34 +2765,34 @@ public class AdminOrdersAction {
             @ApiImplicitParam(name = "type", value = "操作类型0=订单操作1=退货操作", required = true, paramType = "query", dataType = "int"),
             @ApiImplicitParam(name = "orderpdid", value = "订单商品id", required = false, paramType = "query", dataType = "long"),
     })
-    public OrderCarRet getOrderOperateLog(Long orderid, Short type,Long orderpdid) {
+    public OrderCarRet getOrderOperateLog(Long orderid, Short type, Long orderpdid) {
         OrderCarRet orderCarRet = new OrderCarRet();
 
-        List<OperateLog> list = ordersService.getOperatelog(orderid, type,orderpdid);
+        List<OperateLog> list = ordersService.getOperatelog(orderid, type, orderpdid);
 
 
         List<OperateLog> olList = new ArrayList<>();
 
-        List<OperateLog> operateLogfinalList =new ArrayList<>();
+        List<OperateLog> operateLogfinalList = new ArrayList<>();
 
-        for(OperateLog ol : list){
-           if(!ol.getContent().equals("订单已收货") && !ol.getContent().equals("订单已验货")){
-               olList.add(ol);
-            }else {
-               operateLogfinalList.add(ol);
-           }
+        for (OperateLog ol : list) {
+            if (!ol.getContent().equals("订单已收货") && !ol.getContent().equals("订单已验货")) {
+                olList.add(ol);
+            } else {
+                operateLogfinalList.add(ol);
+            }
         }
 
 
         Orders orders = ordersService.getOrdersById(orderid);
-        if(type==0 && orders.getOrderstatus() != 0){
+        if (type == 0 && orders.getOrderstatus() != 0) {
 
             try {
                 OrderStoreStateLog orderStoreStateLog = orderStoreStateLogService.getStoreState(orders);
 
-                if(orderStoreStateLog != null){
-                        Collections.reverse(orderStoreStateLog.getList());
-                        orderStoreStateLog.getList().forEach(storeState -> {
+                if (orderStoreStateLog != null) {
+                    Collections.reverse(orderStoreStateLog.getList());
+                    orderStoreStateLog.getList().forEach(storeState -> {
                         OperateLog operateLog = new OperateLog();
                         operateLog.setOpname(storeState.getOperateUser());
                         operateLog.setOrderid(orderStoreStateLog.getOrderid());
@@ -2793,14 +2816,12 @@ public class AdminOrdersAction {
     }
 
 
-
-
-    @RequestMapping(value = "/saveBillType",method = RequestMethod.POST)
+    @RequestMapping(value = "/saveBillType", method = RequestMethod.POST)
     @ApiOperation(value = "保存发票内容")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "name",value = "发票内容",required = true,paramType = "query",dataType = "string"),
+            @ApiImplicitParam(name = "name", value = "发票内容", required = true, paramType = "query", dataType = "string"),
     })
-    public BasicRet saveBillType(Model model,BillType billType,HttpServletRequest request){
+    public BasicRet saveBillType(Model model, BillType billType, HttpServletRequest request) {
         BasicRet basicRet = new BasicRet();
 
         ordersService.saveBillType(billType);
@@ -2808,16 +2829,16 @@ public class AdminOrdersAction {
         basicRet.setResult(BasicRet.SUCCESS);
         basicRet.setMessage("保存成功");
 
-        Admin admin = (Admin)model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
         //保存用户日志
-        memberLogOperator.saveMemberLog(null,admin,"保存发票内容","/rest/admin/orders/saveBillType",request,memberOperateLogService);
+        memberLogOperator.saveMemberLog(null, admin, "保存发票内容", "/rest/admin/orders/saveBillType", request, memberOperateLogService);
 
         return basicRet;
     }
 
-    @RequestMapping(value = "/getBillTypeList",method = RequestMethod.POST)
+    @RequestMapping(value = "/getBillTypeList", method = RequestMethod.POST)
     @ApiOperation(value = "获取发票类型")
-    public OrderCarRet getBillTypeList(){
+    public OrderCarRet getBillTypeList() {
         OrderCarRet orderCarRet = new OrderCarRet();
         List<BillType> list = ordersService.getBillTypeList();
         orderCarRet.data.billTypes = list;
@@ -2826,34 +2847,35 @@ public class AdminOrdersAction {
         return orderCarRet;
     }
 
-    @RequestMapping(value = "/deleteBillType",method = RequestMethod.POST)
+    @RequestMapping(value = "/deleteBillType", method = RequestMethod.POST)
     @ApiOperation(value = "删除发票类型")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "id",value = "id",required = true,paramType = "query",dataType = "int"),
+            @ApiImplicitParam(name = "id", value = "id", required = true, paramType = "query", dataType = "int"),
     })
-    public BasicRet deleteBillType(Model model,Integer id,HttpServletRequest request){
+    public BasicRet deleteBillType(Model model, Integer id, HttpServletRequest request) {
         BasicRet basicRet = new BasicRet();
         ordersService.deleteBillTyep(id);
         basicRet.setResult(BasicRet.SUCCESS);
         basicRet.setMessage("删除成功");
-        Admin admin = (Admin)model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
         //保存用户日志
-        memberLogOperator.saveMemberLog(null,admin,"删除发票内容","/rest/admin/orders/deleteBillType",request,memberOperateLogService);
+        memberLogOperator.saveMemberLog(null, admin, "删除发票内容", "/rest/admin/orders/deleteBillType", request, memberOperateLogService);
         return basicRet;
     }
 
     /**
      * 保存操作日志
+     *
      * @param memberOperateLog
      * @return
      */
-    @RequestMapping(value = "/saveMemberLog",method = RequestMethod.POST)
+    @RequestMapping(value = "/saveMemberLog", method = RequestMethod.POST)
     @ApiOperation(value = "保存操作日志")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "ipaddress",value = "ip地址",required = true,paramType = "query",dataType = "string"),
-            @ApiImplicitParam(name = "content",value = "操作内容",required = true,paramType = "query",dataType = "string"),
+            @ApiImplicitParam(name = "ipaddress", value = "ip地址", required = true, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "content", value = "操作内容", required = true, paramType = "query", dataType = "string"),
     })
-    public BasicRet saveMemberLog(Model model,MemberOperateLog memberOperateLog){
+    public BasicRet saveMemberLog(Model model, MemberOperateLog memberOperateLog) {
         BasicRet basicRet = new BasicRet();
         Admin member = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
         memberOperateLog.setMemberid(member.getId());
@@ -2867,13 +2889,14 @@ public class AdminOrdersAction {
 
     /**
      * 获取当前订单总的销售额
+     *
      * @return
      */
-    @RequestMapping(value = "/getCurrentOrdersSumPay",method = RequestMethod.POST)
+    @RequestMapping(value = "/getCurrentOrdersSumPay", method = RequestMethod.POST)
     @ApiOperation(value = "获取当前订单总的销售额")
-    public OrderCarRet getCurrentOrdersSumPay(){
+    public OrderCarRet getCurrentOrdersSumPay() {
         OrderCarRet orderCarRet = new OrderCarRet();
-        orderCarRet.data.bigDecimal =  ordersService.getCurrentOrdersSumPay();
+        orderCarRet.data.bigDecimal = ordersService.getCurrentOrdersSumPay();
         orderCarRet.setMessage("返回成功");
         orderCarRet.setResult(BasicRet.SUCCESS);
         return orderCarRet;
@@ -2938,29 +2961,29 @@ public class AdminOrdersAction {
 
     }*/
 
-    @RequestMapping(value = "/getOrderProductBackByOrderNo",method = RequestMethod.POST)
+    @RequestMapping(value = "/getOrderProductBackByOrderNo", method = RequestMethod.POST)
     @ApiOperation(value = "根据订单编号获取退货商品信息")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "orderno",value = "订单编号",required = true,paramType = "query",dataType = "string"),
+            @ApiImplicitParam(name = "orderno", value = "订单编号", required = true, paramType = "query", dataType = "string"),
     })
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.ORDERMANAGEMENT + "')")
-    public OrderCarBackRet getOrderProductBackByOrderNo(String orderno){
+    public OrderCarBackRet getOrderProductBackByOrderNo(String orderno) {
         OrderCarBackRet orderCarBackRet = new OrderCarBackRet();
         orderCarBackRet.setMessage("返回成功");
         orderCarBackRet.setResult(BasicRet.SUCCESS);
         List<OrderProductBackInfo> orderProductBackInfos = orderProductBackInfoService.getOrderProductBackByOrderNo(orderno);
-        for(OrderProductBackInfo orderProductBackInfo:orderProductBackInfos){
+        for (OrderProductBackInfo orderProductBackInfo : orderProductBackInfos) {
             List<OrderProduct> orderProducts = ordersService.getOrderProductByOrderNo(orderProductBackInfo.getOrderno());
             /*List<OrderProduct> list = new ArrayList<OrderProduct>();*/
-            for(OrderProduct orderProduct:orderProducts){
-                if(orderProductBackInfo.getPdid()!=null && orderProductBackInfo.getPdid().equals(orderProduct.getPdid())) {
-                   /* list.add(orderProduct);*/
+            for (OrderProduct orderProduct : orderProducts) {
+                if (orderProductBackInfo.getPdid() != null && orderProductBackInfo.getPdid().equals(orderProduct.getPdid())) {
+                    /* list.add(orderProduct);*/
                     orderProductBackInfo.setOrderProduct(orderProduct);
                 }
             }
         }
-        orderCarBackRet.data.orderProductBackInfos=orderProductBackInfos;
-        orderCarBackRet.data.orderProductBackInfos.forEach(orderProductBackInfo -> orderProductBackInfo.getExtend().put("productInfo",productInfoService.getById(orderProductBackInfo.getPdid())));
+        orderCarBackRet.data.orderProductBackInfos = orderProductBackInfos;
+        orderCarBackRet.data.orderProductBackInfos.forEach(orderProductBackInfo -> orderProductBackInfo.getExtend().put("productInfo", productInfoService.getById(orderProductBackInfo.getPdid())));
         return orderCarBackRet;
     }
 }

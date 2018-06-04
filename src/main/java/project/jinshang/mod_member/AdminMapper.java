@@ -36,4 +36,8 @@ public interface AdminMapper {
     })
     List<Admin> getAdminByRoles(@Param("roles") String roles);
 
+
+
+    @Select("select a.id ,a.realname from admin a")
+    List<Admin> findAdminList();
 }

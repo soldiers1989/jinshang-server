@@ -106,7 +106,7 @@ public class BuyerCapitalProvider {
 
     public String listForAccount(@Param("dto")BuyerCapitalAccountQueryDto dto){
         StringBuilder sql=new StringBuilder();
-        sql.append("SELECT B.*,O.deliveryno,BG.invoiceheadup FROM buyercapital B\n"+
+        sql.append("SELECT B.*,O.deliveryno,BG.invoiceheadup,M.username FROM buyercapital B\n"+
                 "\tLEFT JOIN member M ON B.memberid = M.id LEFT JOIN buyercompanyinfo BC ON B.memberid = BC.memberid\n"+
                 "\tLEFT JOIN orders O ON O.orderno = B.orderno LEFT JOIN billingrecord BG ON (BG.orderno LIKE concat( '', O.id, '' )\n"+
                  "\tOR BG.orderno LIKE concat( '', o.id, ',%' ) OR BG.orderno LIKE concat( '%,', o.id, ',%' ) )\n"+
@@ -125,13 +125,20 @@ public class BuyerCapitalProvider {
             sql.append(" and BC.companyname like #{dto.companyname} ");
         }
         if (dto.getInvoicename()!=null && !"".equals(dto.getInvoicename())){
-            sql.append(" and BG.invoiceheadup = #{dto.invoicename} ");
+            dto.setInvoicename("%"+dto.getInvoicename()+"%");
+            sql.append(" and BG.invoiceheadup like #{dto.invoicename} ");
         }
         if (dto.getRealname()!=null && !"".equals(dto.getRealname())){
-            sql.append(" and M.realname= #{dto.realname} ");
+            dto.setRealname("%"+dto.getRealname()+"%");
+            sql.append(" and M.realname like #{dto.realname} ");
         }
         if (dto.getMobile()!=null && !"".equals(dto.getMobile())){
-            sql.append(" and M.mobile= #{dto.mobile} ");
+            dto.setMobile("%"+dto.getMobile()+"%");
+            sql.append(" and M.mobile like #{dto.mobile} ");
+        }
+        if (dto.getUsername()!=null && !"".equals(dto.getUsername())){
+            dto.setUsername("%"+dto.getUsername()+"%");
+            sql.append(" and M.username like #{dto.username} ");
         }
         sql.append(" order by B.tradetime ASC ");
         return sql.toString();

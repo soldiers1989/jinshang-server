@@ -79,6 +79,10 @@ public class SellerAuthorityConst {
     public  final  static  String  GIFT="Gift";
 
 
+    //技术开放平台
+    public final static String TECHNOLOGYPLATFORM = "TechnologyPlatform";
+
+
 //账户管理:
     //管理员 :
     public  final  static  String ADMIN="admin";
@@ -154,5 +158,8 @@ public class SellerAuthorityConst {
     public  final  static  String MATERIALREQUISITION="Materialrequisition";
     //销售报表 :
     public  final  static  String SALESREPORTS="Salesreports";
+
+
+
 
 }

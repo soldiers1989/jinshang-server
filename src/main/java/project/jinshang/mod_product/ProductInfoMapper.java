@@ -51,7 +51,7 @@ public interface ProductInfoMapper {
     ProductInfo getGroundingById(@Param("memberid") long memberid,@Param("id") long id);
 
 
-    @Select("<script>select P.*,S.startnum,S.prodprice,S.threeprice,S.ninetyprice,S.thirtyprice,S.sixtyprice,S.freightmode,S.pdstorenum,S.costprice,S.marketprice,M.username,SC.companyname,SC.shopname " +
+    @Select("<script>select P.*,S.pdno,S.startnum,S.prodprice,S.threeprice,S.ninetyprice,S.thirtyprice,S.sixtyprice,S.freightmode,S.pdstorenum,S.costprice,S.marketprice,M.username,SC.companyname,SC.shopname " +
             "from ProductInfo P join productStore S on P.id=S.pdid join member M on M.id=P.memberid  join sellercompanyinfo SC on SC.memberid=P.memberid " +
             "<where> P.producttype='紧固件' and p.pdstate != 6 " +
             "<if test=\"info.memberid != null and info.memberid != 0\"> and p.memberid=#{info.memberid} </if>" +
@@ -59,6 +59,7 @@ public interface ProductInfoMapper {
             "<if test=\"info.brand != null\"> and p.brand like '%${info.brand}%' </if>" +
             "<if test=\"info.mark != null\"> and p.mark=#{info.mark} </if>" +
             "<if test=\"info.shopname != null\"> and SC.shopname like '%${info.shopname}%' </if>" +
+            "<if test=\"info.pdno != null\"> and S.pdno like '%${info.pdno}%' </if>" +
             "<if test=\"info.productStore.haveStorenum == 1\"> and s.pdstorenum &gt; s.startnum </if>" +
             "<if test=\"info.productStore.haveStorenum == 2\"> and s.pdstorenum &lt; s.startnum </if>" +
             "<if test=\"info.level1id !=null and info.level1id &gt; 0\"> and p.level1id=#{info.level1id} </if>" +
@@ -66,9 +67,15 @@ public interface ProductInfoMapper {
             "<if test=\"info.level3id !=null and info.level3id &gt; 0\"> and p.level3id=#{info.level3id} </if>" +
             "<if test=\"info.pdstate != -1\"> and p.pdstate=#{info.pdstate} </if>" +
             "<if test=\"info.cardnumid &gt; 0\"> and p.cardnumid=#{info.cardnumid} </if>"+
+            "<if test=\"info.pdids != null\"> and p.id in <foreach item=\"AList\" index=\"index\" collection=\"info.pdids\"\n" +
+            "open=\"(\" separator=\",\" close=\")\"> #{AList}</foreach> </if>"+
             "<if test=\"info.materialid &gt; 0 \"> and p.materialid=#{info.materialid} </if>"+
             "<if test=\"info.uptimeStart != null \"> and p.uptime &gt; #{info.uptimeStart} </if>"+
             "<if test=\"info.uptimeEnd != null \"> and p.uptime &lt; #{info.uptimeEnd} </if>"+
+            "<if test=\"info.downtimeStart != null \"> and p.downtime &gt; #{info.downtimeStart} </if>"+
+            "<if test=\"info.downtimeEnd != null \"> and p.downtime &lt; #{info.downtimeEnd} </if>"+
+            "<if test=\"info.updatetimeStart != null \"> and p.updatetime &gt; #{info.updatetimeStart} </if>"+
+            "<if test=\"info.updatetimeEnd != null \"> and p.updatetime &lt; #{info.updatetimeEnd} </if>"+
             "<if test=\"info.createStart != null \"> and p.createtime &gt; #{info.createStart} </if>"+
             "<if test=\"info.createEnd != null \"> and p.createtime &lt; #{info.createEnd} </if>"+
             "<if test=\"info.stand != null and info.stand !='' \"> and p.stand  like  '%${info.stand}%' </if>"+
@@ -137,9 +144,15 @@ public interface ProductInfoMapper {
             "<if test=\"info.level3id !=null and info.level3id &gt; 0\"> and p.level3id=#{info.level3id} </if>" +
             "<if test=\"info.pdstate != -1\"> and p.pdstate=#{info.pdstate} </if>" +
             "<if test=\"info.cardnumid &gt; 0\"> and p.cardnumid=#{info.cardnumid} </if>"+
+            "<if test=\"info.pdids != null\"> and p.id in <foreach item=\"AList\" index=\"index\" collection=\"info.pdids\"\n" +
+            "open=\"(\" separator=\",\" close=\")\"> #{AList}</foreach> </if>"+
             "<if test=\"info.materialid &gt; 0 \"> and p.materialid=#{info.materialid} </if>"+
             "<if test=\"info.uptimeStart != null \"> and p.uptime &gt; #{info.uptimeStart} </if>"+
             "<if test=\"info.uptimeEnd != null \"> and p.uptime &lt; #{info.uptimeEnd} </if>"+
+            "<if test=\"info.downtimeStart != null \"> and p.downtime &gt; #{info.downtimeStart} </if>"+
+            "<if test=\"info.downtimeEnd != null \"> and p.downtime &lt; #{info.downtimeEnd} </if>"+
+            "<if test=\"info.updatetimeStart != null \"> and p.updatetime &gt; #{info.updatetimeStart} </if>"+
+            "<if test=\"info.updatetimeEnd != null \"> and p.updatetime &lt; #{info.updatetimeEnd} </if>"+
             "<if test=\"info.createStart != null \"> and p.createtime &gt; #{info.createStart} </if>"+
             "<if test=\"info.createEnd != null \"> and p.createtime &lt; #{info.createEnd} </if>"+
             "</where>  order by P.id desc " +

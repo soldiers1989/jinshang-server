@@ -87,7 +87,8 @@ public interface CreditApplyRecordMapper {
 
     @Select("<script>select B.*,M.username,BC.companyname from billcreate B left join member M on " +
             " B.buyerid=M.id left join buyercompanyinfo BC on B.buyerid=BC.memberid where 1=1 " +
-            "<if test=\"query.memberid &gt; 0\"> and M.id=#{query.memberid} </if>"+
+            "<if test=\"query.memberid &gt; 0\"> and M.id=#{query.memberid} </if>" +
+            "<if test=\"query.state &gt; -1\"> and B.state=#{query.state} </if>"+
             "<if test=\"query.membername != null and query.membername != '' \"> and M.realname  like '%${query.membername}' </if>"+
             "<if test=\"query.companyname != null and query.companyname != '' \"> and BC.companyname  like '%${query.companyname}' </if>"+
             "<if test=\"query.settlement != null and query.settlement != ''\"> and B.settlementtime=#{query.settlement} </if>" +

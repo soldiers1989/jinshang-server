@@ -67,7 +67,7 @@ public class IndexPcFrontAction {
 //        List<FloorViewDto> dtoList =  floorService.getFloor();
 
         List<FloorViewDto> dtoList = redisCacheService.getIndexFloor();
-//        dtoList = null;
+        //dtoList = null;
         if(dtoList == null){
             dtoList = redisCacheService.addIndexFloor();
         }
@@ -85,6 +85,7 @@ public class IndexPcFrontAction {
         ShowCateRet showCateRet = new ShowCateRet();
 
         List<ShowCateFrontView> list = redisCacheService.getShowCate();
+        //list=null;
         if(list == null){
             list = redisCacheService.addShowCate();
         }

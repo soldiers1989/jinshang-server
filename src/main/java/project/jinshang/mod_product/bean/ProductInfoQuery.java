@@ -121,8 +121,18 @@ public class ProductInfoQuery {
 
     private  Date uptimeEnd;
 
+    private Date downtimeStart;
+
+    private Date downtimeEnd;
+
+    private Date updatetimeStart;
+
+    private Date updatetimeEnd;
+
     private  Date createStart;
     private  Date createEnd;
+
+    private List<Integer> pdids;
 
     /******************************EXTEND********************************************/
     @ApiModelProperty(notes = "productStore")
@@ -547,6 +557,38 @@ public class ProductInfoQuery {
         this.uptimeEnd = uptimeEnd;
     }
 
+    public Date getDowntimeStart() {
+        return downtimeStart;
+    }
+
+    public void setDowntimeStart(Date downtimeStart) {
+        this.downtimeStart = downtimeStart;
+    }
+
+    public Date getDowntimeEnd() {
+        return downtimeEnd;
+    }
+
+    public void setDowntimeEnd(Date downtimeEnd) {
+        this.downtimeEnd = downtimeEnd;
+    }
+
+    public Date getUpdatetimeStart() {
+        return updatetimeStart;
+    }
+
+    public void setUpdatetimeStart(Date updatetimeStart) {
+        this.updatetimeStart = updatetimeStart;
+    }
+
+    public Date getUpdatetimeEnd() {
+        return updatetimeEnd;
+    }
+
+    public void setUpdatetimeEnd(Date updatetimeEnd) {
+        this.updatetimeEnd = updatetimeEnd;
+    }
+
     public Date getCreateStart() {
         return createStart;
     }
@@ -569,5 +611,13 @@ public class ProductInfoQuery {
 
     public void setShopname(String shopname) {
         this.shopname = shopname;
+    }
+
+    public List<Integer> getPdids() {
+        return pdids;
+    }
+
+    public void setPdids(List<Integer> pdids) {
+        this.pdids = pdids;
     }
 }
