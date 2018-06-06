@@ -713,6 +713,25 @@ public class ShopCarAction {
 
                     map.put("attrjson", sb.toString());
 
+                    //包装方式
+                    String packagetype = productInfo.getPackagetype();
+
+                    BigDecimal converNum = pdnum;
+                    String convertUnit = "";
+                    if (AppConstant.FASTENER_PRO_TYPE.equals(productInfo.getProducttype())) {//紧固件转换单位为基础单位的数量
+                        converNum = (BigDecimal) (JinshangUtils.toLowerUnit(packagetype, pdnum, pdunit)).get("num");
+                        convertUnit = (String) (JinshangUtils.toLowerUnit(packagetype, pdnum, pdunit)).get("unit");
+                    }
+                     /*
+                    修改后代码
+                     */
+                    if(AppConstant.FASTENER_PRO_TYPE.equals(productInfo.getProducttype())){
+                        map.put("unit",convertUnit);
+                        map.put("packageStr",JinshangUtils.packageToString(packagetype,converNum,convertUnit));
+                    }else {
+                        map.put("unit",pdunit);
+                    }
+
                     if(AppConstant.FASTENER_PRO_TYPE.equals(productInfo.getProducttype())) {
                         map.put("packageStr", JinshangUtils.packageToString(productInfo.getPackagetype(), pdnum, pdunit));
                     }

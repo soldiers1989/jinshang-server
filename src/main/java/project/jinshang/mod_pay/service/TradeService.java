@@ -14,6 +14,7 @@ import project.jinshang.mod_cash.BuyerCapitalMapper;
 import project.jinshang.mod_cash.SalerCapitalMapper;
 import project.jinshang.mod_cash.bean.BuyerCapital;
 import project.jinshang.mod_cash.bean.SalerCapital;
+import project.jinshang.mod_pay.bean.PayTradeLogs;
 import project.jinshang.mod_product.bean.*;
 import project.jinshang.mod_product.service.OrdersService;
 import project.jinshang.mod_wms_middleware.WMSService;
@@ -51,6 +52,9 @@ public class TradeService {
 
     @Autowired
     private OrdersService ordersService;
+
+    @Autowired
+    private PayTradeLogsService payTradeLogsService;
 
 
     /**
@@ -213,13 +217,20 @@ public class TradeService {
 
 
 
-    public Trade buildFromOrderId(String orders, Short paytype) throws CashException {
-
+    public Trade buildFromOrderId(String orders, Short paytype,String uuid) throws CashException {
         PayUrlRet basicRet = new PayUrlRet();
         Trade trade = new Trade();
 
-        List<OrderProduct> orderProducts = orderProductMapper.getOrderProductByInOrderids(orders);
         List<Orders> ordersList = ordersMapper.getOrdersByInIds(orders);
+        if(ordersList.size()==0){
+            throw new CashException("订单不存在，请联系网站管理员");
+        }
+
+
+        List<OrderProduct> orderProducts = orderProductMapper.getOrderProductByInOrderids(orders);
+        if(orderProducts.size()==0){
+            throw  new CashException("订单商品部存在，请联系网站管理员");
+        }
 
         Long ordertime = System.currentTimeMillis();
 
@@ -227,6 +238,7 @@ public class TradeService {
         boolean flag = false;
         String pdname = "紧商订单商品信息";
 
+        //判断订单状态
         //订单类型0=立即发货1=远期全款2=远期定金3=远期余款
         //订单状态0=待付款1=待发货3=待收货4=待验货5=已完成7=已关闭8=备货中9=备货完成
         for(Orders od : ordersList){
@@ -243,62 +255,43 @@ public class TradeService {
             }
         }
 
-
-        String uuid = null;
-
-        /*
-        for(Orders od : ordersList){
-            if(StringUtils.hasText(od.getUuid())){
-                uuid = od.getUuid();
-                break;
-            }
-        }
-
-       //远期全款不肯能多个订单同时支付
-       for(Orders orders1 : ordersList){
-            if(orders1.getOrdertype() == Quantity.STATE_3 ){ //远期付余款
-                if( ordersList.size()>0) {
-                    throw new RuntimeException("远期余款不可同时多个订单一起支付");
-                }else{
-                    if(StringUtils.hasText(orders1.getYuuuid())){
-                        uuid = orders1.getYuuuid();
-                    }
-                }
-            }else{
-                if(uuid != null && !uuid.equals(orders1.getUuid())){
-                    throw  new CashException("订单不可合并付款,请分开付款");
-                }
-            }
-       }
-       */
-
-
-
-
-
-        if(uuid == null){
-         uuid = "order" + "-" + GenerateNo.getOrderIdByUUId();
-        }
-
+        List<PayTradeLogs> payTradeLogsList = new ArrayList<>();
 
         for (Orders order : ordersList) {
+            PayTradeLogs logs = new PayTradeLogs();
+            logs.setOrderid(order.getId());
+            logs.setOrderno(order.getOrderno());
+            logs.setOuttradeno(uuid);
+            logs.setCreatetime(new Date());
+            logs.setPaytype(paytype);
+            logs.setPaystates(Quantity.STATE_0);
+
+
+            Orders updateOrder = new Orders();
+            updateOrder.setId(order.getId());
             //定金和余款必须是同一种支付方式
             if (order.getOrdertype() == Quantity.STATE_3) {
                 if (order.getPaytype() != paytype) {
-                    basicRet.setResult(BasicRet.ERR);
-                    basicRet.setMessage("定金和余款不是同一种支付方式");
-                    trade.setPayUrlRet(basicRet);
-                    return trade;
+                    //basicRet.setResult(BasicRet.ERR);
+                    //basicRet.setMessage("定金和余款不是同一种支付方式");
+                    //trade.setPayUrlRet(basicRet);
+                    //return trade;
+                    throw new CashException("定金和余款不是同一种支付方式");
                 }
-                order.setYuuuid(uuid);
-                order.setYuordertime(ordertime);
+                //updateOrder.setYuuuid(uuid);
+                updateOrder.setYuordertime(ordertime);
+                logs.setOrdertype(Quantity.STATE_2);
             } else {
-                order.setUuid(uuid);
-                order.setOrdertime(ordertime);
+                //updateOrder.setUuid(uuid);
+                updateOrder.setOrdertime(ordertime);
+                logs.setOrdertype(Quantity.STATE_1);
             }
-            ordersMapper.updateByPrimaryKeySelective(order);
+            ordersMapper.updateByPrimaryKeySelective(updateOrder);
+
+            payTradeLogsList.add(logs);
         }
 
+        payTradeLogsService.batchInsert(payTradeLogsList);
 
 
         //计算总金额
@@ -333,10 +326,9 @@ public class TradeService {
                 }
             }
         }
+
         if (flag) {
-            basicRet.setResult(BasicRet.ERR);
-            basicRet.setMessage("有订单已提交支付");
-            trade.setPayUrlRet(basicRet);
+            throw new CashException("有订单已提交支付");
         } else {
             trade.setAmount((sumpay.multiply(new BigDecimal(100))).longValue());
             trade.setOutTradeNo(uuid);
@@ -348,11 +340,6 @@ public class TradeService {
         }
         return trade;
     }
-
-
-
-
-
 
 
 
@@ -372,11 +359,7 @@ public class TradeService {
             //创建订单资金明细
             BuyerCapital buyerOrderCapital = createBuyerOrderCapital(order, type, tranTime, transactionNo, transactionid);
 
-
-
-
             SalerCapital salerCapital = createSalerOrderCapital(order, tranTime, transactionNo, transactionid);
-
 
             buyerCapitals.add(buyerOrderCapital);
 
@@ -557,9 +540,14 @@ public class TradeService {
      * order: 充值单号
      * channel: alipay / wxpay
      */
-    public boolean notifyBuyerRecharge(String order, String transactionid) {
+    public boolean notifyBuyerRecharge(String order, String transactionid) throws CashException {
         BuyerCapital buyerCapital = buyerCapitalMapper.getBuyerCapitalByRechargenumber(order);
+
         if (buyerCapital != null) {
+            if(buyerCapital.getRechargestate() == Quantity.STATE_1){
+               return false;
+            }
+
             BuyerCapital updateCapital = new BuyerCapital();
             updateCapital.setId(buyerCapital.getId());
             updateCapital.setRechargestate(Quantity.STATE_1);
@@ -578,12 +566,16 @@ public class TradeService {
 
 
     /**
-     * 卖家充值结果回调:
+     * 卖家充值结果回调:F
      * order: 充值单号
      */
-    public boolean notifySellerRecharge(String order, String transactionid) {
+    public boolean notifySellerRecharge(String order, String transactionid) throws CashException {
         SalerCapital salerCapital = salerCapitalMapper.getSalerCapitalByRechargenumber(order);
         if (salerCapital != null) {
+            if(salerCapital.getRechargestate() == Quantity.STATE_1){
+               return false;
+            }
+
             SalerCapital updateSaler = new SalerCapital();
             updateSaler.setId(salerCapital.getId());
             updateSaler.setRechargestate(Quantity.STATE_1);
@@ -611,16 +603,11 @@ public class TradeService {
      * channel: alipay / wxpay
      * transactionid  第三方订单号
      */
+/*
     public boolean notify(String outTradeNo, String channel, String transactionid) {
         // 做订单的支付成功处理
         // 注意重复消费的问题
         // 处理失败 则返回false, 并 logger.error
-
-
-
-
-
-
         List<Orders> ordersList = getOrdersByUUID(outTradeNo);
 
         if(ordersList != null && ordersList.size()>0){
@@ -637,7 +624,6 @@ public class TradeService {
 
         if (ordersList.size() > 0) {
             //Member member = memberMapper.selectByPrimaryKey(ordersList.get(0).getMemberid());
-
             Member updateMember = new Member();
             updateMember.setId(ordersList.get(0).getMemberid());
             updateMember.setIsbuy(Quantity.STATE_2);
@@ -710,14 +696,12 @@ public class TradeService {
 
         ordersService.smsNotifySellerToOrders(ordersList);
 
-        //logger.info("第三方支付："+ JSONArray.fromObject(ordersList).toString());
-        //logger.error("第三方支付："+ JSONArray.fromObject(ordersList).toString());
-
         wmsService.synOrders(ordersList);
         if (ordersList.size() > 0) {
             orderids.deleteCharAt(orderids.length() - 1);
         }
-
+        //进行订单的主动下单，向中间件管理平台post数据
+        ordersService.initiativeOrderIssue(orderids.toString());
         List<OrderProduct> orderProducts = orderProductMapper.getOrderProductByInOrderids(orderids.toString());
 
         //计算总金额
@@ -743,6 +727,157 @@ public class TradeService {
             orderProductMapper.updateByPrimaryKeySelective(orderProduct);
         }
 
+
+        for(Orders orders : ordersList){
+            //操作日志
+            OperateLog operateLog = new OperateLog();
+            operateLog.setContent("订单已支付");
+            operateLog.setOpid(orders.getMemberid());
+            operateLog.setOpname(orders.getMembername());
+            operateLog.setOptime(new Date());
+            operateLog.setOptype(Quantity.STATE_0);
+            operateLog.setOrderid(orders.getId());
+            ordersService.saveOperatelog(operateLog);
+        }
+
+        return true;
+    }
+
+*/
+
+
+
+    public boolean notify(String outTradeNo, String channel, String transactionid) {
+        // 做订单的支付成功处理
+        // 注意重复消费的问题
+        // 处理失败 则返回false, 并 logger.error
+
+        List<PayTradeLogs> list = payTradeLogsService.getByOuttradeno(outTradeNo);
+
+        List<Orders> ordersList = new ArrayList<>();
+        for(PayTradeLogs payTradeLogs : list){
+            Orders order = ordersService.getOrdersById(payTradeLogs.getOrderid());
+            if(order==null) continue;
+            Orders updateOrder = new Orders();
+            updateOrder.setId(order.getId());
+
+            if(payTradeLogs.getOrdertype() == Quantity.STATE_1){
+                order.setUuid(outTradeNo);
+                updateOrder.setUuid(outTradeNo);
+            }else if(payTradeLogs.getOrdertype() == Quantity.STATE_2){
+                order.setYuuuid(outTradeNo);
+                updateOrder.setYuuuid(outTradeNo);
+            }
+
+            if (order.getOrderstatus() == Quantity.STATE_7) {
+                order.setOrderstatus(Quantity.STATE_0);
+                updateOrder.setOrderstatus(Quantity.STATE_0);
+            }
+
+            if (channel.equals("alipay")) {
+                updateOrder.setPaytype(Quantity.STATE_0);
+            }
+            if (channel.equals("wxpay")) {
+                updateOrder.setPaytype(Quantity.STATE_1);
+            }
+            if (channel.equals("bank")) {
+                updateOrder.setPaytype(Quantity.STATE_2);
+            }
+
+            updateOrder.setTransactionid(transactionid);
+            updateOrder.setPaymenttime(new Date());
+
+            //立即发货
+            if (order.getOrdertype() == Quantity.STATE_0) {
+                if (order.getOrderstatus() == Quantity.STATE_0) {
+                    //order.setOrderstatus(Quantity.STATE_1);
+                    updateOrder.setOrderstatus(Quantity.STATE_1);
+                }
+            }
+            //远期全款
+            if (order.getOrdertype() == Quantity.STATE_1) {
+                if (order.getOrderstatus() == Quantity.STATE_0) {
+                    //order.setOrderstatus(Quantity.STATE_8);
+                    updateOrder.setOrderstatus(Quantity.STATE_8);
+                }
+            }
+            //定金
+            if (order.getOrdertype() == Quantity.STATE_2) {
+                if (order.getOrderstatus() == Quantity.STATE_0) {
+                   // order.setOrdertype(Quantity.STATE_3);
+                    //order.setOrderstatus(Quantity.STATE_8);
+
+                    updateOrder.setOrdertype(Quantity.STATE_3);
+                    updateOrder.setOrderstatus(Quantity.STATE_8);
+                }
+            }
+            //余款
+            if (order.getOrdertype() == Quantity.STATE_3) {
+                if (order.getOrderstatus() == Quantity.STATE_9) {
+                    //order.setOrderstatus(Quantity.STATE_1);
+                    updateOrder.setOrderstatus(Quantity.STATE_1);
+                }
+            }
+
+            List<OrderProduct> orderProducts = orderProductMapper.getByOrderid(order.getId());
+            for (OrderProduct orderProduct : orderProducts) {
+                OrderProduct updateProduct = new OrderProduct();
+                updateProduct.setId(orderProduct.getId());
+
+                //不是远期
+                if (orderProduct.getProtype() == Quantity.STATE_0) {
+                    updateProduct.setPaystate(Quantity.STATE_1);
+                }
+                //全款
+                if (orderProduct.getProtype() == Quantity.STATE_1) {
+                    updateProduct.setPaystate(Quantity.STATE_1);
+                }
+                //定金
+                if (orderProduct.getProtype() == Quantity.STATE_2) {
+                    //定金付
+                    if (orderProduct.getPaystate() == Quantity.STATE_0) {
+                        updateProduct.setPaystate(Quantity.STATE_2);
+                        //余款支付
+                    } else if (orderProduct.getPaystate() == Quantity.STATE_2) {
+                        updateProduct.setPaystate(Quantity.STATE_3);
+                    }
+                }
+                orderProductMapper.updateByPrimaryKeySelective(updateProduct);
+            }
+            ordersMapper.updateByPrimaryKeySelective(updateOrder);
+
+
+            PayTradeLogs updateLogs = new PayTradeLogs();
+            updateLogs.setId(payTradeLogs.getId());
+            updateLogs.setPaystates(Quantity.STATE_1);
+            payTradeLogsService.updateByPrimaryKeySelective(updateLogs);
+
+            ordersList.add(order);
+        }
+
+        //创建资金明细
+        if (channel.equals("alipay")) {
+            payMethod(ordersList, Quantity.STATE_0, transactionid);
+        }
+        if (channel.equals("wxpay")) {
+            payMethod(ordersList, Quantity.STATE_1, transactionid);
+        }
+        if (channel.equals("bank")) {
+            payMethod(ordersList, Quantity.STATE_2, transactionid);
+        }
+
+        ordersService.smsNotifySellerToOrders(ordersList);
+        wmsService.synOrders(ordersList);
+
+        if (ordersList.size() > 0) {
+            //Member member = memberMapper.selectByPrimaryKey(ordersList.get(0).getMemberid());
+            Member updateMember = new Member();
+            updateMember.setId(ordersList.get(0).getMemberid());
+            updateMember.setIsbuy(Quantity.STATE_2);
+            memberMapper.updateByPrimaryKeySelective(updateMember);
+        }
+
+        ordersService.smsNotifySellerToOrders(ordersList);
 
         for(Orders orders : ordersList){
             //操作日志

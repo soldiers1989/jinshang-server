@@ -36,7 +36,7 @@ public class ElasticSearchService {
     public static final String INDEX_PRODUCT = "product";
     public static final String INDEX_PRODUCT_TYPE_INFO = "info";
 
-    @PostConstruct
+    //@PostConstruct
     public void init() throws IOException {
         client = new RestHighLevelClient(RestClient.builder(
                         new HttpHost(ip, port, "http")

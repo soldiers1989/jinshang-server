@@ -154,7 +154,7 @@ public class ChargeMoneyAction {
     @RequestMapping(value = "/rest/seller/chargeMoney/sellerCharge",method = RequestMethod.POST)
     @ApiOperation("卖家充值")
     @ApiImplicitParams({
-            @ApiImplicitParam(value = "充值平台2=线下平台3=银行卡 注意：如果是支付宝或微信请填写-1",name = "rechargeperform",required = true,dataType = "int",paramType = "query"),
+            @ApiImplicitParam(value = "充值平台0=微信1=支付宝2=线下平台4=银行卡 注意：如果是支付宝或微信请填写-1",name = "rechargeperform",required = true,dataType = "int",paramType = "query"),
             @ApiImplicitParam(value = "金额",name = "capital",required = true,dataType = "double",paramType = "query"),
     })
     public ChargeRet sellerCharge(@RequestParam(required = true) short rechargeperform,

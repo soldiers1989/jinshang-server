@@ -12,20 +12,17 @@ import project.jinshang.mod_admin.mod_cash.dto.AdvanceCapitalQueryDto;
 import project.jinshang.mod_cash.BuyerCapitalMapper;
 import project.jinshang.mod_cash.bean.BuyerCapital;
 import project.jinshang.mod_cash.bean.BuyerCapitalExample;
-import project.jinshang.mod_cash.bean.dto.BuyerCapitalAccountDto;
-import project.jinshang.mod_cash.bean.dto.BuyerCapitalAccountQueryDto;
-import project.jinshang.mod_cash.bean.dto.BuyerCapitalQueryDto;
-import project.jinshang.mod_cash.bean.dto.BuyerCapitalViewDto;
+import project.jinshang.mod_cash.bean.dto.*;
 import project.jinshang.mod_member.service.MemberService;
 
-
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
 
 @Service
 public class BuyerCapitalService {
 
-    @Autowired
+    @Resource
     private BuyerCapitalMapper buyerCapitalMapper;
 
 
@@ -158,15 +155,18 @@ public class BuyerCapitalService {
             }
                 resMap.put("货款金额", map.get("capital"));
             if(map.get("memberid")!=null){
-                Map<String,Object> bill = new HashMap<String,Object>();
+                List<Map<String,Object>> bill = new ArrayList<Map<String,Object>>();
+
                 bill = buyerCapitalMapper.getBillingRecordByMemberid(Long.parseLong(map.get("memberid").toString()));
                 if(bill!=null) {
-                    resMap.put("开票抬头", bill.get("invoiceheadup"));
-                    resMap.put("税号", bill.get("texno"));
-                    resMap.put("开户行", bill.get("bankofaccounts"));
-                    resMap.put("开户账号", bill.get("account"));
-                    resMap.put("开票地址", bill.get("address"));
-                    resMap.put("电话", bill.get("phone"));
+                    for (int i=0;i<bill.size();i++) {
+                        resMap.put("开票抬头", bill.get(0).get("invoiceheadup"));
+                        resMap.put("税号", bill.get(0).get("texno"));
+                        resMap.put("开户行", bill.get(0).get("bankofaccounts"));
+                        resMap.put("开户账号", bill.get(0).get("account"));
+                        resMap.put("开票地址", bill.get(0).get("address"));
+                        resMap.put("电话", bill.get(0).get("phone"));
+                    }
                 }else{
                     resMap.put("开票抬头", "");
                     resMap.put("税号", "");
@@ -345,6 +345,40 @@ public class BuyerCapitalService {
         return  data;
     }
 
+
+    /**
+     * 导出买家资金明细 for excel
+     * @param queryDto
+     * @return
+     */
+    public List<Map<String,Object>>  listConsumeForBuyerExportExcel(BuyerCapitalQueryDto queryDto) {
+
+        List<BuyerCapitalAdminExcel> list=buyerCapitalMapper.listConsumeForBuyerExportExcel(queryDto);
+
+        List<Map<String,Object>> data =  new ArrayList<>();
+        // String[] rowTitles =  new String[]{"时间","买家编号","公司名称","会员名称","类型","金额","支付方式","单号","状态"};
+
+        for(BuyerCapitalAdminExcel cap  : list){
+            Map<String,Object> resMap =  new HashMap<>();
+            resMap.put("时间",cap.getTradetime());
+            resMap.put("买家编号",cap.getMemberid());
+            resMap.put("公司名称",cap.getCompanyname());
+            resMap.put("会员名称",cap.getUsername());
+            resMap.put("类型", JinshangUtils.buyerCapitalType(cap.getCapitaltype()));
+            resMap.put("金额",cap.getCapital());
+            if(cap.getCapitaltype()==1){
+                resMap.put("支付方式",JinshangUtils.buyerCapitalrechargeperform(cap.getRechargeperform()));
+                resMap.put("单号",cap.getRechargenumber());
+            }else {
+                resMap.put("支付方式", JinshangUtils.buyerCapitalPaytype(cap.getPaytype()));
+                resMap.put("单号", cap.getOrderno());
+            }
+            resMap.put("状态",JinshangUtils.buyerCapitalState(cap.getRechargestate()));
+            resMap.put("业务单号",cap.getTransactionid());
+            data.add(resMap);
+        }
+        return  data;
+    }
 
 
     public  void  insertSelective(BuyerCapital buyerCapital){

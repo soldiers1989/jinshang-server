@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.exception.CashException;
+import project.jinshang.common.utils.GenerateNo;
 import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_pay.bean.PayLogs;
 import project.jinshang.mod_pay.bean.Trade;
@@ -62,11 +63,12 @@ public class BankPayAction {
         Trade trade = null;
         // todo trade在生成时需要赋值 订单时间参数
         if(type== Quantity.STATE_1){ //订单
-            trade = tradeService.buildFromOrderId(orders,Quantity.STATE_2);
+            String uuid = "order-"+GenerateNo.getOrderIdByUUId();
+            trade = tradeService.buildFromOrderId(orders,Quantity.STATE_2,uuid);
         }else if (type == Quantity.STATE_2 ){
-            trade = tradeService.buildFromBuyerRecharge(orders,Quantity.STATE_1);
+            trade = tradeService.buildFromBuyerRecharge(orders,Quantity.STATE_3);
         }else if(type == Quantity.STATE_3){
-            trade = tradeService.buildFromSellerRecharge(orders,Quantity.STATE_1);
+            trade = tradeService.buildFromSellerRecharge(orders,Quantity.STATE_4);
         }
         // todo test
 //        trade = new Trade().setOutTradeNo(String.valueOf(System.currentTimeMillis()))
@@ -136,7 +138,7 @@ public class BankPayAction {
     private PayLogsService payLogsService;
 
     @RequestMapping(value="/notify",method= {RequestMethod.POST, RequestMethod.GET})
-    public String notify(HttpServletRequest request) throws TrxException {
+    public String notify(HttpServletRequest request) throws TrxException, CashException {
 
         String msg = request.getParameter("MSG");
         PaymentResult tResult = new PaymentResult(msg);

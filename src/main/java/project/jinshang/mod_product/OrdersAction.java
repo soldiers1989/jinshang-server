@@ -452,8 +452,10 @@ public class OrdersAction {
                 if (AdminUser != null) {
                     //添加业务员/业务员联系方式
                     Admin admin = adminService.getById(AdminUser.getAdminid());
-                    orders.setClerkname(admin.getRealname());
-                    orders.setClerknamephone(admin.getMobile());
+                    if(admin !=null){
+                        orders.setClerkname(admin.getRealname());
+                        orders.setClerknamephone(admin.getMobile());
+                    }
                 }
 
                 ordersService.insertOrders(orders);
@@ -1244,7 +1246,6 @@ public class OrdersAction {
                 OrderProduct orderProduct = orderProductsList.get(0);
                 Orders order = new Orders();
                 order.setIsonline(isonline);
-
                 order.setProvince(orders.getProvince());
                 order.setCity(orders.getCity());
                 order.setArea(orders.getArea());
@@ -1254,7 +1255,16 @@ public class OrdersAction {
                 order.setIsbilling(orders.getIsbilling());
                 order.setBillingtype(orders.getBillingtype());
                 order.setDeliverybill(orders.getDeliverybill());
-
+                //查询是否有业务员
+                AdminUser AdminUser = adminUserService.getAdminUserByUserid(member.getId());
+                if (AdminUser != null) {
+                    //添加业务员/业务员联系方式
+                    Admin admin = adminService.getById(AdminUser.getAdminid());
+                    if(admin !=null){
+                        order.setClerkname(admin.getRealname());
+                        order.setClerknamephone(admin.getMobile());
+                    }
+                }
 
                 //订单总运费
                 order.setFreight(fight);
@@ -1313,14 +1323,7 @@ public class OrdersAction {
                     order.setOrdertype(Quantity.STATE_2);
                 }
                 order.setCreatetime(new Date());
-                //查询是否有业务员
-                AdminUser AdminUser = adminUserService.getAdminUserByUserid(member.getId());
-                if (AdminUser != null) {
-                    //添加业务员/业务员联系方式
-                    Admin admin = adminService.getById(AdminUser.getAdminid());
-                    orders.setClerkname(admin.getRealname());
-                    orders.setClerknamephone(admin.getMobile());
-                }
+
                 //保存订单
                 ordersService.insertOrders(order);
                 for (OrderProduct orderProduct1 : orderProductsList) {
@@ -1885,7 +1888,7 @@ public class OrdersAction {
         memberLogOperator.saveMemberLog(member, null, "订单支付完成", "/rest/buyer/orders/payByBanlance", request, memberOperateLogService);
 
         //进行订单的主动下单，向中间件管理平台post数据
-        initiativeOrderIssue(orders);
+        ordersService.initiativeOrderIssue(orders);
         return basicRet;
     }
 
@@ -4187,6 +4190,8 @@ public class OrdersAction {
         // syn wms
         wmsService.cancelOrders(orders, WMSService.CANCEL_ORDER_TYPE);
         ordersService.updateReason(orders, "买家取消订单");
+        //执行订单主动取消，post数据到中间件中间平台
+        ordersService.initiativeOrderCancel(id);
 
         //保存操作日志
         OperateLog operateLog = new OperateLog();
@@ -4201,8 +4206,6 @@ public class OrdersAction {
         //保存用户日志
         memberLogOperator.saveMemberLog(member, null, "订单id：" + id + "取消", "/rest/buyer/orders/cancelOrders", request, memberOperateLogService);
 
-        //执行订单主动取消，post数据到中间件中间平台
-        initiativeOrderCancel(id);
         basicRet.setResult(BasicRet.SUCCESS);
         basicRet.setMessage("取消订单成功");
         return basicRet;
@@ -5048,26 +5051,9 @@ public class OrdersAction {
     }
 
 
-    /**
-     *订单下达主动
-     * @author xiazy
-     * @date  2018/6/4 16:51
-     * @param orders 订单编码
-     * @return void
-     */
-    public void  initiativeOrderIssue(String orders){
-
-    }
-
-    /**
-     *订单取消主动
-     * @author xiazy
-     * @date  2018/6/4 17:48
-     * @param orderId 订单编码
-     * @return void
-     */
-    public void initiativeOrderCancel(Long orderId){
-
+    @RequestMapping(value = "/testForOrder",method = RequestMethod.POST)
+    public BasicRet test(){
+        return ordersService.initiativeOrderReturn(382L);
     }
 
 }

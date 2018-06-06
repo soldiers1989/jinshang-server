@@ -10,15 +10,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.exception.CashException;
-import project.jinshang.common.utils.DateUtils;
 import project.jinshang.common.utils.JinshangUtils;
-import project.jinshang.mod_admin.mod_cash.dto.AdvanceCapitalQueryDto;
 import project.jinshang.mod_admin.mod_cash.dto.AdvanceCapitalSellerQueryDto;
 import project.jinshang.mod_cash.BuyerCapitalMapper;
 import project.jinshang.mod_cash.SalerCapitalMapper;
 import project.jinshang.mod_cash.bean.SalerCapital;
 import project.jinshang.mod_cash.bean.SalerCapitalExample;
-import project.jinshang.mod_cash.bean.dto.SalerCapitalAdminExcel;
 import project.jinshang.mod_cash.bean.dto.SalerCapitalQueryDto;
 import project.jinshang.mod_cash.bean.dto.SalerCapitalSellerExportExcel;
 import project.jinshang.mod_cash.bean.dto.SalerCapitalViewDto;
@@ -29,6 +26,7 @@ import project.jinshang.mod_product.bean.ProductInfo;
 import project.jinshang.mod_product.service.PdbailLogService;
 import project.jinshang.mod_product.service.ProductSearchService;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -37,10 +35,10 @@ public class SalerCapitalService {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Autowired
+    @Resource
     private SalerCapitalMapper salerCapitalMapper;
 
-    @Autowired
+    @Resource
     private BuyerCapitalMapper buyerCapitalMapper;
 
 
@@ -170,15 +168,18 @@ public class SalerCapitalService {
             }
             resMap.put("货款金额", map.get("capital"));
             if(map.get("memberid")!=null){
-                Map<String,Object> bill = new HashMap<String,Object>();
+                List<Map<String,Object>> bill = new ArrayList<Map<String,Object>>();
+
                 bill = buyerCapitalMapper.getBillingRecordByMemberid(Long.parseLong(map.get("memberid").toString()));
                 if(bill!=null) {
-                    resMap.put("开票抬头", bill.get("invoiceheadup"));
-                    resMap.put("税号", bill.get("texno"));
-                    resMap.put("开户行", bill.get("bankofaccounts"));
-                    resMap.put("开户账号", bill.get("account"));
-                    resMap.put("开票地址", bill.get("address"));
-                    resMap.put("电话", bill.get("phone"));
+                    for (int i=0;i<bill.size();i++) {
+                        resMap.put("开票抬头", bill.get(0).get("invoiceheadup"));
+                        resMap.put("税号", bill.get(0).get("texno"));
+                        resMap.put("开户行", bill.get(0).get("bankofaccounts"));
+                        resMap.put("开户账号", bill.get(0).get("account"));
+                        resMap.put("开票地址", bill.get(0).get("address"));
+                        resMap.put("电话", bill.get(0).get("phone"));
+                    }
                 }else{
                     resMap.put("开票抬头", "");
                     resMap.put("税号", "");

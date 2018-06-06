@@ -397,6 +397,7 @@ public class MemberAdminRestAction {
             @ApiImplicitParam(name = "loginDateStart", value = "最后登录时间-开始", required = false, paramType = "query", dataType = "date"),
             @ApiImplicitParam(name = "loginDateEnd", value = "最后登录时间-结束", required = false, paramType = "query", dataType = "date"),
             @ApiImplicitParam(name = "companyType", value = "是否是公司 0-全部，1-是，2-否", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "isbuy", value = "是否消费0=全部1=无消费2=消费", required = false, paramType = "query", dataType = "int")
     })
     public ResponseEntity<InputStreamResource> exportExcelmemberinfo(MemberAdminQueryDto dto) {
 
@@ -690,6 +691,11 @@ public class MemberAdminRestAction {
         MemberAdminViewDtoRet memberAdminViewDtoRet = new MemberAdminViewDtoRet();
         AdminUser result = adminUserService.getAdminUserByAdminAndUserid(adminid, userid);
         if (result != null) {
+            Member member=memberService.getMemberById(result.getUserid());
+            if (member!=null){
+                member.setClerkname("");
+                memberService.updateByPrimaryKeySelective(member);
+            }
             adminUserService.delAdminUserByid(result.getId());
         }
         memberAdminViewDtoRet.setMessage("操作成功");

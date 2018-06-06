@@ -39,12 +39,9 @@ import project.jinshang.mod_cash.bean.BuyerCapital;
 import project.jinshang.mod_cash.bean.SalerCapital;
 import project.jinshang.mod_cash.service.BuyerCapitalService;
 import project.jinshang.mod_cash.service.SalerCapitalService;
-import project.jinshang.mod_company.bean.AgentDeliveryAddress;
 import project.jinshang.mod_company.bean.BuyerCompanyInfo;
 import project.jinshang.mod_company.service.AgentDeliveryAddressService;
 import project.jinshang.mod_company.service.BuyerCompanyService;
-import project.jinshang.mod_member.bean.Admin;
-import project.jinshang.mod_member.bean.AdminUser;
 import project.jinshang.mod_member.bean.Member;
 import project.jinshang.mod_member.service.AdminService;
 import project.jinshang.mod_member.service.AdminUserService;
@@ -601,8 +598,8 @@ public class SellerOrdersAction {
                     }
                 }
             }
+            orders.setOrderProducts(orderProductList);
             //取消时间：2018年6月2日10:08:44 原因:直接添加到订单保存数据库了
-//            orders.setOrderProducts(orderProductList);
 //            AdminUser AdminUser = adminUserService.getAdminUserByUserid(orders.getMemberid());
 //            if (AdminUser != null) {
 //                Admin admin = adminService.getById(AdminUser.getAdminid());
@@ -1236,6 +1233,9 @@ public class SellerOrdersAction {
                     ||state == Quantity.STATE_7 || state == Quantity.STATE_8)){
                 wmsService.backOrders(orderProductBack);
             }
+
+            //进行主动退货，将数据json推送到中间件管理平台
+            ordersService.initiativeOrderReturn(productBackModel.getId());
 
             if(state == Quantity.STATE_3) {
                 //将退货的商品信息记录到orderproductbackinfo表中
@@ -2735,6 +2735,8 @@ public class SellerOrdersAction {
         // syn wms
         wmsService.cancelOrders(orders, WMSService.CANCEL_ORDER_TYPE);
         ordersService.updateReason(orders,"卖家取消订单");
+        //执行订单主动取消，post数据到中间件中间平台
+        ordersService.initiativeOrderCancel(id);
 
         //保存操作日志
         OperateLog operateLog = new OperateLog();
@@ -3796,4 +3798,15 @@ public class SellerOrdersAction {
         System.out.println(str);
 
     }*/
+
+    /**
+     *执行退货申请回调，post数据至中间件管理平台
+     * @author xiazy
+     * @date  2018/6/5 10:45
+     * @param id
+     * @return void
+     */
+    public void initiativeOrderReturn(Long id){
+
+    }
 }

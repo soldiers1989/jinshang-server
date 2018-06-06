@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import project.jinshang.mod_product.service.ProductSearchService;
+import project.jinshang.mod_product.service.ProductSearchServiceImpl;
 import project.jinshang.mod_product.service.ProductSearchServiceImplEs;
 
 /**
@@ -40,7 +41,7 @@ public class RestCoreConfig {
 
     @Bean
     public ProductSearchService productSearchService(){
-        return new ProductSearchServiceImplEs();
+        return new ProductSearchServiceImpl();
     }
 
 }

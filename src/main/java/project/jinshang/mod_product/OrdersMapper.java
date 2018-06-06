@@ -185,6 +185,12 @@ public interface OrdersMapper {
             sql.LEFT_OUTER_JOIN(TBL_BUYERCOMPANYINFO);
             sql.LEFT_OUTER_JOIN(TBL_MEMBER2);
 
+            if (StringUtils.hasText(param.getClerkname())) {
+                String clerkName = "%" + param.getClerkname() + "%";
+                param.setClerkname(clerkName);
+                sql.WHERE(" od.clerkname like #{clerkname} ");
+            }
+
             if (StringUtils.hasText(param.getMemberName())) {
                 String memberName = "%" + param.getMemberName() + "%";
                 param.setMemberName(memberName);
@@ -274,6 +280,13 @@ public interface OrdersMapper {
             sql.LEFT_OUTER_JOIN(TBL_MEMBER);
             sql.LEFT_OUTER_JOIN(TBL_BUYERCOMPANYINFO);
             sql.LEFT_OUTER_JOIN(TBL_MEMBER2);
+
+            if (StringUtils.hasText(param.getClerkname())) {
+                String clerkName = "%" + param.getClerkname() + "%";
+                param.setClerkname(clerkName);
+                sql.WHERE(" od.clerkname like #{clerkname} ");
+            }
+
             if (StringUtils.hasText(param.getMemberName())) {
                 String memberName = "%" + param.getMemberName() + "%";
                 param.setMemberName(memberName);
@@ -369,6 +382,12 @@ public interface OrdersMapper {
 
             sql.WHERE("op.backstate=0");
 
+            if (StringUtils.hasText(param.getClerkname())) {
+                String clerkName = "%" + param.getClerkname() + "%";
+                param.setClerkname(clerkName);
+                sql.WHERE(" od.clerkname like #{clerkname} ");
+            }
+
             if (StringUtils.hasText(param.getMemberName())) {
                 String memberName = "%" + param.getMemberName() + "%";
                 param.setMemberName(memberName);
@@ -460,6 +479,12 @@ public interface OrdersMapper {
             sql.LEFT_OUTER_JOIN(TBL_MEMBER);
             sql.LEFT_OUTER_JOIN(TBL_BUYERCOMPANYINFO);
             sql.LEFT_OUTER_JOIN(TBL_MEMBER2);
+
+            if (StringUtils.hasText(param.getClerkname())) {
+                String clerkName = "%" + param.getClerkname() + "%";
+                param.setClerkname(clerkName);
+                sql.WHERE(" od.clerkname like #{clerkname} ");
+            }
 
             if (StringUtils.hasText(param.getMemberName())) {
                 String memberName = "%" + param.getMemberName() + "%";
@@ -554,6 +579,12 @@ public interface OrdersMapper {
             sql.LEFT_OUTER_JOIN(TBL_MEMBER2);
 
             sql.WHERE("op.backstate=0");
+
+            if (StringUtils.hasText(param.getClerkname())) {
+                String clerkName = "%" + param.getClerkname() + "%";
+                param.setClerkname(clerkName);
+                sql.WHERE(" od.clerkname like #{clerkname} ");
+            }
 
             if (StringUtils.hasText(param.getMemberName())) {
                 String memberName = "%" + param.getMemberName() + "%";

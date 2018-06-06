@@ -37,6 +37,7 @@
     <result column="agreementfile" property="agreementfile" jdbcType="VARCHAR" />
     <result column="applymoney" property="applymoney" jdbcType="NUMERIC" />
     <result column="cancelreason" property="cancelreason" jdbcType="VARCHAR" />
+    <result column="reviewnotes" property="reviewnotes" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -101,7 +102,7 @@
     state, auditname, auditid, officer, officerid, reviewer, reviewerid, audittime, confirmofficetime, 
     officetime, reviewtime, mainserver, assistserver, mainserverid, assistserverid, createtime, 
     expectarrivaltime, acceptdays, entering, enteringid, agreementno, signtime, signaddr, 
-    agreementfile, applymoney, cancelreason
+    agreementfile, applymoney, cancelreason, reviewnotes
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_credit.bean.CreditApplyRecordExample" >
     select
@@ -146,7 +147,8 @@
       createtime, expectarrivaltime, acceptdays, 
       entering, enteringid, agreementno, 
       signtime, signaddr, agreementfile, 
-      applymoney, cancelreason)
+      applymoney, cancelreason, reviewnotes
+      )
     values (#{id,jdbcType=BIGINT}, #{memberid,jdbcType=BIGINT}, #{limitmoney,jdbcType=NUMERIC}, 
       #{company,jdbcType=VARCHAR}, #{address,jdbcType=VARCHAR}, #{contract,jdbcType=VARCHAR}, 
       #{phone,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR}, #{license,jdbcType=VARCHAR}, 
@@ -158,9 +160,10 @@
       #{createtime,jdbcType=TIMESTAMP}, #{expectarrivaltime,jdbcType=TIMESTAMP}, #{acceptdays,jdbcType=INTEGER}, 
       #{entering,jdbcType=VARCHAR}, #{enteringid,jdbcType=BIGINT}, #{agreementno,jdbcType=VARCHAR}, 
       #{signtime,jdbcType=TIMESTAMP}, #{signaddr,jdbcType=VARCHAR}, #{agreementfile,jdbcType=VARCHAR}, 
-      #{applymoney,jdbcType=NUMERIC}, #{cancelreason,jdbcType=VARCHAR})
+      #{applymoney,jdbcType=NUMERIC}, #{cancelreason,jdbcType=VARCHAR}, #{reviewnotes,jdbcType=VARCHAR}
+      )
   </insert>
-  <insert id="insertSelective" parameterType="project.jinshang.mod_credit.bean.CreditApplyRecord" useGeneratedKeys="true" keyProperty="id" >
+  <insert id="insertSelective" parameterType="project.jinshang.mod_credit.bean.CreditApplyRecord" >
     insert into creditapplyrecord
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="id != null" >
@@ -268,6 +271,9 @@
       <if test="cancelreason != null" >
         cancelreason,
       </if>
+      <if test="reviewnotes != null" >
+        reviewnotes,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="id != null" >
@@ -374,6 +380,9 @@
       </if>
       <if test="cancelreason != null" >
         #{cancelreason,jdbcType=VARCHAR},
+      </if>
+      <if test="reviewnotes != null" >
+        #{reviewnotes,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -491,6 +500,9 @@
       <if test="record.cancelreason != null" >
         cancelreason = #{record.cancelreason,jdbcType=VARCHAR},
       </if>
+      <if test="record.reviewnotes != null" >
+        reviewnotes = #{record.reviewnotes,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -532,7 +544,8 @@
       signaddr = #{record.signaddr,jdbcType=VARCHAR},
       agreementfile = #{record.agreementfile,jdbcType=VARCHAR},
       applymoney = #{record.applymoney,jdbcType=NUMERIC},
-      cancelreason = #{record.cancelreason,jdbcType=VARCHAR}
+      cancelreason = #{record.cancelreason,jdbcType=VARCHAR},
+      reviewnotes = #{record.reviewnotes,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -642,6 +655,9 @@
       <if test="cancelreason != null" >
         cancelreason = #{cancelreason,jdbcType=VARCHAR},
       </if>
+      <if test="reviewnotes != null" >
+        reviewnotes = #{reviewnotes,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -680,7 +696,8 @@
       signaddr = #{signaddr,jdbcType=VARCHAR},
       agreementfile = #{agreementfile,jdbcType=VARCHAR},
       applymoney = #{applymoney,jdbcType=NUMERIC},
-      cancelreason = #{cancelreason,jdbcType=VARCHAR}
+      cancelreason = #{cancelreason,jdbcType=VARCHAR},
+      reviewnotes = #{reviewnotes,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

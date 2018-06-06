@@ -6,12 +6,10 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import mizuki.project.core.restserver.config.BasicRet;
-import org.apache.commons.httpclient.NameValuePair;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.Constants;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -24,11 +22,12 @@ import project.jinshang.common.bean.MemberLogOperator;
 import project.jinshang.common.bean.PageRet;
 import project.jinshang.common.constant.AdminAuthorityConst;
 import project.jinshang.common.constant.AppConstant;
-import project.jinshang.common.constant.MiddleWareUrl;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.exception.CashException;
-import project.jinshang.common.utils.*;
-import project.jinshang.mod_cash.bean.SalerCapital;
+import project.jinshang.common.utils.DateUtils;
+import project.jinshang.common.utils.ExcelGen;
+import project.jinshang.common.utils.JinshangUtils;
+import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_cash.service.SalerCapitalService;
 import project.jinshang.mod_member.bean.Admin;
 import project.jinshang.mod_member.bean.Member;
@@ -311,6 +310,7 @@ public class ProductManageAdminAction {
             @ApiImplicitParam(value = "印记",name = "mark",paramType = "query",dataType = "string",required = false),
             @ApiImplicitParam(value = "店铺名称",name = "shopname",paramType = "query",dataType = "string",required = false),
             @ApiImplicitParam(value = "规格",name = "stand",paramType = "query",dataType = "string",required = false),
+            @ApiImplicitParam(value = "是否远期",name = "futurePrice",paramType = "query",dataType = "short",required = false,defaultValue = "0")
     })
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.COMMODITYANAGEMENT + "')")
     public PageRet listFastenerProduct(@RequestParam(required = true,defaultValue = "1") int pageNo,
@@ -330,7 +330,8 @@ public class ProductManageAdminAction {
                                @RequestParam(required = false) Date createEnd,
                                @RequestParam(required = false) String mark,
                                @RequestParam(required = false) String shopname,
-                               @RequestParam(required = false,defaultValue = "") String stand
+                               @RequestParam(required = false,defaultValue = "") String stand,
+                               @RequestParam(required = false,defaultValue = "0") short futurePrice
                                 ){
         PageRet pageRet =  new PageRet();
         ProductInfoQuery productInfo = new ProductInfoQuery();
@@ -348,6 +349,9 @@ public class ProductManageAdminAction {
         if(StringUtils.hasText(mark)){
             productInfo.setMark(mark);
         }
+
+        productInfo.setFuturePrice(futurePrice);
+
 
         if(levelid >0){
             Categories productCategory =  categoriesService.getCategoryLevel(levelid);
@@ -787,6 +791,7 @@ public class ProductManageAdminAction {
             @ApiImplicitParam(value = "发布时间区间",name = "createStart",paramType = "query",dataType = "date",required = false),
             @ApiImplicitParam(value = "发布时间区间",name = "createEnd",paramType = "query",dataType = "date",required = false),
             @ApiImplicitParam(value = "店铺名称",name = "shopname",paramType = "query",dataType = "string",required = false),
+            @ApiImplicitParam(value = "是否远期",name = "futurePrice",paramType = "query",dataType = "short",required = false,defaultValue = "0")
     })
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.COMMODITYANAGEMENT + "')")
     public  PageRet listOtherProduct(OtherProductQueryDto queryDto, int pageNo, int pageSize, Model model){

@@ -1,11 +1,5 @@
 package project.jinshang.mod_cash;
 
-import java.math.BigDecimal;
-import java.text.MessageFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.ibatis.annotations.*;
 import project.jinshang.mod_admin.mod_cash.dto.AdvanceCapitalQueryDto;
 import project.jinshang.mod_cash.bean.BuyerCapital;
@@ -15,9 +9,12 @@ import project.jinshang.mod_cash.bean.dto.BuyerCapitalAdminExcel;
 import project.jinshang.mod_cash.bean.dto.BuyerCapitalQueryDto;
 import project.jinshang.mod_cash.bean.dto.BuyerCapitalViewDto;
 import project.jinshang.mod_cash.provider.BuyerCapitalProvider;
-import project.jinshang.mod_product.BillingRecordMapper;
-import project.jinshang.mod_product.bean.BillingRecord;
 
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+@Mapper
 public interface BuyerCapitalMapper {
     int countByExample(BuyerCapitalExample example);
 
@@ -188,6 +185,14 @@ public interface BuyerCapitalMapper {
     @SelectProvider(type = BuyerCapitalProvider.class,method = "listForPurchaserExportExcel")
     List<Map<String,Object>> listForPurchaserExportExcel(@Param("dto")BuyerCapitalQueryDto dto);
 
+    /**
+     * 买家端资金明细查询导出
+     * @param dto
+     * @return
+     */
+    @SelectProvider(type = BuyerCapitalProvider.class,method = "listConsumeForBuyerExportExcel")
+    List<BuyerCapitalAdminExcel> listConsumeForBuyerExportExcel(@Param("dto")BuyerCapitalQueryDto dto);
+
     @Update("update buyercapital set billcreateid=#{billcreateid},outbillstate=1 where id in (${ids})")
     void  updateBillcreateid(@Param("billcreateid") long billcreateid,@Param("ids") String ids);
 
@@ -238,7 +243,7 @@ public interface BuyerCapitalMapper {
 
     /**
      * 后台资金明细导出Excel中需要导出商品详细信息的查询
-     * @param code
+     * @param orderno
      * @return
      */
     @Select("select pdname,op.standard,op.material,op.gradeno,op.brand,op.mark,p.surfacetreatment,packagetype,op.unit,op.price,op.num from \n" +
@@ -262,5 +267,5 @@ public interface BuyerCapitalMapper {
     List<Map<String,Object>> getProductList(@Param("orderno") String orderno);
 
     @Select("select DISTINCT memberid,invoiceheadup,texno,bankofaccounts,account,address,phone from billingrecord where memberid=#{memberid,jdbcType=BIGINT}")
-    Map<String,Object> getBillingRecordByMemberid(@Param("memberid") Long memberid);
+    List<Map<String,Object>> getBillingRecordByMemberid(@Param("memberid") Long memberid);
 }

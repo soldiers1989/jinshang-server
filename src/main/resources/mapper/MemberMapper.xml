@@ -509,7 +509,7 @@
                 #{parentname,jdbcType=VARCHAR},
             </if>
             <if test="menu != null" >
-                #{menu,jdbcType=ARRAY},
+                #{menu,jdbcType=ARRAY,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
             </if>
             <if test="flag != null" >
                 #{flag,jdbcType=BIT},
@@ -969,7 +969,7 @@
                 parentname = #{parentname,jdbcType=VARCHAR},
             </if>
             <if test="menu != null" >
-                menu = #{menu,jdbcType=ARRAY},
+                menu = #{menu,jdbcType=ARRAY,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
             </if>
             <if test="flag != null" >
                 flag = #{flag,jdbcType=BIT},

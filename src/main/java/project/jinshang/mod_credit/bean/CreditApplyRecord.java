@@ -1,88 +1,58 @@
 package project.jinshang.mod_credit.bean;
 
-import io.swagger.annotations.ApiModelProperty;
-
 import java.math.BigDecimal;
 import java.util.Date;
 
 public class CreditApplyRecord {
     private Long id;
 
-    @ApiModelProperty(notes = "申请人id")
     private Long memberid;
 
-    @ApiModelProperty(notes = "申请信用额度")
     private BigDecimal limitmoney;
 
-    @ApiModelProperty(notes = "申请单位")
     private String company;
 
-    @ApiModelProperty(notes = "单位地址")
     private String address;
 
-    @ApiModelProperty(notes = "联系人")
     private String contract;
 
-    @ApiModelProperty(notes = "联系电话")
     private String phone;
 
-
-    @ApiModelProperty(notes = "备注")
     private String description;
 
-    @ApiModelProperty(notes = "营业执照")
     private String license;
 
-    @ApiModelProperty(notes = "状态0=待审核1=待受理2=受理中3=待复核4=已开通5=已拒绝6=已撤消")
     private Short state;
 
-    @ApiModelProperty(notes = "审核人")
     private String auditname;
 
-    @ApiModelProperty(notes = "审核人id")
     private Long auditid;
 
-    @ApiModelProperty(notes = "受理人")
     private String officer;
 
-    @ApiModelProperty(notes = "受理人id")
     private Long officerid;
 
-    @ApiModelProperty(notes = "复核人")
     private String reviewer;
 
-    @ApiModelProperty(notes = "复核人id")
     private Long reviewerid;
 
-    @ApiModelProperty(notes = "审核时间")
     private Date audittime;
 
-    @ApiModelProperty(notes = "确认受理时间")
     private Date confirmofficetime;
 
-    @ApiModelProperty(notes = "受理时间")
     private Date officetime;
 
-    @ApiModelProperty(notes = "复核时间")
     private Date reviewtime;
 
-    @ApiModelProperty(notes = "主业务员")
     private String mainserver;
 
-    @ApiModelProperty(notes = "辅业务员")
     private String assistserver;
 
-    @ApiModelProperty(notes = "主业务员id")
     private Long mainserverid;
 
-    @ApiModelProperty(notes = "辅业务员id")
     private Long assistserverid;
 
-    @ApiModelProperty(notes = "创建时间")
     private Date createtime;
-
-    @ApiModelProperty(notes = "撤消原因")
-    private String cancelreason;
 
     private Date expectarrivaltime;
 
@@ -100,12 +70,11 @@ public class CreditApplyRecord {
 
     private String agreementfile;
 
-
-
     private BigDecimal applymoney;
 
+    private String cancelreason;
 
-
+    private String reviewnotes;
 
     public Long getId() {
         return id;
@@ -328,7 +297,7 @@ public class CreditApplyRecord {
     }
 
     public void setEntering(String entering) {
-        this.entering = entering;
+        this.entering = entering == null ? null : entering.trim();
     }
 
     public Long getEnteringid() {
@@ -344,7 +313,7 @@ public class CreditApplyRecord {
     }
 
     public void setAgreementno(String agreementno) {
-        this.agreementno = agreementno;
+        this.agreementno = agreementno == null ? null : agreementno.trim();
     }
 
     public Date getSigntime() {
@@ -360,7 +329,7 @@ public class CreditApplyRecord {
     }
 
     public void setSignaddr(String signaddr) {
-        this.signaddr = signaddr;
+        this.signaddr = signaddr == null ? null : signaddr.trim();
     }
 
     public String getAgreementfile() {
@@ -368,7 +337,7 @@ public class CreditApplyRecord {
     }
 
     public void setAgreementfile(String agreementfile) {
-        this.agreementfile = agreementfile;
+        this.agreementfile = agreementfile == null ? null : agreementfile.trim();
     }
 
     public BigDecimal getApplymoney() {
@@ -384,6 +353,14 @@ public class CreditApplyRecord {
     }
 
     public void setCancelreason(String cancelreason) {
-        this.cancelreason = cancelreason;
+        this.cancelreason = cancelreason == null ? null : cancelreason.trim();
+    }
+
+    public String getReviewnotes() {
+        return reviewnotes;
+    }
+
+    public void setReviewnotes(String reviewnotes) {
+        this.reviewnotes = reviewnotes == null ? null : reviewnotes.trim();
     }
 }

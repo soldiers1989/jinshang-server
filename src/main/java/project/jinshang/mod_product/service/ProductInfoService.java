@@ -10,7 +10,6 @@ import project.jinshang.common.utils.ErrorMes;
 import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_product.ProductInfoMapper;
 import project.jinshang.mod_product.bean.*;
-import project.jinshang.mod_product.bean.dto.OtherProdStore;
 import project.jinshang.mod_product.bean.dto.ProdUnitRateViewDto;
 
 import java.math.BigDecimal;
@@ -218,6 +217,12 @@ public class ProductInfoService {
 
     public List<ProductInfo> listProductByExample(ProductInfoExample example) {
         return productInfoMapper.selectByExample(example);
+    }
+
+    public PageInfo getListProduct(ProductInfo productInfo,int pageNo, int pageSize){
+        PageHelper.startPage(pageNo, pageSize);
+        List<ProductInfo> list = productInfoMapper.getListProduct(productInfo);
+        return new PageInfo(list);
     }
 
 

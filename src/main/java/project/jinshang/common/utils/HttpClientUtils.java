@@ -80,9 +80,9 @@ public class HttpClientUtils {
     public static Map<String,Object> post(String url, Map<String,String> params){
         HttpPost post=new HttpPost(url);
         List<org.apache.http.NameValuePair> pairs = new ArrayList<>();
-        params.keySet().forEach((key) -> pairs.add(new BasicNameValuePair(key,params.get(key))));
         Map<String,Object> res=null;
         try {
+            params.keySet().forEach((key) -> pairs.add(new BasicNameValuePair(key,params.get(key))));
             post.setEntity(new UrlEncodedFormEntity(pairs, "utf-8"));
             post.setHeader("Content-type", "application/x-www-form-urlencoded");
             CloseableHttpResponse response = httpclient.execute(post);

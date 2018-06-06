@@ -22,6 +22,8 @@ public class BillCreate {
 
     private Integer records;
 
+
+    @ApiModelProperty(notes = "状态0=未缴清1=已缴清2=已逾期")
     private Short state;
 
     private Date lastrepaymentday;

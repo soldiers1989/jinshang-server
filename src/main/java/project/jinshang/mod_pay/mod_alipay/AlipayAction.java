@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import project.jinshang.common.constant.Quantity;
+import project.jinshang.common.utils.GenerateNo;
 import project.jinshang.mod_pay.bean.PayLogs;
 import project.jinshang.mod_pay.bean.Trade;
 import project.jinshang.mod_pay.service.PayLogsService;
@@ -60,7 +61,8 @@ public class AlipayAction {
         try{
             Trade trade = null;
             if(type== Quantity.STATE_1){ //订单
-                trade = tradeService.buildFromOrderId(orders,Quantity.STATE_0);
+                String uuid = "order-"+GenerateNo.getOrderIdByUUId();
+                trade = tradeService.buildFromOrderId(orders,Quantity.STATE_0,uuid);
             }else if (type == Quantity.STATE_2 ){
                 trade = tradeService.buildFromBuyerRecharge(orders,Quantity.STATE_1);
             }else if(type == Quantity.STATE_3){
@@ -114,7 +116,8 @@ public class AlipayAction {
         try{
             Trade trade = null;
             if(type== Quantity.STATE_1){ //订单
-                trade = tradeService.buildFromOrderId(orders,Quantity.STATE_0);
+                String uuid = "order-"+GenerateNo.getOrderIdByUUId();
+                trade = tradeService.buildFromOrderId(orders,Quantity.STATE_0,uuid);
             }else if (type == Quantity.STATE_2 ){
                 trade = tradeService.buildFromBuyerRecharge(orders,Quantity.STATE_1);
             }else if(type == Quantity.STATE_3){

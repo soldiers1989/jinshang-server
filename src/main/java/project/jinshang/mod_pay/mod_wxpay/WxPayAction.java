@@ -23,6 +23,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import project.jinshang.common.constant.Quantity;
+import project.jinshang.common.exception.CashException;
+import project.jinshang.common.utils.GenerateNo;
 import project.jinshang.common.utils.GsonUtils;
 import project.jinshang.mod_pay.bean.PayLogs;
 import project.jinshang.mod_pay.bean.Trade;
@@ -67,7 +69,8 @@ public class WxPayAction {
             PayUrlRet ret = new PayUrlRet();
             Trade trade = null;
             if(type== Quantity.STATE_1){
-                trade = tradeService.buildFromOrderId(orders,Quantity.STATE_1);
+                String uuid = "order-"+GenerateNo.getOrderIdByUUId();
+                trade = tradeService.buildFromOrderId(orders,Quantity.STATE_1,uuid);
             }else if(type == Quantity.STATE_2){
                 trade = tradeService.buildFromBuyerRecharge(orders,Quantity.STATE_0);
             }else if(type == Quantity.STATE_3){
@@ -91,7 +94,7 @@ public class WxPayAction {
             orderRequest.setTotalFee((int) trade.getAmount());
             // native时需要
             orderRequest.setProductId(trade.getProductId());
-            logger.info(request.getRemoteAddr());
+            //logger.info(request.getRemoteAddr());
             orderRequest.setSpbillCreateIp(request.getRemoteAddr());
             orderRequest.setNotifyURL(webConfBean.getProjectDomain()+"/rest/wxpay/notify");
             orderRequest.setTradeType("NATIVE");
@@ -136,7 +139,8 @@ public class WxPayAction {
             BasicMapDataRet ret = new BasicMapDataRet();
             Trade trade = null;
             if(type== Quantity.STATE_1){
-                trade = tradeService.buildFromOrderId(orders,Quantity.STATE_1);
+                String uuid = "order-"+GenerateNo.getOrderIdByUUId();
+                trade = tradeService.buildFromOrderId(orders,Quantity.STATE_1,uuid);
             }else if(type == Quantity.STATE_2){
                 trade = tradeService.buildFromBuyerRecharge(orders,Quantity.STATE_0);
             }else if(type == Quantity.STATE_3){
@@ -195,10 +199,9 @@ public class WxPayAction {
 
 
     @RequestMapping(value="/notify",method= {RequestMethod.POST, RequestMethod.GET})
-    public String notify2(@RequestBody String xmlData) {
+    public String notify2(@RequestBody String xmlData) throws CashException {
         try {
-
-            logger.error("微信回调："+xmlData);
+            //logger.error("微信回调："+xmlData);
 
             WxPayOrderNotifyResult result = wxService.parseOrderNotifyResult(xmlData);
             if("SUCCESS".equals(result.getReturnCode()) && "SUCCESS".equals(result.getResultCode())) {

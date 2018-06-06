@@ -6,7 +6,6 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import mizuki.project.core.restserver.config.BasicRet;
-import org.apache.ibatis.annotations.Param;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -88,12 +87,14 @@ public class BuyerCapitalAction {
             @ApiImplicitParam(name = "presentationnumber", value = "提现单号", defaultValue = "", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "paytype", value = "支付方式{0=支付宝1=微信2=银行卡3=余额4=授信}", defaultValue = "-1", required = false, paramType = "query", dataType = "int"),
             @ApiImplicitParam(name = "rechargeperform", value = "充值方式{0=微信1=支付宝2=线下平台}", defaultValue = "-1", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "withdrawtype", value = "提现方式{1=微信2=支付宝3=银行卡}", defaultValue = "-1", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "rechargestate", value = "状态{0=待处理1=成功2=失败3=待审核4=审核通过5=审核不通过}", defaultValue = "-1", required = false, paramType = "query", dataType = "int")
     })
     public ResponseEntity<InputStreamResource> list(BuyerCapitalQueryDto dto, Model model){
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
         dto.setMemberid(member.getId());
 
-        List<Map<String,Object>> resList =  buyerCapitalService.listConsumeForAdminExportExcel(dto);
+        List<Map<String,Object>> resList =  buyerCapitalService.listConsumeForBuyerExportExcel(dto);
 
         XSSFWorkbook workbook = null;
         String name = "买家导出账号明细";

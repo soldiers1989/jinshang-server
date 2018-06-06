@@ -51,6 +51,9 @@ public class OtherProductQueryDto {
 
     private String shopname;
 
+    //是否远期
+    private short futurePrice;
+
 
     public String getPdno() {
         return pdno;
@@ -220,5 +223,13 @@ public class OtherProductQueryDto {
 
     public void setUpdatetimeEnd(Date updatetimeEnd) {
         this.updatetimeEnd = updatetimeEnd;
+    }
+
+    public short getFuturePrice() {
+        return futurePrice;
+    }
+
+    public void setFuturePrice(short futurePrice) {
+        this.futurePrice = futurePrice;
     }
 }

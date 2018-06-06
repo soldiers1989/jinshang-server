@@ -1,5 +1,6 @@
 package project.jinshang.mod_product.service;
 
+import mizuki.project.core.restserver.config.BasicRet;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -169,6 +170,20 @@ public class ProductStoreService {
 
     public ProductStore getProductStore(long pdid, String pdno, long storeid) {
         return  productStoreMapper.getProductStore(pdid,pdno,storeid);
+    }
+
+
+
+    /**
+     *库存同步(主动)
+     * @author xiazy
+     * @date  2018/6/6 13:33
+     * @param storeid 仓库识别码
+     * @return mizuki.project.core.restserver.config.BasicRet
+     */
+    public BasicRet initiativeOrderReturn(Long storeid){
+        BasicRet basicRet=new BasicRet();
+        return basicRet;
     }
 
 

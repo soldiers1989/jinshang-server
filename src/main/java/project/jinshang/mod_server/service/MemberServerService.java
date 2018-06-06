@@ -98,7 +98,7 @@ public class MemberServerService {
     }
 
     /**
-     * 服务商结算excel导出
+     * 服务商结算excel
      *
      * @param param
      * @return
@@ -156,7 +156,7 @@ public class MemberServerService {
     }
 
     /**
-     * 导出获取结算详情excel
+     * 获取结算详情excel
      *
      * @param param
      * @return

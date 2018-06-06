@@ -3,7 +3,10 @@ package project.jinshang.mod_activity;
 import com.github.pagehelper.PageInfo;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import mizuki.project.core.restserver.config.BasicRet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
@@ -31,11 +34,8 @@ import project.jinshang.mod_activity.service.LimitTimeStoreService;
 import project.jinshang.mod_member.bean.Member;
 import project.jinshang.mod_product.bean.ProductAttr;
 import project.jinshang.mod_product.bean.ProductInfo;
-import project.jinshang.mod_product.bean.ProductInfoExample;
 import project.jinshang.mod_product.bean.ProductStore;
-import project.jinshang.mod_product.bean.dto.OtherProdDetailViewDto;
 import project.jinshang.mod_product.bean.dto.OtherProdStore;
-import project.jinshang.mod_product.bean.dto.OtherProdStoreView;
 import project.jinshang.mod_product.service.OtherProdService;
 import project.jinshang.mod_product.service.ProductAttrService;
 import project.jinshang.mod_product.service.ProductInfoService;
@@ -229,14 +229,27 @@ public class LimitTimeBuySellerAction {
 
     @PostMapping("/selectProd")
     @ApiOperation("选择商品接口")
-    public PageRet selectProd(Long level1id,Long level2id,Long level3id,
+    @ApiImplicitParams({
+            @ApiImplicitParam(value = "level1id",name = "level1id",required = false,paramType = "query", dataType = "Long"),
+            @ApiImplicitParam(value = "level2id",name = "level2id",required = false,paramType = "query", dataType = "Long"),
+            @ApiImplicitParam(value = "level3id",name = "level3id",required = false,paramType = "query", dataType = "Long"),
+            @ApiImplicitParam(value = "商品名称",name = "productname",required = false,paramType = "query", dataType = "String"),
+            @ApiImplicitParam(value = "规格",name = "stand",required = false,paramType = "query", dataType = "String"),
+            @ApiImplicitParam(value = "品牌",name = "brand",required = false,paramType = "query", dataType = "String"),
+            @ApiImplicitParam(value = "材质",name = "materialid",required = false,paramType = "query", dataType = "Long"),
+            @ApiImplicitParam(value = "牌号",name = "cardnumid",required = false,paramType = "query", dataType = "Long"),
+            @ApiImplicitParam(value = "商品编号",name = "pdno",required = false,paramType = "query", dataType = "String"),
+            @ApiImplicitParam(value = "pageNo",name = "pageNo",required = false,paramType = "query", dataType = "int"),
+            @ApiImplicitParam(value = "pageSize",name = "pageSize",required = false,paramType = "query", dataType = "int")
+    })
+    public PageRet selectProd(Long level1id,Long level2id,Long level3id,String productname,String stand,String brand,Long materialid,Long cardnumid,String pdno,
                               @RequestParam(required = true,defaultValue = "1") int pageNo,
                               @RequestParam(required = true,defaultValue = "10") int pageSize,Model model){
         PageRet pageRet =  new PageRet();
 
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
 
-        ProductInfoExample example = new ProductInfoExample();
+        /*ProductInfoExample example = new ProductInfoExample();
         ProductInfoExample.Criteria criteria = example.createCriteria();
 
         criteria.andPdstateEqualTo(Quantity.STATE_4);
@@ -252,9 +265,52 @@ public class LimitTimeBuySellerAction {
 
         if(level3id != null && level3id >0 ){
             criteria.andLevel3idEqualTo(level3id);
+        }*/
+
+        ProductInfo productInfo = new ProductInfo();
+        if(member.getId() != null ){
+            productInfo.setMemberid(member.getId());
         }
 
-        PageInfo pageInfo = productInfoService.getByPage(example,pageNo,pageSize);
+        if(level1id != null && level1id >0 ){
+            productInfo.setLevel1id(level1id);
+        }
+
+        if(level2id != null && level2id >0 ){
+            productInfo.setLevel2id(level2id);
+        }
+
+        if(level3id != null && level3id >0 ){
+            productInfo.setLevel3id(level3id);
+        }
+
+        if(productname != null && productname !=""){
+            productInfo.setProductname(productname);
+        }
+
+        if(stand != null && stand !=""){
+            productInfo.setStand(stand);
+        }
+
+        if(brand != null && brand != ""){
+            productInfo.setBrand(brand);
+        }
+
+        if(materialid != null && materialid >0){
+            productInfo.setMaterialid(materialid);
+        }
+
+        if(cardnumid != null && cardnumid >0){
+            productInfo.setCardnumid(cardnumid);
+        }
+
+        ProductStore productStore = new ProductStore();
+        if(pdno != null && pdno != ""){
+            productStore.setPdno(pdno);
+        }
+        productInfo.setProductStore(productStore);
+
+        PageInfo pageInfo = productInfoService.getListProduct(productInfo, pageNo, pageSize);
         pageRet.setResult(BasicRet.SUCCESS);
         pageRet.data.setPageInfo(pageInfo);
         return  pageRet;

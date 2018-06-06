@@ -2365,6 +2365,76 @@ public class CreditApplyRecordExample {
             addCriterion("cancelreason not between", value1, value2, "cancelreason");
             return (Criteria) this;
         }
+
+        public Criteria andReviewnotesIsNull() {
+            addCriterion("reviewnotes is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReviewnotesIsNotNull() {
+            addCriterion("reviewnotes is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andReviewnotesEqualTo(String value) {
+            addCriterion("reviewnotes =", value, "reviewnotes");
+            return (Criteria) this;
+        }
+
+        public Criteria andReviewnotesNotEqualTo(String value) {
+            addCriterion("reviewnotes <>", value, "reviewnotes");
+            return (Criteria) this;
+        }
+
+        public Criteria andReviewnotesGreaterThan(String value) {
+            addCriterion("reviewnotes >", value, "reviewnotes");
+            return (Criteria) this;
+        }
+
+        public Criteria andReviewnotesGreaterThanOrEqualTo(String value) {
+            addCriterion("reviewnotes >=", value, "reviewnotes");
+            return (Criteria) this;
+        }
+
+        public Criteria andReviewnotesLessThan(String value) {
+            addCriterion("reviewnotes <", value, "reviewnotes");
+            return (Criteria) this;
+        }
+
+        public Criteria andReviewnotesLessThanOrEqualTo(String value) {
+            addCriterion("reviewnotes <=", value, "reviewnotes");
+            return (Criteria) this;
+        }
+
+        public Criteria andReviewnotesLike(String value) {
+            addCriterion("reviewnotes like", value, "reviewnotes");
+            return (Criteria) this;
+        }
+
+        public Criteria andReviewnotesNotLike(String value) {
+            addCriterion("reviewnotes not like", value, "reviewnotes");
+            return (Criteria) this;
+        }
+
+        public Criteria andReviewnotesIn(List<String> values) {
+            addCriterion("reviewnotes in", values, "reviewnotes");
+            return (Criteria) this;
+        }
+
+        public Criteria andReviewnotesNotIn(List<String> values) {
+            addCriterion("reviewnotes not in", values, "reviewnotes");
+            return (Criteria) this;
+        }
+
+        public Criteria andReviewnotesBetween(String value1, String value2) {
+            addCriterion("reviewnotes between", value1, value2, "reviewnotes");
+            return (Criteria) this;
+        }
+
+        public Criteria andReviewnotesNotBetween(String value1, String value2) {
+            addCriterion("reviewnotes not between", value1, value2, "reviewnotes");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

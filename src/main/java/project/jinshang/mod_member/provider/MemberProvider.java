@@ -90,6 +90,10 @@ public class MemberProvider {
                 "C.mobile as companymobile,C.taxregistrationcertificate,C.bankdeposit from member M left join membergrade G on M.gradleid=G.id  " +
                 "left join buyercompanyinfo C on M.id=C.memberid   where parentid=0 and flag=true ");
 
+        if(dto.getIsbuy()!=null && dto.getIsbuy() !=0){
+            sql.append(" and M.isbuy=#{dto.isbuy} ");
+        }
+
         if(dto.getId() != null &&  dto.getId() >0){
             sql.append(" and M.id=#{dto.id} ");
         }

@@ -33,7 +33,6 @@ import project.jinshang.mod_cash.service.BuyerCapitalService;
 import project.jinshang.mod_company.bean.BuyerCompanyInfo;
 import project.jinshang.mod_company.service.BuyerCompanyService;
 import project.jinshang.mod_member.bean.Admin;
-import project.jinshang.mod_member.bean.AdminUser;
 import project.jinshang.mod_member.bean.Member;
 import project.jinshang.mod_member.service.AdminService;
 import project.jinshang.mod_member.service.AdminUserService;
@@ -53,8 +52,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 /**
  * Created by Administrator on 2017/11/9.
@@ -404,6 +401,7 @@ public class AdminOrdersAction {
             @ApiImplicitParam(name = "orderNo", value = "订单号", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "code", value = "合同号", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "tranNo", value = "交易号", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "clerkname", value = "客服人员", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "startTime", value = "开始时间", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "endTime", value = "结束时间", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "orderState", value = "订单状态0=待付款1=待发货3=待收货4=待验货5=已完成7=已关闭8=备货中9=备货完成11=卖家违约订单", required = false, paramType = "query", dataType = "int"),
@@ -488,6 +486,7 @@ public class AdminOrdersAction {
             @ApiImplicitParam(name = "orderNo", value = "订单号", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "code", value = "合同号", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "tranNo", value = "交易号", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "clerkname", value = "客服人员", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "startTime", value = "开始时间", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "endTime", value = "结束时间", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "orderState", value = "订单状态0=待付款1=待发货3=待收货4=待验货5=已完成7=已关闭8=备货中9=备货完成11=卖家违约订单", required = false, paramType = "query", dataType = "int"),

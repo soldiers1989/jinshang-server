@@ -26,7 +26,7 @@ public interface OrderTaskMapper {
      * @param intervalday
      * @return
      */
-    @Update("update  orders set orderstatus=4 where orderstatus=3 " +
+    @Update("update  orders set orderstatus=4,buyerdeliverytime=now() where orderstatus=3 " +
             "and sellerdeliverytime + INTERVAL ${intervalday} < now()")
     int updateTimeOutNotReviceOrdersToRevice(@Param("intervalday") String intervalday);
 
@@ -36,10 +36,18 @@ public interface OrderTaskMapper {
      * @param intervalday
      * @return
      */
+//    @Select("select O.* from orders O where orderstatus=4 " +
+//            "and O.buyerdeliverytime + INTERVAL ${intervalday} < now() and O.id not in " +
+//            "(select orderid from orderproduct P where O.id=P.orderid and (P.backstate != 0 and P.backstate != 3))")
+//    List<Orders> getTimeOutNotConfirmOrders(@Param("intervalday") String intervalday);
+
+
+    //暂时使用，过一段时间后使用上面的代码
     @Select("select O.* from orders O where orderstatus=4 " +
-            "and O.buyerdeliverytime + INTERVAL ${intervalday} < now() and O.id not in " +
-            "(select orderid from orderproduct P where O.id=P.orderid and (P.backstate != 0 and P.backstate != 3))")
+            "and O.sellerdeliverytime + INTERVAL '25 day' < now() and O.id not in " +
+            "(select orderid from orderproduct P where O.id=P.orderid and (P.backstate != 0 and P.backstate != 3)) limit 100")
     List<Orders> getTimeOutNotConfirmOrders(@Param("intervalday") String intervalday);
+
 
 
     /**

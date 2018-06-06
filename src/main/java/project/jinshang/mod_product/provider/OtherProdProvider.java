@@ -4,8 +4,6 @@ import org.apache.ibatis.annotations.Param;
 import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_product.bean.dto.OtherProductQueryDto;
 
-import java.util.List;
-
 /**
  * create : wyh
  * date : 2018/1/4
@@ -15,7 +13,8 @@ public class OtherProdProvider {
     public  String listOtherProd(@Param("queryDto")OtherProductQueryDto queryDto){
         StringBuilder sql = new StringBuilder();
 
-        sql.append("select P.*,S.pdno,M.username,SC.companyname,SC.shopname from productinfo P join productStore S on P.id=S.pdid ,Member M,sellercompanyinfo SC where P.memberid=M.id and M.id=SC.memberid and  producttype='其他' and pdstate != 6 ");
+
+        sql.append("select DISTINCT P.*,M.username,SC.companyname,SC.shopname from productinfo P join productStore S on P.id=S.pdid ,Member M,sellercompanyinfo SC where P.memberid=M.id and M.id=SC.memberid and  producttype='其他' and pdstate != 6 ");
         if(queryDto.getMemberid() != null && queryDto.getMemberid()>0){
             sql.append(" and P.memberid=#{queryDto.memberid} ");
         }
@@ -49,6 +48,14 @@ public class OtherProdProvider {
 
         if(queryDto.getPdstate() != null && queryDto.getPdstate() >=0){
             sql.append(" and P.pdstate=#{queryDto.pdstate} ");
+        }
+
+        if(queryDto.getFuturePrice() ==1){
+            sql.append(" and (s.ninetyprice is not null or s.thirtyprice is not null or s.sixtyprice is not null) ");
+        }
+
+        if(queryDto.getFuturePrice() ==2){
+            sql.append(" and (s.ninetyprice is null and s.thirtyprice is null and s.sixtyprice is null) ");
         }
 
         if(queryDto.getUptimeStart() != null){

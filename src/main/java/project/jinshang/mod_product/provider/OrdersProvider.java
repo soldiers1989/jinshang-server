@@ -18,7 +18,7 @@ public class OrdersProvider {
       */
     public  String  getAllMemberOrdersList(OrderQueryParam param){
         SQL sql =  new SQL();
-        sql.SELECT("o.*,bc.companyname as buyercompanyname, m.realname as realname,m.clerkname ");
+        sql.SELECT("o.*,bc.companyname as buyercompanyname, m.realname as realname ");
         sql.FROM(" orders o ");
         sql.LEFT_OUTER_JOIN("member m on o.memberid=m.id ");
         sql.LEFT_OUTER_JOIN("buyercompanyinfo bc on o.memberid=bc.memberid ");
@@ -28,6 +28,13 @@ public class OrdersProvider {
             param.setMemberName(memberName);
             sql.WHERE(" (m.realname like #{memberName} or bc.companyname like #{memberName})");
         }
+
+        if (StringUtils.hasText(param.getClerkname())) {
+            String clerkName = "%" + param.getClerkname() + "%";
+            param.setClerkname(clerkName);
+            sql.WHERE(" o.clerkname like #{clerkname} ");
+        }
+
         if (StringUtils.hasText(param.getSellerName())) {
             String sellerName = "%" + param.getSellerName() + "%";
             param.setSellerName(sellerName);

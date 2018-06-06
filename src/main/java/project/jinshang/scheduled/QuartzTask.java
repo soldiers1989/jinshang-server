@@ -40,7 +40,7 @@ import java.util.*;
 
 @Component
 @Transactional(rollbackFor = Exception.class)
-@Profile({"test","pro","dev"})
+@Profile({"test","pro"})
 public class QuartzTask {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -69,7 +69,6 @@ public class QuartzTask {
     @Autowired
     private BillingRecordService billingRecordService;
 
-
     @Autowired
     private OrderProductServices orderProductServices;
 
@@ -82,21 +81,17 @@ public class QuartzTask {
     @Autowired
     private  WMSService wmsService;
 
-
     @Autowired
     private OrderTaskMapper orderTaskMapper;
 
-
     @Autowired
     private CategoriesService categoriesService;
-
 
     @Autowired
     private IntegralService integralService;
 
     @Autowired
     private TradeService tradeService;
-
 
     @Autowired
     JinShangSms jinShangSms;
@@ -117,8 +112,10 @@ public class QuartzTask {
 //        map.put("orderno","D201803310926224472");
 //        jinShangSms.send("18663868251","SMS_134313669",map);
 
-        //tradeService.notify("order-1000001841148313","alipay","2018060221001004150533892867");
-
+       // tradeService.notify("order-1000000919893151","wxpay","4200000109201806048867472651");
+       // tradeService.notify("order-1000001215842899","wxpay","4200000117201806046525260046");
+        //tradeService.notify("order-1000001025309621","alipay","2018060521001004410553323517");
+//        tradeService.notify("order-1000001339556371","alipay","2018060521001004340549623076");
     }
 
 
@@ -270,198 +267,207 @@ public class QuartzTask {
     /**
      * 买家订单自动确认验货
      */
-    @Scheduled(cron = "0 0 0/2 * * ?")
+    @Scheduled(cron = "0 0 0/3 * * ?")
     public void  autoConfirmGoods() throws CashException {
-        System.out.println("买家订单自动确认验货---开始");
+        try {
+            System.out.println("买家订单自动确认验货---开始");
 
-        TransactionSetting transactionSetting = transactionSettingService.getTransactionSetting();
-        BigDecimal inspectionperiod = transactionSetting.getInspectionperiod();
+            TransactionSetting transactionSetting = transactionSettingService.getTransactionSetting();
+            BigDecimal inspectionperiod = transactionSetting.getInspectionperiod();
 
-        //正式环境使用
-        String intervalday = "'"+inspectionperiod+" day'";
+            //正式环境使用
+            String intervalday = "'"+inspectionperiod+" day'";
 
-        //测试使用
+            //测试使用
 //        inspectionperiod = new BigDecimal(2);
 //        String intervalday = "'"+inspectionperiod+" min'";
 
 
-        List<Orders> ordersList = orderTaskMapper.getTimeOutNotConfirmOrders(intervalday);
+            List<Orders> ordersList = orderTaskMapper.getTimeOutNotConfirmOrders(intervalday);
 
-        for(Orders orders : ordersList){
+            for(Orders orders : ordersList){
 
-            Member member = memberService.getMemberById(orders.getMemberid());
+                Member member = memberService.getMemberById(orders.getMemberid());
 
-            //计算订单金额和佣金，并充值到余额和开票金额
-            List<OrderProduct> list = ordersService.getOrderProductByOrderNo(orders.getOrderno());
-            //判断是否有退货商品
-            //实际支付的总额
-            BigDecimal sellerpay = BigDecimal.valueOf(0);
+                //计算订单金额和佣金，并充值到余额和开票金额
+                List<OrderProduct> list = ordersService.getOrderProductByOrderNo(orders.getOrderno());
+                //判断是否有退货商品
+                //实际支付的总额
+                BigDecimal sellerpay = BigDecimal.valueOf(0);
 
-            //运费
-            BigDecimal frigthpay = BigDecimal.valueOf(0);
+                //运费
+                BigDecimal frigthpay = BigDecimal.valueOf(0);
 
-            //总的佣金
-            BigDecimal totalBroke = BigDecimal.valueOf(0);
+                //总的佣金
+                BigDecimal totalBroke = BigDecimal.valueOf(0);
 
-            //服务费
-            BigDecimal totalServerPay = BigDecimal.valueOf(0);
+                //服务费
+                BigDecimal totalServerPay = BigDecimal.valueOf(0);
 
-            //获取紧固件积分规则
-            IntegralSet integralSet1 = integralService.getIntegralSetByType(Quantity.STATE_0);
-            //获取其它积分规则
-            IntegralSet integralSet2 = integralService.getIntegralSetByType(Quantity.STATE_1);
-            //销量统计
-            Map<Long, BigDecimal> pdsaleNumMap = new HashMap<>();
-            for (OrderProduct orderProduct : list) {
-                //退货状态0=正常1=退货中2=退货验收3=退货完成4=异议中
-                if (orderProduct.getBackstate() == Quantity.STATE_1 || orderProduct.getBackstate() == Quantity.STATE_2 || orderProduct.getBackstate() == Quantity.STATE_4) {
-                    continue;
-                }
-
-                if (orderProduct.getBackstate() == Quantity.STATE_0) {
-
-                    BigDecimal saleNum = pdsaleNumMap.get(orderProduct.getPdid());
-
-                    if (saleNum == null) {
-                        pdsaleNumMap.put(orderProduct.getPdid(), orderProduct.getNum());
-                    } else {
-                        pdsaleNumMap.put(orderProduct.getPdid(), orderProduct.getNum().add(saleNum));
+                //获取紧固件积分规则
+                IntegralSet integralSet1 = integralService.getIntegralSetByType(Quantity.STATE_0);
+                //获取其它积分规则
+                IntegralSet integralSet2 = integralService.getIntegralSetByType(Quantity.STATE_1);
+                //销量统计
+                Map<Long, BigDecimal> pdsaleNumMap = new HashMap<>();
+                for (OrderProduct orderProduct : list) {
+                    //退货状态0=正常1=退货中2=退货验收3=退货完成4=异议中
+                    if (orderProduct.getBackstate() == Quantity.STATE_1 || orderProduct.getBackstate() == Quantity.STATE_2 || orderProduct.getBackstate() == Quantity.STATE_4) {
+                        continue;
                     }
 
-                    //计算佣金
-                    Long classifyid = orderProduct.getClassifyid();
-                    BigDecimal rate = BigDecimal.valueOf(0);
+                    if (orderProduct.getBackstate() == Quantity.STATE_0) {
 
-                    //商家分类
-                    SellerCategory sellerCategory = ordersService.getSellerCategory(classifyid, orderProduct.getSellerid());
-                    if (sellerCategory != null) {
-                        if (sellerCategory.getBrokeragerate().compareTo(new BigDecimal(-1)) == 0) {
-                            SellerCategory sellerCategory1 = ordersService.getSellerCategory(sellerCategory.getParentid(), orderProduct.getSellerid());
-                            if (sellerCategory1 != null) {
-                                if (sellerCategory1.getBrokeragerate().compareTo(new BigDecimal(-1)) == 0) {
-                                    SellerCategory sellerCategory2 = ordersService.getSellerCategory(sellerCategory1.getParentid(), orderProduct.getSellerid());
-                                    if (sellerCategory2 != null) {
-                                        rate = sellerCategory2.getBrokeragerate();
-                                    }
-                                } else {
-                                    rate = sellerCategory1.getBrokeragerate();
-                                }
-                            }
+                        BigDecimal saleNum = pdsaleNumMap.get(orderProduct.getPdid());
+
+                        if (saleNum == null) {
+                            pdsaleNumMap.put(orderProduct.getPdid(), orderProduct.getNum());
                         } else {
-                            rate = sellerCategory.getBrokeragerate();
-                        }
-                    }
-
-                    Categories categories = ordersService.getCategories(classifyid);
-                    if (categories != null) {
-                        //佣金比率
-                        BigDecimal brolerRate =rate.multiply(BigDecimal.valueOf(0.01));
-                        if(brolerRate.compareTo(BigDecimal.valueOf(0))<0){
-                            brolerRate = getBrokerRate(classifyid).multiply(BigDecimal.valueOf(0.01));
+                            pdsaleNumMap.put(orderProduct.getPdid(), orderProduct.getNum().add(saleNum));
                         }
 
-                        //服务费比率 用的是category中设置的
-                        BigDecimal serverRate = getServerRate(classifyid).multiply(BigDecimal.valueOf(0.01));
+                        //计算佣金
+                        Long classifyid = orderProduct.getClassifyid();
+                        BigDecimal rate = BigDecimal.valueOf(0);
+
+                        //商家分类
+                        SellerCategory sellerCategory = ordersService.getSellerCategory(classifyid, orderProduct.getSellerid());
+                        if (sellerCategory != null) {
+                            if (sellerCategory.getBrokeragerate().compareTo(new BigDecimal(-1)) == 0) {
+                                SellerCategory sellerCategory1 = ordersService.getSellerCategory(sellerCategory.getParentid(), orderProduct.getSellerid());
+                                if (sellerCategory1 != null) {
+                                    if (sellerCategory1.getBrokeragerate().compareTo(new BigDecimal(-1)) == 0) {
+                                        SellerCategory sellerCategory2 = ordersService.getSellerCategory(sellerCategory1.getParentid(), orderProduct.getSellerid());
+                                        if (sellerCategory2 != null) {
+                                            rate = sellerCategory2.getBrokeragerate();
+                                        }
+                                    } else {
+                                        rate = sellerCategory1.getBrokeragerate();
+                                    }
+                                }
+                            } else {
+                                rate = sellerCategory.getBrokeragerate();
+                            }
+                        }
+
+                        Categories categories = ordersService.getCategories(classifyid);
+                        if (categories != null) {
+                            //佣金比率
+                            BigDecimal brolerRate =rate.multiply(BigDecimal.valueOf(0.01));
+                            if(brolerRate.compareTo(BigDecimal.valueOf(0))<0){
+                                brolerRate = getBrokerRate(classifyid).multiply(BigDecimal.valueOf(0.01));
+                            }
+
+                            //服务费比率 用的是category中设置的
+                            BigDecimal serverRate = getServerRate(classifyid).multiply(BigDecimal.valueOf(0.01));
+
+                            //商品单位佣金=销售单价*商品佣金比例
+                            BigDecimal singlebrokepay = orderProduct.getPrice().multiply(brolerRate);
+
+                            //商品佣金=商品单位佣金*商品数量
+                            //BigDecimal broker = (orderProduct.getActualpayment().subtract(orderProduct.getFreight())).multiply(brolerRate);
+                            BigDecimal broker = singlebrokepay.multiply(orderProduct.getNum());
+
+                            OrderProduct updateOrderProduct = new OrderProduct();
+                            updateOrderProduct.setId(orderProduct.getId());
+                            updateOrderProduct.setSinglebrokepay(singlebrokepay);
+                            updateOrderProduct.setBrokepay(broker);
+                            ordersService.updateOrderProduct(updateOrderProduct);
 
 
-                        //商品单位佣金=销售单价*商品佣金比例
-                        BigDecimal singlebrokepay = orderProduct.getPrice().multiply(brolerRate);
+                            BigDecimal servepay = (orderProduct.getActualpayment().subtract(orderProduct.getFreight())).multiply(serverRate);
+                            totalBroke = totalBroke.add(broker);
+                            totalServerPay = totalServerPay.add(servepay);
+                        }
 
-                        //商品佣金=商品单位佣金*商品数量
-                        //BigDecimal broker = (orderProduct.getActualpayment().subtract(orderProduct.getFreight())).multiply(brolerRate);
-                        BigDecimal broker = singlebrokepay.multiply(orderProduct.getNum());
+                        sellerpay = sellerpay.add(orderProduct.getActualpayment());
+                        frigthpay = frigthpay.add(orderProduct.getFreight());
+                    }
+                }
+                //保存销量
+                for (Long pdid : pdsaleNumMap.keySet()) {
+                    ProductInfo info = ordersService.getProductInfoByPrimeKey(pdid);
+                    if (info != null) {
+                        BigDecimal salenum = pdsaleNumMap.get(pdid);
+                        info.setSalesnum(info.getSalesnum() + salenum.longValue());
+                        ordersService.saveProductInfo(info);
+                    }
+                }
 
-                        OrderProduct updateOrderProduct = new OrderProduct();
-                        updateOrderProduct.setId(orderProduct.getId());
-                        updateOrderProduct.setSinglebrokepay(singlebrokepay);
-                        updateOrderProduct.setBrokepay(broker);
-                        ordersService.updateOrderProduct(updateOrderProduct);
+                BigDecimal scope = BigDecimal.valueOf(0);
+                //紧固件
+                if (list.get(0).getProducttype() == Quantity.STATE_1) {
+                    scope = integralSet1.getScope();
+                } else {
+                    scope = integralSet2.getScope();
+                }
+
+                BigDecimal allPdPay = sellerpay.subtract(frigthpay);
 
 
-                        BigDecimal servepay = (orderProduct.getActualpayment().subtract(orderProduct.getFreight())).multiply(serverRate);
-                        totalBroke = totalBroke.add(broker);
-                        totalServerPay = totalServerPay.add(servepay);
+                BigDecimal integralValue = Quantity.BIG_DECIMAL_0;
+
+                if(scope.compareTo(Quantity.BIG_DECIMAL_0) >0){
+                    integralValue = allPdPay.divideToIntegralValue(scope);
+                }
+
+                if(integralValue.compareTo(Quantity.BIG_DECIMAL_0)>0 && member != null) {
+                    IntegralRecord integralRecord = new IntegralRecord();
+                    integralRecord.setMemberid(member.getId());
+                    integralRecord.setMembername(member.getUsername());
+                    integralRecord.setOrderid(orders.getId());
+                    integralRecord.setScope(integralValue);
+                    integralRecord.setType(Quantity.STATE_0);
+                    integralRecord.setCreatetime(new Date());
+                    integralRecord.setRemark("订单积分");
+                    integralService.saveIntegralRecord(integralRecord);
+
+                    memberService.updateIntegralInDb(member.getId(),integralValue,integralValue);
+                }
+
+                if(orders.getBillingtype() == Quantity.STATE_1){  //提交订单时选择开票  将billingrecord表中的state 字段由-1更改为0（待开票状态）
+                    //并且要查询该订单中是否有退款的，如果有开票金额减去退款金额
+
+                    //查询是否有退货或退款的，如果有退货开票金额要减去退货的钱
+                    List<OrderProductBack> orderProductBackList =  orderProductBackService.getByOrderNo(orders.getOrderno());
+                    BigDecimal subApply =  new BigDecimal(0);
+                    for(OrderProductBack opb : orderProductBackList){
+                        subApply =  subApply.add(opb.getBackmoney());
                     }
 
-                    sellerpay = sellerpay.add(orderProduct.getActualpayment());
-                    frigthpay = frigthpay.add(orderProduct.getFreight());
-                }
-            }
-            //保存销量
-            for (Long pdid : pdsaleNumMap.keySet()) {
-                ProductInfo info = ordersService.getProductInfoByPrimeKey(pdid);
-                if (info != null) {
-                    BigDecimal salenum = pdsaleNumMap.get(pdid);
-                    info.setSalesnum(info.getSalesnum() + salenum.longValue());
-                    ordersService.saveProductInfo(info);
-                }
-            }
-
-            BigDecimal scope = BigDecimal.valueOf(0);
-            //紧固件
-            if (list.get(0).getProducttype() == Quantity.STATE_1) {
-                scope = integralSet1.getScope();
-            } else {
-                scope = integralSet2.getScope();
-            }
-
-            BigDecimal allPdPay = sellerpay.subtract(frigthpay);
-
-
-            BigDecimal integralValue = Quantity.BIG_DECIMAL_0;
-
-            if(scope.compareTo(Quantity.BIG_DECIMAL_0) >0){
-                integralValue = allPdPay.divideToIntegralValue(scope);
-            }
-
-            if(integralValue.compareTo(Quantity.BIG_DECIMAL_0)>0) {
-                IntegralRecord integralRecord = new IntegralRecord();
-                integralRecord.setMemberid(member.getId());
-                integralRecord.setMembername(member.getUsername());
-                integralRecord.setOrderid(orders.getId());
-                integralRecord.setScope(integralValue);
-                integralRecord.setType(Quantity.STATE_0);
-                integralRecord.setCreatetime(new Date());
-                integralRecord.setRemark("订单积分");
-                integralService.saveIntegralRecord(integralRecord);
-            }
-
-
-            memberService.updateIntegralInDb(member.getId(),integralValue,integralValue);
-
-            if(orders.getBillingtype() == Quantity.STATE_1){  //提交订单时选择开票  将billingrecord表中的state 字段由-1更改为0（待开票状态）
-                //并且要查询该订单中是否有退款的，如果有开票金额减去退款金额
-
-                //查询是否有退货或退款的，如果有退货开票金额要减去退货的钱
-                List<OrderProductBack> orderProductBackList =  orderProductBackService.getByOrderNo(orders.getOrderno());
-                BigDecimal subApply =  new BigDecimal(0);
-                for(OrderProductBack opb : orderProductBackList){
-                    subApply =  subApply.add(opb.getBackmoney());
+                    billingRecordService.updateForwordBillingState(orders.getId().toString(),orders.getMemberid(),subApply.multiply(new BigDecimal(-1)));
                 }
 
-                billingRecordService.updateForwordBillingState(orders.getId().toString(),orders.getMemberid(),subApply.multiply(new BigDecimal(-1)));
+
+                Member seller = memberService.getMemberById(orders.getSaleid());
+                //BigDecimal frozepay = sellerpay.subtract(totalBroke).setScale(2,BigDecimal.ROUND_HALF_UP);\
+                BigDecimal frozepay = sellerpay.setScale(2,BigDecimal.ROUND_HALF_UP);
+                if (seller != null) {
+                    //增加卖家冻结金额
+                    memberService.updateSellerMemberBalanceInDb(seller.getId(),Quantity.BIG_DECIMAL_0,frozepay);
+                }
+
+                orders.setBrokepay(totalBroke);
+                orders.setFrozepay(frozepay);
+                orders.setServerpay(totalServerPay);
+
+                int count = ordersService.updateOrdersConfirmgoods(orders);
+                if(count != 1){
+                    throw new CashException("买家订单自动确认验货出现错误，可能出现并发更新问题，所有操作已回撤，订单id:"+orders.getId());
+                }
+
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
 
-
-            Member seller = memberService.getMemberById(orders.getSaleid());
-            //BigDecimal frozepay = sellerpay.subtract(totalBroke).setScale(2,BigDecimal.ROUND_HALF_UP);\
-            BigDecimal frozepay = sellerpay.setScale(2,BigDecimal.ROUND_HALF_UP);
-            if (seller != null) {
-                //增加卖家冻结金额
-                memberService.updateSellerMemberBalanceInDb(seller.getId(),Quantity.BIG_DECIMAL_0,frozepay);
-            }
-
-            orders.setBrokepay(totalBroke);
-            orders.setFrozepay(frozepay);
-            orders.setServerpay(totalServerPay);
-
-            int count = ordersService.updateOrdersConfirmgoods(orders);
-            if(count != 1){
-                throw new CashException("买家订单自动确认验货出现错误，可能出现并发更新问题，所有操作已回撤，订单id:"+orders.getId());
-            }
+            System.out.println("买家订单自动确认验货---结束");
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw e;
         }
-
-        System.out.println("买家订单自动确认验货---结束");
     }
 
 

@@ -1,9 +1,9 @@
 package project.jinshang.mod_product;
 
-import java.util.List;
-import java.util.Map;
-
-import org.apache.ibatis.annotations.*;
+import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.SelectProvider;
+import org.apache.ibatis.annotations.Update;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import project.jinshang.mod_product.bean.ProductInfo;
@@ -13,8 +13,8 @@ import project.jinshang.mod_product.bean.Products;
 import project.jinshang.mod_product.bean.dto.ProdUnitRateViewDto;
 import project.jinshang.mod_product.service.ProductInfoProvider;
 
-import javax.persistence.FetchType;
-import javax.persistence.OneToOne;
+import java.util.List;
+import java.util.Map;
 
 public interface ProductInfoMapper {
     int countByExample(ProductInfoExample example);
@@ -79,6 +79,8 @@ public interface ProductInfoMapper {
             "<if test=\"info.createStart != null \"> and p.createtime &gt; #{info.createStart} </if>"+
             "<if test=\"info.createEnd != null \"> and p.createtime &lt; #{info.createEnd} </if>"+
             "<if test=\"info.stand != null and info.stand !='' \"> and p.stand  like  '%${info.stand}%' </if>"+
+            "<if test=\"info.futurePrice ==1 \"> and (s.ninetyprice is not null or s.thirtyprice is not null or s.sixtyprice is not null) </if>"+
+            "<if test=\"info.futurePrice ==2 \"> and (s.ninetyprice is null and s.thirtyprice is null and s.sixtyprice is null) </if>"+
             "<if test=\"info.productname != null\"> and p.productname like '%${info.productname}%' </if>" +
             "</where>  " +
             "<choose>" +
@@ -237,4 +239,19 @@ public interface ProductInfoMapper {
     @Update("update productinfo set pdpicture=#{pdpicture,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler}," +
             "pddrawing=#{pddrawing,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler} where productsno=#{productno}")
     int updateImgByProductsno(Products products);
+
+    @Select("<script>" +
+            "select p.*,ps.pdno from productinfo p left join productstore ps on p.id=ps.pdid where p.pdstate = 4 " +
+            "<if test=\"info.memberid !=null and info.memberid!= ''\">and p.memberid=#{info.memberid} </if>" +
+            "<if test=\"info.level1id !=null and info.level1id!= ''\">and p.level1id=#{info.level1id} </if>" +
+            "<if test=\"info.level2id !=null and info.level2id!= ''\">and p.level2id=#{info.level2id} </if>" +
+            "<if test=\"info.level3id !=null and info.level3id!= ''\">and p.level3id=#{info.level3id} </if>" +
+            "<if test=\"info.productname != null\">and p.productname like '%${info.productname}%' </if>" +
+            "<if test=\"info.stand != null\">and p.stand like '%${info.stand}%' </if>" +
+            "<if test=\"info.brand != null\"> and p.brand like '%${info.brand}%' </if>" +
+            "<if test=\"info.productStore.pdno !=null and info.productStore.pdno!= ''\">and ps.pdno=#{info.productStore.pdno} </if>" +
+            "<if test=\"info.materialid !=null and info.materialid > 0\">and p.materialid=#{info.materialid} </if>" +
+            "<if test=\"info.cardnumid !=null and info.cardnumid > 0\">and p.cardnumid=#{info.cardnumid} </if>" +
+            "</script>")
+    List<ProductInfo> getListProduct(@Param("info") ProductInfo info);
 }

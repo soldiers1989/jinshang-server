@@ -134,6 +134,9 @@ public class ProductInfoQuery {
 
     private List<Integer> pdids;
 
+    //是否远期
+    private short futurePrice;
+
     /******************************EXTEND********************************************/
     @ApiModelProperty(notes = "productStore")
     private  ProductStore productStore;
@@ -619,5 +622,13 @@ public class ProductInfoQuery {
 
     public void setPdids(List<Integer> pdids) {
         this.pdids = pdids;
+    }
+
+    public short getFuturePrice() {
+        return futurePrice;
+    }
+
+    public void setFuturePrice(short futurePrice) {
+        this.futurePrice = futurePrice;
     }
 }

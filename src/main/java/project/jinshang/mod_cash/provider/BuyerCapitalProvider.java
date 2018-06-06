@@ -221,6 +221,74 @@ public class BuyerCapitalProvider {
         return  sql.toString();
     }
 
+    public  String listConsumeForBuyerExportExcel(@Param("dto")BuyerCapitalQueryDto dto){
+        StringBuilder sql = new StringBuilder();
+
+        sql.append("select B.*,M.username,C.companyname from buyercapital B left join member M on B.memberid=M.id left join buyercompanyinfo C on B.memberid=C.memberid where 1=1 ");
+
+        if(dto.getMemberid() != null && dto.getMemberid() >0){
+            sql.append(" and B.memberid=#{dto.memberid} ");
+        }
+
+        if(dto.getTradetimeStart() != null){
+            sql.append(" and B.tradetime >= #{dto.tradetimeStart} ");
+        }
+
+        if(dto.getTradetimeEnd() != null){
+            sql.append(" and B.tradetime <=#{dto.tradetimeEnd} ");
+        }
+
+
+
+        if(dto.getCapitaltype() != null && dto.getCapitaltype() != -1){
+            sql.append(" and B.capitaltype=#{dto.capitaltype} ");
+        }
+
+
+        if(dto.getTradeno() != null && !dto.getTradeno().equals("")){
+            dto.setTradeno("%"+dto.getTradeno()+"%");
+            sql.append(" and B.tradeno like  #{dto.tradeno}");
+        }
+
+        if(dto.getPaytype() != null && dto.getPaytype() !=-1){
+            sql.append(" and B.paytype = #{dto.paytype} ");
+        }
+
+        if(dto.getWithdrawtype() != null && dto.getWithdrawtype() !=-1){
+            sql.append(" and B.withdrawtype = #{dto.withdrawtype} ");
+        }
+
+        if(dto.getRechargestate() != null && dto.getRechargestate() !=-1){
+            sql.append(" and B.rechargestate = #{dto.rechargestate} ");
+        }
+
+        if(dto.getRechargeperform() != null && dto.getRechargeperform() != -1){
+            sql.append(" and B.rechargeperform=#{dto.rechargeperform} ");
+        }
+
+
+        if(dto.getOrderno() != null && !dto.getOrderno().equals("")){
+            dto.setOrderno("%"+dto.getOrderno()+"%");
+            sql.append(" and B.orderno like #{orderno} ");
+        }
+
+
+        if(dto.getPresentationnumber() != null && !dto.getPresentationnumber().equals("")){
+            dto.setPresentationnumber("%"+dto.getPresentationnumber()+"%");
+            sql.append(" and B.presentationnumber like #{dto.presentationnumber} ");
+        }
+
+
+        if(dto.getBillcreateid() != null && dto.getBillcreateid()>0){
+            sql.append(" and B.billcreateid=#{dto.billcreateid} ");
+        }
+
+
+        sql.append(" order by B.id desc ");
+
+        return  sql.toString();
+    }
+
     public  String ExcelExportUserCapitalManagement(@Param("dto")BuyerCapitalQueryDto dto){
         StringBuilder sql = new StringBuilder();
 

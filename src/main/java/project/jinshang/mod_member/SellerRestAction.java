@@ -2,12 +2,12 @@ package project.jinshang.mod_member;
 
 import com.github.pagehelper.PageInfo;
 import com.google.code.kaptcha.Constants;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import mizuki.project.core.restserver.config.BasicRet;
-
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.bouncycastle.crypto.Digest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.ui.Model;
@@ -28,24 +28,19 @@ import project.jinshang.mod_company.bean.SellerCompanyInfo;
 import project.jinshang.mod_company.service.BuyerCompanyService;
 import project.jinshang.mod_company.service.SellerCompanyCacheService;
 import project.jinshang.mod_company.service.SellerCompanyInfoService;
-import project.jinshang.mod_member.bean.ApiRecord;
 import project.jinshang.mod_member.bean.Member;
 import project.jinshang.mod_member.bean.MemberExample;
 import project.jinshang.mod_member.bean.SellerGroup;
-import project.jinshang.mod_member.bean.dto.ApiRecordViewDto;
 import project.jinshang.mod_member.service.AdvanceSellerPublish;
 import project.jinshang.mod_member.service.MemberService;
 import project.jinshang.mod_member.service.SellerGroupService;
 import project.jinshang.mod_product.service.MemberOperateLogService;
-import project.jinshang.mod_shop.bean.ShopGrade;
 import project.jinshang.mod_shop.service.ShopGradeService;
 
-import javax.crypto.SecretKey;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.List;
 
 /**
  * create : wyh
@@ -543,10 +538,8 @@ public class SellerRestAction {
         Member subMember = new Member();
         subMember.setParentname(member.getUsername());
         subMember.setParentid(member.getId());
-
         subMember.setPasswordsalt(CommonUtils.genSalt());
         subMember.setPassword(CommonUtils.genMd5Password(password,subMember.getPasswordsalt()));
-
         subMember.setUsername(username);
         subMember.setRealname(realname);
         subMember.setDisabled(false);
@@ -556,8 +549,20 @@ public class SellerRestAction {
         subMember.setFlag(false);
         subMember.setCompany(true);
         subMember.setReviewed(true);
+        subMember.setSellerbanlance(new BigDecimal(0));
+        subMember.setSellerfreezebanlance(new BigDecimal(0));
+        subMember.setCreditlimit(new BigDecimal(0));
+        subMember.setUsedlimit(new BigDecimal(0));
+        subMember.setAvailablelimit(new BigDecimal(0));
         subMember.setSellergroupid(sellergroupid);
         subMember.setRemark(remark);
+        subMember.setBillmoney(new BigDecimal(0));
+        subMember.setEva1(new BigDecimal(0));
+        subMember.setEva2(new BigDecimal(0));
+        subMember.setEva3(new BigDecimal(0));
+        subMember.setAvailableintegral(new BigDecimal(0));
+        subMember.setGoodsbanlance(new BigDecimal(0));
+        subMember.setIsbuy((short) 1);
         subMember.setIntegrals(new BigDecimal(0));
 
         memberService.insertSelective(subMember);
