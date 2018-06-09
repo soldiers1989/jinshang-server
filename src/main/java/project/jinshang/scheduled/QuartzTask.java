@@ -96,36 +96,35 @@ public class QuartzTask {
     @Autowired
     JinShangSms jinShangSms;
 
-
-    @Scheduled(cron = "0 0/1 * * * ?")
-    public void  test(){
-        //tradeService.notify("order-1000000559743052","bank","");
-        //tradeService.notify("order-1000000711668761","bank","");
-
-        //tradeService.notify("order-1000000380890698","bank","");
-
-        //tradeService.notify("order-1000000780997213","alipay","20180511210010045205997318");
-       // System.out.println("test");
-
-
-//        Map<String,String> map = new HashMap<>();
-//        map.put("orderno","D201803310926224472");
-//        jinShangSms.send("18663868251","SMS_134313669",map);
-
-       // tradeService.notify("order-1000000919893151","wxpay","4200000109201806048867472651");
-       // tradeService.notify("order-1000001215842899","wxpay","4200000117201806046525260046");
-        //tradeService.notify("order-1000001025309621","alipay","2018060521001004410553323517");
-//        tradeService.notify("order-1000001339556371","alipay","2018060521001004340549623076");
-    }
-
+    @Autowired
+    private ProductStoreService productStoreService;
 
     /**
      * 自动关闭超时未付款订单
      */
-    @Scheduled(cron = "0 0/10 * * * ?")
+    @Scheduled(cron = "0 0/3 * * * ?")
     public void updateNotPayOrdersForFinish(){
         System.out.println("更新超时付款订单状态为已关闭");
-        ordersService.updateNotPayOrdersForFinish(null);
+        TransactionSetting transactionSetting = transactionSettingService.getTransactionSetting();
+
+        BigDecimal unpaidtimeout = transactionSetting.getUnpaidtimeout();
+        int unpaidtimeoutHour = unpaidtimeout.intValue();
+
+        List<Orders> orders = orderTaskMapper.getOuttimeNotPayOrders(unpaidtimeoutHour+" hour");
+        for (Orders order : orders) {
+            if (order.getCreatetime() != null) {
+                Orders updateOrder = new Orders();
+                updateOrder.setId(order.getId());
+                updateOrder.setOrderstatus(Quantity.STATE_7);
+                updateOrder.setReason("订单超时取消");
+                ordersService.updateSingleOrder(updateOrder);
+                //将商品库存加回去
+                List<OrderProduct> orderProductList = ordersService.getOrderProductByOrderId(order.getId());
+                for (OrderProduct orderProduct : orderProductList) {
+                    productStoreService.addStoreNumByPdidAndPdno(orderProduct.getPdid(), orderProduct.getPdno(), orderProduct.getNum());
+                }
+            }
+        }
         System.out.println("更新超时付款订单完成");
     }
 

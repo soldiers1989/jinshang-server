@@ -57,6 +57,7 @@ import project.jinshang.mod_member.service.MemberService;
 import project.jinshang.mod_pay.bean.Refund;
 import project.jinshang.mod_product.*;
 import project.jinshang.mod_product.bean.*;
+import project.jinshang.mod_product.bean.dto.OrdersView;
 import project.jinshang.mod_shippingaddress.ShippingAddressMapper;
 import project.jinshang.mod_shippingaddress.bean.ShippingAddress;
 import project.jinshang.mod_shippingaddress.bean.ShippingAddressExample;
@@ -65,6 +66,7 @@ import project.jinshang.mod_wms_middleware.WMSService;
 import javax.persistence.Basic;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
@@ -162,7 +164,7 @@ public class OrdersService {
     @Autowired
     private SellerCategoryMapper sellerCategoryMapper;
     @Autowired
-    private  ProductAttrMapper productAttrMapper;
+    private ProductAttrMapper productAttrMapper;
     @Autowired
     private WMSService wmsService;
 
@@ -191,6 +193,7 @@ public class OrdersService {
     //远期全款打折率
     private static final BigDecimal allPayRate = new BigDecimal(0.99);
     MemberLogOperator memberLogOperator = new MemberLogOperator();
+
     public void saveBuyerCapital(BuyerCapital buyerCapital) {
         buyerCapitalMapper.insertSelective(buyerCapital);
     }
@@ -260,13 +263,12 @@ public class OrdersService {
 
     /**
      * 获取可以结算的订单
+     *
      * @return
      */
     public List<Orders> getSellerSettleOrdersList() {
         return ordersMapper.getSellerSettleOrdersList();
     }
-
-
 
 
     /**
@@ -590,56 +592,6 @@ public class OrdersService {
         ordersExample.createCriteria().andOrderstatusNotEqualTo(Quantity.STATE_5).andOrderstatusNotEqualTo(Quantity.STATE_7);
         return ordersMapper.selectByExample(ordersExample);
 
-    }
-
-    /**
-     * 将未付款的订单改变成关闭
-     *
-     * @param memberid
-     */
-    public void updateNotPayOrdersForFinish(Long memberid) {
-
-        TransactionSetting transactionSetting = transactionSettingService.getTransactionSetting();
-
-        BigDecimal unpaidtimeout = transactionSetting.getUnpaidtimeout();
-
-        int unpaidtimeoutHour = unpaidtimeout.intValue();
-
-        Calendar c = Calendar.getInstance();
-        OrdersExample ordersExample = new OrdersExample();
-        OrdersExample.Criteria criteria = ordersExample.createCriteria();
-        criteria.andOrderstatusEqualTo(Quantity.STATE_0);
-        if (memberid != null) {
-            criteria.andMemberidEqualTo(memberid);
-        }
-
-        List<Orders> list = ordersMapper.selectByExample(ordersExample);
-        List<Orders> orders = new ArrayList<>();
-        for (Orders order : list) {
-            if (order.getCreatetime() != null) {
-                c.setTime(order.getCreatetime());
-                c.add(Calendar.HOUR, unpaidtimeoutHour);
-                //c.add(Calendar.MINUTE, 5);
-                Date tomorrow = c.getTime();
-                Date today = new Date();
-
-                //关闭订单
-                if (today.compareTo(tomorrow) == 1) {
-                    Orders updateOrder = new Orders();
-                    updateOrder.setId(order.getId());
-                    updateOrder.setOrderstatus(Quantity.STATE_7);
-                    updateOrder.setReason("订单超时取消");
-                    updateSingleOrder(updateOrder);
-
-
-                    //将商品库存加回去
-                    List<OrderProduct> orderProductList = this.getOrderProductByOrderId(order.getId());
-                    for(OrderProduct orderProduct : orderProductList){
-                      productStoreService.addStoreNumByPdidAndPdno(orderProduct.getPdid(),orderProduct.getPdno(),orderProduct.getNum());
-                    }
-                }
-            }
-        }
     }
 
 
@@ -1046,7 +998,7 @@ public class OrdersService {
 
         List<OrderProductBackView> list = orderProductBackMapper.getOrderProductBackList(backQueryParam);
         list.forEach(orderProductBackView -> {
-            if(orderProductBackView.getClassifyid() != null) {
+            if (orderProductBackView.getClassifyid() != null) {
                 Categories categories = this.getCategories(orderProductBackView.getClassifyid());
                 orderProductBackView.setLevel3(categories.getName());
             }
@@ -1291,7 +1243,7 @@ public class OrdersService {
 //            return null;
 //        }
 
-        return  productStoreService.getProductStore(pdid,pdno,storeid);
+        return productStoreService.getProductStore(pdid, pdno, storeid);
 
     }
 
@@ -1302,7 +1254,7 @@ public class OrdersService {
      * @param orderProduct
      */
     public int updateOrderProduct(OrderProduct orderProduct) {
-        return  orderProductMapper.updateByPrimaryKeySelective(orderProduct);
+        return orderProductMapper.updateByPrimaryKeySelective(orderProduct);
     }
 
     /**
@@ -1313,7 +1265,7 @@ public class OrdersService {
      */
     public OrderProduct getOrderProductById(long id) {
         //return orderProductMapper.selectByPrimaryKey(id);
-        return  orderProductServices.getOrderProductById(id);
+        return orderProductServices.getOrderProductById(id);
     }
 
     public List<OrderProduct> getOrderProductByOrderId(long orderid) {
@@ -1321,14 +1273,14 @@ public class OrdersService {
 //        orderProductExample.createCriteria().andOrderidEqualTo(orderid);
 //        return orderProductMapper.selectByExample(orderProductExample);
 
-        return  orderProductServices.getOrderProductByOrderId(orderid);
+        return orderProductServices.getOrderProductByOrderId(orderid);
     }
 
     public List<OrderProduct> getOrderProductByOrderId(long orderid, Long pdid, String pdno) {
 //        OrderProductExample orderProductExample = new OrderProductExample();
 //        orderProductExample.createCriteria().andOrderidEqualTo(orderid).andPdidEqualTo(pdid).andPdnoEqualTo(pdno);
 //        return orderProductMapper.selectByExample(orderProductExample);
-        return  orderProductServices.getOrderProductByOrderId(orderid,pdid,pdno);
+        return orderProductServices.getOrderProductByOrderId(orderid, pdid, pdno);
     }
 
     public List<OrderProduct> getOrderProductByOrderId(long orderid, long orderproductid) {
@@ -1336,7 +1288,7 @@ public class OrdersService {
 //        orderProductExample.createCriteria().andOrderidEqualTo(orderid).andIdNotEqualTo(orderproductid);
 //        return orderProductMapper.selectByExample(orderProductExample);
 
-        return  orderProductServices.getOrderProductByOrderId(orderid,orderproductid);
+        return orderProductServices.getOrderProductByOrderId(orderid, orderproductid);
     }
 
     /**
@@ -1354,7 +1306,7 @@ public class OrdersService {
 //        } else {
 //            return null;
 //        }
-        return  ordersMapper.getOrdersByOrderNo(orderno);
+        return ordersMapper.getOrdersByOrderNo(orderno);
     }
 
     /**
@@ -1429,13 +1381,13 @@ public class OrdersService {
 //            return null;
 //        }
 
-        if(!StringUtils.hasText(orderid)){
-            return  null;
+        if (!StringUtils.hasText(orderid)) {
+            return null;
         }
 
         BillingRecord billingRecord = billingRecordMapper.getBillingRecordByOrderno(orderid);
 
-        return  billingRecord;
+        return billingRecord;
     }
 
     /**
@@ -1452,63 +1404,64 @@ public class OrdersService {
 
     /**
      * 商家待发货列表导出Excel
+     *
      * @param param
      * @return
      */
-    public List<Map<String,Object>> memberDeliveryOrderListExcel(OrderQueryParam param) {
+    public List<Map<String, Object>> memberDeliveryOrderListExcel(OrderQueryParam param) {
         PageHelper.startPage(param.getPageNo(), param.getPageSize()).setOrderBy("id desc");
         List<Orders> list = ordersMapper.getMemberOrdersList(param);
-        List<Map<String,Object>> newList = new ArrayList<Map<String,Object>>();
+        List<Map<String, Object>> newList = new ArrayList<Map<String, Object>>();
         Map orderstatus = new HashMap();
-        orderstatus.put("0","待付款");
-        orderstatus.put("1","待发货");
-        orderstatus.put("3","待收货");
-        orderstatus.put("4","待验货");
-        orderstatus.put("5","已完成");
-        orderstatus.put("7","已关闭");
-        orderstatus.put("8","备货中");
-        orderstatus.put("9","备货完成");
-        for(Orders o:list){
-            Map<String,Object> map = new HashMap<String,Object>();
-            List<OrderProduct> orderProducts =getOrderProductByOrderNo((o.getOrderno()));
-            map.put("收件人",o.getShipto());
-            map.put("合同号/订单号",o.getCode()+"/"+o.getOrderno());
-            map.put("订单日期",o.getCreatetime());
-            map.put("发货截止日期",o.getCreatetime());
-            if(o.getOrderstatus()!=null) {
+        orderstatus.put("0", "待付款");
+        orderstatus.put("1", "待发货");
+        orderstatus.put("3", "待收货");
+        orderstatus.put("4", "待验货");
+        orderstatus.put("5", "已完成");
+        orderstatus.put("7", "已关闭");
+        orderstatus.put("8", "备货中");
+        orderstatus.put("9", "备货完成");
+        for (Orders o : list) {
+            Map<String, Object> map = new HashMap<String, Object>();
+            List<OrderProduct> orderProducts = getOrderProductByOrderNo((o.getOrderno()));
+            map.put("收件人", o.getShipto());
+            map.put("合同号/订单号", o.getCode() + "/" + o.getOrderno());
+            map.put("订单日期", o.getCreatetime());
+            map.put("发货截止日期", o.getCreatetime());
+            if (o.getOrderstatus() != null) {
                 map.put("交易状态", orderstatus.get(o.getOrderstatus().toString()));
-            }else{
-                map.put("交易状态","");
+            } else {
+                map.put("交易状态", "");
             }
             for (OrderProduct orderProduct : orderProducts) {
-                map.put("商品",orderProduct.getPdname()+""+orderProduct.getClassify()+""+orderProduct.getStandard()+""+orderProduct.getMaterial()+"/"+orderProduct.getGradeno());
-                map.put("品牌印记",orderProduct.getBrand());
-                map.put("订货量",orderProduct.getNum());
+                map.put("商品", orderProduct.getPdname() + "" + orderProduct.getClassify() + "" + orderProduct.getStandard() + "" + orderProduct.getMaterial() + "/" + orderProduct.getGradeno());
+                map.put("品牌印记", orderProduct.getBrand());
+                map.put("订货量", orderProduct.getNum());
                 newList.add(map);
             }
         }
 
-        List<Map<String,Object>> newList1 = new ArrayList<Map<String,Object>>();
-        for(int i=0;i<newList.size();i++){
-            Map<String,Object> newMap = new HashMap<String,Object>();
-            String flag=newList.get(i).get("合同号/订单号").toString();
-            if(newList1.size()<1){
-                newMap.put("合同号/订单号",newList.get(i).get("合同号/订单号"));
-                newMap.put("订单日期",newList.get(i).get("订单日期"));
-            }else if(!newList1.get(i-1).get("合同号/订单号").equals(newList.get(i).get("合同号/订单号")) && !newList.get(i-1).get("合同号/订单号").equals(flag)){
-                newMap.put("合同号/订单号",newList.get(i).get("合同号/订单号"));
-                newMap.put("订单日期",newList.get(i).get("订单日期"));
-            }else if(newList.get(i).get("合同号/订单号").equals(flag)){
-                newMap.put("合同号/订单号","");
-                newMap.put("订单日期","");
+        List<Map<String, Object>> newList1 = new ArrayList<Map<String, Object>>();
+        for (int i = 0; i < newList.size(); i++) {
+            Map<String, Object> newMap = new HashMap<String, Object>();
+            String flag = newList.get(i).get("合同号/订单号").toString();
+            if (newList1.size() < 1) {
+                newMap.put("合同号/订单号", newList.get(i).get("合同号/订单号"));
+                newMap.put("订单日期", newList.get(i).get("订单日期"));
+            } else if (!newList1.get(i - 1).get("合同号/订单号").equals(newList.get(i).get("合同号/订单号")) && !newList.get(i - 1).get("合同号/订单号").equals(flag)) {
+                newMap.put("合同号/订单号", newList.get(i).get("合同号/订单号"));
+                newMap.put("订单日期", newList.get(i).get("订单日期"));
+            } else if (newList.get(i).get("合同号/订单号").equals(flag)) {
+                newMap.put("合同号/订单号", "");
+                newMap.put("订单日期", "");
 
             }
-            newMap.put("收件人",newList.get(i).get("收件人"));
-            newMap.put("发货截止日期",newList.get(i).get("发货截止日期"));
-            newMap.put("交易状态",newList.get(i).get("交易状态"));
-            newMap.put("商品",newList.get(i).get("商品"));
-            newMap.put("品牌印记",newList.get(i).get("品牌印记"));
-            newMap.put("订货量",newList.get(i).get("订货量"));
+            newMap.put("收件人", newList.get(i).get("收件人"));
+            newMap.put("发货截止日期", newList.get(i).get("发货截止日期"));
+            newMap.put("交易状态", newList.get(i).get("交易状态"));
+            newMap.put("商品", newList.get(i).get("商品"));
+            newMap.put("品牌印记", newList.get(i).get("品牌印记"));
+            newMap.put("订货量", newList.get(i).get("订货量"));
             newList1.add(newMap);
         }
 
@@ -1523,20 +1476,20 @@ public class OrdersService {
      */
     public List<Map<String, Object>> getSellerExcelOrders(OrderQueryParam param) {
         //PageHelper.startPage(param.getPageNo(), param.getPageSize()).setOrderBy("id desc");
-        List<Orders> list =ordersMapper.getMemberOrdersList(param);
+        List<Orders> list = ordersMapper.getMemberOrdersList(param);
         List<Map<String, Object>> memberOrderses = new ArrayList<Map<String, Object>>();
         Map orderStatus = new HashMap();
-        orderStatus.put("0","待付款");
-        orderStatus.put("1","待发货");
-        orderStatus.put("3","待收货");
-        orderStatus.put("4","待验货");
-        orderStatus.put("5","已完成");
-        orderStatus.put("7","已关闭");
-        orderStatus.put("8","备货中");
-        orderStatus.put("9","备货完成");
+        orderStatus.put("0", "待付款");
+        orderStatus.put("1", "待发货");
+        orderStatus.put("3", "待收货");
+        orderStatus.put("4", "待验货");
+        orderStatus.put("5", "已完成");
+        orderStatus.put("7", "已关闭");
+        orderStatus.put("8", "备货中");
+        orderStatus.put("9", "备货完成");
         for (Orders order : list) {
-            List<OrderProduct> orderProducts =getOrderProductByOrderNo(order.getOrderno(), param);
-            if(orderProducts.size()>0) {
+            List<OrderProduct> orderProducts = getOrderProductByOrderNo(order.getOrderno(), param);
+            if (orderProducts.size() > 0) {
                 for (OrderProduct op : orderProducts) {
                     Map map = new HashMap();
                     map.put("订单日期", order.getCreatetime());
@@ -1579,7 +1532,7 @@ public class OrdersService {
             maptemp.put("交易号", map.get("transactionnumber"));
 
             String buyercompanyname = (String) map.get("buyercompanyname");
-            if(!StringUtils.hasText(buyercompanyname)){
+            if (!StringUtils.hasText(buyercompanyname)) {
                 buyercompanyname = (String) map.get("buyerrealname");
             }
             if (!StringUtils.hasText(buyercompanyname)) {
@@ -1590,9 +1543,9 @@ public class OrdersService {
             maptemp.put("卖家", map.get("membercompany"));
             maptemp.put("订单类型", map.get("ordertype"));
             maptemp.put("订单来源", map.get("inonline"));
-            maptemp.put("商品名称", map.get("pdname")+"/"+map.get("level3"));
+            maptemp.put("商品名称", map.get("pdname") + "/" + map.get("level3"));
             maptemp.put("规格", map.get("attrjson"));
-            maptemp.put("商品分类", map.get("level1")+" "+map.get("level2")+" "+map.get("level3"));
+            maptemp.put("商品分类", map.get("level1") + " " + map.get("level2") + " " + map.get("level3"));
             maptemp.put("材质", map.get("material"));
             maptemp.put("牌号", map.get("gradeno"));
             maptemp.put("品牌", map.get("brand"));
@@ -1613,14 +1566,14 @@ public class OrdersService {
             maptemp.put("是否开票", map.get("brstate"));
             maptemp.put("订单状态", map.get("orderstatus"));
             maptemp.put("项目", map.get("odtype"));
-            maptemp.put("收件人",map.get("shipto"));
+            maptemp.put("收件人", map.get("shipto"));
             maptemp.put("收货地址", map.get("receivingaddress"));
             maptemp.put("付款方式", map.get("paytype"));
             maptemp.put("物流公司", map.get("logisticscompany"));
             maptemp.put("快递单号", map.get("couriernumber"));
             maptemp.put("业务员", map.get("clerkname"));
             maptemp.put("第三方支付单号", map.get("transactionid"));
-            maptemp.put("业务单号",map.get("uuid"));
+            maptemp.put("业务单号", map.get("uuid"));
 
             list2.add(maptemp);
         }
@@ -1808,66 +1761,65 @@ public class OrdersService {
     }
 
 
-
     /**
      * 保存用户信息     此方法仅为暂时解决之前应杰写的数据脏读问题，为了应付网站上线，后期还需全部改掉
+     *
      * @param member
      */
-    public void saveMember(Member member,Member oldMember) throws CashException {
+    public void saveMember(Member member, Member oldMember) throws CashException {
 
-        if(member.getBalance().compareTo(oldMember.getBalance()) != 0){
-            memberService.updateBuyerMemberBalanceInDb(member.getId(),member.getBalance().subtract(oldMember.getBalance()));
+        if (member.getBalance().compareTo(oldMember.getBalance()) != 0) {
+            memberService.updateBuyerMemberBalanceInDb(member.getId(), member.getBalance().subtract(oldMember.getBalance()));
         }
 
-        if(member.getAvailablelimit().compareTo(oldMember.getAvailablelimit()) != 0 ||
-                member.getUsedlimit().compareTo(oldMember.getUsedlimit()) !=0){
-            memberService.updateBuyerMemberCreditBalanceInDb(member.getId(),member.getUsedlimit().subtract(oldMember.getUsedlimit()),
+        if (member.getAvailablelimit().compareTo(oldMember.getAvailablelimit()) != 0 ||
+                member.getUsedlimit().compareTo(oldMember.getUsedlimit()) != 0) {
+            memberService.updateBuyerMemberCreditBalanceInDb(member.getId(), member.getUsedlimit().subtract(oldMember.getUsedlimit()),
                     member.getAvailablelimit().subtract(oldMember.getAvailablelimit()));
         }
 
 
-        if(member.getSellerbanlance().compareTo(oldMember.getSellerbanlance()) != 0 ||
+        if (member.getSellerbanlance().compareTo(oldMember.getSellerbanlance()) != 0 ||
                 member.getSellerfreezebanlance().compareTo(oldMember.getSellerfreezebanlance()) != 0 ||
                 member.getGoodsbanlance().compareTo(oldMember.getGoodsbanlance()) != 0 ||
-                member.getBillmoney().compareTo(oldMember.getBillmoney()) != 0){
-            memberService.updateSellerMemberBalanceInDb(member.getId(),member.getSellerbanlance().subtract(oldMember.getSellerbanlance()),
+                member.getBillmoney().compareTo(oldMember.getBillmoney()) != 0) {
+            memberService.updateSellerMemberBalanceInDb(member.getId(), member.getSellerbanlance().subtract(oldMember.getSellerbanlance()),
                     member.getSellerfreezebanlance().subtract(oldMember.getSellerfreezebanlance()),
-                    member.getGoodsbanlance().subtract(oldMember.getGoodsbanlance()),member.getBillmoney().subtract(oldMember.getBillmoney()));
+                    member.getGoodsbanlance().subtract(oldMember.getGoodsbanlance()), member.getBillmoney().subtract(oldMember.getBillmoney()));
         }
 
 
-        if(member.getIntegrals().compareTo(oldMember.getIntegrals()) != 0 ||
-                member.getAvailableintegral().compareTo(oldMember.getAvailableintegral()) != 0){
-            memberService.updateSellerMemberBalanceInDb(member.getId(),member.getIntegrals().subtract(member.getIntegrals()),
+        if (member.getIntegrals().compareTo(oldMember.getIntegrals()) != 0 ||
+                member.getAvailableintegral().compareTo(oldMember.getAvailableintegral()) != 0) {
+            memberService.updateSellerMemberBalanceInDb(member.getId(), member.getIntegrals().subtract(member.getIntegrals()),
                     member.getAvailableintegral().subtract(member.getAvailableintegral()));
         }
 
 
-
         Member newMember = memberService.getMemberById(member.getId());
-        if(newMember.getBalance().compareTo(Quantity.BIG_DECIMAL_0) <0){
-            throw  new CashException("买家余额不足");
+        if (newMember.getBalance().compareTo(Quantity.BIG_DECIMAL_0) < 0) {
+            throw new CashException("买家余额不足");
         }
 
 
-        if(newMember.getSellerbanlance().compareTo(Quantity.BIG_DECIMAL_0) <0){
-            throw  new CashException("卖家余额不足");
+        if (newMember.getSellerbanlance().compareTo(Quantity.BIG_DECIMAL_0) < 0) {
+            throw new CashException("卖家余额不足");
         }
 
-        if(newMember.getSellerfreezebanlance().compareTo(Quantity.BIG_DECIMAL_0) <0){
-            throw  new CashException("卖家冻结金额不足");
+        if (newMember.getSellerfreezebanlance().compareTo(Quantity.BIG_DECIMAL_0) < 0) {
+            throw new CashException("卖家冻结金额不足");
         }
 
-        if(newMember.getGoodsbanlance().compareTo(Quantity.BIG_DECIMAL_0) <0){
-            throw  new CashException("卖家货款金额不足");
+        if (newMember.getGoodsbanlance().compareTo(Quantity.BIG_DECIMAL_0) < 0) {
+            throw new CashException("卖家货款金额不足");
         }
 
-        if(newMember.getIntegrals().compareTo(Quantity.BIG_DECIMAL_0) <0){
-            throw  new CashException("买家积分不足");
+        if (newMember.getIntegrals().compareTo(Quantity.BIG_DECIMAL_0) < 0) {
+            throw new CashException("买家积分不足");
         }
 
-        if(newMember.getAvailableintegral().compareTo(Quantity.BIG_DECIMAL_0) <0){
-            throw  new CashException("买家可用积分不足");
+        if (newMember.getAvailableintegral().compareTo(Quantity.BIG_DECIMAL_0) < 0) {
+            throw new CashException("买家可用积分不足");
         }
     }
 
@@ -1974,7 +1926,7 @@ public class OrdersService {
      * @param orders
      */
     public int updateSingleOrder(Orders orders) {
-       return ordersMapper.updateByPrimaryKeySelective(orders);
+        return ordersMapper.updateByPrimaryKeySelective(orders);
     }
 
     /**
@@ -2212,7 +2164,6 @@ public class OrdersService {
         return pageInfo;
 
     }
-
 
 
     /**
@@ -2469,21 +2420,23 @@ public class OrdersService {
 
     /**
      * 获取超时未付款的限时购订单
+     *
      * @param timedoutofpayment
      * @return
      */
-    public List<Orders> getNotPayMoneyLimitOrders(int timedoutofpayment){
-        return  ordersMapper.getNotPayMoneyLimitOrders(timedoutofpayment);
+    public List<Orders> getNotPayMoneyLimitOrders(int timedoutofpayment) {
+        return ordersMapper.getNotPayMoneyLimitOrders(timedoutofpayment);
     }
 
 
     /**
      * 订单验货完成需要更新的数据
+     *
      * @param orders
      * @return
      */
-    public int updateOrdersConfirmgoods(Orders orders){
-        return  ordersMapper.updateOrdersConfirmgoods(orders);
+    public int updateOrdersConfirmgoods(Orders orders) {
+        return ordersMapper.updateOrdersConfirmgoods(orders);
     }
 
 
@@ -2494,22 +2447,22 @@ public class OrdersService {
      * 3. 远期定金  备货
      * 4. 预订代发  备货完成
      */
-    public  boolean canCancelOrders(Orders orders){
+    public boolean canCancelOrders(Orders orders) {
         boolean b = false;
 
-        if(orders.getOrdertype() == Quantity.STATE_0 && orders.getOrderstatus() == Quantity.STATE_1){  //立即发货、待发货状态
+        if (orders.getOrdertype() == Quantity.STATE_0 && orders.getOrderstatus() == Quantity.STATE_1) {  //立即发货、待发货状态
             b = true;
-        }else if(orders.getOrdertype() == Quantity.STATE_1 && orders.getOrderstatus() == Quantity.STATE_8){//远期全款  备货状态
+        } else if (orders.getOrdertype() == Quantity.STATE_1 && orders.getOrderstatus() == Quantity.STATE_8) {//远期全款  备货状态
             b = true;
-        }else if(orders.getOrdertype() == Quantity.STATE_3 && orders.getOrderstatus() == Quantity.STATE_8){//远期定金  备货状态
+        } else if (orders.getOrdertype() == Quantity.STATE_3 && orders.getOrderstatus() == Quantity.STATE_8) {//远期定金  备货状态
             b = true;
-        }else if(orders.getOrdertype() == Quantity.STATE_3 && orders.getOrderstatus() == Quantity.STATE_9){//远期定金  备货完成
+        } else if (orders.getOrdertype() == Quantity.STATE_3 && orders.getOrderstatus() == Quantity.STATE_9) {//远期定金  备货完成
             b = true;
-        }else if(orders.getOrdertype() == Quantity.STATE_3 && orders.getOrderstatus() == Quantity.STATE_1){ //远期订单已付尾款，等待卖家发货
+        } else if (orders.getOrdertype() == Quantity.STATE_3 && orders.getOrderstatus() == Quantity.STATE_1) { //远期订单已付尾款，等待卖家发货
             b = true;
         }
 
-        return  b;
+        return b;
     }
 
     /**
@@ -2537,31 +2490,29 @@ public class OrdersService {
      * 3. 远期定金  备货
      * 4. 预订代发  备货完成
      */
-    public  boolean canCancelOrdersSeller(Orders orders){
+    public boolean canCancelOrdersSeller(Orders orders) {
         boolean b = false;
 
-        if(orders.getOrdertype() == Quantity.STATE_0 && orders.getOrderstatus() == Quantity.STATE_1){  //立即发货、待发货状态
+        if (orders.getOrdertype() == Quantity.STATE_0 && orders.getOrderstatus() == Quantity.STATE_1) {  //立即发货、待发货状态
             b = true;
-        }else if(orders.getOrdertype() == Quantity.STATE_1 && (orders.getOrderstatus()==Quantity.STATE_8 || orders.getOrderstatus() == Quantity.STATE_1)){//远期全款  备货状态
+        } else if (orders.getOrdertype() == Quantity.STATE_1 && (orders.getOrderstatus() == Quantity.STATE_8 || orders.getOrderstatus() == Quantity.STATE_1)) {//远期全款  备货状态
             b = true;
-        }else if(orders.getOrdertype() == Quantity.STATE_3 && orders.getOrderstatus() == Quantity.STATE_1){ //远期订单已付尾款，等待卖家发货
+        } else if (orders.getOrdertype() == Quantity.STATE_3 && orders.getOrderstatus() == Quantity.STATE_1) { //远期订单已付尾款，等待卖家发货
             b = true;
         }
 
-        return  b;
+        return b;
     }
 
 
-
-
-    public OrderProductBack getBackgoodsOrderProductBack(ProductBackModel productBackModel){
+    public OrderProductBack getBackgoodsOrderProductBack(ProductBackModel productBackModel) {
 
         OrderProductBack orderProductBack = this.getOrderProductBackById(productBackModel.getId());
-        if(orderProductBack == null) return null;
+        if (orderProductBack == null) return null;
 
 
         if (orderProductBack != null) {
-            if(productBackModel.getState() != null) {
+            if (productBackModel.getState() != null) {
                 orderProductBack.setState(productBackModel.getState());
             }
 
@@ -2609,7 +2560,6 @@ public class OrdersService {
 
         return orderProductBack;
     }
-
 
 
     /**
@@ -2681,9 +2631,9 @@ public class OrdersService {
     }
 
 
-
     /**
      * 计算运费
+     *
      * @param defaultfreight   默认运费公斤
      * @param defaultcost      默认运费
      * @param perkilogramadded 每增加公斤
@@ -2723,37 +2673,40 @@ public class OrdersService {
 
     /**
      * 分页查询卖家已完成需要向平台开票的订单
+     *
      * @param salerid
      * @param pageNo
      * @param pageSize
      * @return
      */
-    public PageInfo getWaitOpenBillListByPage(Long salerid,int pageNo,int pageSize){
-        PageHelper.startPage(pageNo,pageSize);
-        return  new PageInfo(ordersMapper.getWaitOpenBillList(salerid));
+    public PageInfo getWaitOpenBillListByPage(Long salerid, int pageNo, int pageSize) {
+        PageHelper.startPage(pageNo, pageSize);
+        return new PageInfo(ordersMapper.getWaitOpenBillList(salerid));
     }
 
 
     /**
      * 查询订单
+     *
      * @param ids
      * @return
      */
-    public List<Orders> getOrdersByIds(Long[] ids){
-        return  ordersMapper.getOrdersByIds(ids);
+    public List<Orders> getOrdersByIds(Long[] ids) {
+        return ordersMapper.getOrdersByIds(ids);
     }
 
 
-    public int updateByExampleSelective( Orders record,  OrdersExample example){
-        return  ordersMapper.updateByExampleSelective(record,example);
+    public int updateByExampleSelective(Orders record, OrdersExample example) {
+        return ordersMapper.updateByExampleSelective(record, example);
     }
 
     /**
      * 获取昨天0点到24点之间付款，且状态正常的订单；
+     *
      * @return
      */
-    public List<Orders> getRegularOrders(Date starttime,Date endtime) {
-        return  ordersMapper.getRegularOrders(starttime,endtime);
+    public List<Orders> getRegularOrders(Date starttime, Date endtime) {
+        return ordersMapper.getRegularOrders(starttime, endtime);
     }
 
 
@@ -2770,38 +2723,39 @@ public class OrdersService {
 
     /**
      * 买家下单后短信通知卖家
+     *
      * @param list
      */
     @Profile({"pro"})
-    public  void smsNotifySellerToOrders(List<Orders> list){
+    public void smsNotifySellerToOrders(List<Orders> list) {
         SmsTemplate smsTemplate = smsTemplateService.getBySendCode("NotifySellerToOrders");
-        if(smsTemplate == null){
+        if (smsTemplate == null) {
             logger.error("NotifySellerToOrders短信模板不存在");
             return;
         }
 
-        list.forEach(orders  -> {
-            cachedThreadPool.execute(()->{
+        list.forEach(orders -> {
+            cachedThreadPool.execute(() -> {
                 Member member = memberService.getMemberById(orders.getSaleid());
 
                 SellerCompanyInfo sellerCompanyInfo = sellerCompanyInfoMapper.getSellerCompanyByMemberid(member.getId());
                 String mobile = member.getMobile();
                 // mobile = "18663868251";
-                if(sellerCompanyInfo.getSmsnotify() == Quantity.STATE_1 && StringUtils.hasText(mobile)){
+                if (sellerCompanyInfo.getSmsnotify() == Quantity.STATE_1 && StringUtils.hasText(mobile)) {
 
-                    Map<String,String> map = new HashMap<>();
-                    map.put("orderno",orders.getOrderno());
+                    Map<String, String> map = new HashMap<>();
+                    map.put("orderno", orders.getOrderno());
                     SmsLog smsLog = new SmsLog();
                     smsLog.setCreatedate(new Date());
                     smsLog.setMobile(mobile);
                     smsLog.setType("卖家新订单通知");
                     smsLog.setMemberid(member.getId());
                     String content = smsTemplate.getContent();
-                    smsLog.setDescription(content.replaceAll("\\$\\{orderno\\}",orders.getOrderno()));
+                    smsLog.setDescription(content.replaceAll("\\$\\{orderno\\}", orders.getOrderno()));
 
-                    if(jinShangSms.send(mobile,smsTemplate.getTemplatecode(),map)) {
+                    if (jinShangSms.send(mobile, smsTemplate.getTemplatecode(), map)) {
                         smsLog.setStates(Quantity.STATE_1);
-                    }else{
+                    } else {
                         smsLog.setStates(Quantity.STATE_2);
                     }
 
@@ -2813,25 +2767,25 @@ public class OrdersService {
 
 
     @Profile({"pro"})
-    public  void smsNotifySellerToBackOrders(List<Orders> list){
+    public void smsNotifySellerToBackOrders(List<Orders> list) {
         SmsTemplate smsTemplate = smsTemplateService.getBySendCode("NotifySellerToBackOrders");
-        if(smsTemplate == null){
+        if (smsTemplate == null) {
             logger.error("NotifySellerToBackOrders短信模板不存在");
             return;
         }
 
-        list.forEach(orders  -> {
-            cachedThreadPool.execute(()->{
+        list.forEach(orders -> {
+            cachedThreadPool.execute(() -> {
                 Member member = memberService.getMemberById(orders.getSaleid());
 
                 SellerCompanyInfo sellerCompanyInfo = sellerCompanyInfoMapper.getSellerCompanyByMemberid(member.getId());
 
                 String mobile = member.getMobile();
                 // mobile = "18663868251";
-                if(sellerCompanyInfo.getSmsnotify() == Quantity.STATE_1 && StringUtils.hasText(mobile)){
+                if (sellerCompanyInfo.getSmsnotify() == Quantity.STATE_1 && StringUtils.hasText(mobile)) {
 
-                    Map<String,String> map = new HashMap<>();
-                    map.put("orderno",orders.getOrderno());
+                    Map<String, String> map = new HashMap<>();
+                    map.put("orderno", orders.getOrderno());
 
                     SmsLog smsLog = new SmsLog();
                     smsLog.setCreatedate(new Date());
@@ -2839,11 +2793,11 @@ public class OrdersService {
                     smsLog.setType("买家退货通知");
                     smsLog.setMemberid(member.getId());
                     String content = smsTemplate.getContent();
-                    smsLog.setDescription(content.replaceAll("\\$\\{orderno\\}",orders.getOrderno()));
+                    smsLog.setDescription(content.replaceAll("\\$\\{orderno\\}", orders.getOrderno()));
 
-                    if(jinShangSms.send(mobile,smsTemplate.getTemplatecode(),map)) {
+                    if (jinShangSms.send(mobile, smsTemplate.getTemplatecode(), map)) {
                         smsLog.setStates(Quantity.STATE_1);
-                    }else{
+                    } else {
                         smsLog.setStates(Quantity.STATE_2);
                     }
 
@@ -2862,19 +2816,39 @@ public class OrdersService {
      * @param params
      * @return void
      */
-    private void sendToMiddleManage(String url, Map<String, String> params) {
+    public void sendToMiddleManage(String url, Map<String, String> params) {
         cachedThreadPool.execute(()->{
             try {
                 Map<String,Object> ret=HttpClientUtils.post(url,params);
-                String returnjson=JsonUtil.toJson(ret);
+                String returnjson=JsonUtil.toJson(ret.get("data"));
+                String type=params.get("type");
                 ApiRecord apiRecord=new ApiRecord();
                 apiRecord.setAppid(params.get("appid"));
                 apiRecord.setAppurl(url);
-                apiRecord.setApicode(params.get("type"));
-                apiRecord.setContent(JsonUtil.toJson(params).toString().replace("",""));
+                apiRecord.setApicode(type);
+//                apiRecord.setContent(JsonUtil.toJson(params).toString().replace("",""));
+                apiRecord.setContent(JsonUtil.toJson(params).toString());
                 apiRecord.setReturnjson(returnjson);
                 apiRecord.setCreatetime(new Date());
                 apiRecordService.insertSelective(apiRecord);
+                if(type.equals(DockType.JS006.getType())){
+//                    String storenumjson=ret.get("storenumjson").toString();
+                    Map<String,Object> map1=JsonUtil.toMap(returnjson);
+                    String storenumjson=map1.get("storenumjson").toString();
+                    long storeid=Long.parseLong(map1.get("store").toString());
+                    Type listType = new TypeToken<LinkedList<StockDetail>>(){}.getType();
+                    ProductStore productStore=new ProductStore();
+                    Gson gson = new Gson();
+                    LinkedList<StockDetail> stockDetails = gson.fromJson(storenumjson, listType);
+                    for (Iterator iterator = stockDetails.iterator(); iterator.hasNext();) {
+                        StockDetail stockDetail = (StockDetail) iterator.next();
+                        productStore=productStoreService.getByStoreidAndPdNo(storeid,stockDetail.getPdno());
+                        if(StringUtils.hasText(stockDetail.getUnit())&&StringUtils.hasText(productStore.getStoreunit())&&stockDetail.getUnit().equals(productStore.getStoreunit())){
+                            productStoreService.updateNumByStoreidAndPdno(storeid,stockDetail.getPdno(),new BigDecimal(stockDetail.getStorenum()));
+                        }
+                    }
+
+                }
             } catch (Exception e) {
                 logger.error(e.getMessage(),e);
             }
@@ -2885,22 +2859,23 @@ public class OrdersService {
 
     /**
      * 计算订单的佣金
+     *
      * @param list
      */
-    public void jisuanOrdersBreakPay(List<String> list){
-        list.forEach(orderno->{
+    public void jisuanOrdersBreakPay(List<String> list) {
+        list.forEach(orderno -> {
             Orders orders = this.getOrdersByOrderNo(orderno);
             List<OrderProduct> orderProductList = this.getOrderProductByOrderId(orders.getId());
 
             BigDecimal totalBroke = Quantity.BIG_DECIMAL_0;
             BigDecimal totalServerPay = Quantity.BIG_DECIMAL_0;
 
-            Predicate<OrderProduct> orderProductPredicate = (n) -> n.getBackstate()==0;
+            Predicate<OrderProduct> orderProductPredicate = (n) -> n.getBackstate() == 0;
 
             List<OrderProduct> orderProducts = orderProductList.stream().filter(orderProductPredicate).collect(Collectors.toList());
-            for(OrderProduct orderProduct : orderProducts){
+            for (OrderProduct orderProduct : orderProducts) {
                 Long classifyid = orderProduct.getClassifyid();
-                BigDecimal brolerRate = this.getSellerBrokeragerate(orders.getSaleid(),orderProduct.getClassifyid());
+                BigDecimal brolerRate = this.getSellerBrokeragerate(orders.getSaleid(), orderProduct.getClassifyid());
 
                 //服务费比率 用的是category中设置的
                 BigDecimal serverRate = categoriesService.getServerRate(classifyid).multiply(BigDecimal.valueOf(0.01));
@@ -2916,6 +2891,8 @@ public class OrdersService {
                 op.setId(orderProduct.getId());
                 op.setSinglebrokepay(singlebrokepay);
                 op.setBrokepay(broker);
+
+
                 this.updateOrderProduct(op);
 
                 BigDecimal servepay = (orderProduct.getActualpayment().subtract(orderProduct.getFreight())).multiply(serverRate);
@@ -2934,11 +2911,12 @@ public class OrdersService {
 
     /**
      * 获取商家某个分类商品的佣金比率
+     *
      * @param sellerid
      * @param classifyid
      * @return
      */
-    private  BigDecimal getSellerBrokeragerate(Long sellerid,Long classifyid){
+    private BigDecimal getSellerBrokeragerate(Long sellerid, Long classifyid) {
 
         BigDecimal rate = Quantity.BIG_DECIMAL_0;
         BigDecimal brolerRate = Quantity.BIG_DECIMAL_0;
@@ -2966,8 +2944,8 @@ public class OrdersService {
         Categories categories = categoriesService.getById(classifyid);
         if (categories != null) {
             //佣金比率
-            brolerRate =rate.multiply(BigDecimal.valueOf(0.01));
-            if(brolerRate.compareTo(BigDecimal.valueOf(0))<0){
+            brolerRate = rate.multiply(BigDecimal.valueOf(0.01));
+            if (brolerRate.compareTo(BigDecimal.valueOf(0)) < 0) {
                 brolerRate = categoriesService.getBrokerRate(classifyid).multiply(BigDecimal.valueOf(0.01));
             }
         }
@@ -2978,7 +2956,7 @@ public class OrdersService {
     /**
      * 买家再次购买
      */
-    public Map<String, Object> repurchase(String orderNo, Member member,HttpServletRequest request) {
+    public Map<String, Object> repurchase(String orderNo, Member member, HttpServletRequest request) {
 
         Map<String, Object> retmap = new HashMap<>();
         List<OrderProduct> orderProductsList = orderProductMapper.getRepurchaseList(orderNo);
@@ -2995,15 +2973,15 @@ public class OrdersService {
 //            //如果商品已上架、有相应库存并且购物车为空则加入购物车
 //            if (productInfo.getPdstate() == Quantity.STATE_4 && orderProduct.getNum().compareTo(productStore.getPdstorenum()) <= 0) {
 //                if (shopCar == null) {
-                    shopCar.setPdid(orderProduct.getPdid());
-                    shopCar.setPdno(orderProduct.getPdno());
-                    shopCar.setLimitid(orderProduct.getLimitid());
-                    shopCar.setPdnumber(orderProduct.getNum());
-                    shopCar.setStoreid(orderProduct.getStoreid());
-                    shopCar.setDelivertime(orderProduct.getDeliverytime());
-                    shopCar.setUnit(orderProduct.getUnit());
-                    shopCar.setProtype(orderProduct.getProtype());
-                    shopCar.setIsonline(orders.getIsonline());
+            shopCar.setPdid(orderProduct.getPdid());
+            shopCar.setPdno(orderProduct.getPdno());
+            shopCar.setLimitid(orderProduct.getLimitid());
+            shopCar.setPdnumber(orderProduct.getNum());
+            shopCar.setStoreid(orderProduct.getStoreid());
+            shopCar.setDelivertime(orderProduct.getDeliverytime());
+            shopCar.setUnit(orderProduct.getUnit());
+            shopCar.setProtype(orderProduct.getProtype());
+            shopCar.setIsonline(orders.getIsonline());
 //                    shopCarMapper.insertSelective(shopCar);
 //                } else {
 //                    shopCarMapper.updateByPrimaryKeySelective(shopCar);
@@ -3113,7 +3091,7 @@ public class OrdersService {
                             shopCar.setYupay(allpap.subtract(shopCar.getPartpay()));
                         }
                     }
-                    List<ProductAttr> productAttrs=productAttrMapper.getListByPidAndPdno(shopCar.getPdid(), shopCar.getPdno());
+                    List<ProductAttr> productAttrs = productAttrMapper.getListByPidAndPdno(shopCar.getPdid(), shopCar.getPdno());
                     //判断购物车里是否有该商品
                     if (shopCar1 == null) {
                         shopCar.setMemberid(member.getId());
@@ -3241,6 +3219,32 @@ public class OrdersService {
         }
 
         return saleprice;
+    }
+
+    /**
+     * 2018年6月8日
+     * 根据用户id获取用户所有订单
+     *
+     * @param memberid
+     * @return
+     */
+    public List<Orders> findOrdersByuserid(Long memberid) {
+        return ordersMapper.findOrdersByuserid(memberid);
+    }
+
+    /**
+     * 根据对象修改订单
+     *
+     * @param orders
+     * @return
+     */
+    public int updateOrders(Orders orders) {
+        return ordersMapper.updateByPrimaryKeySelective(orders);
+    }
+
+
+    public List<Orders> selectByExample(OrdersExample example){
+        return  ordersMapper.selectByExample(example);
     }
 
     /**

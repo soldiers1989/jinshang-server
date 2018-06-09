@@ -75,6 +75,30 @@ public enum DockType {
             this.tranOrderTypeDesc = tranOrderTypeDesc;
         }
     }
+
+    /**
+     *紧商网对接中间件管理平台所用的常量
+     * @author xiazy
+     * @date  2018/6/7 16:25
+     * @return
+     */
+    public enum Constan{
+        PAGESIZE(100),
+        ONSHEWLF(4);
+        private int value;
+
+        Constan(int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return value;
+        }
+
+        public void setValue(int value) {
+            this.value = value;
+        }
+    }
     private String type;
     private String value;
 

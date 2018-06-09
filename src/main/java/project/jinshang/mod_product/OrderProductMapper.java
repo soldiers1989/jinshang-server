@@ -6,7 +6,6 @@ import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 import project.jinshang.mod_product.bean.OrderProduct;
 import project.jinshang.mod_product.bean.OrderProductExample;
-import project.jinshang.mod_product.bean.Orders;
 import project.jinshang.mod_product.bean.ProductEvaModel;
 import project.jinshang.mod_sale_rank.bean.SaleRankModel;
 
@@ -142,7 +141,7 @@ public interface OrderProductMapper {
      * @param orderid
      * @return
      */
-    @Select("select * from orderproduct where orderid=#{orderid}")
+    @Select("select o.*,p.selfsupport from orderproduct o left join productinfo p on o.pdid = p.id where orderid=#{orderid}")
     List<OrderProduct> getByOrderid(@Param("orderid") Long orderid);
 
     @Select("select * from orderproduct where orderno = #{orderno} and backstate = 0 ")

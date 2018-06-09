@@ -58,4 +58,12 @@ public interface OrderTaskMapper {
     @Update("update orders set paymentmethod=1 where id=#{id} and paymentmethod=0 and billtoserver=1 and orderstatus=5")
     int settleOrders(@Param("id") long id);
 
+    /**
+     * 获取超时未付款订单
+     * @param intervalhour
+     * @return
+     */
+    @Select("select * from orders where orderstatus=0 and createtime + INTERVAL '${intervalhour}' < now()")
+    List<Orders> getOuttimeNotPayOrders(@Param("intervalhour") String intervalhour);
+
 }

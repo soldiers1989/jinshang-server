@@ -65,6 +65,9 @@ public class BuyerCapitalAction {
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
 
         dto.setMemberid(member.getId());
+        if(dto.getTradetimeEnd() != null) {
+            dto.setTradetimeEnd(DateUtils.addDays(dto.getTradetimeEnd(),1));
+        }
 
         PageInfo pageInfo = buyerCapitalService.list(pageNo, pageSize, dto);
 
@@ -94,6 +97,9 @@ public class BuyerCapitalAction {
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
         dto.setMemberid(member.getId());
 
+        if(dto.getTradetimeEnd() != null) {
+            dto.setTradetimeEnd(DateUtils.addDays(dto.getTradetimeEnd(),1));
+        }
         List<Map<String,Object>> resList =  buyerCapitalService.listConsumeForBuyerExportExcel(dto);
 
         XSSFWorkbook workbook = null;

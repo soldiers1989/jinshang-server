@@ -18,15 +18,16 @@ public class OrdersProvider {
       */
     public  String  getAllMemberOrdersList(OrderQueryParam param){
         SQL sql =  new SQL();
-        sql.SELECT("o.*,bc.companyname as buyercompanyname, m.realname as realname ");
+        sql.SELECT("o.*,bc.companyname as buyercompanyname, mm.realname as realname ");
         sql.FROM(" orders o ");
-        sql.LEFT_OUTER_JOIN("member m on o.memberid=m.id ");
+        sql.LEFT_OUTER_JOIN("member m on o.saleid=m.id ");
+        sql.LEFT_OUTER_JOIN("member mm on o.memberid=mm.id ");
         sql.LEFT_OUTER_JOIN("buyercompanyinfo bc on o.memberid=bc.memberid ");
 
         if (StringUtils.hasText(param.getMemberName())) {
             String memberName = "%" + param.getMemberName() + "%";
             param.setMemberName(memberName);
-            sql.WHERE(" (m.realname like #{memberName} or bc.companyname like #{memberName})");
+            sql.WHERE("(mm.realname like #{memberName} or mm.username like #{memberName} or bc.companyname LIKE #{memberName})");
         }
 
         if (StringUtils.hasText(param.getClerkname())) {
@@ -38,7 +39,7 @@ public class OrdersProvider {
         if (StringUtils.hasText(param.getSellerName())) {
             String sellerName = "%" + param.getSellerName() + "%";
             param.setSellerName(sellerName);
-            sql.WHERE(" (o.membercompany like #{sellerName} or o.shopname like #{sellerName}) ");
+            sql.WHERE("  (o.membercompany like #{sellerName} or m.username like #{sellerName}) ");
         }
         if (param.getIsonline() != null) {
             sql.WHERE(" Isonline=#{isonline} ");

@@ -25,6 +25,7 @@ import project.jinshang.common.bean.PageRet;
 import project.jinshang.common.constant.AgentDeliveryAddressConst;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.Quantity;
+import project.jinshang.common.constant.TradeConstant;
 import project.jinshang.common.exception.CashException;
 import project.jinshang.common.utils.*;
 import project.jinshang.mod_activity.bean.LimitTimeProd;
@@ -149,8 +150,7 @@ public class OrdersAction {
     private OrderProductBackInfoService OrderProductBackInfoService;
 
 
-    //远期全款打折率
-    private static final BigDecimal allPayRate = new BigDecimal(0.99);
+
 
 
     MemberLogOperator memberLogOperator = new MemberLogOperator();
@@ -374,7 +374,7 @@ public class OrdersAction {
                 }
                 //全款
                 if (orderProduct.getProtype() == Quantity.STATE_1) {
-                    BigDecimal allPay = appPap.multiply(allPayRate);
+                    BigDecimal allPay = appPap.multiply(TradeConstant.allPayRate);
                     orderProduct.setAllpay(allPay);
                     totalPrice = figtht.add(allPay);
                     orderProduct.setActualpayment(totalPrice);

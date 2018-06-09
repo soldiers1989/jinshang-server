@@ -5,6 +5,7 @@ import com.google.gson.reflect.TypeToken;
 import io.swagger.annotations.*;
 import mizuki.project.core.restserver.config.BasicRet;
 import mizuki.project.core.restserver.config.exception.RestMainException;
+import org.apache.commons.lang3.ArrayUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,9 +35,7 @@ import project.jinshang.mod_wms_middleware.bean.GoodsStock;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 @RestController
 @RequestMapping("/rest/callback/wms")
@@ -942,5 +941,22 @@ public class WmsCallbackRestAction {
         basicRet.setResult(BasicRet.SUCCESS);
         basicRet.setMessage("同步成功");
         return basicRet;
+    }
+
+
+
+    @RequestMapping(value = "/getMemberOrder",method = RequestMethod.GET)
+    public List<Orders> getMemberOrder(@RequestParam("memberid") long memberid,@RequestParam("orderid") long orderid){
+        OrdersExample example = new OrdersExample();
+        OrdersExample.Criteria criteria = example.createCriteria();
+        criteria.andMemberidEqualTo(memberid);
+        criteria.andIdGreaterThan(orderid);
+        criteria.andOrderstatusIn(Arrays.asList(new Short[]{3, 4, 5}));
+        List<Orders> list = ordersService.selectByExample(example);
+        list.forEach(orders -> {
+            orders.setOrderProducts(ordersService.getOrderProductByOrderId(orders.getId()));
+        });
+
+        return  list;
     }
 }

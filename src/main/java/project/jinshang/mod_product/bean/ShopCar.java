@@ -55,7 +55,7 @@ public class ShopCar {
     @ApiModelProperty(notes = "全款")
     private BigDecimal allpay;
 
-    @ApiModelProperty(notes = "类型")
+    @ApiModelProperty(notes = "远期类型0=不是远期1=全款2=定金")
     private Short protype;
 
     @ApiModelProperty(notes = "产品类型1=紧固件2=其它")

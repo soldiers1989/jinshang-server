@@ -21,6 +21,7 @@ import project.jinshang.common.bean.PageRet;
 import project.jinshang.common.constant.AdminAuthorityConst;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.Quantity;
+import project.jinshang.common.utils.DateUtils;
 import project.jinshang.common.utils.ExcelGen;
 import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_company.bean.BuyerCompanyInfo;
@@ -341,6 +342,14 @@ public class MemberAdminRestAction {
                                     @RequestParam(required = true) int pageNo,
                                     @RequestParam(required = true) int pageSize,Model model) {
         Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        if (dto.getLoginDateEnd() != null) {
+            dto.setLoginDateEnd(DateUtils.addDays(dto.getLoginDateEnd(), 1));
+        }
+
+        if (dto.getRegistDateEnd() != null) {
+            dto.setRegistDateEnd(DateUtils.addDays(dto.getRegistDateEnd(), 1));
+        }
+
         PageInfo pageInfo = memberAdminService.list(dto, pageNo, pageSize);
        List<AdminUser> list= adminUserService.findAdminUserByAdminid(admin.getId());
         SelectMemberInfoRet selectMemberInfoRet=new SelectMemberInfoRet();

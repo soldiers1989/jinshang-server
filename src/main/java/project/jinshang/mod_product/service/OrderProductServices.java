@@ -41,7 +41,6 @@ public class OrderProductServices {
     }
 
 
-
     public OrderProduct getOrderProductById(long id) {
         return orderProductMapper.selectByPrimaryKey(id);
     }
@@ -69,5 +68,9 @@ public class OrderProductServices {
 
     public List<OrderProduct> getByOrderNoAndBackStatus(String orderno) {
         return orderProductMapper.getByOrderNoAndBackStatus(orderno);
+    }
+
+    public void updateByPrimaryKeySelective(OrderProduct orderProduct){
+        orderProductMapper.updateByPrimaryKeySelective(orderProduct);
     }
 }

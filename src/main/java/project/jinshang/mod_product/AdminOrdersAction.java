@@ -8,6 +8,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import mizuki.project.core.restserver.config.BasicRet;
+import org.apache.commons.collections.map.HashedMap;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,10 +17,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import project.jinshang.common.bean.MemberLogOperator;
 import project.jinshang.common.bean.PageRet;
-import project.jinshang.common.constant.AdminAuthorityConst;
-import project.jinshang.common.constant.AgentDeliveryAddressConst;
-import project.jinshang.common.constant.AppConstant;
-import project.jinshang.common.constant.Quantity;
+import project.jinshang.common.constant.*;
 import project.jinshang.common.exception.CashException;
 import project.jinshang.common.utils.*;
 import project.jinshang.mod_activity.bean.LimitTimeProd;
@@ -2984,5 +2982,139 @@ public class AdminOrdersAction {
         orderCarBackRet.data.orderProductBackInfos = orderProductBackInfos;
         orderCarBackRet.data.orderProductBackInfos.forEach(orderProductBackInfo -> orderProductBackInfo.getExtend().put("productInfo", productInfoService.getById(orderProductBackInfo.getPdid())));
         return orderCarBackRet;
+    }
+
+
+    @RequestMapping(value = "/updateOrderProductPrice", method = RequestMethod.POST)
+    @ApiOperation(value = "修改订单商品单价")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "orderid", value = "订单id", required = true, paramType = "query", dataType = "int"),
+            //@ApiImplicitParam(name = "totalPrice",value = "订单总价",required = true,paramType = "query",dataType = "double"),
+            @ApiImplicitParam(name="pricesJson",value = "订单商品单价json [{\"id\":1,\"price\":20}]", required = true,paramType = "query",dataType = "string")
+    })
+    public BasicRet updateOrderProductPrice(@RequestParam(required = true) long orderid,
+                                            //@RequestParam(required = true) BigDecimal totalPrice,
+                                            @RequestParam(required = true) String pricesJson,Model model){
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        BasicRet basicRet = new BasicRet();
+
+        Orders orders = ordersService.getOrdersById(orderid);
+        if(orders == null){
+            return  new BasicRet(BasicRet.ERR,"订单不存在");
+        }
+
+        if(orders.getOrderstatus() != Quantity.STATE_0){
+            return  new BasicRet(BasicRet.ERR,"只有待付款订单可以改价");
+        }
+
+        List<ModifyOrderProductPrice> priceList = GsonUtils.toList(pricesJson,ModifyOrderProductPrice.class);
+
+        for(ModifyOrderProductPrice price : priceList){
+            if(price == null || price.getPrice() == null || price.getId()<=0 || price.getPrice().compareTo(Quantity.BIG_DECIMAL_0) <= 0){
+               return  new BasicRet(BasicRet.ERR,"pricesJson数据不正确");
+            }
+        }
+
+        StringBuilder log = new StringBuilder();
+
+        List<OrderProduct> orderProductList = ordersService.getOrderProductByOrderId(orders.getId());
+        int count= 0;
+        if(orderProductList.size() != priceList.size()){
+            return  new BasicRet(BasicRet.ERR,"订单商品数量与原订单不匹配");
+        }else{
+            for(OrderProduct orderProduct : orderProductList){
+                for(ModifyOrderProductPrice price : priceList){
+                    if(orderProduct.getId().equals(price.getId())){
+                        if(orderProduct.getPrice().compareTo(price.getPrice()) != 0) {
+                            log.append("订单商品" + orderProduct.getPdname()+"("+orderProduct.getId()+")" + "价格变动:" + orderProduct.getPrice() + "->" + price.getPrice() + ";\n");
+                        }
+
+                        orderProduct.setPrice(price.getPrice());
+                        count++;
+                    }
+                }
+            }
+
+            if(orderProductList.size() != count){
+                return  new BasicRet(BasicRet.ERR,"订单商品数量与原订单个数不匹配");
+            }
+        }
+
+        BigDecimal orderTotalPrice = Quantity.BIG_DECIMAL_0; //订单总价
+        BigDecimal deposit = Quantity.BIG_DECIMAL_0;  //远期定金
+        BigDecimal balance = Quantity.BIG_DECIMAL_0;  //远期余款
+
+        for(OrderProduct orderProduct : orderProductList){
+            OrderProduct updateOrderProduct = new OrderProduct();
+            updateOrderProduct.setId(orderProduct.getId());
+            updateOrderProduct.setPrice(orderProduct.getPrice());
+            BigDecimal productTotalPrice = orderProduct.getPrice().multiply(orderProduct.getNum()).add(orderProduct.getFreight());
+
+            if(orderProduct.getProtype() == 0){  //远期类型0=不是远期1=全款2=定金
+                updateOrderProduct.setActualpayment(productTotalPrice);
+            }else if(orderProduct.getProtype() ==1){
+                updateOrderProduct.setAllpay(productTotalPrice.multiply(TradeConstant.allPayRate));
+                updateOrderProduct.setActualpayment(productTotalPrice.multiply(TradeConstant.allPayRate));
+            }else if(orderProduct.getProtype() == 2){
+                updateOrderProduct.setActualpayment(productTotalPrice);
+                BigDecimal partpay = productTotalPrice.multiply(transactionSettingService.getTransactionSetting().getRemotepurchasingmargin()).multiply(new BigDecimal(0.01)).setScale(2,BigDecimal.ROUND_HALF_UP);
+                BigDecimal yupay = productTotalPrice.subtract(partpay);
+                updateOrderProduct.setPartpay(partpay);
+                updateOrderProduct.setYupay(yupay);
+
+                deposit = deposit.add(partpay);
+                balance = balance.add(yupay);
+            }else{
+                throw new RuntimeException("商品远期类型不合法");
+            }
+
+            orderTotalPrice = orderTotalPrice.add(updateOrderProduct.getActualpayment());
+            orderProductServices.updateByPrimaryKeySelective(orderProduct);
+        }
+
+        //计算商品佣金
+        ordersService.jisuanOrdersBreakPay(Collections.singletonList(orders.getOrderno()));
+
+        Orders updateOrders = new Orders();
+        updateOrders.setId(orders.getId());
+        updateOrders.setActualpayment(orderTotalPrice);
+        updateOrders.setTotalprice(orderTotalPrice);
+        ordersService.updateSingleOrder(updateOrders);
+
+
+        //操作日志
+        OperateLog operateLog = new OperateLog();
+        operateLog.setContent("修改商品单价:" + log.toString());
+        operateLog.setOpid(admin.getId());
+        operateLog.setOpname(admin.getUsername());
+        operateLog.setOptime(new Date());
+        operateLog.setOptype(Quantity.STATE_0);
+        operateLog.setOrderid(orders.getId());
+        operateLog.setOrderno(orders.getOrderno());
+        ordersService.saveOperatelog(operateLog);
+
+        return  new BasicRet(BasicRet.SUCCESS,"改价成功");
+    }
+
+
+    private class ModifyOrderProductPrice{
+        private Long id;
+        private BigDecimal price;
+
+        public Long getId() {
+            return id;
+        }
+
+        public void setId(Long id) {
+            this.id = id;
+        }
+
+        public BigDecimal getPrice() {
+            return price;
+        }
+
+        public void setPrice(BigDecimal price) {
+            this.price = price;
+        }
     }
 }

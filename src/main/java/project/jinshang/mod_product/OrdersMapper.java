@@ -158,7 +158,8 @@ public interface OrdersMapper {
     public Long getSingleProductEvaNum(Long pdid);
 
 
-    @Select("select * from orders where orderno=#{orderno} order by id desc limit 1")
+    @Select("select o.*,pi.selfsupport from orders o left join orderproduct op on o.orderno = op.orderno \n" +
+            "left join productinfo pi on op.pdid = pi.id where o.orderno=#{orderno} order by o.id desc limit 1")
     Orders getOrdersByOrderNo(@Param("orderno") String orderno);
 
     /**
@@ -174,9 +175,9 @@ public interface OrdersMapper {
     public class OrdersSumBrokerProvider {
 
         private final String TBL_ORDER = "orders od";
-        private final String TBL_MEMBER = "member m on od.memberid=m.id";
-        private final String TBL_BUYERCOMPANYINFO = "buyercompanyinfo bci on m.id=bci.memberid";
-        private final String TBL_MEMBER2 = "member mm on od.saleid=mm.id";
+        private final String TBL_MEMBER = "member m on od.saleid=m.id";
+        private final String TBL_MEMBER2 = "member mm on od.memberid=mm.id";
+        private final String TBL_BUYERCOMPANYINFO = "buyercompanyinfo bci on od.memberid=bci.memberid";
 
         public String queryByParam(OrderQueryParam param) {
 
@@ -194,12 +195,12 @@ public interface OrdersMapper {
             if (StringUtils.hasText(param.getMemberName())) {
                 String memberName = "%" + param.getMemberName() + "%";
                 param.setMemberName(memberName);
-                sql.WHERE("(m.realname LIKE #{memberName} or m.username LIKE #{memberName} or bci.companyname LIKE #{memberName})");
+                sql.WHERE("(mm.realname LIKE #{memberName} or mm.username LIKE #{memberName} or bci.companyname LIKE #{memberName})");
             }
             if (StringUtils.hasText(param.getSellerName())) {
                 String sellerName = "%" + param.getSellerName() + "%";
                 param.setSellerName(sellerName);
-                sql.WHERE("(mm.realname LIKE #{sellerName} or mm.username LIKE #{sellerName} or od.membercompany LIKE #{sellerName})");
+                sql.WHERE("(od.membercompany like #{sellerName} or m.username like #{sellerName})");
             }
             if (param.getIsonline() != null) {
                 sql.WHERE("od.isonline=#{isonline}");
@@ -269,9 +270,9 @@ public interface OrdersMapper {
     public class OrderNumProvider {
 
         private final String TBL_ORDER = "orders od";
-        private final String TBL_MEMBER = "member m on od.memberid=m.id";
-        private final String TBL_BUYERCOMPANYINFO = "buyercompanyinfo bci on m.id=bci.memberid";
-        private final String TBL_MEMBER2 = "member mm on od.saleid=mm.id";
+        private final String TBL_BUYERCOMPANYINFO = "buyercompanyinfo bci on od.memberid=bci.memberid";
+        private final String TBL_MEMBER = "member m on od.saleid=m.id";
+        private final String TBL_MEMBER2 = "member mm on od.memberid=mm.id";
         //private final String TBL_BUYERCOMPANYINFO2 = "buyercompanyinfo bcii on mm.id=bcii.memberid";
 
         public String queryByParam(OrderQueryParam param) {
@@ -290,12 +291,12 @@ public interface OrdersMapper {
             if (StringUtils.hasText(param.getMemberName())) {
                 String memberName = "%" + param.getMemberName() + "%";
                 param.setMemberName(memberName);
-                sql.WHERE("(m.realname LIKE #{memberName} or m.username LIKE #{memberName} or bci.companyname LIKE #{memberName})");
+                sql.WHERE("(mm.realname LIKE #{memberName} or mm.username LIKE #{memberName} or bci.companyname LIKE #{memberName})");
             }
             if (StringUtils.hasText(param.getSellerName())) {
                 String sellerName = "%" + param.getSellerName() + "%";
                 param.setSellerName(sellerName);
-                sql.WHERE("(mm.realname LIKE #{sellerName} or mm.username LIKE #{sellerName} or od.membercompany LIKE #{sellerName})");
+                sql.WHERE("(od.membercompany like #{sellerName} or m.username like #{sellerName})");
             }
             if (param.getIsonline() != null) {
                 sql.WHERE("od.isonline=#{isonline}");
@@ -366,9 +367,9 @@ public interface OrdersMapper {
 
         private final String TBL_ORDER_PRODUCT = "orderproduct op";
         private final String TBL_ORDER = "orders od on op.orderid=od.id";
-        private final String TBL_MEMBER = "member m on od.memberid=m.id";
-        private final String TBL_BUYERCOMPANYINFO = "buyercompanyinfo bci on m.id=bci.memberid";
-        private final String TBL_MEMBER2 = "member mm on od.saleid=mm.id";
+        private final String TBL_MEMBER = "member m on od.saleid=m.id";
+        private final String TBL_MEMBER2 = "member mm on od.memberid=mm.id";
+        private final String TBL_BUYERCOMPANYINFO = "buyercompanyinfo bci on od.memberid=bci.memberid";
 
 
         public String queryByParam(OrderQueryParam param) {
@@ -391,12 +392,12 @@ public interface OrdersMapper {
             if (StringUtils.hasText(param.getMemberName())) {
                 String memberName = "%" + param.getMemberName() + "%";
                 param.setMemberName(memberName);
-                sql.WHERE("(m.realname LIKE #{memberName} or m.username LIKE #{memberName} or bci.companyname LIKE #{memberName})");
+                sql.WHERE("(mm.realname LIKE #{memberName} or mm.username LIKE #{memberName} or bci.companyname LIKE #{memberName})");
             }
             if (StringUtils.hasText(param.getSellerName())) {
                 String sellerName = "%" + param.getSellerName() + "%";
                 param.setSellerName(sellerName);
-                sql.WHERE("(mm.realname LIKE #{sellerName} or mm.username LIKE #{sellerName} or od.membercompany LIKE #{sellerName})");
+                sql.WHERE("(od.membercompany like #{sellerName} or m.username like #{sellerName})");
             }
             if (param.getIsonline() != null) {
                 sql.WHERE("od.isonline=#{isonline}");
@@ -466,9 +467,9 @@ public interface OrdersMapper {
 
         private final String TBL_ORDER_PRODUCT = "orderproduct op";
         private final String TBL_ORDER = "orders od on op.orderid=od.id";
-        private final String TBL_MEMBER = "member m on od.memberid=m.id";
-        private final String TBL_BUYERCOMPANYINFO = "buyercompanyinfo bci on m.id=bci.memberid";
-        private final String TBL_MEMBER2 = "member mm on od.saleid=mm.id";
+        private final String TBL_MEMBER = "member m on od.saleid=m.id";
+        private final String TBL_MEMBER2 = "member mm on od.memberid=mm.id";
+        private final String TBL_BUYERCOMPANYINFO = "buyercompanyinfo bci on od.memberid=bci.memberid";
 
 
         public String queryByParam(OrderQueryParam param) {
@@ -489,12 +490,12 @@ public interface OrdersMapper {
             if (StringUtils.hasText(param.getMemberName())) {
                 String memberName = "%" + param.getMemberName() + "%";
                 param.setMemberName(memberName);
-                sql.WHERE("(m.realname LIKE #{memberName} or m.username LIKE #{memberName} or bci.companyname LIKE #{memberName})");
+                sql.WHERE("(mm.realname LIKE #{memberName} or mm.username LIKE #{memberName} or bci.companyname LIKE #{memberName})");
             }
             if (StringUtils.hasText(param.getSellerName())) {
                 String sellerName = "%" + param.getSellerName() + "%";
                 param.setSellerName(sellerName);
-                sql.WHERE("(mm.realname LIKE #{sellerName} or mm.username LIKE #{sellerName} or od.membercompany LIKE #{sellerName})");
+                sql.WHERE("(od.membercompany like #{sellerName} or m.username like #{sellerName})");
             }
             if (param.getIsonline() != null) {
                 sql.WHERE("od.isonline=#{isonline}");
@@ -565,9 +566,9 @@ public interface OrdersMapper {
 
         private final String TBL_ORDER_PRODUCT = "orderproduct op";
         private final String TBL_ORDER = "orders od on op.orderid=od.id";
-        private final String TBL_MEMBER = "member m on od.memberid=m.id";
-        private final String TBL_BUYERCOMPANYINFO = "buyercompanyinfo bci on m.id=bci.memberid";
-        private final String TBL_MEMBER2 = "member mm on od.saleid=mm.id";
+        private final String TBL_MEMBER = "member m on od.saleid=m.id";
+        private final String TBL_MEMBER2 = "member mm on od.memberid=mm.id";
+        private final String TBL_BUYERCOMPANYINFO = "buyercompanyinfo bci on od.memberid=bci.memberid";
 
         public String queryByParam(OrderQueryParam param) {
 
@@ -589,12 +590,12 @@ public interface OrdersMapper {
             if (StringUtils.hasText(param.getMemberName())) {
                 String memberName = "%" + param.getMemberName() + "%";
                 param.setMemberName(memberName);
-                sql.WHERE("(m.realname LIKE #{memberName} or m.username LIKE #{memberName} or bci.companyname LIKE #{memberName})");
+                sql.WHERE("(mm.realname LIKE #{memberName} or mm.username LIKE #{memberName} or bci.companyname LIKE #{memberName})");
             }
             if (StringUtils.hasText(param.getSellerName())) {
                 String sellerName = "%" + param.getSellerName() + "%";
                 param.setSellerName(sellerName);
-                sql.WHERE("(mm.realname LIKE #{sellerName} or mm.username LIKE #{sellerName} or od.membercompany LIKE #{sellerName})");
+                sql.WHERE("(od.membercompany like #{sellerName} or m.username like #{sellerName})");
             }
             if (param.getIsonline() != null) {
                 sql.WHERE("od.isonline=#{isonline}");
@@ -1143,4 +1144,14 @@ public interface OrdersMapper {
      */
     @Select("select o.*  from orders o where o.paymenttime between #{starttime} and #{endtime} and o.orderstatus not in (0,7) order by o.id asc")
     List<Orders> getRegularOrders(@Param("starttime") Date starttime, @Param("endtime") Date endtime);
+
+
+    /**
+     * 2018年6月8日
+     * 获取会员的所有订单
+     *
+     * @return
+     */
+    @Select("select o.*  from orders o WHERE o.memberid=#{memberid}")
+    List<Orders> findOrdersByuserid(@Param("memberid") Long memberid);
 }

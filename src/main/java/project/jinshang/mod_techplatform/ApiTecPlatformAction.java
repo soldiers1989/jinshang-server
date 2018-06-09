@@ -11,6 +11,7 @@ import mizuki.project.core.restserver.util.JsonUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import project.jinshang.common.bean.Page;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.utils.MD5Tools;
@@ -20,14 +21,13 @@ import project.jinshang.mod_company.bean.SellerCompanyInfoExample;
 import project.jinshang.mod_company.bean.Store;
 import project.jinshang.mod_company.service.SellerCompanyInfoService;
 import project.jinshang.mod_company.service.StoreService;
-import project.jinshang.mod_product.bean.DockType;
-import project.jinshang.mod_product.bean.Orders;
-import project.jinshang.mod_product.bean.OrdersExample;
+import project.jinshang.mod_product.bean.*;
 import project.jinshang.mod_product.service.OrdersService;
 import project.jinshang.mod_product.service.ProductStoreService;
 
 import javax.persistence.criteria.Order;
 import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -71,9 +71,22 @@ public class ApiTecPlatformAction {
         if (DockType.JS002.getType().equals(type)){
             return reWriteOrderBack(paraMap);
         }else if (DockType.JS005.getType().equals(type)){
-
+            String appId= (String) paraMap.get("appid");
+            SellerCompanyInfoExample example=new SellerCompanyInfoExample();
+            SellerCompanyInfoExample.Criteria criteria=example.createCriteria();
+            criteria.andAppidEqualTo(appId);
+            List<SellerCompanyInfo> sellerCompanyInfoList=sellerCompanyInfoService.selectByExample(example);
+            //开始调用库存同步共用方法
+            BasicRet basicRet1=productStoreService.stockSynCom(sellerCompanyInfoList.get(0).getMemberid());
+            apiTecRet.setStatus("success");
+            apiTecRet.setType(DockType.JS005.getType());
+            apiTecRet.setErrcode(basicRet1.getResult());
+            apiTecRet.setErrdesc(basicRet1.getMessage());
+            //不清楚这个timestamp的值怎么获取
+            apiTecRet.setTimestamp(System.currentTimeMillis());
+            return apiTecRet;
         }
-        return null;
+        return apiTecRet;
     }
 
 
@@ -138,24 +151,78 @@ public class ApiTecPlatformAction {
     }
 
 
-    /**
-     *库存同步(主动)/库存同步(被动)的共方法
-     * @author xiazy
-     * @date  2018/6/6 17:59
-     * @param sellerId 卖家的id
-     * @return mizuki.project.core.restserver.config.BasicRet
-     */
-    public BasicRet stockSynCom(Long sellerId){
-        BasicRet basicRet=new BasicRet();
-        List<Store> storeList=storeService.getAllByMember(sellerId);
+//    /**
+//     *库存同步(主动)/库存同步(被动)的共方法
+//     * @author xiazy
+//     * @date  2018/6/6 17:59
+//     * @param sellerId 卖家的id
+//     * @return mizuki.project.core.restserver.config.BasicRet
+//     */
+//    public BasicRet stockSynCom(Long sellerId){
+//        BasicRet basicRet=new BasicRet();
+//        basicRet.setResult(BasicRet.SUCCESS);
+//        basicRet.setMessage("库存同步主体方法调用成功");
+//        List<Store> storeList=storeService.getAllByMember(sellerId);
+//        Map<String,Object> retmap=ordersService.verification(sellerId);
+//        if (((BasicRet)retmap.get("basicRet")).getResult()!=1){
+//            basicRet= (BasicRet)retmap.get("basicRet");
+//            return basicRet;
+//        }
+////        PageInfo pageInfo = productStoreService.getCreditRecordList(member.getId(), creditApplyRecord, pageNo, pageSize);
+////        buyerCreditRet.data.pageInfo = pageInfo;
+////        buyerCreditRet.setMessage("返回成功");
+////        buyerCreditRet.setResult(BasicRet.SUCCESS);
+////        return buyerCreditRet;
+//        Map<String,Object> sysParam=new HashMap<>();
+//        String pdnoStr="";
+//        String jsonParam="";
+//        SellerCompanyInfo sellerCompanyInfo= (SellerCompanyInfo) retmap.get("sellerCompanyInfo");
+//        String appId=sellerCompanyInfo.getAppid();
+//        String appSecret=sellerCompanyInfo.getAppsecret();
+//        String appUrl=sellerCompanyInfo.getAppurl();
+//        Long timestamp=System.currentTimeMillis();
+//        String notify=MD5Tools.MD5(appId+appSecret+timestamp);
+//        Js006 js006=new Js006();
+//        js006.setAppid(appId);
+//        js006.setNotify(notify);
+//        js006.setType(DockType.JS006.getType());
+//        js006.setExtendjson(null);
+//        js006.setTimestamp(String.valueOf(timestamp));
+//        if (storeList!=null&&storeList.size()>0){
+//            for (Store store:storeList) {
+//                Long storeId=store.getId();
+//                js006.setStore(String.valueOf(storeId));
+//                PageInfo<Products> productsPageInfo=productStoreService.selectProductStoreForSyn(0,0,storeId,sellerId,ONSHEWLF);
+//                int totalPageSize=productsPageInfo.getPages();
+//                if (totalPageSize>0){
+//                    for(int i=1;i<totalPageSize;i++){
+//                        PageInfo<Products> currentPageInfo=productStoreService.selectProductStoreForSyn(i,PAGESIZE,storeId,sellerId,ONSHEWLF);
+//                        int size=currentPageInfo.getSize();
+//                        //计算出商品明细JSON
+//                        pdnoStr="";
+//                        for (Products product:currentPageInfo.getList()) {
+//                            pdnoStr=pdnoStr+product.getProductno()+",";
+//                        }
+//                        Map<String,Object> pdnoMap=new HashMap<>();
+//                        pdnoMap.put("pdno",pdnoStr);
+//                        js006.setPdjson(JsonUtil.toJson(pdnoMap));
+//                        Page page=new Page();
+//                        page.setPageNo(i);
+//                        page.setPageSize(size);
+//                        js006.setPagejson(JsonUtil.toJson(page));
+//                        jsonParam=JsonUtil.toJson(js006);
+//                        ordersService.sendToMiddleManage(appUrl,JsonUtil.toMap(jsonParam));
+//                    }
+//                }
+//            }
+//            return basicRet;
+//        }else{
+//            basicRet.setMessage("没有获取对应卖家的所属仓库");
+//            basicRet.setResult(BasicRet.ERR);
+//            return basicRet;
+//        }
+//    }
 
-//        PageInfo pageInfo = productStoreService.getCreditRecordList(member.getId(), creditApplyRecord, pageNo, pageSize);
-//        buyerCreditRet.data.pageInfo = pageInfo;
-//        buyerCreditRet.setMessage("返回成功");
-//        buyerCreditRet.setResult(BasicRet.SUCCESS);
-//        return buyerCreditRet;
-        return basicRet;
-    }
 
 
     private static  class ApiTecRet extends BasicRet{
@@ -203,6 +270,29 @@ public class ApiTecPlatformAction {
 
         public Long getTimestamp() {
             return timestamp;
+        }
+    }
+
+    private static class StockRet extends BasicRet{
+        private class Data{
+            private PageInfo pageInfo;
+
+            public PageInfo getPageInfo() {
+                return pageInfo;
+            }
+
+            public void setPageInfo(PageInfo pageInfo) {
+                this.pageInfo = pageInfo;
+            }
+        }
+        private Data data;
+
+        public Data getData() {
+            return data;
+        }
+
+        public void setData(Data data) {
+            this.data = data;
         }
     }
 

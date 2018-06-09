@@ -8,12 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.exception.CashException;
+import project.jinshang.common.utils.DateUtils;
 import project.jinshang.common.utils.GenerateNo;
 import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_cash.BuyerCapitalMapper;
 import project.jinshang.mod_cash.SalerCapitalMapper;
 import project.jinshang.mod_cash.bean.BuyerCapital;
 import project.jinshang.mod_cash.bean.SalerCapital;
+import project.jinshang.mod_pay.bean.PayLogs;
 import project.jinshang.mod_pay.bean.PayTradeLogs;
 import project.jinshang.mod_product.bean.*;
 import project.jinshang.mod_product.service.OrdersService;
@@ -742,10 +744,7 @@ public class TradeService {
 
         return true;
     }
-
 */
-
-
 
     public boolean notify(String outTradeNo, String channel, String transactionid) {
         // 做订单的支付成功处理
@@ -786,6 +785,9 @@ public class TradeService {
 
             updateOrder.setTransactionid(transactionid);
             updateOrder.setPaymenttime(new Date());
+            order.setPaymenttime(new Date());
+
+
 
             //立即发货
             if (order.getOrdertype() == Quantity.STATE_0) {
@@ -915,4 +917,75 @@ public class TradeService {
 
         return refund;
     }
+
+
+    @Autowired
+    private PayLogsService payLogsService;
+    public void test(String orderno,String uuid,String transactionid,String total_amount,String  channel,String payDate) throws CashException {
+
+        Orders order = ordersService.getOrdersByOrderNo(orderno);
+        if(order == null){
+            System.out.println("订单不存在");
+            return;
+        }
+
+        Short paytype = -1;
+        //0=支付宝1=微信2=银行卡
+        if(channel.equals("alipay")){
+            paytype = 0;
+        }else if(channel.equals("wxpay")){
+            paytype = 1;
+        }else if(channel.equals("bank")){
+            paytype = 2;
+        }
+
+
+//        PayLogs payLogs = new PayLogs();
+//        payLogs.setTransactionid(transactionid);
+//        payLogs.setOuttradeno(uuid);
+//        payLogs.setMoney(new BigDecimal(total_amount));
+//        payLogs.setCreatetime(new Date());
+//        payLogs.setChannel(channel);
+//        payLogsService.insertSelective(payLogs);
+
+
+        PayTradeLogs logs = new PayTradeLogs();
+        logs.setOrderid(order.getId());
+        logs.setOrderno(order.getOrderno());
+        logs.setOuttradeno(uuid);
+        logs.setCreatetime(new Date());
+        logs.setPaytype(paytype);
+        logs.setPaystates(Quantity.STATE_0);
+
+        Long ordertime = DateUtils.StrToDate(payDate).getTime();
+
+        Orders updateOrder = new Orders();
+        updateOrder.setId(order.getId());
+        //定金和余款必须是同一种支付方式
+        if (order.getOrdertype() == Quantity.STATE_3) {
+            if (order.getPaytype() != paytype) {
+                //basicRet.setResult(BasicRet.ERR);
+                //basicRet.setMessage("定金和余款不是同一种支付方式");
+                //trade.setPayUrlRet(basicRet);
+                //return trade;
+                throw new CashException("定金和余款不是同一种支付方式");
+            }
+            //updateOrder.setYuuuid(uuid);
+            updateOrder.setYuordertime(ordertime);
+
+            logs.setOrdertype(Quantity.STATE_2);
+        } else {
+            //updateOrder.setUuid(uuid);
+            updateOrder.setOrdertime(ordertime);
+            logs.setOrdertype(Quantity.STATE_1);
+        }
+        ordersMapper.updateByPrimaryKeySelective(updateOrder);
+        payTradeLogsService.insertSelective(logs);
+
+
+        System.out.println(notify(uuid,channel,transactionid));
+    }
+
+
+
 }

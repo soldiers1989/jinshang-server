@@ -187,6 +187,8 @@ public class Orders {
 
     //---
 
+    private boolean selfsupport;
+
     //---wms 新增字段
     private String invoiceName;//购货单位名称
 
@@ -722,5 +724,13 @@ public class Orders {
 
     public void setClerknamephone(String clerknamephone) {
         this.clerknamephone = clerknamephone;
+    }
+
+    public boolean isSelfsupport() {
+        return selfsupport;
+    }
+
+    public void setSelfsupport(boolean selfsupport) {
+        this.selfsupport = selfsupport;
     }
 }

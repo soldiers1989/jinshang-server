@@ -8,6 +8,7 @@ import project.jinshang.mod_batchprice.bean.ProductQueryParam;
 import project.jinshang.mod_product.bean.ProductInfo;
 import project.jinshang.mod_product.bean.ProductStore;
 import project.jinshang.mod_product.bean.ProductStoreExample;
+import project.jinshang.mod_product.bean.Products;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -69,6 +70,9 @@ public interface ProductStoreMapper {
 
     @Select("select pst.* from productstore pst,productinfo p where pst.pdid=p.id and p.pdstate <> 6 and p.memberid=#{memberid} and  pst.storeid=#{storeid} and pst.pdno=#{pdno} order by pst.id limit 1")
     ProductStore getByStoreidAndPdNo(@Param("memberid") long memberid, @Param("storeid") long storeid, @Param("pdno") String pdno);
+
+    @Select("select pst.* from productstore pst left join products ps on pst.pdid=ps.id where pst.storeid=#{storeid} and pst.pdno=#{pdno}")
+    ProductStore getByStoreidAndPdNoForStockSyn(@Param("storeid") long storeid,@Param("pdno") String pdno);
 
 
     @Select("select id,prodprice,threeprice,thirtyprice,sixtyprice,ninetyprice,marketprice from productstore where pdid in (${pdids})")
@@ -151,5 +155,28 @@ public interface ProductStoreMapper {
 
     @Select("select * from productstore where pdid=#{pdid} and pdno=#{pdno} and storeid=#{storeid} order by id desc limit 1")
     ProductStore getProductStore(@Param("pdid") Long pdid,@Param("pdno") String pdno,@Param("storeid") Long storeid);
+
+
+
+    /**
+     *根据卖家id,仓库编码,上架商品等条件查询出商品进行库存同步
+     * @author xiazy
+     * @date  2018/6/7 10:52
+     * @param storeid 库存编码
+     * @param memberid 卖家id
+     * @param pdstate 商品的状态
+     * @return java.util.List<project.jinshang.mod_product.bean.ProductInfo>
+     */
+    @Select("SELECT pt.* \n" +
+            "\t FROM productstore pt \n" +
+            "\t LEFT JOIN products ps ON pt.pdid = ps.id \n" +
+            "\t LEFT JOIN productinfo pi ON pi.productid = ps.id WHERE \n" +
+            "\t pt.storeid = #{storeid} \n" +
+            "\t AND pi.memberid = #{memberid} \n" +
+            "\t AND pi.pdstate = #{pdstate} \n" +
+            "\t ORDER BY pt.id")
+    List<ProductStore> selectProductStoreForSyn(@Param("storeid") Long storeid, @Param("memberid") Long memberid, @Param("pdstate") int pdstate);
+
+
 
 }

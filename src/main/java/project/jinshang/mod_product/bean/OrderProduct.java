@@ -158,6 +158,15 @@ public class OrderProduct {
 
     private List packageList;
 
+    private boolean selfsupport;
+
+    public boolean getSelfsupport() {
+        return selfsupport;
+    }
+
+    public void setSelfsupport(boolean selfsupport) {
+        this.selfsupport = selfsupport;
+    }
 
     @Transient
     private Map<String,Object> extend;
