@@ -75,13 +75,13 @@ public class ApiTecPlatformAction {
             SellerCompanyInfoExample example=new SellerCompanyInfoExample();
             SellerCompanyInfoExample.Criteria criteria=example.createCriteria();
             criteria.andAppidEqualTo(appId);
-            List<SellerCompanyInfo> sellerCompanyInfoList=sellerCompanyInfoService.selectByExample(example);
-            //开始调用库存同步共用方法
-            BasicRet basicRet1=productStoreService.stockSynCom(sellerCompanyInfoList.get(0).getMemberid());
+//            List<SellerCompanyInfo> sellerCompanyInfoList=sellerCompanyInfoService.selectByExample(example);
+//            开始调用库存同步共用方法
+//            BasicRet basicRet1=productStoreService.stockSynCom(sellerCompanyInfoList.get(0).getMemberid());
             apiTecRet.setStatus("success");
             apiTecRet.setType(DockType.JS005.getType());
-            apiTecRet.setErrcode(basicRet1.getResult());
-            apiTecRet.setErrdesc(basicRet1.getMessage());
+//            apiTecRet.setErrcode(basicRet1.getResult());
+//            apiTecRet.setErrdesc(basicRet1.getMessage());
             //不清楚这个timestamp的值怎么获取
             apiTecRet.setTimestamp(System.currentTimeMillis());
             return apiTecRet;
@@ -137,17 +137,17 @@ public class ApiTecPlatformAction {
         SellerCompanyInfoExample example=new SellerCompanyInfoExample();
         SellerCompanyInfoExample.Criteria criteria=example.createCriteria();
         criteria.andAppidEqualTo(appId);
-        List<SellerCompanyInfo> sellerCompanyInfoList=sellerCompanyInfoService.selectByExample(example);
-        String appSecret=sellerCompanyInfoList.get(0).getAppsecret();
-        String checkNotify=MD5Tools.MD5(appId+appSecret+timeStamp);
+//        List<SellerCompanyInfo> sellerCompanyInfoList=sellerCompanyInfoService.selectByExample(example);
+//        String appSecret=sellerCompanyInfoList.get(0).getAppsecret();
+//        String checkNotify=MD5Tools.MD5(appId+appSecret+timeStamp);
         String notify=(String)param.get("notify");
-        if (StringUtils.hasText(checkNotify)&&StringUtils.hasText(notify)&&checkNotify.equals(notify)){
+//        if (StringUtils.hasText(checkNotify)&&StringUtils.hasText(notify)&&checkNotify.equals(notify)){
             return basicRet;
-        }else{
-            basicRet.setMessage("校验不通过！");
-            basicRet.setResult(BasicRet.TOKEN_ERR);
-            return basicRet;
-        }
+//        }else{
+//            basicRet.setMessage("校验不通过！");
+//            basicRet.setResult(BasicRet.TOKEN_ERR);
+//            return basicRet;
+//        }
     }
 
 

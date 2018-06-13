@@ -3,6 +3,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 import mizuki.project.core.restserver.util.OtherUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import project.jinshang.common.utils.GsonUtils;
@@ -18,6 +20,7 @@ import java.util.stream.Collectors;
 
 public class Test {
     public static void main(String[] args) {
+        Logger logger= LoggerFactory.getLogger(Test.class);
 //        String str= OtherUtil.get32UUID();
 //        System.out.println(str);
 //        Gson gson = new Gson();
@@ -96,9 +99,9 @@ public class Test {
 //        }
 
 //        short a=null;
-        Country country=new Country.Builder().setName("China").setArea("Asia").setPopulation(14).build();
-        System.out.println(country.getArea()+":"+country.getName()+":"+country.getPopulation());
-
+//        Country country=new Country.Builder().setName("China").setArea("Asia").setPopulation(14).build();
+//        System.out.println(country.getArea()+":"+country.getName()+":"+country.getPopulation());
+        logger.info("卖家编号为{}的没有{}产品的上级分类，不能插入!",123456,"日用化品");
 
 
     }

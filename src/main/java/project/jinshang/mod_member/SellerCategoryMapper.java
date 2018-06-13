@@ -2,6 +2,8 @@ package project.jinshang.mod_member;
 
 import org.apache.ibatis.annotations.InsertProvider;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
+import org.springframework.cache.annotation.Cacheable;
 import project.jinshang.mod_member.bean.SellerCategory;
 import project.jinshang.mod_member.bean.SellerCategoryExample;
 
@@ -57,5 +59,10 @@ public interface SellerCategoryMapper {
             return sb.toString();
         }
     }
+
+
+    @Select("select sellerid  from  sellercategory GROUP BY sellerid")
+    @Cacheable(value = "SellerCategoriesCache",key = "'project.jinshang.mod_member.SellerCategoryMapper.getSellerIdGroupBy'")
+    List<Long> getSellerIdGroupBy();
 
 }

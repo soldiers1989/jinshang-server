@@ -107,7 +107,7 @@
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="project.jinshang.mod_product.bean.Categories" >
+  <insert id="insert" keyProperty="id" useGeneratedKeys="true" parameterType="project.jinshang.mod_product.bean.Categories" >
     insert into categories ( name, parentid,
       title, keywords, description, 
       img, sort, brokeragerate, 

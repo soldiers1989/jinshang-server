@@ -12,6 +12,7 @@ import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.mod_product.bean.Categories;
 import project.jinshang.mod_product.bean.ProductInfoExample;
+import project.jinshang.mod_product.service.CategoriesRunnable;
 import project.jinshang.mod_product.service.CategoriesService;
 import project.jinshang.mod_product.service.ProductInfoService;
 
@@ -145,6 +146,10 @@ public class CategoriesAdminAction {
         categories.setCatetype(catetype);
 
         categoriesService.addCategory(categories);
+        //进行商品新增的同步
+//        CategoriesRunnable categoriesRunnable=new CategoriesRunnable(categoriesService,categories,Quantity.STATE_0);
+//        Thread thread=new Thread(categoriesRunnable);
+//        thread.start();
 
         basicRet.setMessage("添加成功");
         basicRet.setResult(BasicRet.SUCCESS);
@@ -236,6 +241,11 @@ public class CategoriesAdminAction {
 
         categoriesService.updateByPrimaryKey(categories);
 
+        //进行商品修改的同步
+//        CategoriesRunnable categoriesRunnable=new CategoriesRunnable(categoriesService,categories,Quantity.STATE_1);
+//        Thread thread=new Thread(categoriesRunnable);
+//        thread.start();
+
         basicRet.setResult(BasicRet.SUCCESS);
         basicRet.setMessage("修改成功");
         return  basicRet;
@@ -287,6 +297,14 @@ public class CategoriesAdminAction {
 
 
         categoriesService.delete(id);
+
+        //进行商品删除的同步
+//        Categories categories=new Categories();
+//        categories.setId(id);
+//        CategoriesRunnable categoriesRunnable=new CategoriesRunnable(categoriesService,categories,Quantity.STATE_2);
+//        Thread thread=new Thread(categoriesRunnable);
+//        thread.start();
+
         basicRet.setResult(BasicRet.ERR);
         basicRet.setMessage("删除成功");
         return  basicRet;
