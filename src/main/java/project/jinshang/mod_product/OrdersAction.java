@@ -1887,8 +1887,7 @@ public class OrdersAction {
         }
         memberLogOperator.saveMemberLog(member, null, "订单支付完成", "/rest/buyer/orders/payByBanlance", request, memberOperateLogService);
 
-        //进行订单的主动下单，向中间件管理平台post数据
-        ordersService.initiativeOrderIssue(orders);
+
         return basicRet;
     }
 
@@ -4190,8 +4189,6 @@ public class OrdersAction {
         // syn wms
         wmsService.cancelOrders(orders, WMSService.CANCEL_ORDER_TYPE);
         ordersService.updateReason(orders, "买家取消订单");
-        //执行订单主动取消，post数据到中间件中间平台
-        ordersService.initiativeOrderCancel(id);
 
         //保存操作日志
         OperateLog operateLog = new OperateLog();
@@ -5048,12 +5045,6 @@ public class OrdersAction {
         List<String> lackErrorList = (List<String>) repurchaseMap.get("lackErrorList");//记录库存不足
         basicExtRet.setData(repurchaseMap);
         return basicExtRet;
-    }
-
-
-    @RequestMapping(value = "/testForOrder",method = RequestMethod.POST)
-    public BasicRet test(){
-        return ordersService.initiativeOrderReturn(382L);
     }
 
 }

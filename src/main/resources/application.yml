@@ -175,9 +175,10 @@ eureka:
 
 
 
+
 mybatis:
   pgsql1:
-    url: jdbc:postgresql://${var.server}:5432/jinshang-dev4 #snap20180330
+    url: jdbc:postgresql://${var.server-test}:5432/jinshang-dev4 #snap20180330
     username: admin_jinshang_dev
     password: admin04131
 
@@ -257,6 +258,6 @@ mod:
 
 mybatis:
   pgsql1:
-    url: jdbc:postgresql://${var.server}:5432/jinshang-dev4
+    url: jdbc:postgresql://${var.server-test}:5432/jinshang-dev4
     username: admin_jinshang_dev
     password: admin04131

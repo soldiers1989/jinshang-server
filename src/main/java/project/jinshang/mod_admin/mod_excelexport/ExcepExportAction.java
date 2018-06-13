@@ -12,7 +12,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import project.jinshang.common.constant.AdminAuthorityConst;
 import project.jinshang.common.constant.AppConstant;
@@ -20,7 +19,6 @@ import project.jinshang.common.utils.ExcelGen;
 import project.jinshang.mod_admin.mod_inte.bean.IntegralQueryParam;
 import project.jinshang.mod_admin.mod_inte.service.IntegralService;
 import project.jinshang.mod_company.service.AdminShopService;
-import project.jinshang.mod_member.bean.Member;
 import project.jinshang.mod_product.bean.BackQueryParam;
 import project.jinshang.mod_product.bean.BillQueryParam;
 import project.jinshang.mod_product.bean.OrderQueryParam;
@@ -35,7 +33,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/rest/admin/excelexport")
@@ -58,6 +57,9 @@ public class ExcepExportAction {
     @ApiOperation(value = "导出订单列表")
     public ResponseEntity<InputStreamResource> exportOrdersExcel(HttpServletResponse response,OrderQueryParam param) {
 
+        if(param.getStand()!=null){
+            param.setStand(param.getStand().toUpperCase());
+        }
         XSSFWorkbook workbook = null;
         try {
             String[] rowTitles = new String[]{"订单号","下单时间", "合同号",  "交易号", "买家", "卖家", "订单类型", "订单来源", "商品名称", "规格","商品分类", "材质", "牌号", "品牌", "印记", "表面处理", "包装方式", "单位", "单价", "订购量", "货款金额", "开票抬头", "税号", "开户行", "开户账号", "开票地址", "电话", "是否开票", "订单状态", "项目","收件人","收货地址","付款方式","物流公司","快递单号","业务员","第三方支付单号","业务单号"};

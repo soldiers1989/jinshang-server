@@ -192,6 +192,12 @@ public interface OrdersMapper {
                 sql.WHERE(" od.clerkname like #{clerkname} ");
             }
 
+            if (StringUtils.hasText(param.getWaysalesman())) {
+                String waySalesMan = "%" + param.getWaysalesman() + "%";
+                param.setWaysalesman(waySalesMan);
+                sql.WHERE(" od.waysalesman like #{waysalesman} ");
+            }
+
             if (StringUtils.hasText(param.getMemberName())) {
                 String memberName = "%" + param.getMemberName() + "%";
                 param.setMemberName(memberName);
@@ -226,6 +232,13 @@ public interface OrdersMapper {
                 param.setTranNo(tranNo);
                 sql.WHERE("od.transactionnumber LIKE #{tranNo}");
             }
+
+            if (StringUtils.hasText(param.getStand())) {
+                String stand = "%" + param.getStand() + "%";
+                param.setStand(stand);
+                sql.WHERE("od.orderno in (select orderno from orderproduct where standard like #{stand})");
+            }
+
             if (param.getOrderState() != null) {
                 if(param.getOrderState().toString().equals("11")){
                     sql.WHERE(" (od.orderstatus=7 and  od.reason='卖家取消订单')");
@@ -288,6 +301,12 @@ public interface OrdersMapper {
                 sql.WHERE(" od.clerkname like #{clerkname} ");
             }
 
+            if (StringUtils.hasText(param.getWaysalesman())) {
+                String waySalesMan = "%" + param.getWaysalesman() + "%";
+                param.setWaysalesman(waySalesMan);
+                sql.WHERE(" od.waysalesman like #{waysalesman} ");
+            }
+
             if (StringUtils.hasText(param.getMemberName())) {
                 String memberName = "%" + param.getMemberName() + "%";
                 param.setMemberName(memberName);
@@ -322,6 +341,13 @@ public interface OrdersMapper {
                 param.setTranNo(tranNo);
                 sql.WHERE("od.transactionnumber LIKE #{tranNo}");
             }
+
+            if (StringUtils.hasText(param.getStand())) {
+                String stand = "%" + param.getStand() + "%";
+                param.setStand(stand);
+                sql.WHERE("od.orderno in (select orderno from orderproduct where standard like #{stand})");
+            }
+
             if (param.getOrderState() != null) {
                 if(param.getOrderState().toString().equals("11")){
                     sql.WHERE(" (od.orderstatus=7 and  od.reason='卖家取消订单')");
@@ -389,6 +415,12 @@ public interface OrdersMapper {
                 sql.WHERE(" od.clerkname like #{clerkname} ");
             }
 
+            if (StringUtils.hasText(param.getWaysalesman())) {
+                String waySalesMan = "%" + param.getWaysalesman() + "%";
+                param.setWaysalesman(waySalesMan);
+                sql.WHERE(" od.waysalesman like #{waysalesman} ");
+            }
+
             if (StringUtils.hasText(param.getMemberName())) {
                 String memberName = "%" + param.getMemberName() + "%";
                 param.setMemberName(memberName);
@@ -423,6 +455,13 @@ public interface OrdersMapper {
                 param.setTranNo(tranNo);
                 sql.WHERE("od.transactionnumber LIKE #{tranNo}");
             }
+
+            if (StringUtils.hasText(param.getStand())) {
+                String stand = "%" + param.getStand() + "%";
+                param.setStand(stand);
+                sql.WHERE("od.orderno in (select orderno from orderproduct where standard like #{stand})");
+            }
+
             if (param.getOrderState() != null) {
                 if(param.getOrderState().toString().equals("11")){
                     sql.WHERE(" (od.orderstatus=7 and  od.reason='卖家取消订单')");
@@ -487,6 +526,12 @@ public interface OrdersMapper {
                 sql.WHERE(" od.clerkname like #{clerkname} ");
             }
 
+            if (StringUtils.hasText(param.getWaysalesman())) {
+                String waySalesMan = "%" + param.getWaysalesman() + "%";
+                param.setWaysalesman(waySalesMan);
+                sql.WHERE(" od.waysalesman like #{waysalesman} ");
+            }
+
             if (StringUtils.hasText(param.getMemberName())) {
                 String memberName = "%" + param.getMemberName() + "%";
                 param.setMemberName(memberName);
@@ -521,6 +566,13 @@ public interface OrdersMapper {
                 param.setTranNo(tranNo);
                 sql.WHERE("od.transactionnumber LIKE #{tranNo}");
             }
+
+            if (StringUtils.hasText(param.getStand())) {
+                String stand = "%" + param.getStand() + "%";
+                param.setStand(stand);
+                sql.WHERE("od.orderno in (select orderno from orderproduct where standard like #{stand})");
+            }
+
             if (param.getOrderState() != null) {
                 if(param.getOrderState().toString().equals("11")){
                     sql.WHERE(" (od.orderstatus=7 and  od.reason='卖家取消订单')");
@@ -587,6 +639,12 @@ public interface OrdersMapper {
                 sql.WHERE(" od.clerkname like #{clerkname} ");
             }
 
+            if (StringUtils.hasText(param.getWaysalesman())) {
+                String waySalesMan = "%" + param.getWaysalesman() + "%";
+                param.setWaysalesman(waySalesMan);
+                sql.WHERE(" od.waysalesman like #{waysalesman} ");
+            }
+
             if (StringUtils.hasText(param.getMemberName())) {
                 String memberName = "%" + param.getMemberName() + "%";
                 param.setMemberName(memberName);
@@ -621,6 +679,13 @@ public interface OrdersMapper {
                 param.setTranNo(tranNo);
                 sql.WHERE("od.transactionnumber LIKE #{tranNo}");
             }
+
+            if (StringUtils.hasText(param.getStand())) {
+                String stand = "%" + param.getStand() + "%";
+                param.setStand(stand);
+                sql.WHERE("od.orderno in (select orderno from orderproduct where standard like #{stand})");
+            }
+
             if (param.getOrderState() != null) {
                 if(param.getOrderState() == 11) {
                     sql.WHERE(" (od.orderstatus=7 and  od.reason='卖家取消订单')");
@@ -733,7 +798,7 @@ public interface OrdersMapper {
             sb.append("case od.paytype when 0 then '支付宝' when 1 then '微信' when 2 then '银行卡' when 3 then '余额' when 4 then '授信' end as paytype, ");//支付方式0=支付宝1=微信2=银行卡3=余额4=授信
             sb.append("case when od.ordertype=0 then '现货' else '远期' END as ordertype,");
             sb.append("case when od.isonline=1 then '线下' ELSE '线上' end as inonline,");
-            sb.append("op.pdname,op.attrjson,op.material,op.gradeno,op.brand,info.mark,");
+            sb.append("op.pdname,op.attrjson,op.standard,op.material,op.gradeno,op.brand,info.mark,");
             sb.append("info.surfacetreatment,info.packagetype,op.unit,op.price,op.num,op.actualpayment,info.level1,info.level2,info.level3,");
 
             sb.append("br.invoiceheadup,br.texno,br.bankofaccounts,br.account,br.address,br.phone,");
@@ -778,6 +843,24 @@ public interface OrdersMapper {
                 param.setOrderNo(orderNo);
                 sql.WHERE("od.orderno LIKE #{orderNo}");
             }
+            if (StringUtils.hasText(param.getClerkname())) {
+                String clerkName = "%" + param.getClerkname() + "%";
+                param.setClerkname(clerkName);
+                sql.WHERE(" od.clerkname like #{clerkname} ");
+            }
+
+            if (StringUtils.hasText(param.getWaysalesman())) {
+                String waySalesMan = "%" + param.getWaysalesman() + "%";
+                param.setWaysalesman(waySalesMan);
+                sql.WHERE(" od.waysalesman like #{waysalesman} ");
+            }
+
+            if (StringUtils.hasText(param.getStand())) {
+                String stand = "%" + param.getStand() + "%";
+                param.setStand(stand);
+                sql.WHERE("od.orderno in (select orderno from orderproduct where standard like #{stand})");
+            }
+
             if (StringUtils.hasText(param.getCode())) {
                 String code = "%" + param.getCode() + "%";
                 param.setCode(code);

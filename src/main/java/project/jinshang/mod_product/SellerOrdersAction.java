@@ -1234,9 +1234,6 @@ public class SellerOrdersAction {
                 wmsService.backOrders(orderProductBack);
             }
 
-            //进行主动退货，将数据json推送到中间件管理平台
-            ordersService.initiativeOrderReturn(productBackModel.getId());
-
             if(state == Quantity.STATE_3) {
                 //将退货的商品信息记录到orderproductbackinfo表中
                 OrderProductBackInfo orderProductBackInfo = new OrderProductBackInfo();
@@ -2735,8 +2732,6 @@ public class SellerOrdersAction {
         // syn wms
         wmsService.cancelOrders(orders, WMSService.CANCEL_ORDER_TYPE);
         ordersService.updateReason(orders,"卖家取消订单");
-        //执行订单主动取消，post数据到中间件中间平台
-        ordersService.initiativeOrderCancel(id);
 
         //保存操作日志
         OperateLog operateLog = new OperateLog();
@@ -3798,15 +3793,4 @@ public class SellerOrdersAction {
         System.out.println(str);
 
     }*/
-
-    /**
-     *执行退货申请回调，post数据至中间件管理平台
-     * @author xiazy
-     * @date  2018/6/5 10:45
-     * @param id
-     * @return void
-     */
-    public void initiativeOrderReturn(Long id){
-
-    }
 }

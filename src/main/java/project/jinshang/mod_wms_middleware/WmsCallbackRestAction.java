@@ -22,12 +22,16 @@ import project.jinshang.mod_admin.mod_transet.bean.TransactionSetting;
 import project.jinshang.mod_admin.mod_transet.service.TransactionSettingService;
 import project.jinshang.mod_cash.bean.BuyerCapital;
 import project.jinshang.mod_cash.bean.SalerCapital;
+import project.jinshang.mod_company.BuyerCompanyInfoMapper;
+import project.jinshang.mod_company.bean.BuyerCompanyInfo;
+import project.jinshang.mod_company.bean.BuyerCompanyInfoExample;
 import project.jinshang.mod_member.bean.Member;
 import project.jinshang.mod_member.service.MemberService;
 import project.jinshang.mod_pay.bean.Refund;
 import project.jinshang.mod_pay.mod_alipay.AlipayService;
 import project.jinshang.mod_pay.mod_bankpay.AbcService;
 import project.jinshang.mod_pay.mod_wxpay.MyWxPayService;
+import project.jinshang.mod_product.BillingRecordMapper;
 import project.jinshang.mod_product.bean.*;
 import project.jinshang.mod_product.service.*;
 import project.jinshang.mod_wms_middleware.bean.GoodsStock;
@@ -69,6 +73,12 @@ public class WmsCallbackRestAction {
 
     @Autowired
     private ProductStoreService productStoreService;
+
+    @Autowired
+    BillingRecordMapper billingRecordMapper;
+
+    @Autowired
+    BuyerCompanyInfoMapper buyerCompanyInfoMapper;
 
     MemberLogOperator memberLogOperator = new MemberLogOperator();
 
@@ -945,18 +955,55 @@ public class WmsCallbackRestAction {
 
 
 
-    @RequestMapping(value = "/getMemberOrder",method = RequestMethod.GET)
-    public List<Orders> getMemberOrder(@RequestParam("memberid") long memberid,@RequestParam("orderid") long orderid){
+//    @RequestMapping(value = "/getMemberOrder",method = RequestMethod.GET)
+//    public List<Orders> getMemberOrder(@RequestParam("memberid") long memberid,@RequestParam("orderid") long orderid){
+//        OrdersExample example = new OrdersExample();
+//        OrdersExample.Criteria criteria = example.createCriteria();
+//        criteria.andMemberidEqualTo(memberid);
+//        criteria.andIdGreaterThan(orderid);
+//        criteria.andOrderstatusIn(Arrays.asList(new Short[]{3, 4, 5}));
+//        List<Orders> list = ordersService.selectByExample(example);
+//        list.forEach(orders -> {
+//            orders.setOrderProducts(ordersService.getOrderProductByOrderId(orders.getId()));
+//        });
+//
+//        return  list;
+//    }
+    @RequestMapping(value = "/getMemberOrder",method = RequestMethod.POST)
+    public List<Orders> getMemberOrder(@RequestParam("saleid") long saleid,@RequestParam("orderid") long orderid){
         OrdersExample example = new OrdersExample();
         OrdersExample.Criteria criteria = example.createCriteria();
-        criteria.andMemberidEqualTo(memberid);
+    //        criteria.andMemberidEqualTo(memberid);
+        criteria.andSaleidEqualTo(saleid);
         criteria.andIdGreaterThan(orderid);
         criteria.andOrderstatusIn(Arrays.asList(new Short[]{3, 4, 5}));
         List<Orders> list = ordersService.selectByExample(example);
         list.forEach(orders -> {
+            BuyerCompanyInfoExample example1 = new BuyerCompanyInfoExample();
+            example1.createCriteria().andMemberidEqualTo(orders.getMemberid());
+            List<BuyerCompanyInfo> buyerCompanyInfos = buyerCompanyInfoMapper.selectByExample(example1);
+            if (orders.getIsbilling() == 1) {
+                BillingRecordExample billingRecordExample = new BillingRecordExample();
+                billingRecordExample.createCriteria().andOrdernoEqualTo(String.valueOf(orders.getId()));
+                List<BillingRecord> billingRecords = billingRecordMapper.selectByExample(billingRecordExample);
+                if (!billingRecords.isEmpty()) {
+                    orders.setInvoiceName(billingRecords.get(0).getInvoiceheadup());
+                } else {
+                    if (buyerCompanyInfos.isEmpty()) {
+                        orders.setInvoiceName(orders.getShipto());
+                    } else {
+                        orders.setInvoiceName(buyerCompanyInfos.get(0).getCompanyname());
+                    }
+                }
+            } else {
+                if (buyerCompanyInfos.isEmpty()) {
+                    orders.setInvoiceName(orders.getShipto());
+                } else {
+                    orders.setInvoiceName(buyerCompanyInfos.get(0).getCompanyname());
+                }
+            }
             orders.setOrderProducts(ordersService.getOrderProductByOrderId(orders.getId()));
         });
-
         return  list;
     }
 }

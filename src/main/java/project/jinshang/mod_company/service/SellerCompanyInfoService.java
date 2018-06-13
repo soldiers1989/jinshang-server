@@ -125,16 +125,4 @@ public class SellerCompanyInfoService {
         return  publishList;
     }
 
-    /**
-     *根据给定的条件查询卖家分公司信息
-     * @author xiazy
-     * @date  2018/6/6 11:34
-     * @param example
-     * @return java.util.List<project.jinshang.mod_company.bean.SellerCompanyInfo>
-     */
-    public List<SellerCompanyInfo> selectByExample(SellerCompanyInfoExample example){
-        return sellerCompanyInfoMapper.selectByExample(example);
-    }
-
-
 }

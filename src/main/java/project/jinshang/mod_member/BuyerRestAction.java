@@ -135,6 +135,69 @@ public class BuyerRestAction {
     }
 
 
+
+    @RequestMapping(value = "/registerMemberByMobile", method = RequestMethod.POST)
+    @ApiOperation(value = "新增手机号码注册用户")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "mobile", value = "手机号", required = true, paramType = "query"),
+            @ApiImplicitParam(name = "invitecode", value = "邀请码", required = false, paramType = "query"),
+    })
+    @ApiImplicitParam(name = "mobileCode", value = "手机验证码", required = true, paramType = "query")
+    public MemberRet registerMemberByMobile(Member member, String mobileCode,Model model) throws IOException {
+
+        String invitecode = member.getInvitecode();
+
+        MemberRet memberRet = new MemberRet();
+        ErrorMes errorMes = new ErrorMes();
+        //判断手机验证码是否正确
+        SmsLog smsLog = mobileService.getLastLog(member.getMobile(), SmsType.REGISTER, 5);
+        if (smsLog == null || !mobileCode.equalsIgnoreCase(smsLog.getVerifycode())) {
+            errorMes.addError("mobileCode", "手机验证码不正确");
+            memberRet.errs = errorMes;
+            memberRet.setResult(BasicRet.ERR);
+            memberRet.setMessage("手机验证码不正确");
+            return memberRet;
+        }
+
+        errorMes = memberService.registerMemberByMobile(member);
+
+        if (errorMes.getSize() != 0) {
+            memberRet.errs = errorMes;
+            memberRet.setMessage(errorMes.getAllErrStr());
+            return (MemberRet) memberRet.setResult(BasicRet.ERR);
+        }
+
+
+        member = memberService.getMemberByUsername(member.getUsername());
+        //Temp
+        if("919f23".equalsIgnoreCase(invitecode)){//送现金10元
+            BuyerCapital buyerCapital = new BuyerCapital();
+            buyerCapital.setCapitaltype(Quantity.STATE_1);
+            buyerCapital.setCapital(new BigDecimal(10));
+            buyerCapital.setTradeno(GenerateNo.getTransactionNo());
+            buyerCapital.setRemark("注册送现金");
+            buyerCapital.setTradetime(new Date());
+            buyerCapital.setMemberid(member.getId());
+            buyerCapital.setRechargestate(Quantity.STATE_1);
+            buyerCapital.setSuccesstime(new Date());
+            buyerCapitalService.insertSelective(buyerCapital);
+            memberService.updateBuyerMemberBalanceInDb(member.getId(),new BigDecimal(10));
+
+            memberRet.setRegmes("注册送现金");
+        }
+
+        member.setFrom("buyer");
+        member.setLoginType("main");
+
+        memberService.fillMember(member);
+        model.addAttribute(AppConstant.MEMBER_SESSION_NAME, member);
+
+        memberRet.setMessage("注册成功");
+        return (MemberRet) memberRet.setResult(BasicRet.SUCCESS);
+    }
+
+
+
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     @ApiOperation(value = "买家用户登录 123=MTIz 123456=MTIzNDU2")
     public BasicRet login(@RequestParam(required = true) String username,
@@ -195,6 +258,51 @@ public class BuyerRestAction {
                 basicRet.setMessage("用户名密码不正确");
                 return basicRet;
             }
+        }
+    }
+
+
+    @RequestMapping(value = "/loginByMobile", method = RequestMethod.POST)
+    @ApiOperation(value = "买家用户手机号登录 123=MTIz 123456=MTIzNDU2")
+    public BasicRet loginByMobile(@RequestParam(required = true) String mobile,
+                          @RequestParam(required = true) String mobileCode, Model model, HttpSession session) {
+        BasicRet basicRet = new BasicRet();
+
+        //判断手机验证码是否正确
+        SmsLog smsLog = mobileService.getLastLog(mobile, SmsType.verification, 5);
+        if (smsLog == null || !mobileCode.equalsIgnoreCase(smsLog.getVerifycode())) {
+            basicRet.setResult(BasicRet.ERR);
+            basicRet.setMessage("手机验证码不正确");
+            return basicRet;
+        }
+
+        Member member = memberService.getMemberByUsername(mobile);
+
+        if (member == null) {
+            basicRet.setMessage("用户名密码不正确");
+            basicRet.setResult(BasicRet.ERR);
+            return basicRet;
+        } else {
+            member.setFrom("buyer");
+            member.setLoginType("main");
+
+            if (member.getDisabled() == true) {
+                basicRet.setResult(BasicRet.ERR);
+                basicRet.setMessage("帐号被禁用");
+                return basicRet;
+            }
+
+            memberService.fillMember(member);
+
+            model.addAttribute(AppConstant.MEMBER_SESSION_NAME, member);
+            basicRet.setMessage("登陆成功");
+            basicRet.setResult(BasicRet.SUCCESS);
+
+            Member updateDateMember = new Member();
+            updateDateMember.setId(member.getId());
+            updateDateMember.setLastlogindate(new Date());
+            memberService.updateByPrimaryKeySelective(updateDateMember);
+            return basicRet;
         }
     }
 
@@ -274,7 +382,90 @@ public class BuyerRestAction {
     }
 
 
+    @RequestMapping(value = "/wap/loginByMobile", method = RequestMethod.POST)
+    @ApiOperation(value = "买家用户手机号登录(手机端) 123=MTIz 123456=MTIzNDU2")
+    public WapLogRet loginByMobile(@RequestParam(required = true) String mobile,
+                                   @RequestParam(required = true) String mobileCode,
+                                   Model model, HttpSession session,HttpServletResponse response) {
+        WapLogRet basicRet = new WapLogRet();
 
+
+        //判断手机验证码是否正确
+        SmsLog smsLog = mobileService.getLastLog(mobile, SmsType.verification, 5);
+        if (smsLog == null || !mobileCode.equalsIgnoreCase(smsLog.getVerifycode())) {
+            basicRet.setResult(BasicRet.ERR);
+            basicRet.setMessage("手机验证码不正确");
+            return basicRet;
+        }
+
+        Member member = memberService.getMemberByUsername(mobile);
+
+        if (member == null) {
+            basicRet.setMessage("用户名密码不正确");
+            basicRet.setResult(BasicRet.ERR);
+            return basicRet;
+        } else {
+            member.setFrom("buyer");
+            member.setLoginType("main");
+
+            if (member.getDisabled() == true) {
+                basicRet.setResult(BasicRet.ERR);
+                basicRet.setMessage("帐号被禁用");
+                return basicRet;
+            }
+
+            memberService.fillMember(member);
+
+            model.addAttribute(AppConstant.MEMBER_SESSION_NAME, member);
+            basicRet.setMessage("登陆成功");
+            basicRet.setResult(BasicRet.SUCCESS);
+
+
+            String uuid = session.getId();
+            Cookie tokenCookie = new Cookie(AppConstant.WAP_TOKEN_COOKIE_NAME,uuid);
+            tokenCookie.setPath("/");
+            tokenCookie.setMaxAge(365*24*3600);
+            response.addCookie(tokenCookie);
+
+            //写入数据
+            MemberToken token =  new MemberToken();
+            token.setMemberid(member.getId());
+            token.setType("wap");
+            token.setUsername(member.getUsername());
+            token.setLogintime(new Date());
+            token.setToken(uuid);
+            token.setLogintype("main"); //主帐号登录
+            memberTokenService.insertSelective(token);
+
+            Member updateDateMember = new Member();
+            updateDateMember.setId(member.getId());
+            updateDateMember.setLastlogindate(new Date());
+            memberService.updateByPrimaryKeySelective(updateDateMember);
+            basicRet.webToken = uuid;
+            return basicRet;
+        }
+    }
+
+
+    @RequestMapping(value = "/InfoCompletion",method = RequestMethod.POST)
+    @ApiOperation(value = "手机号码注册信息补全接口")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "username", value = "用户姓名", required = true, paramType = "query"),
+            @ApiImplicitParam(name = "password", value = "密码(base64编码)", required = true, paramType = "query")
+    })
+    public BasicRet InfoCompletion(@RequestParam(required = true) String username,
+                                   @RequestParam(required = true) String password,
+                                   Model model, HttpSession session,HttpServletResponse response){
+        BasicRet basicRet=new BasicRet();
+        Member member= (Member) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        member.setRealname(username);
+        member.setPasswordsalt(CommonUtils.genSalt());
+        member.setPassword(CommonUtils.genMd5Password(Base64Utils.decode(password), member.getPasswordsalt()));
+        memberService.updateMember(member);
+        basicRet.setMessage("信息补全成功");
+        basicRet.setResult(BasicRet.SUCCESS);
+        return basicRet;
+    }
     private  class  WapLogRet extends  BasicRet{
 //        private  class  WapLogData{
 //            private  String webToken;

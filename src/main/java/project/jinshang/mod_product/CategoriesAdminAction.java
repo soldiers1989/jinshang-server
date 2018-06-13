@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import project.jinshang.common.constant.AdminAuthorityConst;
 import project.jinshang.common.constant.AppConstant;
+import project.jinshang.common.constant.Quantity;
 import project.jinshang.mod_product.bean.Categories;
 import project.jinshang.mod_product.bean.ProductInfoExample;
 import project.jinshang.mod_product.service.CategoriesService;
@@ -274,6 +275,7 @@ public class CategoriesAdminAction {
         }else if(category.getLevel() == 3){
             criteria.andLevel3idEqualTo(id);
         }
+        criteria.andPdstateNotEqualTo(Quantity.STATE_6);
 
         int count = productInfoService.countByExample(example);
         if(count >0){

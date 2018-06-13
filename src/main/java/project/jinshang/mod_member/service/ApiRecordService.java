@@ -5,7 +5,6 @@ import com.github.pagehelper.PageInfo;
 import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.beanutils.BeanUtilsBean2;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import project.jinshang.common.utils.BeanUtils;
@@ -76,17 +75,6 @@ public class ApiRecordService {
             apiRecordViewDto.setReturnJson(apiRecord.getReturnjson());
         }
         return apiRecordViewDto;
-    }
-
-    /**
-     *记录一次中间件管理平台的通信结果
-     * @author xiazy
-     * @date  2018/6/5 14:48
-     * @param apiRecord
-     * @return void
-     */
-    public void insertSelective(ApiRecord apiRecord){
-        apiRecordMapper.insertSelective(apiRecord);
     }
 
 }

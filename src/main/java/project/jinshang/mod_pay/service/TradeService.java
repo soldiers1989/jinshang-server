@@ -702,8 +702,7 @@ public class TradeService {
         if (ordersList.size() > 0) {
             orderids.deleteCharAt(orderids.length() - 1);
         }
-        //进行订单的主动下单，向中间件管理平台post数据
-        ordersService.initiativeOrderIssue(orderids.toString());
+
         List<OrderProduct> orderProducts = orderProductMapper.getOrderProductByInOrderids(orderids.toString());
 
         //计算总金额

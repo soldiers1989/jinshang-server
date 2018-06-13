@@ -6,7 +6,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.netflix.discovery.converters.Auto;
 import mizuki.project.core.restserver.config.BasicRet;
-import mizuki.project.core.restserver.util.JsonUtil;
 import org.apache.ibatis.annotations.Param;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,8 +49,10 @@ import project.jinshang.mod_invoice.InvoiceInfoMapper;
 import project.jinshang.mod_invoice.bean.InvoiceInfo;
 import project.jinshang.mod_member.MemberMapper;
 import project.jinshang.mod_member.SellerCategoryMapper;
-import project.jinshang.mod_member.bean.*;
-import project.jinshang.mod_member.service.ApiRecordService;
+import project.jinshang.mod_member.bean.Member;
+import project.jinshang.mod_member.bean.MemberRateSetting;
+import project.jinshang.mod_member.bean.SellerCategory;
+import project.jinshang.mod_member.bean.SellerCategoryExample;
 import project.jinshang.mod_member.service.MemberRateSettingService;
 import project.jinshang.mod_member.service.MemberService;
 import project.jinshang.mod_pay.bean.Refund;
@@ -63,13 +64,10 @@ import project.jinshang.mod_shippingaddress.bean.ShippingAddress;
 import project.jinshang.mod_shippingaddress.bean.ShippingAddressExample;
 import project.jinshang.mod_wms_middleware.WMSService;
 
-import javax.persistence.Basic;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
-import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -188,8 +186,6 @@ public class OrdersService {
     private MemberOperateLogService memberOperateLogService;
     @Autowired
     private MemberRateSettingService memberRateSettingService;
-    @Autowired
-    public ApiRecordService apiRecordService;
     //远期全款打折率
     private static final BigDecimal allPayRate = new BigDecimal(0.99);
     MemberLogOperator memberLogOperator = new MemberLogOperator();
@@ -1544,7 +1540,7 @@ public class OrdersService {
             maptemp.put("订单类型", map.get("ordertype"));
             maptemp.put("订单来源", map.get("inonline"));
             maptemp.put("商品名称", map.get("pdname") + "/" + map.get("level3"));
-            maptemp.put("规格", map.get("attrjson"));
+            maptemp.put("规格", map.get("standard"));
             maptemp.put("商品分类", map.get("level1") + " " + map.get("level2") + " " + map.get("level3"));
             maptemp.put("材质", map.get("material"));
             maptemp.put("牌号", map.get("gradeno"));
@@ -1656,7 +1652,9 @@ public class OrdersService {
      */
     public PageInfo getAllMemberOrdersList(OrderQueryParam param) {
         PageHelper.startPage(param.getPageNo(), param.getPageSize());
-
+        if(param.getStand()!=null){
+            param.setStand(param.getStand().toUpperCase());
+        }
         PageInfo info = new PageInfo(ordersMapper.getAllMemberOrdersList(param));
         return info;
     }
@@ -1828,8 +1826,6 @@ public class OrdersService {
 //
 //        memberMapper.updateByPrimaryKeySelective(member);
 //    }
-
-
 
 
     /**
@@ -2809,55 +2805,6 @@ public class OrdersService {
 
 
     /**
-     *向中间件管理平台post数据
-     * @author xiazy
-     * @date  2018/6/5 15:03
-     * @param url
-     * @param params
-     * @return void
-     */
-    public void sendToMiddleManage(String url, Map<String, String> params) {
-        cachedThreadPool.execute(()->{
-            try {
-                Map<String,Object> ret=HttpClientUtils.post(url,params);
-                String returnjson=JsonUtil.toJson(ret.get("data"));
-                String type=params.get("type");
-                ApiRecord apiRecord=new ApiRecord();
-                apiRecord.setAppid(params.get("appid"));
-                apiRecord.setAppurl(url);
-                apiRecord.setApicode(type);
-//                apiRecord.setContent(JsonUtil.toJson(params).toString().replace("",""));
-                apiRecord.setContent(JsonUtil.toJson(params).toString());
-                apiRecord.setReturnjson(returnjson);
-                apiRecord.setCreatetime(new Date());
-                apiRecordService.insertSelective(apiRecord);
-                if(type.equals(DockType.JS006.getType())){
-//                    String storenumjson=ret.get("storenumjson").toString();
-                    Map<String,Object> map1=JsonUtil.toMap(returnjson);
-                    String storenumjson=map1.get("storenumjson").toString();
-                    long storeid=Long.parseLong(map1.get("store").toString());
-                    Type listType = new TypeToken<LinkedList<StockDetail>>(){}.getType();
-                    ProductStore productStore=new ProductStore();
-                    Gson gson = new Gson();
-                    LinkedList<StockDetail> stockDetails = gson.fromJson(storenumjson, listType);
-                    for (Iterator iterator = stockDetails.iterator(); iterator.hasNext();) {
-                        StockDetail stockDetail = (StockDetail) iterator.next();
-                        productStore=productStoreService.getByStoreidAndPdNo(storeid,stockDetail.getPdno());
-                        if(StringUtils.hasText(stockDetail.getUnit())&&StringUtils.hasText(productStore.getStoreunit())&&stockDetail.getUnit().equals(productStore.getStoreunit())){
-                            productStoreService.updateNumByStoreidAndPdno(storeid,stockDetail.getPdno(),new BigDecimal(stockDetail.getStorenum()));
-                        }
-                    }
-
-                }
-            } catch (Exception e) {
-                logger.error(e.getMessage(),e);
-            }
-        });
-    }
-
-
-
-    /**
      * 计算订单的佣金
      *
      * @param list
@@ -3145,19 +3092,19 @@ public class OrdersService {
         return retmap;
     }
 
-    private boolean checkBuyNum(BigDecimal buynum,BigDecimal minplus){
+    private boolean checkBuyNum(BigDecimal buynum, BigDecimal minplus) {
         try {
             BigDecimal a = buynum.divide(minplus);
 
             //System.out.println(a.intValue());
 
-            if(new BigDecimal(a.intValue()).compareTo(a) != 0){
+            if (new BigDecimal(a.intValue()).compareTo(a) != 0) {
                 return false;
             }
 
-            return  true;
+            return true;
         } catch (Exception e) {
-            return  false;
+            return false;
         }
     }
 
@@ -3246,192 +3193,4 @@ public class OrdersService {
     public List<Orders> selectByExample(OrdersExample example){
         return  ordersMapper.selectByExample(example);
     }
-
-    /**
-     *订单下达主动
-     * @author xiazy
-     * @date  2018/6/5 10:50
-     * @param orderIds 订单id
-     * @return void
-     */
-    public BasicRet initiativeOrderIssue(String orderIds){
-        BasicRet basicRet=new BasicRet();
-        basicRet.setResult(BasicRet.SUCCESS);
-        basicRet.setMessage("订单下达成功");
-        List<Orders> ordersList=this.getWMSOrdersByInIds(orderIds);
-        for (Orders order :ordersList) {
-            Long sellerId=order.getSaleid();
-            Map<String,Object> retmap=verification(sellerId);
-            if (((BasicRet)retmap.get("basicRet")).getResult()!=1){
-                return (BasicRet)retmap.get("basicRet");
-            }
-            SellerCompanyInfo sellerCompanyInfo= (SellerCompanyInfo) retmap.get("sellerCompanyInfo");
-            String appId=sellerCompanyInfo.getAppid();
-            String appSecret=sellerCompanyInfo.getAppsecret();
-            String appUrl=sellerCompanyInfo.getAppurl();
-            Long timestamp=System.currentTimeMillis();
-            String notify=MD5Tools.MD5(appId+appSecret+timestamp);
-            List<OrderProduct> orderProductList=this.getOrderProductByOrderId(order.getId());
-            List<SaleDetail> saleDetailList=new ArrayList<>();
-            Js001 js001=new Js001();
-            js001.setAppid(appId);
-            js001.setNotify(notify);
-            js001.setType(DockType.JS001.getType());
-            js001.setOrderno(order.getOrderno());
-            js001.setShipto(order.getShipto());
-            js001.setReceivingaddress(order.getReceivingaddress());
-            js001.setPhone(order.getPhone());
-            //备用参数json暂时为空
-//            js001.setExtendjson(new ExtendParam());
-            js001.setExtendjson(null);
-            js001.setTimestamp(String.valueOf(timestamp));
-            orderProductList.parallelStream().forEach(orderProduct ->{
-                SaleDetail saleDetail=new SaleDetail();
-                saleDetail.setPdno(orderProduct.getPdno());
-                saleDetail.setBuynum(orderProduct.getNum());
-                saleDetail.setValuationnum(orderProduct.getNum());
-                saleDetail.setPrice(orderProduct.getPrice());
-                saleDetailList.add(saleDetail);
-            });
-            js001.setSalesjson(JsonUtil.toJson(saleDetailList));
-            String jsonParam=JsonUtil.toJson(js001);
-            sendToMiddleManage(appUrl,JsonUtil.toMap(jsonParam));
-        }
-        return basicRet;
-    }
-
-    /**
-     *订单取消主动
-     * @author xiazy
-     * @date  2018/6/4 17:48
-     * @param orderId 订单编码
-     * @return void
-     */
-    public BasicRet initiativeOrderCancel(Long orderId){
-        BasicRet basicRet=new BasicRet();
-        basicRet.setResult(BasicRet.SUCCESS);
-        basicRet.setMessage("订单取消成功");
-        Orders order=this.getWMSOrdersByInIds(String.valueOf(orderId)).get(0);
-        Long sellerId=order.getSaleid();
-        Map<String,Object> retmap=verification(sellerId);
-        if (((BasicRet)retmap.get("basicRet")).getResult()!=1){
-            return (BasicRet)retmap.get("basicRet");
-        }
-        SellerCompanyInfo sellerCompanyInfo= (SellerCompanyInfo) retmap.get("sellerCompanyInfo");
-        String appId=sellerCompanyInfo.getAppid();
-        String appSecret=sellerCompanyInfo.getAppsecret();
-        String appUrl=sellerCompanyInfo.getAppurl();
-        Long timestamp=System.currentTimeMillis();
-        String notify=MD5Tools.MD5(appId+appSecret+timestamp);
-        Js003 js003=new Js003();
-        js003.setAppid(appId);
-        js003.setNotify(notify);
-        js003.setType(DockType.JS003.getType());
-        js003.setOrderno(order.getOrderno());
-        js003.setCanceltype(DockType.QX001.getType());
-        //备用参数json暂时为空
-//        js003.setExtendjson(new ExtendParam());
-        js003.setExtendjson(null);
-        js003.setTimestamp(String.valueOf(timestamp));
-        String jsonParam=JsonUtil.toJson(js003);
-        sendToMiddleManage(appUrl,JsonUtil.toMap(jsonParam));
-        return basicRet;
-    }
-
-    /**
-     *退货(主动)
-     * @author xiazy
-     * @date  2018/6/5 16:31
-     * @param backId 退货单id
-     * @return mizuki.project.core.restserver.config.BasicRet
-     */
-    public  BasicRet initiativeOrderReturn(Long backId){
-        BasicRet basicRet=new BasicRet();
-        basicRet.setResult(BasicRet.SUCCESS);
-        basicRet.setMessage("退货成功");
-        OrderProductBack orderProductBack =this.getOrderProductBackById(backId);
-        Long sellerId=orderProductBack.getSellerid();
-        Map<String,Object> retmap=verification(sellerId);
-        if (((BasicRet)retmap.get("basicRet")).getResult()!=1){
-            return (BasicRet)retmap.get("basicRet");
-        }
-        SellerCompanyInfo sellerCompanyInfo= (SellerCompanyInfo) retmap.get("sellerCompanyInfo");
-        String appId=sellerCompanyInfo.getAppid();
-        String appSecret=sellerCompanyInfo.getAppsecret();
-        String appUrl=sellerCompanyInfo.getAppurl();
-        Long timestamp=System.currentTimeMillis();
-        String notify=MD5Tools.MD5(appId+appSecret+timestamp);
-        Js004 js004=new Js004();
-        js004.setAppid(appId);
-        js004.setNotify(notify);
-        js004.setType(DockType.JS004.getType());
-        js004.setOrderno(orderProductBack.getOrderno());
-        js004.setBackno(orderProductBack.getBackno());
-        js004.setContact(orderProductBack.getContact());
-        js004.setBackaddress(orderProductBack.getBackaddress());
-        js004.setContactphone(orderProductBack.getContactphone());
-        BackDetail backDetail=new BackDetail();
-        backDetail.setPdno(orderProductBack.getPdno());
-        backDetail.setBacknum(orderProductBack.getPdnum());
-        backDetail.setValuationnum(orderProductBack.getPdnum());
-        OrderProduct orderProduct=orderProductMapper.selectByPrimaryKey(orderProductBack.getOrderpdid());
-        backDetail.setPrice(orderProduct.getPrice());
-        backDetail.setBackreason(orderProductBack.getReturnbackreason());
-        backDetail.setExtendjson(new ExtendParam());
-        backDetail.setTimestamp(orderProductBack.getCreatetime().getTime());
-        js004.setBackjson(JsonUtil.toJson(backDetail));
-        //备用参数json暂时为空
-//        js004.setExtendjson(new ExtendParam());
-        js004.setExtendjson(null);
-        js004.setTimestamp(String.valueOf(timestamp));
-        String jsonParam=JsonUtil.toJson(js004);
-        sendToMiddleManage(appUrl,JsonUtil.toMap(jsonParam));
-        return basicRet;
-    }
-
-    /**
-     *进行卖家对接的参数的有效性校验
-     * @author xiazy
-     * @date  2018/6/5 15:27
-     * @param sellerId 卖家的id
-     * @return mizuki.project.core.restserver.config.BasicRet
-     */
-    public Map<String,Object> verification(Long sellerId){
-        BasicRet basicRet=new BasicRet();
-        Map<String,Object> retMap=new HashMap<>();
-        basicRet.setResult(BasicRet.SUCCESS);
-        basicRet.setMessage("卖家对接参数检验通过");
-        SellerCompanyInfo sellerCompanyInfo = sellerCompanyInfoMapper.getSellerCompanyByMemberid(sellerId);
-        String appUrl=sellerCompanyInfo.getAppurl();
-        String appId=sellerCompanyInfo.getAppid();
-        String appSecret=sellerCompanyInfo.getAppsecret();
-        if(!StringUtils.hasText(appUrl)){
-            basicRet.setResult(BasicRet.ERR);
-            basicRet.setMessage("商家未配置对应的中间件管理平台的对接地址");
-            retMap.put("basicRet",basicRet);
-            return retMap;
-        }
-        if (!StringUtils.hasText(appId)){
-            basicRet.setResult(BasicRet.ERR);
-            basicRet.setMessage("商家尚未获取对应的中间件管理平台的对接id");
-            retMap.put("basicRet",basicRet);
-            return retMap;
-        }
-        if (!StringUtils.hasText(appSecret)){
-            basicRet.setResult(BasicRet.ERR);
-            basicRet.setMessage("商家尚未获取对应的中间件管理平台的对接密钥");
-            retMap.put("basicRet",basicRet);
-            return retMap;
-        }
-        if (!sellerCompanyInfo.getDisable()){
-            basicRet.setResult(BasicRet.ERR);
-            basicRet.setMessage("商家配置的对接连接处于不可用状态.");
-            retMap.put("basicRet",basicRet);
-            return retMap;
-        }
-        retMap.put("basicRet",basicRet);
-        retMap.put("sellerCompanyInfo",sellerCompanyInfo);
-        return retMap;
-    }
-
 }

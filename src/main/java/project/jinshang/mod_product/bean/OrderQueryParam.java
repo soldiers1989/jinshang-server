@@ -65,12 +65,24 @@ public class OrderQueryParam {
     @ApiModelProperty(notes = "发货方式 0-卖家直发，1-平台代发")
     private Short deliverytype;
 
-    //添加业务员
-    @ApiModelProperty(notes = "业务员")
+    //添加客服人员
+    @ApiModelProperty(notes = "客服人员")
     private String clerkname;
+
+    //介绍人
+    @ApiModelProperty(notes = "介绍人")
+    private String waysalesman;
     private int pageNo;
 
     private int pageSize;
+
+    public String getWaysalesman() {
+        return waysalesman;
+    }
+
+    public void setWaysalesman(String waysalesman) {
+        this.waysalesman = waysalesman;
+    }
 
     public String getShopName() {
         return shopName;

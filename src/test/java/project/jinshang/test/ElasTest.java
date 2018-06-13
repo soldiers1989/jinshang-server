@@ -70,7 +70,7 @@ public class ElasTest {
     private ProductInfoMapper productInfoMapper;
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Test
+//    @Test
     public void test() throws Exception {
         List<Synonym> synonyms = synonymMapper.listAll();
         synonyms.forEach(synonym -> synonym.getWords().forEach(CustomDictionary::add));
@@ -91,12 +91,12 @@ public class ElasTest {
 //        searchService.getClient().
     }
 
-    @Test
+//    @Test
     public void delIndex() throws Exception{
         searchService.delIndex(ElasticSearchService.INDEX_PRODUCT);
     }
 
-    @Test
+//    @Test
     public void testNest() throws Exception {
         CreateIndexRequest request = new CreateIndexRequest("person");
         searchService.getClient().indices().create(request);
@@ -131,7 +131,7 @@ public class ElasTest {
 //        UpdateResponse response = searchService.getClient().update(request);
 //    }
 
-    @Test
+//    @Test
     public void search() throws Exception{
         SearchRequest searchRequest = new SearchRequest(ElasticSearchService.INDEX_PRODUCT).types(ElasticSearchService.INDEX_PRODUCT_TYPE_INFO);
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();

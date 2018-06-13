@@ -36,6 +36,12 @@ public class OrdersProvider {
             sql.WHERE(" o.clerkname like #{clerkname} ");
         }
 
+        if (StringUtils.hasText(param.getWaysalesman())) {
+            String waySalesMan = "%" + param.getWaysalesman() + "%";
+            param.setWaysalesman(waySalesMan);
+            sql.WHERE(" o.waysalesman like #{waysalesman} ");
+        }
+
         if (StringUtils.hasText(param.getSellerName())) {
             String sellerName = "%" + param.getSellerName() + "%";
             param.setSellerName(sellerName);
@@ -91,6 +97,13 @@ public class OrdersProvider {
             param.setShopName(shopName);
             sql.WHERE("shopName like #{shopname}");
         }
+
+        if (param.getStand() != null) {
+            String stand = "%" + param.getStand() + "%";
+            param.setStand(stand);
+            sql.WHERE("o.orderno in (select orderno from orderproduct where standard like #{stand})");
+        }
+
         if (param.getStartTime() != null) {
             sql.WHERE(" Createtime >= #{startTime} ");
         }

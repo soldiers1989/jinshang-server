@@ -8,7 +8,6 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import mizuki.project.core.restserver.config.BasicRet;
-import org.apache.commons.collections.map.HashedMap;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -400,6 +399,8 @@ public class AdminOrdersAction {
             @ApiImplicitParam(name = "code", value = "合同号", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "tranNo", value = "交易号", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "clerkname", value = "客服人员", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "waysalesman", value = "介绍人", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "stand", value = "规格", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "startTime", value = "开始时间", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "endTime", value = "结束时间", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "orderState", value = "订单状态0=待付款1=待发货3=待收货4=待验货5=已完成7=已关闭8=备货中9=备货完成11=卖家违约订单", required = false, paramType = "query", dataType = "int"),
@@ -485,6 +486,8 @@ public class AdminOrdersAction {
             @ApiImplicitParam(name = "code", value = "合同号", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "tranNo", value = "交易号", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "clerkname", value = "客服人员", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "waysalesman", value = "介绍人", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "stand", value = "规格", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "startTime", value = "开始时间", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "endTime", value = "结束时间", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "orderState", value = "订单状态0=待付款1=待发货3=待收货4=待验货5=已完成7=已关闭8=备货中9=备货完成11=卖家违约订单", required = false, paramType = "query", dataType = "int"),
@@ -492,7 +495,9 @@ public class AdminOrdersAction {
     public OrderCarRet getOrderTotalNum(OrderQueryParam param) {
         OrderCarRet orderCarRet = new OrderCarRet();
         Map<String, BigDecimal> map = new HashMap<String, BigDecimal>();
-
+        if(param.getStand()!=null){
+            param.setStand(param.getStand().toUpperCase());
+        }
         OrderQueryParam q1 = new OrderQueryParam();
         BeanUtils.copyProperties(param, q1);
         BigDecimal ordersSum = ordersService.getOrdersSum(q1);

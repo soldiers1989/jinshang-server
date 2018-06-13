@@ -225,6 +225,126 @@ public class MemberService {
     }
 
 
+
+
+    /**
+     *新增通过手机号码注册用户
+     * @author xiazy
+     * @date  2018/6/12 15:18
+     * @param member
+     * @return project.jinshang.common.utils.ErrorMes
+     */
+    public ErrorMes registerMemberByMobile(Member member) {
+
+        ErrorMes errorMes = new ErrorMes();
+
+        if (!StringUtils.hasText(member.getMobile())) {
+            errorMes.addError("mobile", "手机号不可为空");
+            return errorMes;
+        }
+
+        member.setUsername(member.getMobile());
+        if (exisUsername(member.getUsername())) {
+            errorMes.addError("username", "该用户已存在");
+        }
+
+        if (!member.getMobile().equals(AppConstant.MOCK_MOBILE) && exisMobile(member.getMobile())) {
+            errorMes.addError("mobile", "手机号已存在");
+        }
+
+        //客户输入的邀请码
+        String customInvitecode = member.getInvitecode();
+
+        if (errorMes.getSize() == 0) {
+            member.setType((short) 0);
+            member.setCompany(false);
+            member.setIntegrals(new BigDecimal(0));
+            member.setDisabled(false);
+            member.setCreatedate(new Date());
+            member.setReviewed(true);
+            member.setParentid((long) 0);
+            member.setParentname("");
+            member.setFlag(true);
+
+            //生成邀请码
+            String inviteCode = null;
+            while (inviteCode == null) {
+                String uuid = GenerateNo.getUUID().substring(0, 6);
+
+                MemberExample memberExample = new MemberExample();
+                MemberExample.Criteria criteria = memberExample.createCriteria();
+                criteria.andInvitecodeEqualTo(uuid);
+                int count = memberMapper.countByExample(memberExample);
+                if (count == 0) {
+                    inviteCode = uuid;
+                }
+
+            }
+
+            member.setInvitecode(inviteCode);
+            //查询是谁邀请的，设置邀请者的id
+            if(null != customInvitecode) {
+                Member inviterMember = getByInvitecode(customInvitecode);
+                if(inviterMember != null) {
+                    member.setInviterid(inviterMember.getId());
+                }
+            }
+
+            MemberGrade memberGrade = memberGradeService.getDefaultMemberGrade();
+            if (memberGrade != null) {
+                member.setGradleid((long) memberGrade.getId());
+            }
+
+            memberMapper.insertSelective(member);
+
+            //注册送积分
+            IntegralSet integralSet = integralService.getIntegralSetByType(Quantity.STATE_1);
+            if (integralSet != null) {
+                member.setIntegrals(integralSet.getScope());
+                IntegralRecord record = new IntegralRecord();
+                record.setMemberid(member.getId());
+                record.setMembername(member.getUsername());
+                record.setScope(integralSet.getScope());
+                record.setType(Quantity.STATE_1);
+                record.setCreatetime(new Date());
+                record.setRegistertime(new Date());
+                record.setRemark("注册得积分");
+                integralService.updateMemberIntegral(member, record);
+            }
+
+
+            integralSet = integralService.getIntegralSetByType(Quantity.STATE_2);
+            //查询是谁邀请的，送积分
+            if (StringUtils.hasText(member.getInvitecode()) && integralSet != null && customInvitecode != null) {
+                Member invMember = getByInvitecode(customInvitecode);
+                if (invMember != null) {
+                    Member updateMember = new Member();
+                    updateMember.setId(invMember.getId());
+                    updateMember.setIntegrals(invMember.getIntegrals().add(integralSet.getScope()));
+
+                    IntegralRecord record = new IntegralRecord();
+                    record.setMemberid(invMember.getId());
+                    record.setMembername(invMember.getUsername());
+                    record.setRemark("邀请得积分");
+                    record.setScope(integralSet.getScope());
+                    record.setType(Quantity.STATE_2);
+                    record.setCreatetime(new Date());
+                    record.setRegisterid(member.getId());
+                    record.setRegistername(member.getUsername());
+                    record.setRegistertime(member.getCreatedate());
+                    record.setRegisterscope(member.getIntegrals());
+
+                    integralService.updateMemberIntegral(updateMember, record);
+                }
+            }
+
+        }
+
+        return errorMes;
+    }
+
+
+
     public Member getMemberByUsername(String username) {
 //        MemberExample example = new MemberExample();
 //        example.createCriteria().andUsernameEqualTo(username);
