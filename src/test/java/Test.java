@@ -99,6 +99,8 @@ public class Test {
         Country country=new Country.Builder().setName("China").setArea("Asia").setPopulation(14).build();
         System.out.println(country.getArea()+":"+country.getName()+":"+country.getPopulation());
 
+
+
     }
     public static void filter(List<String> names,Predicate condition){
         for (String name:names
