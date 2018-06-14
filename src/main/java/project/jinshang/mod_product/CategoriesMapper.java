@@ -56,7 +56,6 @@ public interface CategoriesMapper {
     int hasSonCategoryCount(@Param("parentid") long parentid);
 
     @Select("select * from categories order by sort asc,id asc")
-    @Cacheable(value = "CategoriesCache",key = "'project.jinshang.mod_product.CategoriesMapper.getAll'")
     List<Categories> getAll();
 
 
