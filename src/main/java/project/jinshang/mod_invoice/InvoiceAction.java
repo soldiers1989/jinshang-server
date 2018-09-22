@@ -1,5 +1,6 @@
 package project.jinshang.mod_invoice;
 
+import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -52,10 +53,12 @@ public class InvoiceAction {
             invoiceInfo.setDefaultbill((short) 0);
         }
 
-        if (invoiceInfos.size() != 0 && member.getCompany()) {
+
+        /*if (invoiceInfos.size() != 0 && member.getCompany()) {
+        /*if (invoiceInfos.size() != 0 && member.getCompany()) {
             basicRet.setResult(BasicRet.ERR);
             basicRet.setMessage("公司账户新增失败");
-        }else {
+        }else {*/
             invoiceInfo.setMemberid(member.getId());
             invoiceInfo.setCreatedate(new Date());
             invoiceInfo.setUpdatedate(new Date());
@@ -63,7 +66,8 @@ public class InvoiceAction {
             invoiceService.addInvoiceInfo(invoiceInfo);
             basicRet.setResult(BasicRet.SUCCESS);
             basicRet.setMessage("新增成功");
-        }
+        //}
+
         return basicRet;
     }
 
@@ -135,11 +139,19 @@ public class InvoiceAction {
 
     @RequestMapping(value = "/list2", method = RequestMethod.POST)
     @ApiOperation(value = "买家中心-发票信息列表")
-    public BasicRet getInvoiceInfoList2(Model model) {
+    @ApiImplicitParams({
+            @ApiImplicitParam(value = "第几页", name = "pageNo", paramType = "query", dataType = "int", required = true, defaultValue = "1"),
+            @ApiImplicitParam(value = "每页显示的条数", name = "pageSize", paramType = "query", dataType = "int", required = true, defaultValue = "20"),
+            @ApiImplicitParam(value = "发票抬头", name = "invoiceheadup", paramType = "query", dataType = "string", required = false)
+    })
+    public BasicRet getInvoiceInfoList2(@RequestParam(required = true, defaultValue = "1") int pageNo,
+                                        @RequestParam(required = true, defaultValue = "20") int pageSize,
+                                        @RequestParam(required = false) String invoiceheadup,Model model) {
+
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
         BasicExtRet basicRet = new BasicExtRet();
-        List<InvoiceInfo> invoiceInfoList = invoiceService.getInvoiceInfoListByMemberId(member.getId());
-        basicRet.setData(invoiceInfoList);
+        PageInfo pageInfo = invoiceService.getInvoiceInfoListByMemberIdAndInv(pageNo,pageSize,member.getId(),invoiceheadup);
+        basicRet.setData(pageInfo);
         basicRet.setResult(BasicRet.SUCCESS);
         basicRet.setMessage("获取成功");
         return basicRet;
@@ -150,12 +162,12 @@ public class InvoiceAction {
     public BasicRet getInvoiceInfoList(Model model) {
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
         BasicExtRet basicRet = new BasicExtRet();
-        List<InvoiceInfo> invoiceInfoList = null;
-        if(member.getCompany()){
+        List<InvoiceInfo> invoiceInfoList = invoiceService.getInvoiceInfoListByMemberId(member.getId());
+        /*if(member.getCompany()){
             invoiceInfoList = invoiceService.getInvoiceInfoListByMemberId2(member.getId());
         }else{
             invoiceInfoList = invoiceService.getInvoiceInfoListByMemberId(member.getId());
-        }
+        }*/
         basicRet.setData(invoiceInfoList);
         basicRet.setResult(BasicRet.SUCCESS);
         basicRet.setMessage("获取成功");

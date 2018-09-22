@@ -53,6 +53,7 @@
     <result column="heightprice" property="heightprice" jdbcType="NUMERIC" />
     <result column="selfsupport" property="selfsupport" jdbcType="BIT" />
     <result column="type" property="type" jdbcType="SMALLINT" />
+    <result column="shippingtemplatesgroup" property="shippingtemplatesgroup" jdbcType="BIGINT" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -118,7 +119,8 @@
     producttype, unit, surfacetreatment, weight, packagetype, recommended, pdstate, pddrawing, 
     pdpicture, pddes, specificationparam, seokey, seovalue, createtime, audittime, auditname, 
     reason, uptime, downtime, salesnum, cardnumid, cardnum, stand, seotitle, updatetime, 
-    tag, productid, prodstoreunit, unitrate, minprice, heightprice, selfsupport, type
+    tag, productid, prodstoreunit, unitrate, minprice, heightprice, selfsupport, type, 
+    shippingtemplatesgroup
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_product.bean.ProductInfoExample" >
     select
@@ -168,8 +170,8 @@
       cardnum, stand, seotitle, 
       updatetime, tag, productid, 
       prodstoreunit, unitrate, minprice, 
-      heightprice, selfsupport, type
-      )
+      heightprice, selfsupport, type, 
+      shippingtemplatesgroup)
     values (#{memberid,jdbcType=BIGINT}, #{level1,jdbcType=VARCHAR},
       #{level1id,jdbcType=BIGINT}, #{level2,jdbcType=VARCHAR}, #{level2id,jdbcType=BIGINT}, 
       #{level3,jdbcType=VARCHAR}, #{level3id,jdbcType=BIGINT}, #{productsno,jdbcType=VARCHAR}, 
@@ -186,8 +188,8 @@
       #{cardnum,jdbcType=VARCHAR}, #{stand,jdbcType=VARCHAR}, #{seotitle,jdbcType=VARCHAR}, 
       #{updatetime,jdbcType=TIMESTAMP}, #{tag,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler}, #{productid,jdbcType=BIGINT},
       #{prodstoreunit,jdbcType=VARCHAR}, #{unitrate,jdbcType=NUMERIC}, #{minprice,jdbcType=NUMERIC}, 
-      #{heightprice,jdbcType=NUMERIC}, #{selfsupport,jdbcType=BIT}, #{type,jdbcType=SMALLINT}
-      )
+      #{heightprice,jdbcType=NUMERIC}, #{selfsupport,jdbcType=BIT}, #{type,jdbcType=SMALLINT}, 
+      #{shippingtemplatesgroup,jdbcType=BIGINT})
   </insert>
   <insert id="insertSelective" parameterType="project.jinshang.mod_product.bean.ProductInfo" useGeneratedKeys="true" keyProperty="id" >
     insert into productinfo
@@ -345,6 +347,9 @@
       <if test="type != null" >
         type,
       </if>
+      <if test="shippingtemplatesgroup != null" >
+        shippingtemplatesgroup,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="id != null" >
@@ -499,6 +504,9 @@
       </if>
       <if test="type != null" >
         #{type,jdbcType=SMALLINT},
+      </if>
+      <if test="shippingtemplatesgroup != null" >
+        #{shippingtemplatesgroup,jdbcType=BIGINT},
       </if>
     </trim>
   </insert>
@@ -664,6 +672,9 @@
       <if test="record.type != null" >
         type = #{record.type,jdbcType=SMALLINT},
       </if>
+      <if test="record.shippingtemplatesgroup != null" >
+        shippingtemplatesgroup = #{record.shippingtemplatesgroup,jdbcType=BIGINT},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -721,7 +732,8 @@
       minprice = #{record.minprice,jdbcType=NUMERIC},
       heightprice = #{record.heightprice,jdbcType=NUMERIC},
       selfsupport = #{record.selfsupport,jdbcType=BIT},
-      type = #{record.type,jdbcType=SMALLINT}
+      type = #{record.type,jdbcType=SMALLINT},
+      shippingtemplatesgroup = #{record.shippingtemplatesgroup,jdbcType=BIGINT}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -879,6 +891,9 @@
       <if test="type != null" >
         type = #{type,jdbcType=SMALLINT},
       </if>
+      <if test="shippingtemplatesgroup != null" >
+        shippingtemplatesgroup = #{shippingtemplatesgroup,jdbcType=BIGINT},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -933,7 +948,8 @@
       minprice = #{minprice,jdbcType=NUMERIC},
       heightprice = #{heightprice,jdbcType=NUMERIC},
       selfsupport = #{selfsupport,jdbcType=BIT},
-      type = #{type,jdbcType=SMALLINT}
+      type = #{type,jdbcType=SMALLINT},
+      shippingtemplatesgroup = #{shippingtemplatesgroup,jdbcType=BIGINT}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

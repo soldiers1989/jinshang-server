@@ -40,4 +40,9 @@ public interface OrderProductLogMapper {
             "open=\"(\" separator=\",\" close=\")\">#{item}</foreach> </script>")
     List<OrderProductLog> getProductinfoByOrderproductids(@Param("orderproductids") List<Long> orderproductids);
 
+
+    @Select("<script>select * from orderproductlog where orderproductid in <foreach collection=\"orderproductids\" item=\"item\" index=\"index\" " +
+            "open=\"(\" separator=\",\" close=\")\">#{item}</foreach> </script>")
+    List<OrderProductLog> getAllColumnByOrderproductids(@Param("orderproductids") List<Long> orderproductids);
+
 }

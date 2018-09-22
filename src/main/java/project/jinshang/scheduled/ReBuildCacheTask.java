@@ -22,7 +22,7 @@ import java.util.TimerTask;
  */
 
 @Component
-public class ReBuildCacheTask {//implements ApplicationListener<ContextRefreshedEvent> {
+public class ReBuildCacheTask{ //implements ApplicationListener<ContextRefreshedEvent> {
 
     @Autowired
     private RedisCacheService redisCacheService;
@@ -34,8 +34,9 @@ public class ReBuildCacheTask {//implements ApplicationListener<ContextRefreshed
 //    public void onApplicationEvent(ContextRefreshedEvent event) {
 //
 //        System.out.println(1);
+//        System.out.println(event.getApplicationContext().getParent());
 //
-//       // if(event.getApplicationContext().getParent() == null){//root application context 没有parent，他就是老大.
+//        if(event.getApplicationContext().getParent() == null){//root application context 没有parent，他就是老大.
 //            //需要执行的逻辑代码，当spring容器初始化完成后就会执行该方法。
 //            TimerTask task = new TimerTask() {
 //                @Override
@@ -46,12 +47,15 @@ public class ReBuildCacheTask {//implements ApplicationListener<ContextRefreshed
 //
 //                    System.out.println("更新展示类目缓存");
 //                    redisCacheService.addShowCate();
+//
+//
+//
 //                }
 //            };
 //
 //            Timer timer = new Timer();
-//            timer.schedule(task,0,6000);
-//        //}
+//            timer.schedule(task,0,60);
+//        }
 //    }
 
 

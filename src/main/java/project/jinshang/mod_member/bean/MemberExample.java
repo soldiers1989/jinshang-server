@@ -4145,6 +4145,466 @@ public class MemberExample {
             addCriterion("inviterid not between", value1, value2, "inviterid");
             return (Criteria) this;
         }
+
+        public Criteria andInviterid2IsNull() {
+            addCriterion("inviterid2 is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andInviterid2IsNotNull() {
+            addCriterion("inviterid2 is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andInviterid2EqualTo(Long value) {
+            addCriterion("inviterid2 =", value, "inviterid2");
+            return (Criteria) this;
+        }
+
+        public Criteria andInviterid2NotEqualTo(Long value) {
+            addCriterion("inviterid2 <>", value, "inviterid2");
+            return (Criteria) this;
+        }
+
+        public Criteria andInviterid2GreaterThan(Long value) {
+            addCriterion("inviterid2 >", value, "inviterid2");
+            return (Criteria) this;
+        }
+
+        public Criteria andInviterid2GreaterThanOrEqualTo(Long value) {
+            addCriterion("inviterid2 >=", value, "inviterid2");
+            return (Criteria) this;
+        }
+
+        public Criteria andInviterid2LessThan(Long value) {
+            addCriterion("inviterid2 <", value, "inviterid2");
+            return (Criteria) this;
+        }
+
+        public Criteria andInviterid2LessThanOrEqualTo(Long value) {
+            addCriterion("inviterid2 <=", value, "inviterid2");
+            return (Criteria) this;
+        }
+
+        public Criteria andInviterid2In(List<Long> values) {
+            addCriterion("inviterid2 in", values, "inviterid2");
+            return (Criteria) this;
+        }
+
+        public Criteria andInviterid2NotIn(List<Long> values) {
+            addCriterion("inviterid2 not in", values, "inviterid2");
+            return (Criteria) this;
+        }
+
+        public Criteria andInviterid2Between(Long value1, Long value2) {
+            addCriterion("inviterid2 between", value1, value2, "inviterid2");
+            return (Criteria) this;
+        }
+
+        public Criteria andInviterid2NotBetween(Long value1, Long value2) {
+            addCriterion("inviterid2 not between", value1, value2, "inviterid2");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistesourceIsNull() {
+            addCriterion("registesource is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistesourceIsNotNull() {
+            addCriterion("registesource is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistesourceEqualTo(Short value) {
+            addCriterion("registesource =", value, "registesource");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistesourceNotEqualTo(Short value) {
+            addCriterion("registesource <>", value, "registesource");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistesourceGreaterThan(Short value) {
+            addCriterion("registesource >", value, "registesource");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistesourceGreaterThanOrEqualTo(Short value) {
+            addCriterion("registesource >=", value, "registesource");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistesourceLessThan(Short value) {
+            addCriterion("registesource <", value, "registesource");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistesourceLessThanOrEqualTo(Short value) {
+            addCriterion("registesource <=", value, "registesource");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistesourceIn(List<Short> values) {
+            addCriterion("registesource in", values, "registesource");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistesourceNotIn(List<Short> values) {
+            addCriterion("registesource not in", values, "registesource");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistesourceBetween(Short value1, Short value2) {
+            addCriterion("registesource between", value1, value2, "registesource");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistesourceNotBetween(Short value1, Short value2) {
+            addCriterion("registesource not between", value1, value2, "registesource");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistersourcelabelIsNull() {
+            addCriterion("registersourcelabel is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistersourcelabelIsNotNull() {
+            addCriterion("registersourcelabel is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistersourcelabelEqualTo(String value) {
+            addCriterion("registersourcelabel =", value, "registersourcelabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistersourcelabelNotEqualTo(String value) {
+            addCriterion("registersourcelabel <>", value, "registersourcelabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistersourcelabelGreaterThan(String value) {
+            addCriterion("registersourcelabel >", value, "registersourcelabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistersourcelabelGreaterThanOrEqualTo(String value) {
+            addCriterion("registersourcelabel >=", value, "registersourcelabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistersourcelabelLessThan(String value) {
+            addCriterion("registersourcelabel <", value, "registersourcelabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistersourcelabelLessThanOrEqualTo(String value) {
+            addCriterion("registersourcelabel <=", value, "registersourcelabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistersourcelabelLike(String value) {
+            addCriterion("registersourcelabel like", value, "registersourcelabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistersourcelabelNotLike(String value) {
+            addCriterion("registersourcelabel not like", value, "registersourcelabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistersourcelabelIn(List<String> values) {
+            addCriterion("registersourcelabel in", values, "registersourcelabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistersourcelabelNotIn(List<String> values) {
+            addCriterion("registersourcelabel not in", values, "registersourcelabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistersourcelabelBetween(String value1, String value2) {
+            addCriterion("registersourcelabel between", value1, value2, "registersourcelabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistersourcelabelNotBetween(String value1, String value2) {
+            addCriterion("registersourcelabel not between", value1, value2, "registersourcelabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistertypelabelIsNull() {
+            addCriterion("registertypelabel is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistertypelabelIsNotNull() {
+            addCriterion("registertypelabel is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistertypelabelEqualTo(String value) {
+            addCriterion("registertypelabel =", value, "registertypelabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistertypelabelNotEqualTo(String value) {
+            addCriterion("registertypelabel <>", value, "registertypelabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistertypelabelGreaterThan(String value) {
+            addCriterion("registertypelabel >", value, "registertypelabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistertypelabelGreaterThanOrEqualTo(String value) {
+            addCriterion("registertypelabel >=", value, "registertypelabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistertypelabelLessThan(String value) {
+            addCriterion("registertypelabel <", value, "registertypelabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistertypelabelLessThanOrEqualTo(String value) {
+            addCriterion("registertypelabel <=", value, "registertypelabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistertypelabelLike(String value) {
+            addCriterion("registertypelabel like", value, "registertypelabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistertypelabelNotLike(String value) {
+            addCriterion("registertypelabel not like", value, "registertypelabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistertypelabelIn(List<String> values) {
+            addCriterion("registertypelabel in", values, "registertypelabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistertypelabelNotIn(List<String> values) {
+            addCriterion("registertypelabel not in", values, "registertypelabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistertypelabelBetween(String value1, String value2) {
+            addCriterion("registertypelabel between", value1, value2, "registertypelabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegistertypelabelNotBetween(String value1, String value2) {
+            addCriterion("registertypelabel not between", value1, value2, "registertypelabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegisterchannellabelIsNull() {
+            addCriterion("registerchannellabel is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegisterchannellabelIsNotNull() {
+            addCriterion("registerchannellabel is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegisterchannellabelEqualTo(String value) {
+            addCriterion("registerchannellabel =", value, "registerchannellabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegisterchannellabelNotEqualTo(String value) {
+            addCriterion("registerchannellabel <>", value, "registerchannellabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegisterchannellabelGreaterThan(String value) {
+            addCriterion("registerchannellabel >", value, "registerchannellabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegisterchannellabelGreaterThanOrEqualTo(String value) {
+            addCriterion("registerchannellabel >=", value, "registerchannellabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegisterchannellabelLessThan(String value) {
+            addCriterion("registerchannellabel <", value, "registerchannellabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegisterchannellabelLessThanOrEqualTo(String value) {
+            addCriterion("registerchannellabel <=", value, "registerchannellabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegisterchannellabelLike(String value) {
+            addCriterion("registerchannellabel like", value, "registerchannellabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegisterchannellabelNotLike(String value) {
+            addCriterion("registerchannellabel not like", value, "registerchannellabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegisterchannellabelIn(List<String> values) {
+            addCriterion("registerchannellabel in", values, "registerchannellabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegisterchannellabelNotIn(List<String> values) {
+            addCriterion("registerchannellabel not in", values, "registerchannellabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegisterchannellabelBetween(String value1, String value2) {
+            addCriterion("registerchannellabel between", value1, value2, "registerchannellabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andRegisterchannellabelNotBetween(String value1, String value2) {
+            addCriterion("registerchannellabel not between", value1, value2, "registerchannellabel");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelnameIsNull() {
+            addCriterion("labelname is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelnameIsNotNull() {
+            addCriterion("labelname is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelnameEqualTo(String value) {
+            addCriterion("labelname =", value, "labelname");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelnameNotEqualTo(String value) {
+            addCriterion("labelname <>", value, "labelname");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelnameGreaterThan(String value) {
+            addCriterion("labelname >", value, "labelname");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelnameGreaterThanOrEqualTo(String value) {
+            addCriterion("labelname >=", value, "labelname");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelnameLessThan(String value) {
+            addCriterion("labelname <", value, "labelname");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelnameLessThanOrEqualTo(String value) {
+            addCriterion("labelname <=", value, "labelname");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelnameLike(String value) {
+            addCriterion("labelname like", value, "labelname");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelnameNotLike(String value) {
+            addCriterion("labelname not like", value, "labelname");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelnameIn(List<String> values) {
+            addCriterion("labelname in", values, "labelname");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelnameNotIn(List<String> values) {
+            addCriterion("labelname not in", values, "labelname");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelnameBetween(String value1, String value2) {
+            addCriterion("labelname between", value1, value2, "labelname");
+            return (Criteria) this;
+        }
+
+        public Criteria andLabelnameNotBetween(String value1, String value2) {
+            addCriterion("labelname not between", value1, value2, "labelname");
+            return (Criteria) this;
+        }
+
+        public Criteria andWaysalesmansetdateIsNull() {
+            addCriterion("waysalesmansetdate is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andWaysalesmansetdateIsNotNull() {
+            addCriterion("waysalesmansetdate is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andWaysalesmansetdateEqualTo(Date value) {
+            addCriterion("waysalesmansetdate =", value, "waysalesmansetdate");
+            return (Criteria) this;
+        }
+
+        public Criteria andWaysalesmansetdateNotEqualTo(Date value) {
+            addCriterion("waysalesmansetdate <>", value, "waysalesmansetdate");
+            return (Criteria) this;
+        }
+
+        public Criteria andWaysalesmansetdateGreaterThan(Date value) {
+            addCriterion("waysalesmansetdate >", value, "waysalesmansetdate");
+            return (Criteria) this;
+        }
+
+        public Criteria andWaysalesmansetdateGreaterThanOrEqualTo(Date value) {
+            addCriterion("waysalesmansetdate >=", value, "waysalesmansetdate");
+            return (Criteria) this;
+        }
+
+        public Criteria andWaysalesmansetdateLessThan(Date value) {
+            addCriterion("waysalesmansetdate <", value, "waysalesmansetdate");
+            return (Criteria) this;
+        }
+
+        public Criteria andWaysalesmansetdateLessThanOrEqualTo(Date value) {
+            addCriterion("waysalesmansetdate <=", value, "waysalesmansetdate");
+            return (Criteria) this;
+        }
+
+        public Criteria andWaysalesmansetdateIn(List<Date> values) {
+            addCriterion("waysalesmansetdate in", values, "waysalesmansetdate");
+            return (Criteria) this;
+        }
+
+        public Criteria andWaysalesmansetdateNotIn(List<Date> values) {
+            addCriterion("waysalesmansetdate not in", values, "waysalesmansetdate");
+            return (Criteria) this;
+        }
+
+        public Criteria andWaysalesmansetdateBetween(Date value1, Date value2) {
+            addCriterion("waysalesmansetdate between", value1, value2, "waysalesmansetdate");
+            return (Criteria) this;
+        }
+
+        public Criteria andWaysalesmansetdateNotBetween(Date value1, Date value2) {
+            addCriterion("waysalesmansetdate not between", value1, value2, "waysalesmansetdate");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {
@@ -4154,6 +4614,13 @@ public class MemberExample {
         }
     }
 
+    /**
+     * null
+     * 
+     * @author wcyong
+     * 
+     * @date 2018-07-12
+     */
     public static class Criterion {
         private String condition;
 

@@ -1,21 +1,20 @@
 package project.jinshang.mod_admin.mod_excelexport;
 
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import mizuki.project.core.restserver.config.BasicRet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import project.jinshang.common.constant.AdminAuthorityConst;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.utils.ExcelGen;
+import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_admin.mod_inte.bean.IntegralQueryParam;
 import project.jinshang.mod_admin.mod_inte.service.IntegralService;
 import project.jinshang.mod_company.service.AdminShopService;
@@ -27,14 +26,12 @@ import project.jinshang.mod_product.service.OrdersService;
 import project.jinshang.mod_server.bean.ServerPayQueryParam;
 import project.jinshang.mod_server.bean.SettleQueryParam;
 import project.jinshang.mod_server.service.MemberServerService;
-
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/rest/admin/excelexport")
@@ -53,9 +50,57 @@ public class ExcepExportAction {
     @Autowired
     private AdminShopService adminShopService;
 
+    public static Map<String,Long> map = new HashMap();
+
+    private static Map<String,Object> time = new HashMap<String,Object>();
+
+    @RequestMapping(value = "/getStateForExcel",method = RequestMethod.POST)
+    @ApiOperation(value = "判断是否正在导出excel")
+    @ApiImplicitParams({
+            @ApiImplicitParam(value = "导出数据的类型:orders/product/otherproduct/seller/memberinfo", name = "type", required = false, paramType = "query", dataType = "string")
+    })
+    public BasicRet getStateForExcel(@RequestParam(required = false) String type){
+        BasicRet basicRet = new BasicRet();
+
+        if(!StringUtils.hasText(type)){
+            basicRet.setMessage("no type");
+            basicRet.setResult(BasicRet.ERR);
+            return basicRet;
+        }else {
+            if (!map.containsKey(type)) {
+                basicRet.setMessage("success");
+                basicRet.setResult(BasicRet.SUCCESS);
+                return basicRet;
+            } else {
+                long time1 = System.currentTimeMillis();
+                if(!time.containsKey("time")) {
+                    time.put("time", time1);
+                    time.put("type",type);
+                }
+                if(time1-Long.parseLong(time.get("time").toString())>120000 && type.equals(time.get("type").toString())){
+                    time.remove("time");
+                    time.remove("type");
+                    map.remove(type);
+                    basicRet.setMessage("success");
+                    basicRet.setResult(BasicRet.SUCCESS);
+                    return basicRet;
+                }
+                basicRet.setMessage("has download task");
+                basicRet.setResult(BasicRet.ERR);
+                return basicRet;
+            }
+        }
+
+    }
+
+
     @RequestMapping(value = "/exportOrdersExcel",method = RequestMethod.GET)
     @ApiOperation(value = "导出订单列表")
-    public ResponseEntity<InputStreamResource> exportOrdersExcel(HttpServletResponse response,OrderQueryParam param) {
+    @PreAuthorize("hasAnyAuthority('"+AdminAuthorityConst.ORDERMANAGEMENTEXCEL+"')")
+    public ResponseEntity<InputStreamResource> exportOrdersExcel(OrderQueryParam param) throws IOException {
+
+        long time=System.currentTimeMillis();
+        map.put("orders",time);
 
         if(param.getStand()!=null){
             param.setStand(param.getStand().toUpperCase());
@@ -85,6 +130,7 @@ public class ExcepExportAction {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
+            map.remove("orders");
             if (workbook != null) {
                 try {
                     workbook.close();
@@ -321,8 +367,6 @@ public class ExcepExportAction {
     }
 
 
-
-
     @GetMapping(value = "/listshop")
     @ApiOperation(value = "Excel导出商家信息")
     @ApiImplicitParams({
@@ -331,11 +375,14 @@ public class ExcepExportAction {
             @ApiImplicitParam(name = "shopgradeid",value = "店铺等级",dataType = "int",required = false,paramType = "query"),
             @ApiImplicitParam(name = "validate",value = "审核状态 0-未审核，1-通过，2-未通过，3-删除",dataType = "int",defaultValue = "-1",required = false,paramType = "query"),
     })
-    @PreAuthorize("hasAuthority('" + AdminAuthorityConst.BUSINESSMANAGEMENT + "')")
+    @PreAuthorize("hasAuthority('" + AdminAuthorityConst.BUSINESSMANAGEMENTEXCEL + "')")
     public ResponseEntity<InputStreamResource> exportExcellistshop(@RequestParam(required = false,defaultValue ="" )String companyname,
                                                                    @RequestParam(required = false,defaultValue ="" )String username,
                                                                    @RequestParam(required = false,defaultValue ="0" ) int shopgradeid,
                                                                    @RequestParam(required = false,defaultValue = "-1") int validate, HttpServletResponse res) throws UnsupportedEncodingException {
+
+        long time=System.currentTimeMillis();
+        map.put("seller",time);
 
         List<Map<String,Object>> resList = adminShopService.listShopForAdminExcel(companyname, username, shopgradeid,validate);
 
@@ -361,6 +408,7 @@ public class ExcepExportAction {
                 headers.add("Pragma", "no-cache");
                 headers.add("Expires", "0");
                 String contentType = "application/vnd.ms-excel";
+                //time.clear();
                 return ResponseEntity.ok()
                         .headers(headers).contentType(MediaType.parseMediaType(contentType))
                         .body(new InputStreamResource(new ByteArrayInputStream(baos.toByteArray())));
@@ -368,6 +416,7 @@ public class ExcepExportAction {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
+            map.remove("seller");
             if(workbook != null){
                 try {
                     workbook.close();
@@ -380,9 +429,6 @@ public class ExcepExportAction {
 
 
     }
-
-
-
 
 
 }

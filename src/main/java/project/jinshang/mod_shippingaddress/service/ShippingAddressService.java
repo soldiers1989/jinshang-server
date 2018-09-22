@@ -30,8 +30,10 @@ public class ShippingAddressService {
         return shippingAddressMapper.selectByidAndType(id,type);
     }
 
-    public void  addShippingAddress(ShippingAddress shippingAddress){
+    public Long  addShippingAddress(ShippingAddress shippingAddress){
         shippingAddressMapper.insert(shippingAddress);
+        Long id = shippingAddress.getId();
+        return id;
     }
 
     public void deleteShippingAddress(long id){
@@ -49,11 +51,11 @@ public class ShippingAddressService {
     }
 
     public PageInfo listAllShippingAddress(int pageNo,int pageSize,long memberid,short type){
-        //PageHelper.startPage(pageNo,pageSize);
+        PageHelper.startPage(pageNo,pageSize);
         ShippingAddressExample shippingAddressExample=new ShippingAddressExample();
         ShippingAddressExample.Criteria criteria= shippingAddressExample.createCriteria();
         criteria.andMemberidEqualTo(memberid).andTypeEqualTo(type);
-        shippingAddressExample.setOrderByClause(" isdefault desc ");
+        shippingAddressExample.setOrderByClause(" isdefault desc,id desc ");
         List<ShippingAddress> list =  shippingAddressMapper.selectByExample(shippingAddressExample);
         PageInfo pageInfo = new PageInfo(list);
         return  pageInfo;

@@ -24,6 +24,7 @@
     <result column="startnum" property="startnum" jdbcType="NUMERIC" />
     <result column="weight" property="weight" jdbcType="NUMERIC" />
     <result column="minplus" property="minplus" jdbcType="NUMERIC" />
+    <result column="discountratio" property="discountratio" jdbcType="NUMERIC" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -84,9 +85,9 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, pdid, storeid, storename, stepwiseprice, prodprice, threeprice, ninetyprice, 
-    thirtyprice, sixtyprice, intervalprice, marketprice, costprice, storeunit, aftersale, 
-    location, freightmode, pdno, pdstorenum, startnum, weight, minplus
+    id, pdid, storeid, storename, stepwiseprice, prodprice, threeprice, ninetyprice,
+    thirtyprice, sixtyprice, intervalprice, marketprice, costprice, storeunit, aftersale,
+    location, freightmode, pdno, pdstorenum, startnum, weight, minplus, discountratio
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_product.bean.ProductStoreExample" >
     select
@@ -104,7 +105,7 @@
     </if>
   </select>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
+    select
     <include refid="Base_Column_List" />
     from productstore
     where id = #{id,jdbcType=BIGINT}
@@ -121,21 +122,21 @@
   </delete>
   <insert id="insert" parameterType="project.jinshang.mod_product.bean.ProductStore" >
     insert into productstore (pdid, storeid,
-      storename, stepwiseprice, prodprice, 
-      threeprice, ninetyprice, thirtyprice, 
-      sixtyprice, intervalprice, marketprice, 
-      costprice, storeunit, aftersale, 
-      location, freightmode, pdno, 
-      pdstorenum, startnum, weight, 
-      minplus)
+      storename, stepwiseprice, prodprice,
+      threeprice, ninetyprice, thirtyprice,
+      sixtyprice, intervalprice, marketprice,
+      costprice, storeunit, aftersale,
+      location, freightmode, pdno,
+      pdstorenum, startnum, weight,
+      minplus, discountratio)
     values ( #{pdid,jdbcType=BIGINT}, #{storeid,jdbcType=BIGINT},
-      #{storename,jdbcType=VARCHAR}, #{stepwiseprice,jdbcType=BIT}, #{prodprice,jdbcType=NUMERIC}, 
-      #{threeprice,jdbcType=NUMERIC}, #{ninetyprice,jdbcType=NUMERIC}, #{thirtyprice,jdbcType=NUMERIC}, 
-      #{sixtyprice,jdbcType=NUMERIC}, #{intervalprice,jdbcType=VARCHAR}, #{marketprice,jdbcType=NUMERIC}, 
-      #{costprice,jdbcType=NUMERIC}, #{storeunit,jdbcType=VARCHAR}, #{aftersale,jdbcType=VARCHAR}, 
-      #{location,jdbcType=VARCHAR}, #{freightmode,jdbcType=BIGINT}, #{pdno,jdbcType=VARCHAR}, 
-      #{pdstorenum,jdbcType=NUMERIC}, #{startnum,jdbcType=NUMERIC}, #{weight,jdbcType=NUMERIC}, 
-      #{minplus,jdbcType=NUMERIC})
+      #{storename,jdbcType=VARCHAR}, #{stepwiseprice,jdbcType=BIT}, #{prodprice,jdbcType=NUMERIC},
+      #{threeprice,jdbcType=NUMERIC}, #{ninetyprice,jdbcType=NUMERIC}, #{thirtyprice,jdbcType=NUMERIC},
+      #{sixtyprice,jdbcType=NUMERIC}, #{intervalprice,jdbcType=VARCHAR}, #{marketprice,jdbcType=NUMERIC},
+      #{costprice,jdbcType=NUMERIC}, #{storeunit,jdbcType=VARCHAR}, #{aftersale,jdbcType=VARCHAR},
+      #{location,jdbcType=VARCHAR}, #{freightmode,jdbcType=BIGINT}, #{pdno,jdbcType=VARCHAR},
+      #{pdstorenum,jdbcType=NUMERIC}, #{startnum,jdbcType=NUMERIC}, #{weight,jdbcType=NUMERIC},
+      #{minplus,jdbcType=NUMERIC}, #{discountratio,jdbcType=NUMERIC})
   </insert>
   <insert id="insertSelective" parameterType="project.jinshang.mod_product.bean.ProductStore" >
     insert into productstore
@@ -206,6 +207,9 @@
       <if test="minplus != null" >
         minplus,
       </if>
+      <if test="discountratio != null" >
+        discountratio,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="id != null" >
@@ -273,6 +277,9 @@
       </if>
       <if test="minplus != null" >
         #{minplus,jdbcType=NUMERIC},
+      </if>
+      <if test="discountratio != null" >
+        #{discountratio,jdbcType=NUMERIC},
       </if>
     </trim>
   </insert>
@@ -351,6 +358,9 @@
       <if test="record.minplus != null" >
         minplus = #{record.minplus,jdbcType=NUMERIC},
       </if>
+      <if test="record.discountratio != null" >
+        discountratio = #{record.discountratio,jdbcType=NUMERIC},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -359,27 +369,28 @@
   <update id="updateByExample" parameterType="map" >
     update productstore
     set id = #{record.id,jdbcType=BIGINT},
-      pdid = #{record.pdid,jdbcType=BIGINT},
-      storeid = #{record.storeid,jdbcType=BIGINT},
-      storename = #{record.storename,jdbcType=VARCHAR},
-      stepwiseprice = #{record.stepwiseprice,jdbcType=BIT},
-      prodprice = #{record.prodprice,jdbcType=NUMERIC},
-      threeprice = #{record.threeprice,jdbcType=NUMERIC},
-      ninetyprice = #{record.ninetyprice,jdbcType=NUMERIC},
-      thirtyprice = #{record.thirtyprice,jdbcType=NUMERIC},
-      sixtyprice = #{record.sixtyprice,jdbcType=NUMERIC},
-      intervalprice = #{record.intervalprice,jdbcType=VARCHAR},
-      marketprice = #{record.marketprice,jdbcType=NUMERIC},
-      costprice = #{record.costprice,jdbcType=NUMERIC},
-      storeunit = #{record.storeunit,jdbcType=VARCHAR},
-      aftersale = #{record.aftersale,jdbcType=VARCHAR},
-      location = #{record.location,jdbcType=VARCHAR},
-      freightmode = #{record.freightmode,jdbcType=BIGINT},
-      pdno = #{record.pdno,jdbcType=VARCHAR},
-      pdstorenum = #{record.pdstorenum,jdbcType=NUMERIC},
-      startnum = #{record.startnum,jdbcType=NUMERIC},
-      weight = #{record.weight,jdbcType=NUMERIC},
-      minplus = #{record.minplus,jdbcType=NUMERIC}
+    pdid = #{record.pdid,jdbcType=BIGINT},
+    storeid = #{record.storeid,jdbcType=BIGINT},
+    storename = #{record.storename,jdbcType=VARCHAR},
+    stepwiseprice = #{record.stepwiseprice,jdbcType=BIT},
+    prodprice = #{record.prodprice,jdbcType=NUMERIC},
+    threeprice = #{record.threeprice,jdbcType=NUMERIC},
+    ninetyprice = #{record.ninetyprice,jdbcType=NUMERIC},
+    thirtyprice = #{record.thirtyprice,jdbcType=NUMERIC},
+    sixtyprice = #{record.sixtyprice,jdbcType=NUMERIC},
+    intervalprice = #{record.intervalprice,jdbcType=VARCHAR},
+    marketprice = #{record.marketprice,jdbcType=NUMERIC},
+    costprice = #{record.costprice,jdbcType=NUMERIC},
+    storeunit = #{record.storeunit,jdbcType=VARCHAR},
+    aftersale = #{record.aftersale,jdbcType=VARCHAR},
+    location = #{record.location,jdbcType=VARCHAR},
+    freightmode = #{record.freightmode,jdbcType=BIGINT},
+    pdno = #{record.pdno,jdbcType=VARCHAR},
+    pdstorenum = #{record.pdstorenum,jdbcType=NUMERIC},
+    startnum = #{record.startnum,jdbcType=NUMERIC},
+    weight = #{record.weight,jdbcType=NUMERIC},
+    minplus = #{record.minplus,jdbcType=NUMERIC},
+    discountratio = #{record.discountratio,jdbcType=NUMERIC},
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -450,6 +461,9 @@
       <if test="minplus != null" >
         minplus = #{minplus,jdbcType=NUMERIC},
       </if>
+      <if test="discountratio !=null" >
+        discountratio = #{discountratio,jdbcType=NUMERIC},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -475,7 +489,8 @@
       pdstorenum = #{pdstorenum,jdbcType=NUMERIC},
       startnum = #{startnum,jdbcType=NUMERIC},
       weight = #{weight,jdbcType=NUMERIC},
-      minplus = #{minplus,jdbcType=NUMERIC}
+      minplus = #{minplus,jdbcType=NUMERIC},
+      discountratio = #{discountratio,jdbcType=NUMERIC}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

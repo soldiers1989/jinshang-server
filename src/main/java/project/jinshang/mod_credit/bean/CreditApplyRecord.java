@@ -2,6 +2,7 @@ package project.jinshang.mod_credit.bean;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 public class CreditApplyRecord {
     private Long id;
@@ -74,7 +75,7 @@ public class CreditApplyRecord {
 
     private String cancelreason;
 
-    private String reviewnotes;
+    private Object reviewnotes;
 
     public Long getId() {
         return id;
@@ -356,11 +357,11 @@ public class CreditApplyRecord {
         this.cancelreason = cancelreason == null ? null : cancelreason.trim();
     }
 
-    public String getReviewnotes() {
+    public Object getReviewnotes() {
         return reviewnotes;
     }
 
-    public void setReviewnotes(String reviewnotes) {
-        this.reviewnotes = reviewnotes == null ? null : reviewnotes.trim();
+    public void setReviewnotes(Object reviewnotes) {
+        this.reviewnotes = reviewnotes;
     }
 }

@@ -1,42 +1,41 @@
 package project.jinshang.service;
 
 import org.apache.http.HttpHost;
+import org.elasticsearch.action.DocWriteRequest;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
-import org.elasticsearch.action.admin.indices.create.CreateIndexResponse;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
-import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsRequest;
-import org.elasticsearch.action.admin.indices.exists.indices.IndicesExistsResponse;
-import org.elasticsearch.action.admin.indices.get.GetIndexRequest;
+import org.elasticsearch.action.bulk.BulkRequest;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.action.get.GetRequest;
-import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.update.UpdateRequest;
-import org.elasticsearch.action.update.UpdateResponse;
-import org.elasticsearch.client.ResponseException;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 @Service
 public class ElasticSearchService {
     private RestHighLevelClient client;
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
     @Value("${mod.es.ip}")
     private String ip;
     @Value("${mod.es.port}")
     private int port;
 
-    public static final String INDEX_PRODUCT = "product";
+    public static final String INDEX_PRODUCT = "product4";
     public static final String INDEX_PRODUCT_TYPE_INFO = "info";
 
-    //@PostConstruct
+    @PostConstruct
     public void init() throws IOException {
         client = new RestHighLevelClient(RestClient.builder(
                         new HttpHost(ip, port, "http")
@@ -115,6 +114,20 @@ public class ElasticSearchService {
                 "            \"indexes\":{\"type\": \"text\", \"analyzer\": \"whitespace\"},\n" +
                 "            \"membersettingstate\":{\"type\":  \"long\"},\n" +
                 "            \"pic\":{\"type\":\"keyword\"},\n" +
+                // cat_sort
+                //"            \"cat_sort\":{\"type\":\"long\"},\n" +
+                // attr_sort
+                "            \"attr_sort\":{\"type\":\"long\"},\n" +
+                "            \"level1_sort\":{\"type\":\"long\"},\n" +
+                "            \"level2_sort\":{\"type\":\"long\"},\n" +
+                "            \"level3_sort\":{\"type\":\"long\"},\n" +
+                "            \"material_sort\":{\"type\":\"long\"},\n" +
+                "            \"cardnum_sort\":{\"type\":\"long\"},\n" +
+                "            \"surfacetreatment_sort\":{\"type\":\"long\"},\n" +
+                "            \"brand_sort\":{\"type\":\"long\"},\n" +
+                "            \"store_sort\":{\"type\":\"long\"},\n" +
+                "            \"productname_sort\":{\"type\":\"long\"},\n" +
+
                 "            \"stores\":{\n" +
                 "                \"type\": \"nested\",\n" +
                 "                \"properties\":{\n" +
@@ -170,6 +183,24 @@ public class ElasticSearchService {
             indexRequest.source(data);
             client.index(indexRequest);
         }
+        logger.info("elas update index");
+    }
+
+    public void bulkUpdate(String index,List<Map<String,Object>> data) throws IOException {
+        BulkRequest bulkRequest = new BulkRequest();
+        for(Map<String,Object> map:data){
+            String id = String.valueOf(map.get("id"));
+            GetRequest getRequest = new GetRequest(index,INDEX_PRODUCT_TYPE_INFO,id);
+            DocWriteRequest request;
+            if(client.get(getRequest).isExists()){
+                request = new UpdateRequest(index,INDEX_PRODUCT_TYPE_INFO,id).doc(map);
+            }else{
+                request = new IndexRequest(index,INDEX_PRODUCT_TYPE_INFO,id).source(map);
+            }
+            bulkRequest.add(request);
+        }
+        client.bulk(bulkRequest);
+
     }
 
     public void del(String index, Long id) throws IOException {

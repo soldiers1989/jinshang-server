@@ -3405,6 +3405,66 @@ public class ProductInfoExample {
             addCriterion("type not between", value1, value2, "type");
             return (Criteria) this;
         }
+
+        public Criteria andShippingtemplatesgroupIsNull() {
+            addCriterion("shippingtemplatesgroup is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andShippingtemplatesgroupIsNotNull() {
+            addCriterion("shippingtemplatesgroup is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andShippingtemplatesgroupEqualTo(Long value) {
+            addCriterion("shippingtemplatesgroup =", value, "shippingtemplatesgroup");
+            return (Criteria) this;
+        }
+
+        public Criteria andShippingtemplatesgroupNotEqualTo(Long value) {
+            addCriterion("shippingtemplatesgroup <>", value, "shippingtemplatesgroup");
+            return (Criteria) this;
+        }
+
+        public Criteria andShippingtemplatesgroupGreaterThan(Long value) {
+            addCriterion("shippingtemplatesgroup >", value, "shippingtemplatesgroup");
+            return (Criteria) this;
+        }
+
+        public Criteria andShippingtemplatesgroupGreaterThanOrEqualTo(Long value) {
+            addCriterion("shippingtemplatesgroup >=", value, "shippingtemplatesgroup");
+            return (Criteria) this;
+        }
+
+        public Criteria andShippingtemplatesgroupLessThan(Long value) {
+            addCriterion("shippingtemplatesgroup <", value, "shippingtemplatesgroup");
+            return (Criteria) this;
+        }
+
+        public Criteria andShippingtemplatesgroupLessThanOrEqualTo(Long value) {
+            addCriterion("shippingtemplatesgroup <=", value, "shippingtemplatesgroup");
+            return (Criteria) this;
+        }
+
+        public Criteria andShippingtemplatesgroupIn(List<Long> values) {
+            addCriterion("shippingtemplatesgroup in", values, "shippingtemplatesgroup");
+            return (Criteria) this;
+        }
+
+        public Criteria andShippingtemplatesgroupNotIn(List<Long> values) {
+            addCriterion("shippingtemplatesgroup not in", values, "shippingtemplatesgroup");
+            return (Criteria) this;
+        }
+
+        public Criteria andShippingtemplatesgroupBetween(Long value1, Long value2) {
+            addCriterion("shippingtemplatesgroup between", value1, value2, "shippingtemplatesgroup");
+            return (Criteria) this;
+        }
+
+        public Criteria andShippingtemplatesgroupNotBetween(Long value1, Long value2) {
+            addCriterion("shippingtemplatesgroup not between", value1, value2, "shippingtemplatesgroup");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

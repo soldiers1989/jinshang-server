@@ -5,8 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import project.jinshang.common.constant.Quantity;
+import project.jinshang.common.utils.RedisUtils;
 import project.jinshang.mod_member.SellerCategoryMapper;
 import project.jinshang.mod_member.bean.SellerCategory;
 import project.jinshang.mod_member.bean.SellerCategoryExample;
@@ -14,17 +14,21 @@ import project.jinshang.mod_member.bean.SellerProductCategory;
 import project.jinshang.mod_product.bean.Categories;
 import project.jinshang.mod_product.service.CategoriesService;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 public class SellerCategoryService {
 
     @Autowired
     private SellerCategoryMapper sellerCategoryMapper;
-
+    private ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
+    @Autowired
+    private RedisUtils redisUtils;
     private static final Logger logger= LoggerFactory.getLogger(CategoriesService.class);
+    public   static  final  String SELLER_COMPANY_PUBSH_CATEGORY = "getPushCategory:";
     public SellerCategory getSellerCategory(Long id){
         return sellerCategoryMapper.selectByPrimaryKey(id);
     }
@@ -124,7 +128,8 @@ public class SellerCategoryService {
             SellerCategory sellerCategory=this.transCategories2SellerCategories(categories,sellerId);
             list.add(sellerCategory);
             this.insertAll(list);
-
+        //清除商家对应的可发布商品列表的redis缓存
+        redisUtils.delete(SELLER_COMPANY_PUBSH_CATEGORY+sellerId);
         }else{
             logger.info("卖家编号为{}的商品库中没有{}产品的对应的上级分类，不能插入!",sellerId,categories.getName());
         }
@@ -152,6 +157,8 @@ public class SellerCategoryService {
 //            sellerCategory.setName(categories.getName());
             sellerCategory.setId(sellerCategoryList.get(0).getId());
             this.updateSellerCategory(sellerCategory);
+            //清除商家对应的可发布商品列表的redis缓存
+            redisUtils.delete(SELLER_COMPANY_PUBSH_CATEGORY+sellerId);
         }else{
             logger.info("卖家编号为{}的商品库中没有id为{}对应的商品，无法进行更新",sellerId,id);
         }
@@ -170,6 +177,8 @@ public class SellerCategoryService {
         criteria.andCategoryidEqualTo(categories.getId());
         criteria.andSelleridEqualTo(sellerId);
         this.deleteByCategoryIdAndSellerId(example);
+        //清除商家对应的可发布商品列表的redis缓存
+        redisUtils.delete(SELLER_COMPANY_PUBSH_CATEGORY+sellerId);
     }
 
 
@@ -200,5 +209,28 @@ public class SellerCategoryService {
     }
 
 
-
+    public void insertAllOf(List<SellerCategory> list){
+        cachedThreadPool.execute(() -> {
+            List current=null;
+            if(list.size()>1000){
+                int totalSize=list.size();
+                int no=totalSize/1000;
+                int end=totalSize-no*1000;
+//                List newList = list.subList(0,1000);
+//                List newList2 = list.subList(1000,list.size());
+//                sellerCategoryMapper.insertAll(newList);
+//                sellerCategoryMapper.insertAll(newList2);
+                for (int i=1;i<no+1;i++){
+                    int cursorstart=(i-1)*1000;
+                    int cursorend=cursorstart+1000;
+                    current=list.subList(cursorstart,cursorend);
+                    sellerCategoryMapper.insertAll(current);
+                }
+                current=list.subList(totalSize-end,totalSize);
+                sellerCategoryMapper.insertAll(current);
+            }else {
+                sellerCategoryMapper.insertAll(list);
+            }
+        });
+    }
 }

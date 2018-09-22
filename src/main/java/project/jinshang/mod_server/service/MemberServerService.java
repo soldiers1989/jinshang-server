@@ -5,6 +5,7 @@ import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import project.jinshang.common.constant.Quantity;
+import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_member.MemberMapper;
 import project.jinshang.mod_member.bean.Member;
 import project.jinshang.mod_product.bean.Categories;
@@ -93,6 +94,11 @@ public class MemberServerService {
     public PageInfo getServerPayList(ServerPayQueryParam param) {
         PageHelper.startPage(param.getPageNo(), param.getPageSize());
         List<ServerPayPageModel> list = serverSetMapper.getServerPayList(param);
+        for(ServerPayPageModel sppm :list){
+            if(sppm.getCompanyname()!=null){
+                sppm.setServername(sppm.getCompanyname());
+            }
+        }
         PageInfo pageInfo = new PageInfo(list);
         return pageInfo;
     }
@@ -110,6 +116,15 @@ public class MemberServerService {
         for (ServerPayPageModel serverPayPageModel : list) {
             Map<String, Object> map = new HashMap<>();
             map.put("服务商", serverPayPageModel.getServername());
+            if(StringUtils.hasText(serverPayPageModel.getUsername())){
+                map.put("服务商",serverPayPageModel.getUsername());
+            }
+            if(StringUtils.hasText(serverPayPageModel.getRealname())){
+                map.put("服务商",serverPayPageModel.getRealname());
+            }
+            if(StringUtils.hasText(serverPayPageModel.getCompanyname())){
+                map.put("服务商",serverPayPageModel.getCompanyname());
+            }
             map.put("地区", serverPayPageModel.getArea());
             map.put("省市", serverPayPageModel.getProvince() + " " + serverPayPageModel.getCity() + " " + serverPayPageModel.getArea());
             map.put("服务费占比%", serverPayPageModel.getRate());
@@ -273,7 +288,13 @@ public class MemberServerService {
      * @return
      */
     public List<ServerSet> getServerSetList() {
-        return serverSetMapper.getServerSetList();
+        List<ServerSet> list = serverSetMapper.getServerSetList();
+        for(ServerSet ss:list){
+            if(ss.getCompanyname()!=null){
+                ss.setServername(ss.getCompanyname());
+            }
+        }
+        return list;
     }
 
 }

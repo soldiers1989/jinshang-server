@@ -78,6 +78,17 @@ public class SalerCapitalViewDto {
     @ApiModelProperty(notes = "提现方式1=微信2=支付宝3=银行卡")
     private Short withdrawtype;
 
+    @ApiModelProperty(notes = "订单运费")
+    private BigDecimal freight;
+
+    @ApiModelProperty(notes = "操作时间")
+    private Date operatetime;
+
+    @ApiModelProperty(notes = "交易成功时间")
+    private Date successtime;
+
+
+
 
     public Long getId() {
         return id;
@@ -261,5 +272,29 @@ public class SalerCapitalViewDto {
 
     public void setWithdrawtype(Short withdrawtype) {
         this.withdrawtype = withdrawtype;
+    }
+
+    public BigDecimal getFreight() {
+        return freight;
+    }
+
+    public void setFreight(BigDecimal freight) {
+        this.freight = freight;
+    }
+
+    public Date getOperatetime() {
+        return operatetime;
+    }
+
+    public void setOperatetime(Date operatetime) {
+        this.operatetime = operatetime;
+    }
+
+    public Date getSuccesstime() {
+        return successtime;
+    }
+
+    public void setSuccesstime(Date successtime) {
+        this.successtime = successtime;
     }
 }

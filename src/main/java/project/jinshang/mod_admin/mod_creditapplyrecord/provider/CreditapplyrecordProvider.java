@@ -159,7 +159,7 @@ public class CreditapplyrecordProvider {
                 WHERE(" R.phone=#{phone} ");
             }
             if(map.containsKey("company") && StringUtils.hasText((String) map.get("company"))){
-                WHERE(" R.company=#{company} ");
+                WHERE(" R.company like '%"+ map.get("company")+"%'" );
             }
 
 

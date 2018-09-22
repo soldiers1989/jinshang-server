@@ -41,7 +41,7 @@ public class RestCoreConfig {
 
     @Bean
     public ProductSearchService productSearchService(){
-        return new ProductSearchServiceImpl();
+        return new ProductSearchServiceImplEs();
     }
 
 }

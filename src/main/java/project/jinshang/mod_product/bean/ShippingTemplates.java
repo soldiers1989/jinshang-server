@@ -46,6 +46,12 @@ public class ShippingTemplates {
 
     List<AreaCost> areaCostList;
 
+    private Short temtype;
+
+    private BigDecimal defaultfreeprice;
+
+    private Long shopgroupid;
+
     public List<AreaCost> getAreaCostList() {
         return areaCostList;
     }
@@ -156,5 +162,29 @@ public class ShippingTemplates {
 
     public void setMemberid(Long memberid) {
         this.memberid = memberid;
+    }
+
+    public Short getTemtype() {
+        return temtype;
+    }
+
+    public void setTemtype(Short temtype) {
+        this.temtype = temtype;
+    }
+
+    public BigDecimal getDefaultfreeprice() {
+        return defaultfreeprice;
+    }
+
+    public void setDefaultfreeprice(BigDecimal defaultfreeprice) {
+        this.defaultfreeprice = defaultfreeprice;
+    }
+
+    public Long getShopgroupid() {
+        return shopgroupid;
+    }
+
+    public void setShopgroupid(Long shopgroupid) {
+        this.shopgroupid = shopgroupid;
     }
 }

@@ -2,6 +2,8 @@ package project.jinshang.mod_common;
 
 import com.google.code.kaptcha.Constants;
 import com.google.code.kaptcha.impl.DefaultKaptcha;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -15,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -26,6 +29,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
+import project.jinshang.common.bean.AdminLogOperator;
 import project.jinshang.common.bean.PageRet;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.Quantity;
@@ -38,11 +43,11 @@ import project.jinshang.mod_member.bean.Admin;
 import project.jinshang.mod_member.bean.Member;
 import project.jinshang.mod_member.service.MemberService;
 import project.jinshang.mod_member.service.SellerCategoryService;
-import project.jinshang.mod_product.bean.Brand;
-import project.jinshang.mod_product.bean.Categories;
-import project.jinshang.mod_product.bean.CategoriesSimple;
+import project.jinshang.mod_product.bean.*;
+import project.jinshang.mod_product.service.AdminOperateLogService;
 import project.jinshang.mod_product.service.BrandService;
 import project.jinshang.mod_product.service.CategoriesService;
+import project.jinshang.mod_product.service.ProductSearchService;
 
 import javax.imageio.ImageIO;
 import javax.servlet.ServletException;
@@ -50,10 +55,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -79,10 +81,13 @@ public class CommonController {
     @Autowired
     private MobileService mobileService;
 
-
+    @Autowired
+    private AdminOperateLogService adminOperateLogService;
     @Autowired
     private CategoriesService categoriesService;
 
+    @Autowired
+    private ProductSearchService productSearchService;
 
     @Autowired
     private CommonDataValueService commonDataValueService;
@@ -95,7 +100,12 @@ public class CommonController {
 
     @Autowired
     private SessionRepository repository;
+    @Autowired
+    private Gson gson;
+    AdminLogOperator adminLogOperator =new AdminLogOperator();
 
+    @Value("${upload.dir.moduleIcon}")
+    private  String uploadPath;
 
 
     //    @RequestMapping(value = "/poi", method = RequestMethod.GET)
@@ -708,7 +718,25 @@ public class CommonController {
         return basicRet;
     }
 
+    @RequestMapping(value = "/getRunMem", method = RequestMethod.GET)
+    @ResponseBody
+    public Map getRunMem(){
+            Map map = new HashMap();
+            long maxMem = Runtime.getRuntime().maxMemory()/1024/1024;
+            long freeMem = Runtime.getRuntime().freeMemory()/1024/1024;
+            long usedMem = maxMem - freeMem;
+            map.put("MaxMemory", maxMem + "MB");
+            map.put("UsedMemory", usedMem + "MB");
+            map.put("FreeMemory", freeMem + "MB");
+            return map;
+    }
 
+
+    @RequestMapping(value = "/ping",method = RequestMethod.GET)
+    @ResponseBody
+    public String ping(){
+        return  "ok";
+    }
 
     /*
     沪铝连续AL0
@@ -737,5 +765,137 @@ public class CommonController {
         return basicRet;
     }
 
+
+
+
+    @RequestMapping(value="/category/export",method= RequestMethod.GET)
+    @ApiOperation(value = "产品分类导出")
+    public ResponseEntity<InputStreamResource> export(){
+        List<Map<String,Object>> resList = new ArrayList<>();
+        XSSFWorkbook workbook = null;
+        try {
+            String[] rowTitles = new String[]{"一级分类","二级分类","三级分类","排序","类型","数据库主键"};
+//            List<Categories> list = categoriesService.getAll();
+//            list = ProductCategoryUtils.getChildsManyGroup(list, 0, 1);
+//            for (Categories categories:list){
+//                //一级分类
+//                Map<String,Object> FirstCaterorymap=new HashMap<>();
+//                FirstCaterorymap.put("一级分类",categories.getName());
+//                FirstCaterorymap.put("二级分类","");
+//                FirstCaterorymap.put("三级分类","");
+//                FirstCaterorymap.put("排序",categories.getSort());
+//                FirstCaterorymap.put("类型",categories.getCatetype());
+//                FirstCaterorymap.put("数据库主键",categories.getId());
+//                resList.add(FirstCaterorymap);
+//                List<Categories>  list1=categories.getList();
+//                for (Categories categories1:list1){
+//                    //二级分类
+//                    Map<String,Object> SecondCaterorymap=new HashMap<>();
+//                    SecondCaterorymap.put("一级分类",categories.getName());
+//                    SecondCaterorymap.put("二级分类",categories1.getName());
+//                    SecondCaterorymap.put("三级分类","");
+//                    SecondCaterorymap.put("排序",categories1.getSort());
+//                    SecondCaterorymap.put("类型",categories1.getCatetype());
+//                    SecondCaterorymap.put("数据库主键",categories1.getId());
+//                    resList.add(SecondCaterorymap);
+//
+//                    List<Categories>  list2=categories1.getList();
+//                    for (Categories categories2:list2) {
+//                        //三级分类
+//                        Map<String, Object> ThirdCaterorymap = new HashMap<>();
+//                        ThirdCaterorymap.put("一级分类", categories.getName());
+//                        ThirdCaterorymap.put("二级分类", categories1.getName());
+//                        ThirdCaterorymap.put("三级分类", categories2.getName());
+//                        ThirdCaterorymap.put("排序", categories2.getSort());
+//                        ThirdCaterorymap.put("类型", categories2.getCatetype());
+//                        ThirdCaterorymap.put("数据库主键",categories2.getId());
+//                        resList.add(ThirdCaterorymap);
+//                    }
+//                }
+//            }
+            resList=categoriesService.processProductCategoryForExport();
+            workbook = ExcelGen.common("产品分类导出", rowTitles, resList, null);
+            if (workbook != null) {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                workbook.write(baos);
+                System.out.println(baos.toByteArray().length);
+                HttpHeaders headers = new HttpHeaders();
+                headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+                headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", new String("产品分类导出.xlsx".getBytes(), "iso-8859-1")));
+                headers.add("Pragma", "no-cache");
+                headers.add("Expires", "0");
+                String contentType = "application/vnd.ms-excel";
+                return ResponseEntity.ok().headers(headers).contentType(MediaType.parseMediaType(contentType))
+                        .body(new InputStreamResource(new ByteArrayInputStream(baos.toByteArray())));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (workbook != null) {
+                try {
+                    workbook.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return null;
+    }
+
+
+
+    @RequestMapping(value="/category/inport",method= RequestMethod.POST)
+    @ApiOperation(value = "产品分类导入")
+    @ResponseBody
+    public  BasicRet addProductCategoryByExcel(@RequestParam("file") CommonsMultipartFile file,Model model,HttpServletRequest request) throws Exception {
+
+        Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
+
+//        if(!uploadPath.endsWith(".xlsx") && !uploadPath.endsWith(".xls")){
+//            return  new BasicRet(BasicRet.ERR,"请上传正确的Excel文件");
+//        }
+        if(!file.getOriginalFilename().endsWith(".xlsx") && !file.getOriginalFilename().endsWith(".xls")){
+            return  new BasicRet(BasicRet.ERR,"请上传Excel文件");
+        }
+
+//        String fileName= GenerateNo.getUUID()+file.getOriginalFilename();
+//        File dir =  new File(uploadPath);
+//        if(!dir.exists()){
+//            dir.mkdirs();
+//        }
+        String fileName= GenerateNo.getUUID()+file.getOriginalFilename();
+        File dir =  new File(uploadPath);
+        if(!dir.exists()){
+            dir.mkdirs();
+        }
+
+        File newFile= new File(dir,fileName);
+        Gson gson = new Gson();
+
+//        File newFile= new File(uploadPath);
+//        Gson gson = new Gson();
+
+//        List<ProductInfo> infoList = new ArrayList<>();
+        file.transferTo(newFile);
+        try {
+            categoriesService.executeBatchProdCateImport(newFile);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        adminLogOperator.saveAdminLog(admin,"修改分类排序",(short)3,"categories",request,adminOperateLogService);
+        return  new BasicRet(BasicRet.SUCCESS,"修改成功");
+    }
+
+
+
+
+    @RequestMapping(value="/rebuildIndex",method= RequestMethod.POST)
+    @ApiOperation(value = "新建商品索引")
+    @ResponseBody
+    public BasicRet rebuildIndex() throws InterruptedException {
+        productSearchService.rebuildIndex();
+        return new BasicRet(BasicRet.SUCCESS,"开始创建索引");
+    }
 
 }

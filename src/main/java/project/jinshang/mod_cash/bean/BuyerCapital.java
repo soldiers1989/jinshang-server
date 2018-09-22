@@ -111,6 +111,17 @@ public class BuyerCapital {
 
     private  Integer isbackcredit;
 
+    @ApiModelProperty(notes = "买家创建记录 由卖家是否已向平台开票开违约金发票 0-未开，1-已开，-1= 老数据")
+    private Short billtoserver;
+
+    public Short getBilltoserver() {
+        return billtoserver;
+    }
+
+    public void setBilltoserver(Short billtoserver) {
+        this.billtoserver = billtoserver;
+    }
+
     //*******************EXTEND***************************************************//
 
     private  String companyname;

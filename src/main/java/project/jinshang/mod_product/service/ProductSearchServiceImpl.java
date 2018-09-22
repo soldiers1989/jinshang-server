@@ -1,11 +1,9 @@
 package project.jinshang.mod_product.service;
 
 import com.hankcs.hanlp.dictionary.CustomDictionary;
-import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.utils.NlpUtils;
 import project.jinshang.common.utils.StringUtils;
@@ -15,11 +13,11 @@ import project.jinshang.mod_product.ProductInfoMapper;
 import project.jinshang.mod_product.bean.ProductAttr;
 import project.jinshang.mod_product.bean.ProductInfo;
 import project.jinshang.mod_product.bean.ProductInfoExample;
-import project.jinshang.service.ElasticSearchService;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -31,7 +29,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
     private NlpUtils nlpUtils;
 
     @Autowired
-    private  ProductAttrService productAttrService;
+    private ProductAttrService productAttrService;
 
     private ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
 
@@ -64,6 +62,10 @@ public class ProductSearchServiceImpl implements ProductSearchService {
         params.add(StringUtils.nvl(productInfo.getStand()).toLowerCase());
         params.add(StringUtils.nvl(productInfo.getMaterial()).toLowerCase());
         params.add(StringUtils.nvl(productInfo.getCardnum()).toLowerCase());
+        if(productInfo.getAttrList() != null && productInfo.getAttrList().size()>0){
+            params.add(productInfo.getAttrList().get(0).getPdno());
+        }
+
 
         params.add(StringUtils.nvl(productInfo.getProductalias().toLowerCase()));
 //        params.add(StringUtils.nvl(productInfo.getPddes().toLowerCase()));
@@ -218,6 +220,16 @@ public class ProductSearchServiceImpl implements ProductSearchService {
             });
 
         });
+    }
+
+    @Override
+    public List<Map<String, Object>> searchByStoreidAndPdno(Long storeid, String pdno) {
+        return null;
+    }
+
+    @Override
+    public void bulkUpdateIndex(List<Map<String, Object>> data) {
+        return;
     }
 
 

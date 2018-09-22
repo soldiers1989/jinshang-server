@@ -61,6 +61,21 @@ public class OtherProdService {
         return  pageInfo;
     }
 
+    /**
+     * 非紧固件商品列表,商家中心商品管理专用
+     * @param queryDto
+     * @param pageNo
+     * @param pageSize
+     * @return
+     */
+    /*public PageInfo listOtherProductForSellerCenter(OtherProductQueryDto queryDto, int pageNo, int pageSize){
+        PageHelper.startPage(pageNo,pageSize);
+        List<OtherProdDetailViewDto> list = otherProdMapper.listOtherProductForSellerCenter(queryDto);
+        PageInfo pageInfo =  new PageInfo(list);
+        return  pageInfo;
+    }*/
+
+
 
     /**
      * 卖家excel导出非紧固件商品
@@ -243,6 +258,9 @@ public class OtherProdService {
         return  data;
     }
 
-
+   /* //后台获取其他商品信息的总数
+    public Long getOtherProductInfoCount(OtherProductQueryDto queryDto){
+        return otherProdMapper.getOtherProductInfoCount(queryDto);
+    }*/
 
 }

@@ -1,14 +1,19 @@
 package project.jinshang.mod_product.service;
 
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import project.jinshang.mod_product.OrderProductMapper;
 import project.jinshang.mod_product.bean.OrderProduct;
+import project.jinshang.mod_product.bean.OrderProductBack;
+import project.jinshang.mod_product.bean.OrderProductBackExample;
 import project.jinshang.mod_product.bean.OrderProductExample;
 
+import java.io.StringReader;
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class OrderProductServices {
@@ -49,6 +54,33 @@ public class OrderProductServices {
         return  this.getByOrderid(orderid);
     }
 
+    /**
+     *
+     * @param orderid
+     * @param backstate
+     * @return
+     */
+    public List<OrderProduct> getOrderProductByOrderId(long orderid, short backstate) {
+        OrderProductExample orderProductExample = new OrderProductExample();
+        orderProductExample.createCriteria().andOrderidEqualTo(orderid).andBackstateEqualTo(backstate);
+        return orderProductMapper.selectByExample(orderProductExample);
+    }
+
+
+    public List<OrderProduct> getOrderProductByOrderId(long orderid,Short[] backstates) {
+        OrderProductExample orderProductExample = new OrderProductExample();
+        orderProductExample.createCriteria().andOrderidEqualTo(orderid).andBackstateIn(Arrays.asList(backstates));
+        return orderProductMapper.selectByExample(orderProductExample);
+    }
+
+
+
+    public int getOrderProductCountByOrderId(long orderid, short backstate){
+        OrderProductExample orderProductExample = new OrderProductExample();
+        orderProductExample.createCriteria().andOrderidEqualTo(orderid).andBackstateEqualTo(backstate);
+        return orderProductMapper.countByExample(orderProductExample);
+    }
+
     public List<OrderProduct> getOrderProductByOrderId(long orderid, Long pdid, String pdno) {
         OrderProductExample orderProductExample = new OrderProductExample();
         orderProductExample.createCriteria().andOrderidEqualTo(orderid).andPdidEqualTo(pdid).andPdnoEqualTo(pdno);
@@ -73,4 +105,58 @@ public class OrderProductServices {
     public void updateByPrimaryKeySelective(OrderProduct orderProduct){
         orderProductMapper.updateByPrimaryKeySelective(orderProduct);
     }
+
+    public List<OrderProduct> getByOrderNoAndDeliveryidIsNull(String orderno) {
+        OrderProductExample orderProductExample = new OrderProductExample();
+        orderProductExample.createCriteria().andOrdernoEqualTo(orderno).andDeliveryidIsNull();
+        return orderProductMapper.selectByExample(orderProductExample);
+    }
+
+    public List<OrderProduct> getByOrderNoAndDeliveryidIsNotNull(String orderno) {
+        OrderProductExample orderProductExample = new OrderProductExample();
+        orderProductExample.createCriteria().andOrdernoEqualTo(orderno).andDeliveryidIsNotNull();
+        return orderProductMapper.selectByExample(orderProductExample);
+    }
+
+    public OrderProduct selectById(Long orderproductid) {
+        return  orderProductMapper.selectByPrimaryKey(orderproductid);
+    }
+
+    public PageInfo selectByObject(int pageNo, int pageSize, OrderProduct orderProduct) {
+        if(pageNo != -1){
+            PageHelper.startPage(pageNo, pageSize);
+        }
+        List<Map<String,Object>> list = orderProductMapper.selectByObject(orderProduct);
+
+        PageInfo pageInfo = new PageInfo(list);
+        return pageInfo;
+    }
+
+
+    /**
+     * 对多个订单商品处于不同状态的进行合并
+     * @param list
+     * @return
+     */
+    public List<OrderProduct> margeOrderProduct(List<OrderProduct> list){
+        List<OrderProduct> resultList = new ArrayList<>();
+        Set<Long> pdIdSet = new HashSet<>();
+
+        for(OrderProduct op : list){
+            if(pdIdSet.contains(op.getPdid())){
+                for(OrderProduct resOP : resultList){
+                    if(resOP.getPdid().equals(op.getPdid())){
+                        resOP.setNum(resOP.getNum().add(op.getNum()));
+                        resOP.setActualpayment(resOP.getActualpayment().add(op.getActualpayment()));
+                    }
+                }
+            }else{
+                resultList.add(op);
+                pdIdSet.add(op.getPdid());
+            }
+        }
+
+        return resultList;
+    }
+
 }

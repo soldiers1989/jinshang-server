@@ -1,8 +1,13 @@
 package project.jinshang.mod_product.service;
 
+import com.github.pagehelper.PageHelper;
+import io.swagger.annotations.ApiModelProperty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import project.jinshang.mod_product.ShippingTemplateGroupMapper;
 import project.jinshang.mod_product.ShippingTemplatesMapper;
+import project.jinshang.mod_product.bean.ShippingTemplateGroup;
+import project.jinshang.mod_product.bean.ShippingTemplateGroupExample;
 import project.jinshang.mod_product.bean.ShippingTemplates;
 import project.jinshang.mod_product.bean.ShippingTemplatesExample;
 
@@ -17,6 +22,8 @@ public class ShippingTemplatesService {
 
     @Autowired
     private ShippingTemplatesMapper shippingTemplatesMapper;
+    @Autowired
+    private ShippingTemplateGroupMapper shippingTemplateGroupMapper;
 
 
     public long add(ShippingTemplates templates){
@@ -42,6 +49,12 @@ public class ShippingTemplatesService {
         return  list;
     }
 
+
+    public List<ShippingTemplates>  listTemplates(ShippingTemplatesExample example){
+        List<ShippingTemplates> list = shippingTemplatesMapper.selectByExample(example);
+        return list;
+    }
+
     public  void update(ShippingTemplates templates){
         shippingTemplatesMapper.updateByPrimaryKey(templates);
     }
@@ -59,6 +72,11 @@ public class ShippingTemplatesService {
 
     public ShippingTemplates getByNameAndMemberid(String name,long memberid){
         return  shippingTemplatesMapper.getByNameAndMemberid(name,memberid);
+    }
+
+
+    public ShippingTemplates getByShopgroupid(long shopgroupid){
+        return shippingTemplatesMapper.getByShopgroupid(shopgroupid);
     }
 
 }

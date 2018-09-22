@@ -15,7 +15,9 @@ public class PayLogsService {
         payLogsMapper.insertSelective(payLogs);
     }
 
-
+    public PayLogs getByOuttradeno(String outtradeno){
+        return  payLogsMapper.getByOuttradeno(outtradeno);
+    }
 
 
 }

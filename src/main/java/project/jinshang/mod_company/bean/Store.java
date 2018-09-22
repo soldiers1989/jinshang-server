@@ -19,6 +19,8 @@ public class Store {
 
     private String citysmall;
 
+    private Long shopgroupid;
+
     public Long getId() {
         return id;
     }
@@ -81,5 +83,13 @@ public class Store {
 
     public void setCitysmall(String citysmall) {
         this.citysmall = citysmall == null ? null : citysmall.trim();
+    }
+
+    public Long getShopgroupid() {
+        return shopgroupid;
+    }
+
+    public void setShopgroupid(Long shopgroupid) {
+        this.shopgroupid = shopgroupid;
     }
 }

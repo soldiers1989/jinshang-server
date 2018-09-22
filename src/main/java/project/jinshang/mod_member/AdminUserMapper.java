@@ -8,7 +8,6 @@ import org.apache.ibatis.annotations.Select;
 import project.jinshang.mod_member.bean.AdminUser;
 import project.jinshang.mod_member.bean.AdminUserExample;
 
-import javax.ws.rs.DELETE;
 
 public interface AdminUserMapper {
     int countByExample(AdminUserExample example);

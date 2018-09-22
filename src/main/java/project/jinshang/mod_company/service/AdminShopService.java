@@ -4,10 +4,14 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_company.SellerCompanyInfoMapper;
 import project.jinshang.mod_company.bean.SellerCompanyInfo;
+import project.jinshang.mod_product.OrdersMapper;
 import project.jinshang.mod_product.bean.Categories;
+import project.jinshang.mod_product.bean.Orders;
+import project.jinshang.mod_product.bean.OrdersExample;
 import project.jinshang.mod_product.service.CategoriesService;
 import project.jinshang.mod_shop.service.ShopGradeService;
 
@@ -26,6 +30,9 @@ public class AdminShopService {
 
     @Autowired
     private CategoriesService categoriesService;
+
+    @Autowired
+    private OrdersMapper ordersMapper;
 
     /**
      * 商铺信息列表
@@ -48,6 +55,22 @@ public class AdminShopService {
         map.put((String) "shopgradeid",shopgradeid);
         map.put("validate",validate);
         List<Map>list =sellerCompanyInfoMapper.selectShop(map);
+        list.stream().forEach(map1 -> {
+            BigDecimal broker=Quantity.BIG_DECIMAL_0;
+            List<Orders> ordersList=new ArrayList<>();
+            long saleid= (long) map1.get("memberid");
+            OrdersExample example=new OrdersExample();
+            OrdersExample.Criteria criteria=example.createCriteria();
+            criteria.andSaleidEqualTo(saleid);
+            criteria.andOrderstatusEqualTo(Quantity.STATE_5);
+            ordersList=ordersMapper.selectByExample(example);
+            if (ordersList.size()>0){
+                for (Orders orders:ordersList) {
+                    broker=broker.add(orders.getBrokepay());
+                }
+            }
+            map1.put("broker",broker);
+        });
         PageInfo pageInfo = new PageInfo(list);
         return pageInfo;
     }
@@ -85,7 +108,7 @@ public class AdminShopService {
         for(Map<String,Object> m : list){
             HashMap<String,Object> resMap =  new HashMap<>();
             resMap.put("商家编号",m.get("id"));
-            resMap.put("店铺名称",m.get("shopname"));
+            resMap.put("店铺名称",m.get("companyname"));
 
 //            StringBuilder prodtype =  new StringBuilder();
 //            Long[] businesscategoryArr = (Long[]) m.get("businesscategory");

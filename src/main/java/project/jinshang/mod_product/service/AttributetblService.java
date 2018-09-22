@@ -3,6 +3,7 @@ package project.jinshang.mod_product.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import project.jinshang.mod_product.AttributetblMapper;
+import project.jinshang.mod_product.bean.Attribute;
 import project.jinshang.mod_product.bean.Attributetbl;
 import project.jinshang.mod_product.bean.AttributetblExample;
 import project.jinshang.mod_product.bean.dto.AttributetblDto1;
@@ -21,6 +22,10 @@ public class AttributetblService {
 
     @Autowired
     private  AttvalueService attvalueService;
+
+    public Attributetbl selectByPrimaryKey(Long id){
+        return attributetblMapper.selectByPrimaryKey(id);
+    }
 
     public  void add(Attributetbl attributetbl){
         attributetblMapper.insert(attributetbl);

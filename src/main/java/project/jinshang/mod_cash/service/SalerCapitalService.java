@@ -25,6 +25,7 @@ import project.jinshang.mod_product.bean.PdbailLog;
 import project.jinshang.mod_product.bean.ProductInfo;
 import project.jinshang.mod_product.service.PdbailLogService;
 import project.jinshang.mod_product.service.ProductSearchService;
+import project.jinshang.mod_sellerbill.bean.SellerBillOrder;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -330,14 +331,15 @@ public class SalerCapitalService {
 
         List<Map<String,Object>> data =  new ArrayList<>();
 
-        String[] rowTitles =  new String[]{"时间","类型","订单号","订单金额","保证金","违约金","退款","状态"};
+       // String[] rowTitles =  new String[]{"时间","类型","订单号","交易号","订单金额","保证金","违约金","退款","状态"};
 
         for(SalerCapitalSellerExportExcel cap : list){
             Map<String,Object> resMap = new HashMap<>();
 
             resMap.put("时间",cap.getTradetime());
             resMap.put("类型",JinshangUtils.sellerCapitalType(cap.getCapitaltype()));
-            resMap.put("订单号",cap.getTradeno());
+            resMap.put("订单号",cap.getOrderno());
+            resMap.put("交易号",cap.getTradeno());
             resMap.put("订单金额",cap.getOrdercapital());
             resMap.put("保证金",cap.getBail());
             resMap.put("违约金",cap.getPenalty());
@@ -414,4 +416,42 @@ public class SalerCapitalService {
         productSearchService.delIndex(productInfo.getId());
     }
 
+    public PageInfo getWaitPenaltyOpenBillList(Long salerid, int pageNo, int pageSize) {
+        PageHelper.startPage(pageNo, pageSize);
+        List<Map<String, Object>> list = salerCapitalMapper.getWaitPenaltyOpenBillList(salerid);
+        PageInfo pageInfo = new PageInfo(list);
+        return pageInfo;
+
+    }
+
+    public List<SalerCapital> getSalerCapitalByIds(Long[] ids) {
+        return salerCapitalMapper.getSalerCapitalByIds(ids);
+    }
+
+
+    /**
+     * 导出商家的已添加的违约金开票列表
+     * @param sellerid
+     * @param salercapitalids
+     * @return
+     */
+     public List<Map<String,Object>> getExcelSellerBillid(Long sellerid, Long[] salercapitalids) {
+         List<Map<String, Object>> list =  salerCapitalMapper.getExcelSellerBillid(sellerid,salercapitalids);
+         List<Map<String, Object>> list2 = new ArrayList<Map<String, Object>>();
+             for (Map<String, Object> map : list) {
+                 Map<String, Object> maptemp = new HashMap<String, Object>();
+                 maptemp.put("违约订单号", map.get("orderno"));
+                 maptemp.put("完成时间", map.get("tradetime"));
+                 maptemp.put("交易号", map.get("tradeno"));
+                 maptemp.put("违约类型", (Integer) map.get("capitaltype") == 0 ? "订单金额":(Integer) map.get("capitaltype") == 1 ? "上架保证金":(Integer) map.get("capitaltype") == 2 ? "下架保证金":(Integer) map.get("capitaltype") == 3 ? "退款金额":(Integer) map.get("capitaltype") == 4 ?"充值":(Integer) map.get("capitaltype") == 5 ?"余额提现":(Integer) map.get("capitaltype") == 6 ?"买家违约金":(Integer) map.get("capitaltype") == 7 ?"卖家违约金":(Integer) map.get("capitaltype") == 8 ?"余款":(Integer) map.get("capitaltype") == 9 ?"全款":(Integer) map.get("capitaltype") == 10?"定金":"货款提现");
+                 maptemp.put("违约金额",map.get("penalty"));
+                 if(map.get("paytype") != null && !"".equals(map.get("paytype"))) {
+                     maptemp.put("付款方式", (Integer) map.get("paytype") == 0 ? "支付宝" : (Integer) map.get("paytype") == 1 ? "微信" : (Integer) map.get("paytype") == 2 ? "银行卡" : (Integer) map.get("paytype") == 3 ? "余额" : (Integer) map.get("paytype") == 4 ? "授信" : "");
+                 }else{
+                     maptemp.put("付款方式","");
+                 }
+                 list2.add(maptemp);
+             }
+         return list2;
+     }
 }

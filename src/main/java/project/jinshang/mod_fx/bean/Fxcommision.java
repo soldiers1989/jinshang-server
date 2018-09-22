@@ -1,94 +1,65 @@
 package project.jinshang.mod_fx.bean;
 
+import io.swagger.annotations.ApiModelProperty;
+
 import java.math.BigDecimal;
 import java.util.Date;
 
 /**
  * null
  * 
- * @author wcyong
+ * @author zzy
  * 
  * @date 2018-05-23
  */
 public class Fxcommision {
-    /**
-     * ID自增
-     */
+
+    @ApiModelProperty("ID自增")
     private Long id;
 
-    /**
-     * 订单ID
-     */
+    @ApiModelProperty("订单ID")
     private Long orderid;
 
-    /**
-     * 订单单号
-     */
+    @ApiModelProperty("订单单号")
     private String orderno;
 
-    /**
-     * 买家ID
-     */
+    @ApiModelProperty("买家ID")
     private Long memberid;
 
-    /**
-     * 卖家ID
-     */
+    @ApiModelProperty("卖家ID")
     private Long saleid;
 
-    /**
-     * 返佣账号ID
-     */
+    @ApiModelProperty("返佣账号ID")
     private Long cmemberid;
 
-    /**
-     * 类型1：一级返佣2：二级返佣
-     */
+    @ApiModelProperty("类型1：一级返佣2：二级返佣")
     private Long type;
 
-    /**
-     * 订单创建时间
-     */
+    @ApiModelProperty("订单创建时间")
     private Date ordercreatetime;
 
-    /**
-     * 买家确认验货时间
-     */
+    @ApiModelProperty("买家确认验货时间")
     private Date buyerinspectiontime;
 
-    /**
-     * 订单总金额
-     */
+    @ApiModelProperty("订单总金额")
     private BigDecimal totalprice;
 
-    /**
-     * 佣金总额
-     */
+    @ApiModelProperty("佣金总额")
     private BigDecimal commisionprice;
 
-    /**
-     * 进度状态 1：订单进行中2：佣金核算中97：订单关闭98：异常操作99：已完成
-     */
+    @ApiModelProperty("进度状态 1：订单进行中2：佣金核算中97：订单关闭98：异常操作99：已完成")
     private Long progressnum;
 
-    /**
-     * 佣金计算备份
-     */
+    @ApiModelProperty("佣金计算备份")
     private String productslist;
 
-    /**
-     * 其他备份
-     */
+    @ApiModelProperty("其他备份")
     private String other;
 
-    /**
-     * 添加时间
-     */
+    @ApiModelProperty("添加时间")
     private Date createtime;
 
-    /**
-     * 返佣时间
-     */
+    @ApiModelProperty("返佣时间")
     private Date commisiontime;
 
     public Long getId() {

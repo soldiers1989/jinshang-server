@@ -212,8 +212,58 @@ public class AdminCreditapplyService {
     public  PageInfo getAccountDetaiByPage(AccountDetailQuery query, int pageNo, int pageSize){
         PageHelper.startPage(pageNo,pageSize);
         List<Map> list =  creditApplyRecordMapper.getAccountDetaiByPage(query);
+        list.stream().forEach(map -> {
+            BigDecimal money= (BigDecimal) map.get("money");
+            BigDecimal amountpaid= (BigDecimal) map.get("amountpaid");
+            BigDecimal unamountpaid=money.subtract(amountpaid);
+            map.put("unamountpaid",unamountpaid);
+        });
         return  new PageInfo(list);
     }
+
+    public  List getExportAccountDetaiByPage(AccountDetailQuery query){
+        List<Map> mapList =  creditApplyRecordMapper.getAccountDetaiByPage(query);
+        mapList.stream().forEach(map -> {
+            BigDecimal money= (BigDecimal) map.get("money");
+            BigDecimal amountpaid= (BigDecimal) map.get("amountpaid");
+            BigDecimal unamountpaid=money.subtract(amountpaid);
+            map.put("unamountpaid",unamountpaid);
+        });
+        List<Map>  result=new ArrayList<>();
+        if(mapList!=null&&mapList.size()>0){
+            mapList.stream().forEach(map -> {
+                Map<String,Object> map1=new HashMap<>();
+                map1.put("结算账单号",map.get("billno"));
+                map1.put("会员ID",map.get("buyerid"));
+                map1.put("单位名称",map.get("companyname"));
+                map1.put("应缴授信金额",map.get("money"));
+                map1.put("违约金额",map.get("illegalmoney"));
+                map1.put("已缴金额",map.get("amountpaid"));
+                map1.put("待还款金额",map.get("unamountpaid"));
+                map1.put("客服人员",map.get("clerkname"));
+                map1.put("每月还款日","15");
+                String statename="";
+                int state=(int)map.get("state");
+                switch (state){
+                    case 0:
+                        statename="未缴清";
+                        break;
+                    case 1:
+                        statename="已缴清";
+                        break;
+                    case 2:
+                        statename="已逾期";
+                        break;
+                    default: ;
+                }
+                map1.put("状态",statename);
+                result.add(map1);
+            });
+        }
+        return result;
+    }
+
+
 
 
     /**
@@ -225,5 +275,13 @@ public class AdminCreditapplyService {
         return  creditApplyRecordMapper.getCountByStates(state);
     }
 
+    /**
+     * 根据id更新复核备注信息
+     * @param creditApplyRecord
+     * @return
+     */
+    public  int updateCreditApplyRecordReviewnotesByid(CreditApplyRecord creditApplyRecord){
+        return  creditApplyRecordMapper.updateByPrimaryKeySelective(creditApplyRecord);
+    }
 
 }

@@ -1,922 +1,954 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="project.jinshang.mod_product.OrderProductMapper" >
-  <resultMap id="BaseResultMap" type="project.jinshang.mod_product.bean.OrderProduct" >
-    <id column="id" property="id" jdbcType="BIGINT" />
-    <result column="orderno" property="orderno" jdbcType="VARCHAR" />
-    <result column="pdid" property="pdid" jdbcType="BIGINT" />
-    <result column="pdno" property="pdno" jdbcType="VARCHAR" />
-    <result column="pdname" property="pdname" jdbcType="VARCHAR" />
-    <result column="pddesc" property="pddesc" jdbcType="VARCHAR" />
-    <result column="price" property="price" jdbcType="NUMERIC" />
-    <result column="unit" property="unit" jdbcType="VARCHAR" />
-    <result column="num" property="num" jdbcType="NUMERIC" />
-    <result column="storename" property="storename" jdbcType="VARCHAR" />
-    <result column="storeid" property="storeid" jdbcType="BIGINT" />
-    <result column="mailornot" property="mailornot" jdbcType="BIT" />
-    <result column="backstate" property="backstate" jdbcType="SMALLINT" />
-    <result column="standard" property="standard" jdbcType="VARCHAR" />
-    <result column="mark" property="mark" jdbcType="VARCHAR" />
-    <result column="brand" property="brand" jdbcType="VARCHAR" />
-    <result column="ismailornot" property="ismailornot" jdbcType="SMALLINT" />
-    <result column="evaluatestate" property="evaluatestate" jdbcType="SMALLINT" />
-    <result column="eva1" property="eva1" jdbcType="SMALLINT" />
-    <result column="eva2" property="eva2" jdbcType="SMALLINT" />
-    <result column="eva3" property="eva3" jdbcType="SMALLINT" />
-    <result column="buyersexperience" property="buyersexperience" jdbcType="VARCHAR" />
-    <result column="freight" property="freight" jdbcType="NUMERIC" />
-    <result column="protype" property="protype" jdbcType="SMALLINT" />
-    <result column="allpay" property="allpay" jdbcType="NUMERIC" />
-    <result column="partpay" property="partpay" jdbcType="NUMERIC" />
-    <result column="yupay" property="yupay" jdbcType="NUMERIC" />
-    <result column="deliverytime" property="deliverytime" jdbcType="VARCHAR" />
-    <result column="paystate" property="paystate" jdbcType="SMALLINT" />
-    <result column="orderid" property="orderid" jdbcType="BIGINT" />
-    <result column="sellerid" property="sellerid" jdbcType="BIGINT" />
-    <result column="classify" property="classify" jdbcType="VARCHAR" />
-    <result column="material" property="material" jdbcType="VARCHAR" />
-    <result column="gradeno" property="gradeno" jdbcType="VARCHAR" />
-    <result column="actualpayment" property="actualpayment" jdbcType="NUMERIC" />
-    <result column="pic" property="pic" jdbcType="VARCHAR" />
-    <result column="pdpic" property="pdpic" jdbcType="VARCHAR" />
-    <result column="evatime" property="evatime" jdbcType="TIMESTAMP" />
-    <result column="sellername" property="sellername" jdbcType="VARCHAR" />
-    <result column="membername" property="membername" jdbcType="VARCHAR" />
-    <result column="producttype" property="producttype" jdbcType="SMALLINT" />
-    <result column="isanonymous" property="isanonymous" jdbcType="SMALLINT" />
-    <result column="attrjson" property="attrjson" jdbcType="VARCHAR" />
-    <result column="viewnum" property="viewnum" jdbcType="NUMERIC" />
-    <result column="viewunit" property="viewunit" jdbcType="VARCHAR" />
-    <result column="limitid" property="limitid" jdbcType="BIGINT" />
-    <result column="classifyid" property="classifyid" jdbcType="BIGINT" />
-    <result column="memberid" property="memberid" jdbcType="BIGINT" />
-    <result column="brokepay" property="brokepay" jdbcType="NUMERIC" />
-    <result column="singlebrokepay" property="singlebrokepay" jdbcType="NUMERIC" />
-  </resultMap>
-  <sql id="Example_Where_Clause" >
-    <where >
-      <foreach collection="oredCriteria" item="criteria" separator="or" >
-        <if test="criteria.valid" >
-          <trim prefix="(" suffix=")" prefixOverrides="and" >
-            <foreach collection="criteria.criteria" item="criterion" >
-              <choose >
-                <when test="criterion.noValue" >
-                  and ${criterion.condition}
-                </when>
-                <when test="criterion.singleValue" >
-                  and ${criterion.condition} #{criterion.value}
-                </when>
-                <when test="criterion.betweenValue" >
-                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
-                </when>
-                <when test="criterion.listValue" >
-                  and ${criterion.condition}
-                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
-                    #{listItem}
-                  </foreach>
-                </when>
-              </choose>
+
+    <resultMap id="BaseResultMap" type="project.jinshang.mod_product.bean.OrderProduct" >
+        <id column="id" property="id" jdbcType="BIGINT" />
+        <result column="orderno" property="orderno" jdbcType="VARCHAR" />
+        <result column="pdid" property="pdid" jdbcType="BIGINT" />
+        <result column="pdno" property="pdno" jdbcType="VARCHAR" />
+        <result column="pdname" property="pdname" jdbcType="VARCHAR" />
+        <result column="pddesc" property="pddesc" jdbcType="VARCHAR" />
+        <result column="price" property="price" jdbcType="NUMERIC" />
+        <result column="unit" property="unit" jdbcType="VARCHAR" />
+        <result column="num" property="num" jdbcType="NUMERIC" />
+        <result column="storename" property="storename" jdbcType="VARCHAR" />
+        <result column="storeid" property="storeid" jdbcType="BIGINT" />
+        <result column="mailornot" property="mailornot" jdbcType="BIT" />
+        <result column="backstate" property="backstate" jdbcType="SMALLINT" />
+        <result column="standard" property="standard" jdbcType="VARCHAR" />
+        <result column="mark" property="mark" jdbcType="VARCHAR" />
+        <result column="brand" property="brand" jdbcType="VARCHAR" />
+        <result column="ismailornot" property="ismailornot" jdbcType="SMALLINT" />
+        <result column="evaluatestate" property="evaluatestate" jdbcType="SMALLINT" />
+        <result column="eva1" property="eva1" jdbcType="SMALLINT" />
+        <result column="eva2" property="eva2" jdbcType="SMALLINT" />
+        <result column="eva3" property="eva3" jdbcType="SMALLINT" />
+        <result column="buyersexperience" property="buyersexperience" jdbcType="VARCHAR" />
+        <result column="freight" property="freight" jdbcType="NUMERIC" />
+        <result column="protype" property="protype" jdbcType="SMALLINT" />
+        <result column="allpay" property="allpay" jdbcType="NUMERIC" />
+        <result column="partpay" property="partpay" jdbcType="NUMERIC" />
+        <result column="yupay" property="yupay" jdbcType="NUMERIC" />
+        <result column="deliverytime" property="deliverytime" jdbcType="VARCHAR" />
+        <result column="paystate" property="paystate" jdbcType="SMALLINT" />
+        <result column="orderid" property="orderid" jdbcType="BIGINT" />
+        <result column="sellerid" property="sellerid" jdbcType="BIGINT" />
+        <result column="classify" property="classify" jdbcType="VARCHAR" />
+        <result column="material" property="material" jdbcType="VARCHAR" />
+        <result column="gradeno" property="gradeno" jdbcType="VARCHAR" />
+        <result column="actualpayment" property="actualpayment" jdbcType="NUMERIC" />
+        <result column="pic" property="pic" jdbcType="VARCHAR" />
+        <result column="pdpic" property="pdpic" jdbcType="VARCHAR" />
+        <result column="evatime" property="evatime" jdbcType="TIMESTAMP" />
+        <result column="sellername" property="sellername" jdbcType="VARCHAR" />
+        <result column="membername" property="membername" jdbcType="VARCHAR" />
+        <result column="producttype" property="producttype" jdbcType="SMALLINT" />
+        <result column="isanonymous" property="isanonymous" jdbcType="SMALLINT" />
+        <result column="attrjson" property="attrjson" jdbcType="VARCHAR" />
+        <result column="viewnum" property="viewnum" jdbcType="NUMERIC" />
+        <result column="viewunit" property="viewunit" jdbcType="VARCHAR" />
+        <result column="limitid" property="limitid" jdbcType="BIGINT" />
+        <result column="classifyid" property="classifyid" jdbcType="BIGINT" />
+        <result column="memberid" property="memberid" jdbcType="BIGINT" />
+        <result column="brokepay" property="brokepay" jdbcType="NUMERIC" />
+        <result column="singlebrokepay" property="singlebrokepay" jdbcType="NUMERIC" />
+        <result column="deliveryid" property="deliveryid" jdbcType="BIGINT" />
+    </resultMap>
+
+    <sql id="Example_Where_Clause" >
+        <where >
+            <foreach collection="oredCriteria" item="criteria" separator="or" >
+                <if test="criteria.valid" >
+                    <trim prefix="(" suffix=")" prefixOverrides="and" >
+                        <foreach collection="criteria.criteria" item="criterion" >
+                            <choose >
+                                <when test="criterion.noValue" >
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue" >
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue" >
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue" >
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
             </foreach>
-          </trim>
-        </if>
-      </foreach>
-    </where>
-  </sql>
-  <sql id="Update_By_Example_Where_Clause" >
-    <where >
-      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
-        <if test="criteria.valid" >
-          <trim prefix="(" suffix=")" prefixOverrides="and" >
-            <foreach collection="criteria.criteria" item="criterion" >
-              <choose >
-                <when test="criterion.noValue" >
-                  and ${criterion.condition}
-                </when>
-                <when test="criterion.singleValue" >
-                  and ${criterion.condition} #{criterion.value}
-                </when>
-                <when test="criterion.betweenValue" >
-                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
-                </when>
-                <when test="criterion.listValue" >
-                  and ${criterion.condition}
-                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
-                    #{listItem}
-                  </foreach>
-                </when>
-              </choose>
+        </where>
+    </sql>
+
+    <sql id="Update_By_Example_Where_Clause" >
+        <where >
+            <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+                <if test="criteria.valid" >
+                    <trim prefix="(" suffix=")" prefixOverrides="and" >
+                        <foreach collection="criteria.criteria" item="criterion" >
+                            <choose >
+                                <when test="criterion.noValue" >
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue" >
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue" >
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue" >
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
             </foreach>
-          </trim>
+        </where>
+    </sql>
+
+    <sql id="Base_Column_List" >
+        id, orderno, pdid, pdno, pdname, pddesc, price, unit, num, storename, storeid, mailornot, 
+        backstate, standard, mark, brand, ismailornot, evaluatestate, eva1, eva2, eva3, buyersexperience, 
+        freight, protype, allpay, partpay, yupay, deliverytime, paystate, orderid, sellerid, 
+        classify, material, gradeno, actualpayment, pic, pdpic, evatime, sellername, membername, 
+        producttype, isanonymous, attrjson, viewnum, viewunit, limitid, classifyid, memberid, 
+        brokepay, singlebrokepay, deliveryid
+    </sql>
+
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_product.bean.OrderProductExample" >
+        select
+        <if test="distinct" >
+            distinct
         </if>
-      </foreach>
-    </where>
-  </sql>
-  <sql id="Base_Column_List" >
-    id, orderno, pdid, pdno, pdname, pddesc, price, unit, num, storename, storeid, mailornot, 
-    backstate, standard, mark, brand, ismailornot, evaluatestate, eva1, eva2, eva3, buyersexperience, 
-    freight, protype, allpay, partpay, yupay, deliverytime, paystate, orderid, sellerid, 
-    classify, material, gradeno, actualpayment, pic, pdpic, evatime, sellername, membername, 
-    producttype, isanonymous, attrjson, viewnum, viewunit, limitid, classifyid, memberid, 
-    brokepay, singlebrokepay
-  </sql>
-  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_product.bean.OrderProductExample" >
-    select
-    <if test="distinct" >
-      distinct
-    </if>
-    'true' as QUERYID,
-    <include refid="Base_Column_List" />
-    from orderproduct
-    <if test="_parameter != null" >
-      <include refid="Example_Where_Clause" />
-    </if>
-    <if test="orderByClause != null" >
-      order by ${orderByClause}
-    </if>
-  </select>
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
-    <include refid="Base_Column_List" />
-    from orderproduct
-    where id = #{id,jdbcType=BIGINT}
-  </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
-    delete from orderproduct
-    where id = #{id,jdbcType=BIGINT}
-  </delete>
-  <delete id="deleteByExample" parameterType="project.jinshang.mod_product.bean.OrderProductExample" >
-    delete from orderproduct
-    <if test="_parameter != null" >
-      <include refid="Example_Where_Clause" />
-    </if>
-  </delete>
-  <insert id="insert" parameterType="project.jinshang.mod_product.bean.OrderProduct" >
-    insert into orderproduct (id, orderno, pdid, 
-      pdno, pdname, pddesc, 
-      price, unit, num, storename, 
-      storeid, mailornot, backstate, 
-      standard, mark, brand, 
-      ismailornot, evaluatestate, eva1, 
-      eva2, eva3, buyersexperience, 
-      freight, protype, allpay, 
-      partpay, yupay, deliverytime, 
-      paystate, orderid, sellerid, 
-      classify, material, gradeno, 
-      actualpayment, pic, pdpic, 
-      evatime, sellername, membername, 
-      producttype, isanonymous, attrjson, 
-      viewnum, viewunit, limitid, 
-      classifyid, memberid, brokepay, 
-      singlebrokepay)
-    values (#{id,jdbcType=BIGINT}, #{orderno,jdbcType=VARCHAR}, #{pdid,jdbcType=BIGINT}, 
-      #{pdno,jdbcType=VARCHAR}, #{pdname,jdbcType=VARCHAR}, #{pddesc,jdbcType=VARCHAR}, 
-      #{price,jdbcType=NUMERIC}, #{unit,jdbcType=VARCHAR}, #{num,jdbcType=NUMERIC}, #{storename,jdbcType=VARCHAR}, 
-      #{storeid,jdbcType=BIGINT}, #{mailornot,jdbcType=BIT}, #{backstate,jdbcType=SMALLINT}, 
-      #{standard,jdbcType=VARCHAR}, #{mark,jdbcType=VARCHAR}, #{brand,jdbcType=VARCHAR}, 
-      #{ismailornot,jdbcType=SMALLINT}, #{evaluatestate,jdbcType=SMALLINT}, #{eva1,jdbcType=SMALLINT}, 
-      #{eva2,jdbcType=SMALLINT}, #{eva3,jdbcType=SMALLINT}, #{buyersexperience,jdbcType=VARCHAR}, 
-      #{freight,jdbcType=NUMERIC}, #{protype,jdbcType=SMALLINT}, #{allpay,jdbcType=NUMERIC}, 
-      #{partpay,jdbcType=NUMERIC}, #{yupay,jdbcType=NUMERIC}, #{deliverytime,jdbcType=VARCHAR}, 
-      #{paystate,jdbcType=SMALLINT}, #{orderid,jdbcType=BIGINT}, #{sellerid,jdbcType=BIGINT}, 
-      #{classify,jdbcType=VARCHAR}, #{material,jdbcType=VARCHAR}, #{gradeno,jdbcType=VARCHAR}, 
-      #{actualpayment,jdbcType=NUMERIC}, #{pic,jdbcType=VARCHAR}, #{pdpic,jdbcType=VARCHAR}, 
-      #{evatime,jdbcType=TIMESTAMP}, #{sellername,jdbcType=VARCHAR}, #{membername,jdbcType=VARCHAR}, 
-      #{producttype,jdbcType=SMALLINT}, #{isanonymous,jdbcType=SMALLINT}, #{attrjson,jdbcType=VARCHAR}, 
-      #{viewnum,jdbcType=NUMERIC}, #{viewunit,jdbcType=VARCHAR}, #{limitid,jdbcType=BIGINT}, 
-      #{classifyid,jdbcType=BIGINT}, #{memberid,jdbcType=BIGINT}, #{brokepay,jdbcType=NUMERIC}, 
-      #{singlebrokepay,jdbcType=NUMERIC})
-  </insert>
-  <insert id="insertSelective" parameterType="project.jinshang.mod_product.bean.OrderProduct" useGeneratedKeys="true" keyProperty="id">
-    insert into orderproduct
-    <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        id,
-      </if>
-      <if test="orderno != null" >
-        orderno,
-      </if>
-      <if test="pdid != null" >
-        pdid,
-      </if>
-      <if test="pdno != null" >
-        pdno,
-      </if>
-      <if test="pdname != null" >
-        pdname,
-      </if>
-      <if test="pddesc != null" >
-        pddesc,
-      </if>
-      <if test="price != null" >
-        price,
-      </if>
-      <if test="unit != null" >
-        unit,
-      </if>
-      <if test="num != null" >
-        num,
-      </if>
-      <if test="storename != null" >
-        storename,
-      </if>
-      <if test="storeid != null" >
-        storeid,
-      </if>
-      <if test="mailornot != null" >
-        mailornot,
-      </if>
-      <if test="backstate != null" >
-        backstate,
-      </if>
-      <if test="standard != null" >
-        standard,
-      </if>
-      <if test="mark != null" >
-        mark,
-      </if>
-      <if test="brand != null" >
-        brand,
-      </if>
-      <if test="ismailornot != null" >
-        ismailornot,
-      </if>
-      <if test="evaluatestate != null" >
-        evaluatestate,
-      </if>
-      <if test="eva1 != null" >
-        eva1,
-      </if>
-      <if test="eva2 != null" >
-        eva2,
-      </if>
-      <if test="eva3 != null" >
-        eva3,
-      </if>
-      <if test="buyersexperience != null" >
-        buyersexperience,
-      </if>
-      <if test="freight != null" >
-        freight,
-      </if>
-      <if test="protype != null" >
-        protype,
-      </if>
-      <if test="allpay != null" >
-        allpay,
-      </if>
-      <if test="partpay != null" >
-        partpay,
-      </if>
-      <if test="yupay != null" >
-        yupay,
-      </if>
-      <if test="deliverytime != null" >
-        deliverytime,
-      </if>
-      <if test="paystate != null" >
-        paystate,
-      </if>
-      <if test="orderid != null" >
-        orderid,
-      </if>
-      <if test="sellerid != null" >
-        sellerid,
-      </if>
-      <if test="classify != null" >
-        classify,
-      </if>
-      <if test="material != null" >
-        material,
-      </if>
-      <if test="gradeno != null" >
-        gradeno,
-      </if>
-      <if test="actualpayment != null" >
-        actualpayment,
-      </if>
-      <if test="pic != null" >
-        pic,
-      </if>
-      <if test="pdpic != null" >
-        pdpic,
-      </if>
-      <if test="evatime != null" >
-        evatime,
-      </if>
-      <if test="sellername != null" >
-        sellername,
-      </if>
-      <if test="membername != null" >
-        membername,
-      </if>
-      <if test="producttype != null" >
-        producttype,
-      </if>
-      <if test="isanonymous != null" >
-        isanonymous,
-      </if>
-      <if test="attrjson != null" >
-        attrjson,
-      </if>
-      <if test="viewnum != null" >
-        viewnum,
-      </if>
-      <if test="viewunit != null" >
-        viewunit,
-      </if>
-      <if test="limitid != null" >
-        limitid,
-      </if>
-      <if test="classifyid != null" >
-        classifyid,
-      </if>
-      <if test="memberid != null" >
-        memberid,
-      </if>
-      <if test="brokepay != null" >
-        brokepay,
-      </if>
-      <if test="singlebrokepay != null" >
-        singlebrokepay,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        #{id,jdbcType=BIGINT},
-      </if>
-      <if test="orderno != null" >
-        #{orderno,jdbcType=VARCHAR},
-      </if>
-      <if test="pdid != null" >
-        #{pdid,jdbcType=BIGINT},
-      </if>
-      <if test="pdno != null" >
-        #{pdno,jdbcType=VARCHAR},
-      </if>
-      <if test="pdname != null" >
-        #{pdname,jdbcType=VARCHAR},
-      </if>
-      <if test="pddesc != null" >
-        #{pddesc,jdbcType=VARCHAR},
-      </if>
-      <if test="price != null" >
-        #{price,jdbcType=NUMERIC},
-      </if>
-      <if test="unit != null" >
-        #{unit,jdbcType=VARCHAR},
-      </if>
-      <if test="num != null" >
-        #{num,jdbcType=NUMERIC},
-      </if>
-      <if test="storename != null" >
-        #{storename,jdbcType=VARCHAR},
-      </if>
-      <if test="storeid != null" >
-        #{storeid,jdbcType=BIGINT},
-      </if>
-      <if test="mailornot != null" >
-        #{mailornot,jdbcType=BIT},
-      </if>
-      <if test="backstate != null" >
-        #{backstate,jdbcType=SMALLINT},
-      </if>
-      <if test="standard != null" >
-        #{standard,jdbcType=VARCHAR},
-      </if>
-      <if test="mark != null" >
-        #{mark,jdbcType=VARCHAR},
-      </if>
-      <if test="brand != null" >
-        #{brand,jdbcType=VARCHAR},
-      </if>
-      <if test="ismailornot != null" >
-        #{ismailornot,jdbcType=SMALLINT},
-      </if>
-      <if test="evaluatestate != null" >
-        #{evaluatestate,jdbcType=SMALLINT},
-      </if>
-      <if test="eva1 != null" >
-        #{eva1,jdbcType=SMALLINT},
-      </if>
-      <if test="eva2 != null" >
-        #{eva2,jdbcType=SMALLINT},
-      </if>
-      <if test="eva3 != null" >
-        #{eva3,jdbcType=SMALLINT},
-      </if>
-      <if test="buyersexperience != null" >
-        #{buyersexperience,jdbcType=VARCHAR},
-      </if>
-      <if test="freight != null" >
-        #{freight,jdbcType=NUMERIC},
-      </if>
-      <if test="protype != null" >
-        #{protype,jdbcType=SMALLINT},
-      </if>
-      <if test="allpay != null" >
-        #{allpay,jdbcType=NUMERIC},
-      </if>
-      <if test="partpay != null" >
-        #{partpay,jdbcType=NUMERIC},
-      </if>
-      <if test="yupay != null" >
-        #{yupay,jdbcType=NUMERIC},
-      </if>
-      <if test="deliverytime != null" >
-        #{deliverytime,jdbcType=VARCHAR},
-      </if>
-      <if test="paystate != null" >
-        #{paystate,jdbcType=SMALLINT},
-      </if>
-      <if test="orderid != null" >
-        #{orderid,jdbcType=BIGINT},
-      </if>
-      <if test="sellerid != null" >
-        #{sellerid,jdbcType=BIGINT},
-      </if>
-      <if test="classify != null" >
-        #{classify,jdbcType=VARCHAR},
-      </if>
-      <if test="material != null" >
-        #{material,jdbcType=VARCHAR},
-      </if>
-      <if test="gradeno != null" >
-        #{gradeno,jdbcType=VARCHAR},
-      </if>
-      <if test="actualpayment != null" >
-        #{actualpayment,jdbcType=NUMERIC},
-      </if>
-      <if test="pic != null" >
-        #{pic,jdbcType=VARCHAR},
-      </if>
-      <if test="pdpic != null" >
-        #{pdpic,jdbcType=VARCHAR},
-      </if>
-      <if test="evatime != null" >
-        #{evatime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="sellername != null" >
-        #{sellername,jdbcType=VARCHAR},
-      </if>
-      <if test="membername != null" >
-        #{membername,jdbcType=VARCHAR},
-      </if>
-      <if test="producttype != null" >
-        #{producttype,jdbcType=SMALLINT},
-      </if>
-      <if test="isanonymous != null" >
-        #{isanonymous,jdbcType=SMALLINT},
-      </if>
-      <if test="attrjson != null" >
-        #{attrjson,jdbcType=VARCHAR},
-      </if>
-      <if test="viewnum != null" >
-        #{viewnum,jdbcType=NUMERIC},
-      </if>
-      <if test="viewunit != null" >
-        #{viewunit,jdbcType=VARCHAR},
-      </if>
-      <if test="limitid != null" >
-        #{limitid,jdbcType=BIGINT},
-      </if>
-      <if test="classifyid != null" >
-        #{classifyid,jdbcType=BIGINT},
-      </if>
-      <if test="memberid != null" >
-        #{memberid,jdbcType=BIGINT},
-      </if>
-      <if test="brokepay != null" >
-        #{brokepay,jdbcType=NUMERIC},
-      </if>
-      <if test="singlebrokepay != null" >
-        #{singlebrokepay,jdbcType=NUMERIC},
-      </if>
-    </trim>
-  </insert>
-  <select id="countByExample" parameterType="project.jinshang.mod_product.bean.OrderProductExample" resultType="java.lang.Integer" >
-    select count(*) from orderproduct
-    <if test="_parameter != null" >
-      <include refid="Example_Where_Clause" />
-    </if>
-  </select>
-  <update id="updateByExampleSelective" parameterType="map" >
-    update orderproduct
-    <set >
-      <if test="record.id != null" >
-        id = #{record.id,jdbcType=BIGINT},
-      </if>
-      <if test="record.orderno != null" >
-        orderno = #{record.orderno,jdbcType=VARCHAR},
-      </if>
-      <if test="record.pdid != null" >
-        pdid = #{record.pdid,jdbcType=BIGINT},
-      </if>
-      <if test="record.pdno != null" >
-        pdno = #{record.pdno,jdbcType=VARCHAR},
-      </if>
-      <if test="record.pdname != null" >
-        pdname = #{record.pdname,jdbcType=VARCHAR},
-      </if>
-      <if test="record.pddesc != null" >
-        pddesc = #{record.pddesc,jdbcType=VARCHAR},
-      </if>
-      <if test="record.price != null" >
-        price = #{record.price,jdbcType=NUMERIC},
-      </if>
-      <if test="record.unit != null" >
-        unit = #{record.unit,jdbcType=VARCHAR},
-      </if>
-      <if test="record.num != null" >
-        num = #{record.num,jdbcType=NUMERIC},
-      </if>
-      <if test="record.storename != null" >
-        storename = #{record.storename,jdbcType=VARCHAR},
-      </if>
-      <if test="record.storeid != null" >
-        storeid = #{record.storeid,jdbcType=BIGINT},
-      </if>
-      <if test="record.mailornot != null" >
-        mailornot = #{record.mailornot,jdbcType=BIT},
-      </if>
-      <if test="record.backstate != null" >
-        backstate = #{record.backstate,jdbcType=SMALLINT},
-      </if>
-      <if test="record.standard != null" >
-        standard = #{record.standard,jdbcType=VARCHAR},
-      </if>
-      <if test="record.mark != null" >
-        mark = #{record.mark,jdbcType=VARCHAR},
-      </if>
-      <if test="record.brand != null" >
-        brand = #{record.brand,jdbcType=VARCHAR},
-      </if>
-      <if test="record.ismailornot != null" >
-        ismailornot = #{record.ismailornot,jdbcType=SMALLINT},
-      </if>
-      <if test="record.evaluatestate != null" >
-        evaluatestate = #{record.evaluatestate,jdbcType=SMALLINT},
-      </if>
-      <if test="record.eva1 != null" >
-        eva1 = #{record.eva1,jdbcType=SMALLINT},
-      </if>
-      <if test="record.eva2 != null" >
-        eva2 = #{record.eva2,jdbcType=SMALLINT},
-      </if>
-      <if test="record.eva3 != null" >
-        eva3 = #{record.eva3,jdbcType=SMALLINT},
-      </if>
-      <if test="record.buyersexperience != null" >
-        buyersexperience = #{record.buyersexperience,jdbcType=VARCHAR},
-      </if>
-      <if test="record.freight != null" >
-        freight = #{record.freight,jdbcType=NUMERIC},
-      </if>
-      <if test="record.protype != null" >
-        protype = #{record.protype,jdbcType=SMALLINT},
-      </if>
-      <if test="record.allpay != null" >
-        allpay = #{record.allpay,jdbcType=NUMERIC},
-      </if>
-      <if test="record.partpay != null" >
-        partpay = #{record.partpay,jdbcType=NUMERIC},
-      </if>
-      <if test="record.yupay != null" >
-        yupay = #{record.yupay,jdbcType=NUMERIC},
-      </if>
-      <if test="record.deliverytime != null" >
-        deliverytime = #{record.deliverytime,jdbcType=VARCHAR},
-      </if>
-      <if test="record.paystate != null" >
-        paystate = #{record.paystate,jdbcType=SMALLINT},
-      </if>
-      <if test="record.orderid != null" >
-        orderid = #{record.orderid,jdbcType=BIGINT},
-      </if>
-      <if test="record.sellerid != null" >
-        sellerid = #{record.sellerid,jdbcType=BIGINT},
-      </if>
-      <if test="record.classify != null" >
-        classify = #{record.classify,jdbcType=VARCHAR},
-      </if>
-      <if test="record.material != null" >
-        material = #{record.material,jdbcType=VARCHAR},
-      </if>
-      <if test="record.gradeno != null" >
-        gradeno = #{record.gradeno,jdbcType=VARCHAR},
-      </if>
-      <if test="record.actualpayment != null" >
-        actualpayment = #{record.actualpayment,jdbcType=NUMERIC},
-      </if>
-      <if test="record.pic != null" >
-        pic = #{record.pic,jdbcType=VARCHAR},
-      </if>
-      <if test="record.pdpic != null" >
-        pdpic = #{record.pdpic,jdbcType=VARCHAR},
-      </if>
-      <if test="record.evatime != null" >
-        evatime = #{record.evatime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="record.sellername != null" >
-        sellername = #{record.sellername,jdbcType=VARCHAR},
-      </if>
-      <if test="record.membername != null" >
-        membername = #{record.membername,jdbcType=VARCHAR},
-      </if>
-      <if test="record.producttype != null" >
-        producttype = #{record.producttype,jdbcType=SMALLINT},
-      </if>
-      <if test="record.isanonymous != null" >
-        isanonymous = #{record.isanonymous,jdbcType=SMALLINT},
-      </if>
-      <if test="record.attrjson != null" >
-        attrjson = #{record.attrjson,jdbcType=VARCHAR},
-      </if>
-      <if test="record.viewnum != null" >
-        viewnum = #{record.viewnum,jdbcType=NUMERIC},
-      </if>
-      <if test="record.viewunit != null" >
-        viewunit = #{record.viewunit,jdbcType=VARCHAR},
-      </if>
-      <if test="record.limitid != null" >
-        limitid = #{record.limitid,jdbcType=BIGINT},
-      </if>
-      <if test="record.classifyid != null" >
-        classifyid = #{record.classifyid,jdbcType=BIGINT},
-      </if>
-      <if test="record.memberid != null" >
-        memberid = #{record.memberid,jdbcType=BIGINT},
-      </if>
-      <if test="record.brokepay != null" >
-        brokepay = #{record.brokepay,jdbcType=NUMERIC},
-      </if>
-      <if test="record.singlebrokepay != null" >
-        singlebrokepay = #{record.singlebrokepay,jdbcType=NUMERIC},
-      </if>
-    </set>
-    <if test="_parameter != null" >
-      <include refid="Update_By_Example_Where_Clause" />
-    </if>
-  </update>
-  <update id="updateByExample" parameterType="map" >
-    update orderproduct
-    set id = #{record.id,jdbcType=BIGINT},
-      orderno = #{record.orderno,jdbcType=VARCHAR},
-      pdid = #{record.pdid,jdbcType=BIGINT},
-      pdno = #{record.pdno,jdbcType=VARCHAR},
-      pdname = #{record.pdname,jdbcType=VARCHAR},
-      pddesc = #{record.pddesc,jdbcType=VARCHAR},
-      price = #{record.price,jdbcType=NUMERIC},
-      unit = #{record.unit,jdbcType=VARCHAR},
-      num = #{record.num,jdbcType=NUMERIC},
-      storename = #{record.storename,jdbcType=VARCHAR},
-      storeid = #{record.storeid,jdbcType=BIGINT},
-      mailornot = #{record.mailornot,jdbcType=BIT},
-      backstate = #{record.backstate,jdbcType=SMALLINT},
-      standard = #{record.standard,jdbcType=VARCHAR},
-      mark = #{record.mark,jdbcType=VARCHAR},
-      brand = #{record.brand,jdbcType=VARCHAR},
-      ismailornot = #{record.ismailornot,jdbcType=SMALLINT},
-      evaluatestate = #{record.evaluatestate,jdbcType=SMALLINT},
-      eva1 = #{record.eva1,jdbcType=SMALLINT},
-      eva2 = #{record.eva2,jdbcType=SMALLINT},
-      eva3 = #{record.eva3,jdbcType=SMALLINT},
-      buyersexperience = #{record.buyersexperience,jdbcType=VARCHAR},
-      freight = #{record.freight,jdbcType=NUMERIC},
-      protype = #{record.protype,jdbcType=SMALLINT},
-      allpay = #{record.allpay,jdbcType=NUMERIC},
-      partpay = #{record.partpay,jdbcType=NUMERIC},
-      yupay = #{record.yupay,jdbcType=NUMERIC},
-      deliverytime = #{record.deliverytime,jdbcType=VARCHAR},
-      paystate = #{record.paystate,jdbcType=SMALLINT},
-      orderid = #{record.orderid,jdbcType=BIGINT},
-      sellerid = #{record.sellerid,jdbcType=BIGINT},
-      classify = #{record.classify,jdbcType=VARCHAR},
-      material = #{record.material,jdbcType=VARCHAR},
-      gradeno = #{record.gradeno,jdbcType=VARCHAR},
-      actualpayment = #{record.actualpayment,jdbcType=NUMERIC},
-      pic = #{record.pic,jdbcType=VARCHAR},
-      pdpic = #{record.pdpic,jdbcType=VARCHAR},
-      evatime = #{record.evatime,jdbcType=TIMESTAMP},
-      sellername = #{record.sellername,jdbcType=VARCHAR},
-      membername = #{record.membername,jdbcType=VARCHAR},
-      producttype = #{record.producttype,jdbcType=SMALLINT},
-      isanonymous = #{record.isanonymous,jdbcType=SMALLINT},
-      attrjson = #{record.attrjson,jdbcType=VARCHAR},
-      viewnum = #{record.viewnum,jdbcType=NUMERIC},
-      viewunit = #{record.viewunit,jdbcType=VARCHAR},
-      limitid = #{record.limitid,jdbcType=BIGINT},
-      classifyid = #{record.classifyid,jdbcType=BIGINT},
-      memberid = #{record.memberid,jdbcType=BIGINT},
-      brokepay = #{record.brokepay,jdbcType=NUMERIC},
-      singlebrokepay = #{record.singlebrokepay,jdbcType=NUMERIC}
-    <if test="_parameter != null" >
-      <include refid="Update_By_Example_Where_Clause" />
-    </if>
-  </update>
-  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_product.bean.OrderProduct" >
-    update orderproduct
-    <set >
-      <if test="orderno != null" >
-        orderno = #{orderno,jdbcType=VARCHAR},
-      </if>
-      <if test="pdid != null" >
-        pdid = #{pdid,jdbcType=BIGINT},
-      </if>
-      <if test="pdno != null" >
-        pdno = #{pdno,jdbcType=VARCHAR},
-      </if>
-      <if test="pdname != null" >
-        pdname = #{pdname,jdbcType=VARCHAR},
-      </if>
-      <if test="pddesc != null" >
-        pddesc = #{pddesc,jdbcType=VARCHAR},
-      </if>
-      <if test="price != null" >
-        price = #{price,jdbcType=NUMERIC},
-      </if>
-      <if test="unit != null" >
-        unit = #{unit,jdbcType=VARCHAR},
-      </if>
-      <if test="num != null" >
-        num = #{num,jdbcType=NUMERIC},
-      </if>
-      <if test="storename != null" >
-        storename = #{storename,jdbcType=VARCHAR},
-      </if>
-      <if test="storeid != null" >
-        storeid = #{storeid,jdbcType=BIGINT},
-      </if>
-      <if test="mailornot != null" >
-        mailornot = #{mailornot,jdbcType=BIT},
-      </if>
-      <if test="backstate != null" >
-        backstate = #{backstate,jdbcType=SMALLINT},
-      </if>
-      <if test="standard != null" >
-        standard = #{standard,jdbcType=VARCHAR},
-      </if>
-      <if test="mark != null" >
-        mark = #{mark,jdbcType=VARCHAR},
-      </if>
-      <if test="brand != null" >
-        brand = #{brand,jdbcType=VARCHAR},
-      </if>
-      <if test="ismailornot != null" >
-        ismailornot = #{ismailornot,jdbcType=SMALLINT},
-      </if>
-      <if test="evaluatestate != null" >
-        evaluatestate = #{evaluatestate,jdbcType=SMALLINT},
-      </if>
-      <if test="eva1 != null" >
-        eva1 = #{eva1,jdbcType=SMALLINT},
-      </if>
-      <if test="eva2 != null" >
-        eva2 = #{eva2,jdbcType=SMALLINT},
-      </if>
-      <if test="eva3 != null" >
-        eva3 = #{eva3,jdbcType=SMALLINT},
-      </if>
-      <if test="buyersexperience != null" >
-        buyersexperience = #{buyersexperience,jdbcType=VARCHAR},
-      </if>
-      <if test="freight != null" >
-        freight = #{freight,jdbcType=NUMERIC},
-      </if>
-      <if test="protype != null" >
-        protype = #{protype,jdbcType=SMALLINT},
-      </if>
-      <if test="allpay != null" >
-        allpay = #{allpay,jdbcType=NUMERIC},
-      </if>
-      <if test="partpay != null" >
-        partpay = #{partpay,jdbcType=NUMERIC},
-      </if>
-      <if test="yupay != null" >
-        yupay = #{yupay,jdbcType=NUMERIC},
-      </if>
-      <if test="deliverytime != null" >
-        deliverytime = #{deliverytime,jdbcType=VARCHAR},
-      </if>
-      <if test="paystate != null" >
-        paystate = #{paystate,jdbcType=SMALLINT},
-      </if>
-      <if test="orderid != null" >
-        orderid = #{orderid,jdbcType=BIGINT},
-      </if>
-      <if test="sellerid != null" >
-        sellerid = #{sellerid,jdbcType=BIGINT},
-      </if>
-      <if test="classify != null" >
-        classify = #{classify,jdbcType=VARCHAR},
-      </if>
-      <if test="material != null" >
-        material = #{material,jdbcType=VARCHAR},
-      </if>
-      <if test="gradeno != null" >
-        gradeno = #{gradeno,jdbcType=VARCHAR},
-      </if>
-      <if test="actualpayment != null" >
-        actualpayment = #{actualpayment,jdbcType=NUMERIC},
-      </if>
-      <if test="pic != null" >
-        pic = #{pic,jdbcType=VARCHAR},
-      </if>
-      <if test="pdpic != null" >
-        pdpic = #{pdpic,jdbcType=VARCHAR},
-      </if>
-      <if test="evatime != null" >
-        evatime = #{evatime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="sellername != null" >
-        sellername = #{sellername,jdbcType=VARCHAR},
-      </if>
-      <if test="membername != null" >
-        membername = #{membername,jdbcType=VARCHAR},
-      </if>
-      <if test="producttype != null" >
-        producttype = #{producttype,jdbcType=SMALLINT},
-      </if>
-      <if test="isanonymous != null" >
-        isanonymous = #{isanonymous,jdbcType=SMALLINT},
-      </if>
-      <if test="attrjson != null" >
-        attrjson = #{attrjson,jdbcType=VARCHAR},
-      </if>
-      <if test="viewnum != null" >
-        viewnum = #{viewnum,jdbcType=NUMERIC},
-      </if>
-      <if test="viewunit != null" >
-        viewunit = #{viewunit,jdbcType=VARCHAR},
-      </if>
-      <if test="limitid != null" >
-        limitid = #{limitid,jdbcType=BIGINT},
-      </if>
-      <if test="classifyid != null" >
-        classifyid = #{classifyid,jdbcType=BIGINT},
-      </if>
-      <if test="memberid != null" >
-        memberid = #{memberid,jdbcType=BIGINT},
-      </if>
-      <if test="brokepay != null" >
-        brokepay = #{brokepay,jdbcType=NUMERIC},
-      </if>
-      <if test="singlebrokepay != null" >
-        singlebrokepay = #{singlebrokepay,jdbcType=NUMERIC},
-      </if>
-    </set>
-    where id = #{id,jdbcType=BIGINT}
-  </update>
-  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_product.bean.OrderProduct" >
-    update orderproduct
-    set orderno = #{orderno,jdbcType=VARCHAR},
-      pdid = #{pdid,jdbcType=BIGINT},
-      pdno = #{pdno,jdbcType=VARCHAR},
-      pdname = #{pdname,jdbcType=VARCHAR},
-      pddesc = #{pddesc,jdbcType=VARCHAR},
-      price = #{price,jdbcType=NUMERIC},
-      unit = #{unit,jdbcType=VARCHAR},
-      num = #{num,jdbcType=NUMERIC},
-      storename = #{storename,jdbcType=VARCHAR},
-      storeid = #{storeid,jdbcType=BIGINT},
-      mailornot = #{mailornot,jdbcType=BIT},
-      backstate = #{backstate,jdbcType=SMALLINT},
-      standard = #{standard,jdbcType=VARCHAR},
-      mark = #{mark,jdbcType=VARCHAR},
-      brand = #{brand,jdbcType=VARCHAR},
-      ismailornot = #{ismailornot,jdbcType=SMALLINT},
-      evaluatestate = #{evaluatestate,jdbcType=SMALLINT},
-      eva1 = #{eva1,jdbcType=SMALLINT},
-      eva2 = #{eva2,jdbcType=SMALLINT},
-      eva3 = #{eva3,jdbcType=SMALLINT},
-      buyersexperience = #{buyersexperience,jdbcType=VARCHAR},
-      freight = #{freight,jdbcType=NUMERIC},
-      protype = #{protype,jdbcType=SMALLINT},
-      allpay = #{allpay,jdbcType=NUMERIC},
-      partpay = #{partpay,jdbcType=NUMERIC},
-      yupay = #{yupay,jdbcType=NUMERIC},
-      deliverytime = #{deliverytime,jdbcType=VARCHAR},
-      paystate = #{paystate,jdbcType=SMALLINT},
-      orderid = #{orderid,jdbcType=BIGINT},
-      sellerid = #{sellerid,jdbcType=BIGINT},
-      classify = #{classify,jdbcType=VARCHAR},
-      material = #{material,jdbcType=VARCHAR},
-      gradeno = #{gradeno,jdbcType=VARCHAR},
-      actualpayment = #{actualpayment,jdbcType=NUMERIC},
-      pic = #{pic,jdbcType=VARCHAR},
-      pdpic = #{pdpic,jdbcType=VARCHAR},
-      evatime = #{evatime,jdbcType=TIMESTAMP},
-      sellername = #{sellername,jdbcType=VARCHAR},
-      membername = #{membername,jdbcType=VARCHAR},
-      producttype = #{producttype,jdbcType=SMALLINT},
-      isanonymous = #{isanonymous,jdbcType=SMALLINT},
-      attrjson = #{attrjson,jdbcType=VARCHAR},
-      viewnum = #{viewnum,jdbcType=NUMERIC},
-      viewunit = #{viewunit,jdbcType=VARCHAR},
-      limitid = #{limitid,jdbcType=BIGINT},
-      classifyid = #{classifyid,jdbcType=BIGINT},
-      memberid = #{memberid,jdbcType=BIGINT},
-      brokepay = #{brokepay,jdbcType=NUMERIC},
-      singlebrokepay = #{singlebrokepay,jdbcType=NUMERIC}
-    where id = #{id,jdbcType=BIGINT}
-  </update>
+        'true' as QUERYID,
+        <include refid="Base_Column_List" />
+        from public.orderproduct
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+        <if test="orderByClause != null" >
+            order by ${orderByClause}
+        </if>
+    </select>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+        select 
+        <include refid="Base_Column_List" />
+        from public.orderproduct
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+        delete from public.orderproduct
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+
+    <delete id="deleteByExample" parameterType="project.jinshang.mod_product.bean.OrderProductExample" >
+        delete from public.orderproduct
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+    </delete>
+
+    <insert id="insert" parameterType="project.jinshang.mod_product.bean.OrderProduct" >
+        insert into public.orderproduct (id, orderno, pdid, 
+            pdno, pdname, pddesc, 
+            price, unit, num, 
+            storename, storeid, mailornot, 
+            backstate, standard, mark, 
+            brand, ismailornot, evaluatestate, 
+            eva1, eva2, eva3, 
+            buyersexperience, freight, protype, 
+            allpay, partpay, yupay, 
+            deliverytime, paystate, orderid, 
+            sellerid, classify, material, 
+            gradeno, actualpayment, pic, 
+            pdpic, evatime, sellername, 
+            membername, producttype, isanonymous, 
+            attrjson, viewnum, viewunit, 
+            limitid, classifyid, memberid, 
+            brokepay, singlebrokepay, deliveryid
+            )
+        values (#{id,jdbcType=BIGINT}, #{orderno,jdbcType=VARCHAR}, #{pdid,jdbcType=BIGINT}, 
+            #{pdno,jdbcType=VARCHAR}, #{pdname,jdbcType=VARCHAR}, #{pddesc,jdbcType=VARCHAR}, 
+            #{price,jdbcType=NUMERIC}, #{unit,jdbcType=VARCHAR}, #{num,jdbcType=NUMERIC}, 
+            #{storename,jdbcType=VARCHAR}, #{storeid,jdbcType=BIGINT}, #{mailornot,jdbcType=BIT}, 
+            #{backstate,jdbcType=SMALLINT}, #{standard,jdbcType=VARCHAR}, #{mark,jdbcType=VARCHAR}, 
+            #{brand,jdbcType=VARCHAR}, #{ismailornot,jdbcType=SMALLINT}, #{evaluatestate,jdbcType=SMALLINT}, 
+            #{eva1,jdbcType=SMALLINT}, #{eva2,jdbcType=SMALLINT}, #{eva3,jdbcType=SMALLINT}, 
+            #{buyersexperience,jdbcType=VARCHAR}, #{freight,jdbcType=NUMERIC}, #{protype,jdbcType=SMALLINT}, 
+            #{allpay,jdbcType=NUMERIC}, #{partpay,jdbcType=NUMERIC}, #{yupay,jdbcType=NUMERIC}, 
+            #{deliverytime,jdbcType=VARCHAR}, #{paystate,jdbcType=SMALLINT}, #{orderid,jdbcType=BIGINT}, 
+            #{sellerid,jdbcType=BIGINT}, #{classify,jdbcType=VARCHAR}, #{material,jdbcType=VARCHAR}, 
+            #{gradeno,jdbcType=VARCHAR}, #{actualpayment,jdbcType=NUMERIC}, #{pic,jdbcType=VARCHAR}, 
+            #{pdpic,jdbcType=VARCHAR}, #{evatime,jdbcType=TIMESTAMP}, #{sellername,jdbcType=VARCHAR}, 
+            #{membername,jdbcType=VARCHAR}, #{producttype,jdbcType=SMALLINT}, #{isanonymous,jdbcType=SMALLINT}, 
+            #{attrjson,jdbcType=VARCHAR}, #{viewnum,jdbcType=NUMERIC}, #{viewunit,jdbcType=VARCHAR}, 
+            #{limitid,jdbcType=BIGINT}, #{classifyid,jdbcType=BIGINT}, #{memberid,jdbcType=BIGINT}, 
+            #{brokepay,jdbcType=NUMERIC}, #{singlebrokepay,jdbcType=NUMERIC}, #{deliveryid,jdbcType=BIGINT}
+            )
+    </insert>
+
+    <insert id="insertSelective" parameterType="project.jinshang.mod_product.bean.OrderProduct"  useGeneratedKeys="true" keyProperty="id">
+        insert into public.orderproduct
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="id != null" >
+                id,
+            </if>
+            <if test="orderno != null" >
+                orderno,
+            </if>
+            <if test="pdid != null" >
+                pdid,
+            </if>
+            <if test="pdno != null" >
+                pdno,
+            </if>
+            <if test="pdname != null" >
+                pdname,
+            </if>
+            <if test="pddesc != null" >
+                pddesc,
+            </if>
+            <if test="price != null" >
+                price,
+            </if>
+            <if test="unit != null" >
+                unit,
+            </if>
+            <if test="num != null" >
+                num,
+            </if>
+            <if test="storename != null" >
+                storename,
+            </if>
+            <if test="storeid != null" >
+                storeid,
+            </if>
+            <if test="mailornot != null" >
+                mailornot,
+            </if>
+            <if test="backstate != null" >
+                backstate,
+            </if>
+            <if test="standard != null" >
+                standard,
+            </if>
+            <if test="mark != null" >
+                mark,
+            </if>
+            <if test="brand != null" >
+                brand,
+            </if>
+            <if test="ismailornot != null" >
+                ismailornot,
+            </if>
+            <if test="evaluatestate != null" >
+                evaluatestate,
+            </if>
+            <if test="eva1 != null" >
+                eva1,
+            </if>
+            <if test="eva2 != null" >
+                eva2,
+            </if>
+            <if test="eva3 != null" >
+                eva3,
+            </if>
+            <if test="buyersexperience != null" >
+                buyersexperience,
+            </if>
+            <if test="freight != null" >
+                freight,
+            </if>
+            <if test="protype != null" >
+                protype,
+            </if>
+            <if test="allpay != null" >
+                allpay,
+            </if>
+            <if test="partpay != null" >
+                partpay,
+            </if>
+            <if test="yupay != null" >
+                yupay,
+            </if>
+            <if test="deliverytime != null" >
+                deliverytime,
+            </if>
+            <if test="paystate != null" >
+                paystate,
+            </if>
+            <if test="orderid != null" >
+                orderid,
+            </if>
+            <if test="sellerid != null" >
+                sellerid,
+            </if>
+            <if test="classify != null" >
+                classify,
+            </if>
+            <if test="material != null" >
+                material,
+            </if>
+            <if test="gradeno != null" >
+                gradeno,
+            </if>
+            <if test="actualpayment != null" >
+                actualpayment,
+            </if>
+            <if test="pic != null" >
+                pic,
+            </if>
+            <if test="pdpic != null" >
+                pdpic,
+            </if>
+            <if test="evatime != null" >
+                evatime,
+            </if>
+            <if test="sellername != null" >
+                sellername,
+            </if>
+            <if test="membername != null" >
+                membername,
+            </if>
+            <if test="producttype != null" >
+                producttype,
+            </if>
+            <if test="isanonymous != null" >
+                isanonymous,
+            </if>
+            <if test="attrjson != null" >
+                attrjson,
+            </if>
+            <if test="viewnum != null" >
+                viewnum,
+            </if>
+            <if test="viewunit != null" >
+                viewunit,
+            </if>
+            <if test="limitid != null" >
+                limitid,
+            </if>
+            <if test="classifyid != null" >
+                classifyid,
+            </if>
+            <if test="memberid != null" >
+                memberid,
+            </if>
+            <if test="brokepay != null" >
+                brokepay,
+            </if>
+            <if test="singlebrokepay != null" >
+                singlebrokepay,
+            </if>
+            <if test="deliveryid != null" >
+                deliveryid,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="id != null" >
+                #{id,jdbcType=BIGINT},
+            </if>
+            <if test="orderno != null" >
+                #{orderno,jdbcType=VARCHAR},
+            </if>
+            <if test="pdid != null" >
+                #{pdid,jdbcType=BIGINT},
+            </if>
+            <if test="pdno != null" >
+                #{pdno,jdbcType=VARCHAR},
+            </if>
+            <if test="pdname != null" >
+                #{pdname,jdbcType=VARCHAR},
+            </if>
+            <if test="pddesc != null" >
+                #{pddesc,jdbcType=VARCHAR},
+            </if>
+            <if test="price != null" >
+                #{price,jdbcType=NUMERIC},
+            </if>
+            <if test="unit != null" >
+                #{unit,jdbcType=VARCHAR},
+            </if>
+            <if test="num != null" >
+                #{num,jdbcType=NUMERIC},
+            </if>
+            <if test="storename != null" >
+                #{storename,jdbcType=VARCHAR},
+            </if>
+            <if test="storeid != null" >
+                #{storeid,jdbcType=BIGINT},
+            </if>
+            <if test="mailornot != null" >
+                #{mailornot,jdbcType=BIT},
+            </if>
+            <if test="backstate != null" >
+                #{backstate,jdbcType=SMALLINT},
+            </if>
+            <if test="standard != null" >
+                #{standard,jdbcType=VARCHAR},
+            </if>
+            <if test="mark != null" >
+                #{mark,jdbcType=VARCHAR},
+            </if>
+            <if test="brand != null" >
+                #{brand,jdbcType=VARCHAR},
+            </if>
+            <if test="ismailornot != null" >
+                #{ismailornot,jdbcType=SMALLINT},
+            </if>
+            <if test="evaluatestate != null" >
+                #{evaluatestate,jdbcType=SMALLINT},
+            </if>
+            <if test="eva1 != null" >
+                #{eva1,jdbcType=SMALLINT},
+            </if>
+            <if test="eva2 != null" >
+                #{eva2,jdbcType=SMALLINT},
+            </if>
+            <if test="eva3 != null" >
+                #{eva3,jdbcType=SMALLINT},
+            </if>
+            <if test="buyersexperience != null" >
+                #{buyersexperience,jdbcType=VARCHAR},
+            </if>
+            <if test="freight != null" >
+                #{freight,jdbcType=NUMERIC},
+            </if>
+            <if test="protype != null" >
+                #{protype,jdbcType=SMALLINT},
+            </if>
+            <if test="allpay != null" >
+                #{allpay,jdbcType=NUMERIC},
+            </if>
+            <if test="partpay != null" >
+                #{partpay,jdbcType=NUMERIC},
+            </if>
+            <if test="yupay != null" >
+                #{yupay,jdbcType=NUMERIC},
+            </if>
+            <if test="deliverytime != null" >
+                #{deliverytime,jdbcType=VARCHAR},
+            </if>
+            <if test="paystate != null" >
+                #{paystate,jdbcType=SMALLINT},
+            </if>
+            <if test="orderid != null" >
+                #{orderid,jdbcType=BIGINT},
+            </if>
+            <if test="sellerid != null" >
+                #{sellerid,jdbcType=BIGINT},
+            </if>
+            <if test="classify != null" >
+                #{classify,jdbcType=VARCHAR},
+            </if>
+            <if test="material != null" >
+                #{material,jdbcType=VARCHAR},
+            </if>
+            <if test="gradeno != null" >
+                #{gradeno,jdbcType=VARCHAR},
+            </if>
+            <if test="actualpayment != null" >
+                #{actualpayment,jdbcType=NUMERIC},
+            </if>
+            <if test="pic != null" >
+                #{pic,jdbcType=VARCHAR},
+            </if>
+            <if test="pdpic != null" >
+                #{pdpic,jdbcType=VARCHAR},
+            </if>
+            <if test="evatime != null" >
+                #{evatime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="sellername != null" >
+                #{sellername,jdbcType=VARCHAR},
+            </if>
+            <if test="membername != null" >
+                #{membername,jdbcType=VARCHAR},
+            </if>
+            <if test="producttype != null" >
+                #{producttype,jdbcType=SMALLINT},
+            </if>
+            <if test="isanonymous != null" >
+                #{isanonymous,jdbcType=SMALLINT},
+            </if>
+            <if test="attrjson != null" >
+                #{attrjson,jdbcType=VARCHAR},
+            </if>
+            <if test="viewnum != null" >
+                #{viewnum,jdbcType=NUMERIC},
+            </if>
+            <if test="viewunit != null" >
+                #{viewunit,jdbcType=VARCHAR},
+            </if>
+            <if test="limitid != null" >
+                #{limitid,jdbcType=BIGINT},
+            </if>
+            <if test="classifyid != null" >
+                #{classifyid,jdbcType=BIGINT},
+            </if>
+            <if test="memberid != null" >
+                #{memberid,jdbcType=BIGINT},
+            </if>
+            <if test="brokepay != null" >
+                #{brokepay,jdbcType=NUMERIC},
+            </if>
+            <if test="singlebrokepay != null" >
+                #{singlebrokepay,jdbcType=NUMERIC},
+            </if>
+            <if test="deliveryid != null" >
+                #{deliveryid,jdbcType=BIGINT},
+            </if>
+        </trim>
+    </insert>
+
+    <select id="countByExample" parameterType="project.jinshang.mod_product.bean.OrderProductExample" resultType="java.lang.Integer" >
+        select count(*) from public.orderproduct
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+    </select>
+
+    <update id="updateByExampleSelective" parameterType="map" >
+        update public.orderproduct
+        <set >
+            <if test="record.id != null" >
+                id = #{record.id,jdbcType=BIGINT},
+            </if>
+            <if test="record.orderno != null" >
+                orderno = #{record.orderno,jdbcType=VARCHAR},
+            </if>
+            <if test="record.pdid != null" >
+                pdid = #{record.pdid,jdbcType=BIGINT},
+            </if>
+            <if test="record.pdno != null" >
+                pdno = #{record.pdno,jdbcType=VARCHAR},
+            </if>
+            <if test="record.pdname != null" >
+                pdname = #{record.pdname,jdbcType=VARCHAR},
+            </if>
+            <if test="record.pddesc != null" >
+                pddesc = #{record.pddesc,jdbcType=VARCHAR},
+            </if>
+            <if test="record.price != null" >
+                price = #{record.price,jdbcType=NUMERIC},
+            </if>
+            <if test="record.unit != null" >
+                unit = #{record.unit,jdbcType=VARCHAR},
+            </if>
+            <if test="record.num != null" >
+                num = #{record.num,jdbcType=NUMERIC},
+            </if>
+            <if test="record.storename != null" >
+                storename = #{record.storename,jdbcType=VARCHAR},
+            </if>
+            <if test="record.storeid != null" >
+                storeid = #{record.storeid,jdbcType=BIGINT},
+            </if>
+            <if test="record.mailornot != null" >
+                mailornot = #{record.mailornot,jdbcType=BIT},
+            </if>
+            <if test="record.backstate != null" >
+                backstate = #{record.backstate,jdbcType=SMALLINT},
+            </if>
+            <if test="record.standard != null" >
+                standard = #{record.standard,jdbcType=VARCHAR},
+            </if>
+            <if test="record.mark != null" >
+                mark = #{record.mark,jdbcType=VARCHAR},
+            </if>
+            <if test="record.brand != null" >
+                brand = #{record.brand,jdbcType=VARCHAR},
+            </if>
+            <if test="record.ismailornot != null" >
+                ismailornot = #{record.ismailornot,jdbcType=SMALLINT},
+            </if>
+            <if test="record.evaluatestate != null" >
+                evaluatestate = #{record.evaluatestate,jdbcType=SMALLINT},
+            </if>
+            <if test="record.eva1 != null" >
+                eva1 = #{record.eva1,jdbcType=SMALLINT},
+            </if>
+            <if test="record.eva2 != null" >
+                eva2 = #{record.eva2,jdbcType=SMALLINT},
+            </if>
+            <if test="record.eva3 != null" >
+                eva3 = #{record.eva3,jdbcType=SMALLINT},
+            </if>
+            <if test="record.buyersexperience != null" >
+                buyersexperience = #{record.buyersexperience,jdbcType=VARCHAR},
+            </if>
+            <if test="record.freight != null" >
+                freight = #{record.freight,jdbcType=NUMERIC},
+            </if>
+            <if test="record.protype != null" >
+                protype = #{record.protype,jdbcType=SMALLINT},
+            </if>
+            <if test="record.allpay != null" >
+                allpay = #{record.allpay,jdbcType=NUMERIC},
+            </if>
+            <if test="record.partpay != null" >
+                partpay = #{record.partpay,jdbcType=NUMERIC},
+            </if>
+            <if test="record.yupay != null" >
+                yupay = #{record.yupay,jdbcType=NUMERIC},
+            </if>
+            <if test="record.deliverytime != null" >
+                deliverytime = #{record.deliverytime,jdbcType=VARCHAR},
+            </if>
+            <if test="record.paystate != null" >
+                paystate = #{record.paystate,jdbcType=SMALLINT},
+            </if>
+            <if test="record.orderid != null" >
+                orderid = #{record.orderid,jdbcType=BIGINT},
+            </if>
+            <if test="record.sellerid != null" >
+                sellerid = #{record.sellerid,jdbcType=BIGINT},
+            </if>
+            <if test="record.classify != null" >
+                classify = #{record.classify,jdbcType=VARCHAR},
+            </if>
+            <if test="record.material != null" >
+                material = #{record.material,jdbcType=VARCHAR},
+            </if>
+            <if test="record.gradeno != null" >
+                gradeno = #{record.gradeno,jdbcType=VARCHAR},
+            </if>
+            <if test="record.actualpayment != null" >
+                actualpayment = #{record.actualpayment,jdbcType=NUMERIC},
+            </if>
+            <if test="record.pic != null" >
+                pic = #{record.pic,jdbcType=VARCHAR},
+            </if>
+            <if test="record.pdpic != null" >
+                pdpic = #{record.pdpic,jdbcType=VARCHAR},
+            </if>
+            <if test="record.evatime != null" >
+                evatime = #{record.evatime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.sellername != null" >
+                sellername = #{record.sellername,jdbcType=VARCHAR},
+            </if>
+            <if test="record.membername != null" >
+                membername = #{record.membername,jdbcType=VARCHAR},
+            </if>
+            <if test="record.producttype != null" >
+                producttype = #{record.producttype,jdbcType=SMALLINT},
+            </if>
+            <if test="record.isanonymous != null" >
+                isanonymous = #{record.isanonymous,jdbcType=SMALLINT},
+            </if>
+            <if test="record.attrjson != null" >
+                attrjson = #{record.attrjson,jdbcType=VARCHAR},
+            </if>
+            <if test="record.viewnum != null" >
+                viewnum = #{record.viewnum,jdbcType=NUMERIC},
+            </if>
+            <if test="record.viewunit != null" >
+                viewunit = #{record.viewunit,jdbcType=VARCHAR},
+            </if>
+            <if test="record.limitid != null" >
+                limitid = #{record.limitid,jdbcType=BIGINT},
+            </if>
+            <if test="record.classifyid != null" >
+                classifyid = #{record.classifyid,jdbcType=BIGINT},
+            </if>
+            <if test="record.memberid != null" >
+                memberid = #{record.memberid,jdbcType=BIGINT},
+            </if>
+            <if test="record.brokepay != null" >
+                brokepay = #{record.brokepay,jdbcType=NUMERIC},
+            </if>
+            <if test="record.singlebrokepay != null" >
+                singlebrokepay = #{record.singlebrokepay,jdbcType=NUMERIC},
+            </if>
+            <if test="record.deliveryid != null" >
+                deliveryid = #{record.deliveryid,jdbcType=BIGINT},
+            </if>
+        </set>
+        <if test="_parameter != null" >
+            <include refid="Update_By_Example_Where_Clause" />
+        </if>
+    </update>
+
+    <update id="updateByExample" parameterType="map" >
+        update public.orderproduct
+        set id = #{record.id,jdbcType=BIGINT},
+            orderno = #{record.orderno,jdbcType=VARCHAR},
+            pdid = #{record.pdid,jdbcType=BIGINT},
+            pdno = #{record.pdno,jdbcType=VARCHAR},
+            pdname = #{record.pdname,jdbcType=VARCHAR},
+            pddesc = #{record.pddesc,jdbcType=VARCHAR},
+            price = #{record.price,jdbcType=NUMERIC},
+            unit = #{record.unit,jdbcType=VARCHAR},
+            num = #{record.num,jdbcType=NUMERIC},
+            storename = #{record.storename,jdbcType=VARCHAR},
+            storeid = #{record.storeid,jdbcType=BIGINT},
+            mailornot = #{record.mailornot,jdbcType=BIT},
+            backstate = #{record.backstate,jdbcType=SMALLINT},
+            standard = #{record.standard,jdbcType=VARCHAR},
+            mark = #{record.mark,jdbcType=VARCHAR},
+            brand = #{record.brand,jdbcType=VARCHAR},
+            ismailornot = #{record.ismailornot,jdbcType=SMALLINT},
+            evaluatestate = #{record.evaluatestate,jdbcType=SMALLINT},
+            eva1 = #{record.eva1,jdbcType=SMALLINT},
+            eva2 = #{record.eva2,jdbcType=SMALLINT},
+            eva3 = #{record.eva3,jdbcType=SMALLINT},
+            buyersexperience = #{record.buyersexperience,jdbcType=VARCHAR},
+            freight = #{record.freight,jdbcType=NUMERIC},
+            protype = #{record.protype,jdbcType=SMALLINT},
+            allpay = #{record.allpay,jdbcType=NUMERIC},
+            partpay = #{record.partpay,jdbcType=NUMERIC},
+            yupay = #{record.yupay,jdbcType=NUMERIC},
+            deliverytime = #{record.deliverytime,jdbcType=VARCHAR},
+            paystate = #{record.paystate,jdbcType=SMALLINT},
+            orderid = #{record.orderid,jdbcType=BIGINT},
+            sellerid = #{record.sellerid,jdbcType=BIGINT},
+            classify = #{record.classify,jdbcType=VARCHAR},
+            material = #{record.material,jdbcType=VARCHAR},
+            gradeno = #{record.gradeno,jdbcType=VARCHAR},
+            actualpayment = #{record.actualpayment,jdbcType=NUMERIC},
+            pic = #{record.pic,jdbcType=VARCHAR},
+            pdpic = #{record.pdpic,jdbcType=VARCHAR},
+            evatime = #{record.evatime,jdbcType=TIMESTAMP},
+            sellername = #{record.sellername,jdbcType=VARCHAR},
+            membername = #{record.membername,jdbcType=VARCHAR},
+            producttype = #{record.producttype,jdbcType=SMALLINT},
+            isanonymous = #{record.isanonymous,jdbcType=SMALLINT},
+            attrjson = #{record.attrjson,jdbcType=VARCHAR},
+            viewnum = #{record.viewnum,jdbcType=NUMERIC},
+            viewunit = #{record.viewunit,jdbcType=VARCHAR},
+            limitid = #{record.limitid,jdbcType=BIGINT},
+            classifyid = #{record.classifyid,jdbcType=BIGINT},
+            memberid = #{record.memberid,jdbcType=BIGINT},
+            brokepay = #{record.brokepay,jdbcType=NUMERIC},
+            singlebrokepay = #{record.singlebrokepay,jdbcType=NUMERIC},
+            deliveryid = #{record.deliveryid,jdbcType=BIGINT}
+        <if test="_parameter != null" >
+            <include refid="Update_By_Example_Where_Clause" />
+        </if>
+    </update>
+
+    <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_product.bean.OrderProduct" >
+        update public.orderproduct
+        <set >
+            <if test="orderno != null" >
+                orderno = #{orderno,jdbcType=VARCHAR},
+            </if>
+            <if test="pdid != null" >
+                pdid = #{pdid,jdbcType=BIGINT},
+            </if>
+            <if test="pdno != null" >
+                pdno = #{pdno,jdbcType=VARCHAR},
+            </if>
+            <if test="pdname != null" >
+                pdname = #{pdname,jdbcType=VARCHAR},
+            </if>
+            <if test="pddesc != null" >
+                pddesc = #{pddesc,jdbcType=VARCHAR},
+            </if>
+            <if test="price != null" >
+                price = #{price,jdbcType=NUMERIC},
+            </if>
+            <if test="unit != null" >
+                unit = #{unit,jdbcType=VARCHAR},
+            </if>
+            <if test="num != null" >
+                num = #{num,jdbcType=NUMERIC},
+            </if>
+            <if test="storename != null" >
+                storename = #{storename,jdbcType=VARCHAR},
+            </if>
+            <if test="storeid != null" >
+                storeid = #{storeid,jdbcType=BIGINT},
+            </if>
+            <if test="mailornot != null" >
+                mailornot = #{mailornot,jdbcType=BIT},
+            </if>
+            <if test="backstate != null" >
+                backstate = #{backstate,jdbcType=SMALLINT},
+            </if>
+            <if test="standard != null" >
+                standard = #{standard,jdbcType=VARCHAR},
+            </if>
+            <if test="mark != null" >
+                mark = #{mark,jdbcType=VARCHAR},
+            </if>
+            <if test="brand != null" >
+                brand = #{brand,jdbcType=VARCHAR},
+            </if>
+            <if test="ismailornot != null" >
+                ismailornot = #{ismailornot,jdbcType=SMALLINT},
+            </if>
+            <if test="evaluatestate != null" >
+                evaluatestate = #{evaluatestate,jdbcType=SMALLINT},
+            </if>
+            <if test="eva1 != null" >
+                eva1 = #{eva1,jdbcType=SMALLINT},
+            </if>
+            <if test="eva2 != null" >
+                eva2 = #{eva2,jdbcType=SMALLINT},
+            </if>
+            <if test="eva3 != null" >
+                eva3 = #{eva3,jdbcType=SMALLINT},
+            </if>
+            <if test="buyersexperience != null" >
+                buyersexperience = #{buyersexperience,jdbcType=VARCHAR},
+            </if>
+            <if test="freight != null" >
+                freight = #{freight,jdbcType=NUMERIC},
+            </if>
+            <if test="protype != null" >
+                protype = #{protype,jdbcType=SMALLINT},
+            </if>
+            <if test="allpay != null" >
+                allpay = #{allpay,jdbcType=NUMERIC},
+            </if>
+            <if test="partpay != null" >
+                partpay = #{partpay,jdbcType=NUMERIC},
+            </if>
+            <if test="yupay != null" >
+                yupay = #{yupay,jdbcType=NUMERIC},
+            </if>
+            <if test="deliverytime != null" >
+                deliverytime = #{deliverytime,jdbcType=VARCHAR},
+            </if>
+            <if test="paystate != null" >
+                paystate = #{paystate,jdbcType=SMALLINT},
+            </if>
+            <if test="orderid != null" >
+                orderid = #{orderid,jdbcType=BIGINT},
+            </if>
+            <if test="sellerid != null" >
+                sellerid = #{sellerid,jdbcType=BIGINT},
+            </if>
+            <if test="classify != null" >
+                classify = #{classify,jdbcType=VARCHAR},
+            </if>
+            <if test="material != null" >
+                material = #{material,jdbcType=VARCHAR},
+            </if>
+            <if test="gradeno != null" >
+                gradeno = #{gradeno,jdbcType=VARCHAR},
+            </if>
+            <if test="actualpayment != null" >
+                actualpayment = #{actualpayment,jdbcType=NUMERIC},
+            </if>
+            <if test="pic != null" >
+                pic = #{pic,jdbcType=VARCHAR},
+            </if>
+            <if test="pdpic != null" >
+                pdpic = #{pdpic,jdbcType=VARCHAR},
+            </if>
+            <if test="evatime != null" >
+                evatime = #{evatime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="sellername != null" >
+                sellername = #{sellername,jdbcType=VARCHAR},
+            </if>
+            <if test="membername != null" >
+                membername = #{membername,jdbcType=VARCHAR},
+            </if>
+            <if test="producttype != null" >
+                producttype = #{producttype,jdbcType=SMALLINT},
+            </if>
+            <if test="isanonymous != null" >
+                isanonymous = #{isanonymous,jdbcType=SMALLINT},
+            </if>
+            <if test="attrjson != null" >
+                attrjson = #{attrjson,jdbcType=VARCHAR},
+            </if>
+            <if test="viewnum != null" >
+                viewnum = #{viewnum,jdbcType=NUMERIC},
+            </if>
+            <if test="viewunit != null" >
+                viewunit = #{viewunit,jdbcType=VARCHAR},
+            </if>
+            <if test="limitid != null" >
+                limitid = #{limitid,jdbcType=BIGINT},
+            </if>
+            <if test="classifyid != null" >
+                classifyid = #{classifyid,jdbcType=BIGINT},
+            </if>
+            <if test="memberid != null" >
+                memberid = #{memberid,jdbcType=BIGINT},
+            </if>
+            <if test="brokepay != null" >
+                brokepay = #{brokepay,jdbcType=NUMERIC},
+            </if>
+            <if test="singlebrokepay != null" >
+                singlebrokepay = #{singlebrokepay,jdbcType=NUMERIC},
+            </if>
+            <if test="deliveryid != null" >
+                deliveryid = #{deliveryid,jdbcType=BIGINT},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_product.bean.OrderProduct" >
+        update public.orderproduct
+        set orderno = #{orderno,jdbcType=VARCHAR},
+            pdid = #{pdid,jdbcType=BIGINT},
+            pdno = #{pdno,jdbcType=VARCHAR},
+            pdname = #{pdname,jdbcType=VARCHAR},
+            pddesc = #{pddesc,jdbcType=VARCHAR},
+            price = #{price,jdbcType=NUMERIC},
+            unit = #{unit,jdbcType=VARCHAR},
+            num = #{num,jdbcType=NUMERIC},
+            storename = #{storename,jdbcType=VARCHAR},
+            storeid = #{storeid,jdbcType=BIGINT},
+            mailornot = #{mailornot,jdbcType=BIT},
+            backstate = #{backstate,jdbcType=SMALLINT},
+            standard = #{standard,jdbcType=VARCHAR},
+            mark = #{mark,jdbcType=VARCHAR},
+            brand = #{brand,jdbcType=VARCHAR},
+            ismailornot = #{ismailornot,jdbcType=SMALLINT},
+            evaluatestate = #{evaluatestate,jdbcType=SMALLINT},
+            eva1 = #{eva1,jdbcType=SMALLINT},
+            eva2 = #{eva2,jdbcType=SMALLINT},
+            eva3 = #{eva3,jdbcType=SMALLINT},
+            buyersexperience = #{buyersexperience,jdbcType=VARCHAR},
+            freight = #{freight,jdbcType=NUMERIC},
+            protype = #{protype,jdbcType=SMALLINT},
+            allpay = #{allpay,jdbcType=NUMERIC},
+            partpay = #{partpay,jdbcType=NUMERIC},
+            yupay = #{yupay,jdbcType=NUMERIC},
+            deliverytime = #{deliverytime,jdbcType=VARCHAR},
+            paystate = #{paystate,jdbcType=SMALLINT},
+            orderid = #{orderid,jdbcType=BIGINT},
+            sellerid = #{sellerid,jdbcType=BIGINT},
+            classify = #{classify,jdbcType=VARCHAR},
+            material = #{material,jdbcType=VARCHAR},
+            gradeno = #{gradeno,jdbcType=VARCHAR},
+            actualpayment = #{actualpayment,jdbcType=NUMERIC},
+            pic = #{pic,jdbcType=VARCHAR},
+            pdpic = #{pdpic,jdbcType=VARCHAR},
+            evatime = #{evatime,jdbcType=TIMESTAMP},
+            sellername = #{sellername,jdbcType=VARCHAR},
+            membername = #{membername,jdbcType=VARCHAR},
+            producttype = #{producttype,jdbcType=SMALLINT},
+            isanonymous = #{isanonymous,jdbcType=SMALLINT},
+            attrjson = #{attrjson,jdbcType=VARCHAR},
+            viewnum = #{viewnum,jdbcType=NUMERIC},
+            viewunit = #{viewunit,jdbcType=VARCHAR},
+            limitid = #{limitid,jdbcType=BIGINT},
+            classifyid = #{classifyid,jdbcType=BIGINT},
+            memberid = #{memberid,jdbcType=BIGINT},
+            brokepay = #{brokepay,jdbcType=NUMERIC},
+            singlebrokepay = #{singlebrokepay,jdbcType=NUMERIC},
+            deliveryid = #{deliveryid,jdbcType=BIGINT}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
 </mapper>

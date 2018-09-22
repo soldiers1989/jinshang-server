@@ -1,13 +1,14 @@
 
 var:
   server: 120.27.226.95
+  server-db: 121.196.200.218  #正式 数据库ip 主
+  server-db-inner: 172.16.27.254 #正式 数据库ip 主（内网）
   server-test: 47.98.222.182
-#  server: 192.168.1.112
   appName: jinshang-server
 
 server:
   context-path: /${var.appName}
-  port: 8081
+  port: 8080
 spring:
   application:
     name: ${var.appName}
@@ -43,27 +44,12 @@ spring:
 #    elasticsearch:
 #      cluster-nodes: 47.98.222.182:12041
 
-
-
-#  kafka:
-#    consumer:
-#      group-id: project.${var.appName}
-#      bootstrap-servers: ${var.server}:9092
-#      enable-auto-commit: true
-#    producer:
-#      bootstrap-servers: ${var.server}:9092
-#      acks: all
 #eureka:
-#  client:
-#    serviceUrl:
-#      defaultZone: http://${var.server}:10000/eureka/
-
-eureka:
- client:
-   service-url:
-    defaultZone: http://${var.server}:12800/eureka
- instance:
-   prefer-ip-address: true
+# client:
+#   service-url:
+#    defaultZone: http://${var.server}:12800/eureka
+# instance:
+#   prefer-ip-address: true
 
 
 
@@ -86,9 +72,8 @@ project:
 
 mybatis:
   pgsql1:
-    url: jdbc:postgresql://${var.server}:5432/jinshang
-#    username: postgres
-#    password: huaxu
+    url: jdbc:postgresql://${var.server-db-inner}:5432/jinshang
+
 
 mod:
   sms_dayu:
@@ -116,13 +101,15 @@ mod:
       appId: wx3e4de0fae28317d3
       appSecret: d9515d90025aac05da85c8e05acd9652
       accsstokenUrl: https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code
+      globalAccsstokenUrl: https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=APPID&secret=APPSECRET
+      jsapiTicketUrl: https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=ACCESS_TOKEN&type=jsapi
       wxinfoUrl: https://api.weixin.qq.com/sns/userinfo?access_token=ACCESS_TOKEN&openid=OPENID
       wapAppId: wx6eb2a1213254a1df #微信公众号
       wapAppSecret: e349883ee40b7521390f07f5158c164f
   middleware:
 #    serverurl: http://new.jinshang9.com/jinshang-middleware-test
-    serverurl: http://www.jinshang9.com/jinshang-middleware
-    aozhanurl: http://www.jinshang9.com/aozhan-middleware
+    serverurl: http://jinshang-middleware.jinshang9.com:8081/jinshang-middleware
+    aozhanurl: http://aozhan-middleware.jinshang9.com:8082/aozhan-middleware
   es:
     ip: ${var.server}
     port: 12040
@@ -139,13 +126,13 @@ shop:
   self-support:
     id: 8095|5623|109|107  #自营店id
   productstore-check:
-    id: 109   #库存盘点卖家id
+    id: 109|4964|5854|5659|13780|17365    #推送紧商中间件店铺id  #库存盘点卖家id
   orders-syn:
     id: 107|108|109|8095|5623 #订单推送商家id
   aozhan-syn:
       id: 6700
   jinshang-store-url: http://122.224.247.86:18080/GwallServices/httpService?appkey=app_wms&service=subGetOrderFullLinkInfo&format=Json&secret=null&encrypt=0&content={%22orderCode%22:%22#orderno#-jinshang%22}
-  aozhan-store-url: http://120.27.226.95/aozhan-middleware/aoZhan/selectOrderOperatingStatus?orderNo=#orderno#
+  aozhan-store-url: http://aozhan-middleware.jinshang9.com:8082/aozhan-middleware/aoZhan/selectOrderOperatingStatus?orderNo=#orderno#
 
 #文件上传路径
 upload:
@@ -164,21 +151,21 @@ spring:
       host: ${var.server}
       port: 6379
       password: 503149
-      database: 8
+      database: 9
 
-eureka:
- client:
-   service-url:
-    defaultZone: http://${var.server-test}:12800/eureka/
- instance:
-   prefer-ip-address: true
+#eureka:
+# client:
+#   service-url:
+#    defaultZone: http://${var.server-test}:12800/eureka/
+# instance:
+#   prefer-ip-address: true
 
 
 
 
 mybatis:
   pgsql1:
-    url: jdbc:postgresql://${var.server-test}:5432/jinshang-dev4 #snap20180330
+    url: jdbc:postgresql://${var.server-test}:5432/jinshang_dev7 #snap20180330
     username: admin_jinshang_dev
     password: admin04131
 
@@ -188,8 +175,8 @@ mod:
       keyPath: /root/docker-app/jinshang-server/wx/apiclient_cert.p12
   middleware:
 #    serverurl: http://new.jinshang9.com/jinshang-middleware-test
-#    serverurl: 192.168.1.123:9292/jinshang-middleware-dev
-    aozhanurl: http://47.98.222.182:9090/aozhan-middleware-test
+    serverurl: http://47.98.222.182/jinshang-middleware-test
+    aozhanurl: http://47.98.222.182/aozhan-middleware-test
 #    aozhanurl: http://localhost:9090/aozhan-middleware-test
   es:
     ip: ${var.server-test}
@@ -212,6 +199,7 @@ shop:
 
 
 ---
+#测试环境
 server:
   context-path: /${var.appName}
   port: 8080
@@ -227,12 +215,12 @@ spring:
     password: 503149
     database: 5
 
-eureka:
- client:
-   service-url:
-    defaultZone: http://${var.server-test}:12800/eureka
- instance:
-   prefer-ip-address: true
+#eureka:
+# client:
+#   service-url:
+#    defaultZone: http://${var.server-test}:12800/eureka
+# instance:
+#   prefer-ip-address: true
 
 
 shop:
@@ -258,6 +246,10 @@ mod:
 
 mybatis:
   pgsql1:
-    url: jdbc:postgresql://${var.server-test}:5432/jinshang-dev4
+    url: jdbc:postgresql://${var.server-test}:5432/jinshang_dev7
     username: admin_jinshang_dev
     password: admin04131
+
+
+
+

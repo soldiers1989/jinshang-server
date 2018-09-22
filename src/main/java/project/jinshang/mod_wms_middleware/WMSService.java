@@ -26,6 +26,7 @@ import project.jinshang.mod_member.bean.Member;
 import project.jinshang.mod_member.service.MemberService;
 import project.jinshang.mod_product.*;
 import project.jinshang.mod_product.bean.*;
+import project.jinshang.mod_product.service.ProductStoreService;
 import project.jinshang.mod_wms_middleware.bean.OrderSynLog;
 import project.jinshang.mod_wms_middleware.bean.WmsMidMsg;
 import project.jinshang.mod_wms_middleware.service.OrderSynLogService;
@@ -92,6 +93,8 @@ public class WMSService {
     @Value("${shop.productstore-check.id}")
     private  String jskjjgjc;
 
+
+
     @Scheduled(cron = "0 0/1 * * * ?")
     public void checkUnSend() {
         List<WmsMidMsg> list = wmsMiddlewareMsgMapper.list(0);
@@ -147,7 +150,7 @@ public class WMSService {
 
 
     private void sendSynOrders(String url, Map<String, String> params) {
-         cachedThreadPool.execute(() -> {
+        cachedThreadPool.execute(() -> {
 
             WmsMidMsg wmsMidMsg = new WmsMidMsg()
                     .setCreateDt(new Timestamp(System.currentTimeMillis()))
@@ -168,7 +171,7 @@ public class WMSService {
             try {
                 Map<String, Object> ret = HttpClientUtils.post(url, params);
                 //logger.warn("send middleware ret: " + url + " ; " + ret.toString());
-                if (((int) ret.getOrDefault("result", -100)) < 0) {
+                if (((int) ret.getOrDefault("result", -100)) <= 0) {
                     wmsMidMsg.setStatus(0);
                     wmsMiddlewareMsgMapper.save(wmsMidMsg);
                     synLogs.forEach(logs->logs.setState(Quantity.STATE_2));
@@ -187,12 +190,14 @@ public class WMSService {
     }
 
 
-
+    @Autowired
+    private ProductStoreService productStoreService;
 
     /**
      * 同步订单
      */
     public void synOrders(List<Orders> ordersList) {
+
         logger.error("执行订单同步开始");
         List<String> shopSelfSupportIds = Arrays.asList(jskjjgjc.split("\\|"));
 //        List<String> shopSelfSupportIds = Arrays.asList(shopSelfSupportid.split("\\|"));
@@ -208,16 +213,30 @@ public class WMSService {
                 orders.setBuyercompanyname(buyerCompanyInfo.getCompanyname());
             }
             orders.setBuyerRealname(buyer.getRealname());
+            orders.setWaysalesman(buyer.getWaysalesman());
             List<OrderProduct> orderProducts = orderProductMapper.listOrderProductByOrderId(orders.getId());
             if (orderProducts.size() != 0) {
                 ProductInfo productInfo = productInfoMapper.selectByPrimaryKey(orderProducts.get(0).getPdid());
-                BuyerCompanyInfoExample example = new BuyerCompanyInfoExample();
-                example.createCriteria().andMemberidEqualTo(orders.getMemberid());
-                List<BuyerCompanyInfo> buyerCompanyInfos = buyerCompanyInfoMapper.selectByExample(example);
+//                BuyerCompanyInfoExample example = new BuyerCompanyInfoExample();
+//                example.createCriteria().andMemberidEqualTo(orders.getMemberid());
+//                List<BuyerCompanyInfo> buyerCompanyInfos = buyerCompanyInfoMapper.selectByExample(example);
+
+                for(OrderProduct op : orderProducts){
+                    ProductInfo productInfo1 = productInfoMapper.selectByPrimaryKey(op.getPdid());
+                    ProductStore productStore = productStoreService.getByPdidAndPdno(op.getPdid(),op.getPdno());
+                    op.setProductsno(productInfo1.getProductsno());
+                    op.setProductTypeName(productInfo1.getLevel1());
+                    Map<String,Object> extend = new HashMap<>();
+                    extend.put("surfacetreatment",productInfo1.getSurfacetreatment());
+                    extend.put("startnum",productStore.getStartnum());
+                    extend.put("weight",productStore.getWeight());
+                    op.setExtend(extend);
+                }
 
 
                 if (shopSelfSupportIds.contains(String.valueOf(orders.getSaleid()))) {
                     params.put("productTypeName", productInfo.getLevel1());
+
                     orders.setOrderProducts(orderProducts);
                     if (orders.getIsbilling() == 1) {
                         BillingRecordExample billingRecordExample = new BillingRecordExample();
@@ -226,17 +245,17 @@ public class WMSService {
                         if (!billingRecords.isEmpty()) {
                             orders.setInvoiceName(billingRecords.get(0).getInvoiceheadup());
                         } else {
-                            if (buyerCompanyInfos.isEmpty()) {
+                            if (buyerCompanyInfo == null) {
                                 orders.setInvoiceName(orders.getShipto());
                             } else {
-                                orders.setInvoiceName(buyerCompanyInfos.get(0).getCompanyname());
+                                orders.setInvoiceName(buyerCompanyInfo.getCompanyname());
                             }
                         }
                     } else {
-                        if (buyerCompanyInfos.isEmpty()) {
+                        if (buyerCompanyInfo == null) {
                             orders.setInvoiceName(orders.getShipto());
                         } else {
-                            orders.setInvoiceName(buyerCompanyInfos.get(0).getCompanyname());
+                            orders.setInvoiceName(buyerCompanyInfo.getCompanyname());
                         }
                     }
                     list.add(orders);
@@ -250,25 +269,28 @@ public class WMSService {
                                 orders.setInvoiceName(billingRecords.get(0).getInvoiceheadup());
                             }
                         } else {
-                            if (buyerCompanyInfos.isEmpty()) {
+                            if (buyerCompanyInfo == null) {
                                 orders.setInvoiceName(orders.getShipto());
                             } else {
-                                orders.setInvoiceName(buyerCompanyInfos.get(0).getCompanyname());
+                                orders.setInvoiceName(buyerCompanyInfo.getCompanyname());
                             }
                         }
                     } else {
-                        if (buyerCompanyInfos.isEmpty()) {
+                        if (buyerCompanyInfo == null) {
                             orders.setInvoiceName(orders.getShipto());
                         } else {
-                            orders.setInvoiceName(buyerCompanyInfos.get(0).getCompanyname());
+                            orders.setInvoiceName(buyerCompanyInfo.getCompanyname());
                         }
                     }
                     orders.setOrderProducts(orderProducts);
                     aoZhanList.add(orders);
                 }
             }
-        }
 
+
+
+
+        }
 
         if (!list.isEmpty() && !"".equals(middleware_url)) {
 
@@ -283,14 +305,14 @@ public class WMSService {
             });
 
             orderSynLogService.batchAdd(synLogs);
-            logger.error("紧商中间件："+ JSONArray.fromObject(list));
+            //logger.error("紧商中间件："+ JSONArray.fromObject(list));
             params.put("saleOrderJsonList", JsonUtil.toJson(list));
             sendSynOrders(middleware_url + "/jinshang/saleOrder", params);
         }
 
         //奥展中间件抛接
         if (!aoZhanList.isEmpty() && !"".equals(aozhan_middleware_url)) {
-            logger.error("奥展中间件"+JSONArray.fromObject(aoZhanList));
+            //logger.error("奥展中间件"+JSONArray.fromObject(aoZhanList));
             List<OrderSynLog> synLogs = new ArrayList<>();
             aoZhanList.forEach(orders -> {
                 OrderSynLog log = new OrderSynLog();
@@ -331,15 +353,16 @@ public class WMSService {
         }
     }
 
+
     /**
      * 退货
      */
     public void backOrders(OrderProductBack orderProductBack) {
 
+
         List<String> shopSelfSupportIds = Arrays.asList(jskjjgjc.split("\\|"));
 //        List<String> shopSelfSupportIds = Arrays.asList(shopSelfSupportid.split("\\|"));
         List<String> aozhanIdsList = Arrays.asList(aozhanids.split("\\|"));
-
         ProductInfo productInfo = productInfoMapper.selectByPrimaryKey(orderProductBack.getPdid());
         logger.error("中间件退货所传递的参数："+JsonUtil.toJson(orderProductBack).toString());
         Orders orders = ordersMapper.selectByPrimaryKey(orderProductBack.getOrderid());

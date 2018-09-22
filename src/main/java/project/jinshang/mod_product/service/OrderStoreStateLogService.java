@@ -88,7 +88,7 @@ public class OrderStoreStateLogService {
             String url = aozhanStoreUrl.replace("#orderno#",orders.getOrderno());
             System.out.println(url);
             String content = HttpClientUtils.get(url);
-            System.out.println(content);
+            //System.out.println(content);
             if(content != null){
                 list = enAoZhanErp(content);
             }

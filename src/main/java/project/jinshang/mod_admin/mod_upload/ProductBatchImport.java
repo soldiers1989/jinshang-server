@@ -73,7 +73,7 @@ public class ProductBatchImport {
                     !keySet.contains("商品库存") ||
                     !keySet.contains("商品货号") ||
                     !keySet.contains("仓库名称") ||
-                    !keySet.contains("运费方式") ||
+                    !keySet.contains("运费集合名称") ||
                     !keySet.contains("商品标签") ||
                     !keySet.contains("SEO标题") ||
                     !keySet.contains("SEO关键字") ||
@@ -236,9 +236,9 @@ public class ProductBatchImport {
                     productImportModel.setStoreName(storeName);
 
                     //@ApiModelProperty(notes = "运输方式")
-                    String deliveryType = this.getValue(row.getCell(map.get("运费方式")));
+                    String deliveryType = this.getValue(row.getCell(map.get("运费集合名称")));
                     if(deliveryType == null){
-                        throw  new RuntimeException("第"+(i+1)+"行运费方式填写不正确");
+                        throw  new RuntimeException("第"+(i+1)+"行运费集合名称填写不正确");
                     }
 
                     productImportModel.setDeliveryType(deliveryType);
@@ -417,12 +417,13 @@ public class ProductBatchImport {
             return list;
         } catch (InvalidFormatException e) {
             e.printStackTrace();
+            throw e;
         }finally {
             if(workbook != null){
                 workbook.close();
             }
         }
-        return null;
+       // return null;
     }
 
     //取单元格中的值
@@ -563,7 +564,110 @@ public class ProductBatchImport {
         return null;
     }
 
+    /**
+     * 后台发布商品库(其他商品)
+     * @param URL
+     * @return
+     * @throws IOException
+     */
+    public List<ProductStore> excelDownOtherProductTo(String URL) throws Exception {
+        //创建list集合存放对象
+        ArrayList<ProductStore> list = new ArrayList<ProductStore>();
 
+        File file = new File(URL);
+
+        Workbook workbook=null;
+        try {
+            workbook = WorkbookFactory.create(file);
+            //读取默认第一个工作表sheet
+            Sheet sheet =  workbook.getSheetAt(0);
+            //获取sheet中最后一行行号
+            int lastRowNum = sheet.getLastRowNum();
+
+            if(lastRowNum<2){
+                throw  new RuntimeException("模版不正确");
+            }
+
+            Map<String,Integer> map = new HashMap<>();
+
+            Row titleRow =  sheet.getRow(1);
+            int cellNum = titleRow.getLastCellNum();
+            for(int i=0;i<cellNum;i++){
+                map.put(titleRow.getCell(i).getStringCellValue(),i);
+            }
+
+            Set<String> keySet = map.keySet();
+            if(!keySet.contains("商品库存id") ||
+                    !keySet.contains("商品id") ||
+                    !keySet.contains("商品编码") ||
+                    !keySet.contains("规格") ||
+                    !keySet.contains("商品价格") ||
+                    !keySet.contains("30天发货价格") ||
+                    !keySet.contains("60天发货价格") ||
+                    !keySet.contains("90天发货价格") ||
+                    !keySet.contains("仓库名称")){
+                throw  new Exception("模版不正确，商品库存id、商品id、商品编码、规格、商品价格、30天发货价格、60天发货价格、90天发货价格、仓库名称");
+            }
+
+            //循环所有行
+            for (int i = 2; i <= lastRowNum; i++) {
+                //获取当前行中的内容
+                Row row = sheet.getRow(i);
+                short cell = row.getLastCellNum();
+                ProductStore productStore=new ProductStore();
+                if(row !=null && cell!=0){
+                    //@ApiModelProperty(notes = "分类")
+                    String pdstoreid=this.getValue(row.getCell(map.get("商品库存id")));
+                    if(pdstoreid == null){
+                        throw  new RuntimeException("第"+ (i+1) +"商品库存id");
+                    }
+                    String pdid = this.getValue(row.getCell(map.get("商品id")));
+                    if(pdid==null){
+                        throw  new RuntimeException("第"+ (i+1) +"商品id");
+                    }
+                    if(isInteger(pdstoreid)){
+                        productStore.setId(new BigDecimal(pdstoreid).longValue());
+                    }
+                    if(isInteger(pdid)){
+                        productStore.setPdid(new BigDecimal(pdid).longValue());
+                    }
+
+                    String pdno=this.getValue(row.getCell(map.get("商品编码")));
+                    if(StringUtils.hasText(pdno)){
+                        productStore.setPdno(pdno);
+                    }
+
+                    String price = this.getValue(row.getCell(map.get("商品价格")));
+                    if(isInteger(price)){
+                        productStore.setProdprice(new BigDecimal(price));
+
+                    }
+
+                    String thirtyPrice = this.getValue(row.getCell(map.get("30天发货价格")));
+                    if(isInteger(thirtyPrice)){
+                        productStore.setThirtyprice(new BigDecimal(thirtyPrice));
+                    }
+                    String sixtyPrice = this.getValue(row.getCell(map.get("60天发货价格")));
+                    if(isInteger(sixtyPrice)){
+                        productStore.setSixtyprice(new BigDecimal(sixtyPrice));
+                    }
+                    String nintyPrice = this.getValue(row.getCell(map.get("90天发货价格")));
+                    if(isInteger(nintyPrice)){
+                        productStore.setNinetyprice(new BigDecimal(nintyPrice));
+                    }
+                    list.add(productStore);
+                }
+            }
+            return list;
+        } catch (InvalidFormatException e) {
+            e.printStackTrace();
+        }finally {
+            if(workbook != null){
+                workbook.close();
+            }
+        }
+        return null;
+    }
 
     public static void main(String[] args) throws Exception {
         ProductBatchImport excelToList=new ProductBatchImport();

@@ -102,4 +102,7 @@ public interface LimitTimeProdMapper {
     @Update("update limittimeprod set salestotalnum = salestotalnum + #{num} where id=#{id}")
     void updateSalestotalnumInDB(@Param("id") Long id,@Param("num") BigDecimal num);
 
+
+    @Update("update limittimeprod set sort=#{sort} where id=#{id}")
+    void updateBySort(@Param("id")Long id,@Param("sort")Integer sort);
 }

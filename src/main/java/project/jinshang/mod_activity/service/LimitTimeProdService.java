@@ -60,6 +60,11 @@ public class LimitTimeProdService {
     }
 
 
+    public void updateBySort(Long id,Integer sort){
+        limitTimeProdMapper.updateBySort(id, sort);
+    }
+
+
 
     /**
      * 卖家端列表查询

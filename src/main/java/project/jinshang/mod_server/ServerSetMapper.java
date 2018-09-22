@@ -42,17 +42,19 @@ public interface ServerSetMapper {
         private static final String TBL_MEMBER = "Member mb";
         private static final String TBL_SERVER_SET = "serverset ss on mb.id=ss.memberid";
         private static final String TBL_ORDERS = "orders od on ss.area=od.area and ss.city=od.city and ss.province=od.province";
+        private static final String TBL_BUYER_COMPANY_INFO = "buyercompanyinfo byi on mb.id=byi.memberid";
 
         public String serverPayQuery(ServerPayQueryParam param){
 
             StringBuffer sb = new StringBuffer();
 
-            sb.append("ss.servername,ss.area,ss.city,ss.province,ss.rate,ss.id,");
+            sb.append("byi.companyname,ss.servername,mb.realname,mb.username,ss.area,ss.city,ss.province,ss.rate,ss.id,");
             sb.append("case when sum(od.serverpay) is null then 0 ELSE sum(od.serverpay*ss.rate*0.01) END");
 
             SQL sql = new SQL().SELECT(sb.toString()).FROM(TBL_MEMBER);
             sql.LEFT_OUTER_JOIN(TBL_SERVER_SET);
             sql.LEFT_OUTER_JOIN(TBL_ORDERS);
+            sql.LEFT_OUTER_JOIN(TBL_BUYER_COMPANY_INFO);
 
             sql.WHERE("mb.services=true");
             sql.WHERE("od.orderstatus=5");
@@ -75,7 +77,7 @@ public interface ServerSetMapper {
                 sql.WHERE("ss.endtime>=#{endTime}");
             }
 
-            sql.GROUP_BY("ss.servername,ss.area,ss.city,ss.province,ss.rate,ss.id");
+            sql.GROUP_BY("byi.companyname,mb.realname,mb.username,ss.servername,ss.area,ss.city,ss.province,ss.rate,ss.id");
             return sql.toString();
         }
     }
@@ -124,7 +126,8 @@ public interface ServerSetMapper {
         }
     }
 
-    @Select("SELECT memberid,servername from serverset sset left join member mb on sset.memberid=mb.id where mb.services=TRUE GROUP BY memberid,servername")
+    @Select("SELECT sset.memberid,servername,companyname from serverset sset left join member mb on sset.memberid=mb.id left join buyercompanyinfo byi \n" +
+            "on sset.memberid=byi.memberid where mb.services=TRUE GROUP BY sset.memberid,servername,companyname")
     List<ServerSet> getServerSetList();
 
     @Select("select id from serverset where area=#{area} and city=#{city} and province=#{province} and memberid=#{memberid}")

@@ -14,10 +14,13 @@ import project.jinshang.common.utils.CommonUtils;
 import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_member.bean.Admin;
 import project.jinshang.mod_member.bean.AdminGroup;
+import project.jinshang.mod_member.bean.AdminUser;
 import project.jinshang.mod_member.bean.Member;
 import project.jinshang.mod_member.service.AdminGroupService;
 import project.jinshang.mod_member.service.AdminService;
+import project.jinshang.mod_member.service.AdminUserService;
 import project.jinshang.mod_member.service.MemberService;
+import project.jinshang.mod_product.service.OrdersService;
 
 import javax.servlet.http.HttpSession;
 import java.util.Date;
@@ -42,6 +45,12 @@ public class AdminRestAction {
 
     @Autowired
     private MemberService memberService;
+
+    @Autowired
+    private AdminUserService adminUserService;
+
+    @Autowired
+    private OrdersService ordersService;
 
 
     @ApiOperation("登录 123=MTIz 123456=MTIzNDU2")
@@ -165,9 +174,23 @@ public class AdminRestAction {
 
     @PostMapping("/deleteAdmin")
     @ApiOperation("删除管理员")
-    public  BasicRet deleteAdmin(@RequestParam(required = true) long id){
+    public BasicRet deleteAdmin(@RequestParam(required = true) long id){
         BasicRet basicRet =  new BasicRet();
+        List<AdminUser> list = adminUserService.findAdminUserByAdminid(id);
+        StringBuffer ids = new StringBuffer();
+        for (int i =0;i<list.size();i++){
+            if(i==list.size()-1){
+                ids.append(list.get(i).getUserid());
+            }else{
+                ids.append(list.get(i).getUserid()+",");
+            }
+        }
+        if(ids.length()>0){
+            memberService.updateMemberByIds(ids);//置空会员表中客服人员中为该管理员的的字段
+            ordersService.updateOrdersByIds(ids);//置空订单表中客服人员中为该管理员的的字段
+        }
         adminService.deleteById(id);
+        adminUserService.delAdminUserByid(id);
 
         basicRet.setMessage("删除成功");
         basicRet.setResult(BasicRet.SUCCESS);

@@ -17,15 +17,14 @@ import project.jinshang.mod_common.bean.BasicExtRet;
 import project.jinshang.mod_common.bean.SmsLog;
 import project.jinshang.mod_common.service.MobileService;
 import project.jinshang.mod_company.bean.SellerCompanyInfo;
-import project.jinshang.mod_company.service.BuyerCompanyService;
 import project.jinshang.mod_company.service.SellerCompanyCacheService;
 import project.jinshang.mod_member.bean.Member;
+import project.jinshang.mod_member.bean.MemberExample;
 import project.jinshang.mod_member.bean.MemberToken;
 import project.jinshang.mod_member.service.AdvanceSellerPublish;
 import project.jinshang.mod_member.service.MemberService;
 import project.jinshang.mod_member.service.MemberTokenService;
 import project.jinshang.mod_product.service.OrdersService;
-import project.jinshang.mod_shop.bean.ShopGrade;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -34,7 +33,7 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Date;
-import java.util.UUID;
+import java.util.List;
 
 
 @RestController
@@ -68,6 +67,8 @@ public class BuyerRestAction {
 
 
 
+
+
     @RequestMapping(value = "/registerMember", method = RequestMethod.POST)
     @ApiOperation(value = "注册用户")
     @ApiImplicitParams({
@@ -77,6 +78,9 @@ public class BuyerRestAction {
             @ApiImplicitParam(name = "invitecode", value = "邀请码", required = false, paramType = "query"),
             @ApiImplicitParam(name = "clerkname", value = "业务员", required = false, paramType = "query"),
             @ApiImplicitParam(name = "realname", value = "真实姓名", required = false, paramType = "query"),
+            @ApiImplicitParam(name = "registersourcelabel", value = "注册来源", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "registertypelabel", value = "注册类型", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "registerchannellabel", value = "注册渠道", required = false, paramType = "query", dataType = "string"),
     })
     @ApiImplicitParam(name = "mobileCode", value = "手机验证码", required = true, paramType = "query")
     public MemberRet registerMember(Member member, String mobileCode,Model model) throws IOException {
@@ -124,13 +128,14 @@ public class BuyerRestAction {
             memberRet.setRegmes("注册送现金");
         }
 
-         member.setFrom("buyer");
-         member.setLoginType("main");
+        member.setFrom("buyer");
+        member.setLoginType("main");
 
-         memberService.fillMember(member);
-         model.addAttribute(AppConstant.MEMBER_SESSION_NAME, member);
+        memberService.fillMember(member);
+        model.addAttribute(AppConstant.MEMBER_SESSION_NAME, member);
 
         memberRet.setMessage("注册成功");
+
         return (MemberRet) memberRet.setResult(BasicRet.SUCCESS);
     }
 
@@ -141,6 +146,9 @@ public class BuyerRestAction {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "mobile", value = "手机号", required = true, paramType = "query"),
             @ApiImplicitParam(name = "invitecode", value = "邀请码", required = false, paramType = "query"),
+            @ApiImplicitParam(name = "registersourcelabel", value = "注册来源", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "registertypelabel", value = "注册类型", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "registerchannellabel", value = "注册渠道", required = false, paramType = "query", dataType = "string"),
     })
     @ApiImplicitParam(name = "mobileCode", value = "手机验证码", required = true, paramType = "query")
     public MemberRet registerMemberByMobile(Member member, String mobileCode,Model model) throws IOException {
@@ -265,9 +273,9 @@ public class BuyerRestAction {
     @RequestMapping(value = "/loginByMobile", method = RequestMethod.POST)
     @ApiOperation(value = "买家用户手机号登录 123=MTIz 123456=MTIzNDU2")
     public BasicRet loginByMobile(@RequestParam(required = true) String mobile,
-                          @RequestParam(required = true) String mobileCode, Model model, HttpSession session) {
+                                  @RequestParam(required = true) String mobileCode, Model model, HttpSession session) {
         BasicRet basicRet = new BasicRet();
-
+        Member member=null;
         //判断手机验证码是否正确
         SmsLog smsLog = mobileService.getLastLog(mobile, SmsType.verification, 5);
         if (smsLog == null || !mobileCode.equalsIgnoreCase(smsLog.getVerifycode())) {
@@ -276,10 +284,15 @@ public class BuyerRestAction {
             return basicRet;
         }
 
-        Member member = memberService.getMemberByUsername(mobile);
-
+        MemberExample example=new MemberExample();
+        MemberExample.Criteria criteria=example.createCriteria();
+        criteria.andMobileEqualTo(mobile);
+        List<Member> memberList = memberService.selectByExample(example);
+        if (memberList!=null&&memberList.size()>0) {
+            member=memberList.get(0);
+        }
         if (member == null) {
-            basicRet.setMessage("用户名密码不正确");
+            basicRet.setMessage("该手机号暂未注册");
             basicRet.setResult(BasicRet.ERR);
             return basicRet;
         } else {
@@ -310,8 +323,8 @@ public class BuyerRestAction {
     @RequestMapping(value = "/wap/login", method = RequestMethod.POST)
     @ApiOperation(value = "买家用户登录(手机端) 123=MTIz 123456=MTIzNDU2")
     public WapLogRet login(@RequestParam(required = true) String username,
-                          @RequestParam(required = true) String password,
-                          Model model, HttpSession session, HttpServletResponse response) {
+                           @RequestParam(required = true) String password,
+                           Model model, HttpSession session, HttpServletResponse response) {
         WapLogRet basicRet = new WapLogRet();
 
         password = Base64Utils.decode(password);
@@ -388,7 +401,7 @@ public class BuyerRestAction {
                                    @RequestParam(required = true) String mobileCode,
                                    Model model, HttpSession session,HttpServletResponse response) {
         WapLogRet basicRet = new WapLogRet();
-
+        Member member=null;
 
         //判断手机验证码是否正确
         SmsLog smsLog = mobileService.getLastLog(mobile, SmsType.verification, 5);
@@ -398,10 +411,15 @@ public class BuyerRestAction {
             return basicRet;
         }
 
-        Member member = memberService.getMemberByUsername(mobile);
-
+        MemberExample example=new MemberExample();
+        MemberExample.Criteria criteria=example.createCriteria();
+        criteria.andMobileEqualTo(mobile);
+        List<Member> memberList = memberService.selectByExample(example);
+        if (memberList!=null&&memberList.size()>0) {
+            member=memberList.get(0);
+        }
         if (member == null) {
-            basicRet.setMessage("用户名密码不正确");
+            basicRet.setMessage("该手机号暂未注册");
             basicRet.setResult(BasicRet.ERR);
             return basicRet;
         } else {
@@ -450,15 +468,18 @@ public class BuyerRestAction {
     @RequestMapping(value = "/InfoCompletion",method = RequestMethod.POST)
     @ApiOperation(value = "手机号码注册信息补全接口")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "username", value = "用户姓名", required = true, paramType = "query"),
+            @ApiImplicitParam(name = "realname", value = "用户姓名", required = true, paramType = "query"),
+            @ApiImplicitParam(name = "username", value = "用户登录名", required = true, paramType = "query"),
             @ApiImplicitParam(name = "password", value = "密码(base64编码)", required = true, paramType = "query")
     })
-    public BasicRet InfoCompletion(@RequestParam(required = true) String username,
+    public BasicRet InfoCompletion(@RequestParam(required = true) String realname,
                                    @RequestParam(required = true) String password,
+                                   @RequestParam(required = true) String username,
                                    Model model, HttpSession session,HttpServletResponse response){
         BasicRet basicRet=new BasicRet();
-        Member member= (Member) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
-        member.setRealname(username);
+//        Member member= (Member) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        Member member = memberService.getMemberByUsername(username);
+        member.setRealname(realname);
         member.setPasswordsalt(CommonUtils.genSalt());
         member.setPassword(CommonUtils.genMd5Password(Base64Utils.decode(password), member.getPasswordsalt()));
         memberService.updateMember(member);
@@ -467,7 +488,7 @@ public class BuyerRestAction {
         return basicRet;
     }
     private  class  WapLogRet extends  BasicRet{
-//        private  class  WapLogData{
+        //        private  class  WapLogData{
 //            private  String webToken;
 //
 //            public String getToken() {
@@ -561,9 +582,9 @@ public class BuyerRestAction {
         Member oldMember = memberService.getMemberById(memberSession.getId());
         String oldMobile = oldMember.getMobile();
 
-            memberService.updatebuyerinfoByid(memberSession.getId(), realname, sex, mobile,oldMobile,email, faxes,
-                    telephone, address, postcode, invitecode, wxpay, qq,
-                    hobby, favicon, alipay, province, city, citysmall);
+        memberService.updatebuyerinfoByid(memberSession.getId(), realname, sex, mobile,oldMobile,email, faxes,
+                telephone, address, postcode, invitecode, wxpay, qq,
+                hobby, favicon, alipay, province, city, citysmall);
 
         Member member = memberService.getMemberById(memberSession.getId());
 
@@ -658,17 +679,17 @@ public class BuyerRestAction {
             basicRet.setMessage("原支付密码输入错误");
             return basicRet;
         } else {*/
-            if (dbmember.getPaypasswordsalt() == null) {
-                dbmember.setPaypasswordsalt(CommonUtils.genSalt());
-            }
-            memberService.updateMemberPaypassword(dbmember.getId(), paypassword, dbmember.getPaypasswordsalt());
+        if (dbmember.getPaypasswordsalt() == null) {
+            dbmember.setPaypasswordsalt(CommonUtils.genSalt());
+        }
+        memberService.updateMemberPaypassword(dbmember.getId(), paypassword, dbmember.getPaypasswordsalt());
 
-            member.setPaypassword(CommonUtils.genMd5Password(paypassword, dbmember.getPaypasswordsalt()));
-            model.addAttribute(AppConstant.MEMBER_SESSION_NAME, member);
+        member.setPaypassword(CommonUtils.genMd5Password(paypassword, dbmember.getPaypasswordsalt()));
+        model.addAttribute(AppConstant.MEMBER_SESSION_NAME, member);
 
-            basicRet.setResult(BasicRet.SUCCESS);
-            basicRet.setMessage("修改成功");
-            return basicRet;
+        basicRet.setResult(BasicRet.SUCCESS);
+        basicRet.setMessage("修改成功");
+        return basicRet;
         //}
     }
 

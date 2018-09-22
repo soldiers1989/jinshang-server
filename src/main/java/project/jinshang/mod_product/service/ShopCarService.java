@@ -2,9 +2,13 @@ package project.jinshang.mod_product.service;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import mizuki.project.core.restserver.config.BasicRet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import project.jinshang.common.bean.MemberLogOperator;
+import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.utils.JinshangUtils;
 import project.jinshang.mod_activity.LimitTimeProdMapper;
@@ -13,16 +17,24 @@ import project.jinshang.mod_activity.bean.LimitTimeProd;
 import project.jinshang.mod_activity.bean.LimitTimeProdExample;
 import project.jinshang.mod_activity.bean.LimitTimeStore;
 import project.jinshang.mod_activity.bean.LimitTimeStoreExample;
+import project.jinshang.mod_activity.service.LimitTimeProdService;
+import project.jinshang.mod_admin.mod_transet.service.TransactionSettingService;
 import project.jinshang.mod_invoice.InvoiceInfoMapper;
 import project.jinshang.mod_invoice.bean.InvoiceInfo;
 import project.jinshang.mod_invoice.bean.InvoiceInfoExample;
+import project.jinshang.mod_member.bean.Member;
+import project.jinshang.mod_member.bean.MemberRateSetting;
 import project.jinshang.mod_product.*;
 import project.jinshang.mod_product.bean.*;
 import project.jinshang.mod_shippingaddress.ShippingAddressMapper;
 import project.jinshang.mod_shippingaddress.bean.ShippingAddress;
 import project.jinshang.mod_shippingaddress.bean.ShippingAddressExample;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -216,16 +228,23 @@ public class ShopCarService {
      * @param id 模板id
      * @return
      */
-    public AreaCost getAreaCost(long id){
-        AreaCostExample areaCostExample  = new AreaCostExample();
-        areaCostExample.createCriteria().andTemidEqualTo(id);
-        List<AreaCost> list = areaCostMapper.selectByExample(areaCostExample);
-        if(list.size()>Quantity.INT_0){
-            return list.get(0);
-        }else{
-            return null;
-        }
-    }
+//    public AreaCost getAreaCost(long id){
+//        AreaCostExample areaCostExample  = new AreaCostExample();
+//        areaCostExample.createCriteria().andTemidEqualTo(id);
+//        List<AreaCost> list = areaCostMapper.selectByExample(areaCostExample);
+//        if(list.size()>Quantity.INT_0){
+//            return list.get(0);
+//        }else{
+//            return null;
+//        }
+//    }
+//    public List<AreaCost> getAreaCost(long id){
+//        AreaCostExample areaCostExample  = new AreaCostExample();
+//        areaCostExample.createCriteria().andTemidEqualTo(id);
+//        List<AreaCost> list = areaCostMapper.selectByExample(areaCostExample);
+//        return  list;
+//    }
+
 
     /**
      * 根据id查询商品信息

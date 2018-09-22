@@ -5,6 +5,8 @@ public class MemberLabelQueryDto {
 
     private String labelname;
 
+    private String remarks;
+
     public Long getId() {
         return id;
     }
@@ -21,5 +23,11 @@ public class MemberLabelQueryDto {
         this.labelname = labelname == null ? null : labelname.trim();
     }
 
+    public String getRemarks() {
+        return remarks;
+    }
 
+    public void setRemarks(String remarks) {
+        this.remarks = remarks == null ? null : remarks.trim();
+    }
 }

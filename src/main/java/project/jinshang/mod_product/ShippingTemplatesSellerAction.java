@@ -1,26 +1,25 @@
 package project.jinshang.mod_product;
 
+import com.github.pagehelper.PageInfo;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import io.swagger.annotations.*;
 import mizuki.project.core.restserver.config.BasicRet;
+import org.elasticsearch.monitor.os.OsStats;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import project.jinshang.common.bean.MemberLogOperator;
 import project.jinshang.common.constant.AppConstant;
+import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.constant.SellerAuthorityConst;
 import project.jinshang.common.utils.CommonUtils;
 import project.jinshang.common.utils.StringUtils;
+import project.jinshang.mod_member.bean.Admin;
 import project.jinshang.mod_member.bean.Member;
-import project.jinshang.mod_product.bean.AreaCost;
-import project.jinshang.mod_product.bean.ProductStoreExample;
-import project.jinshang.mod_product.bean.ShippingTemplates;
-import project.jinshang.mod_product.service.AreaCostService;
-import project.jinshang.mod_product.service.MemberOperateLogService;
-import project.jinshang.mod_product.service.ProductStoreService;
-import project.jinshang.mod_product.service.ShippingTemplatesService;
+import project.jinshang.mod_product.bean.*;
+import project.jinshang.mod_product.service.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
@@ -55,6 +54,9 @@ public class ShippingTemplatesSellerAction {
     @Autowired
     private MemberOperateLogService memberOperateLogService;
 
+    @Autowired
+    private ShippingTemplateGroupService shippingTemplateGroupService;
+
 
     @RequestMapping(value = "/addTemplate",method = RequestMethod.POST)
     @ApiOperation("添加模版")
@@ -65,12 +67,15 @@ public class ShippingTemplatesSellerAction {
 //            @ApiImplicitParam(value = "商品地址区",name = "area",required = true,dataType = "string",paramType = "query"),
 //            @ApiImplicitParam(value = "详细地址",name = "address",required = true,dataType = "string",paramType = "query"),
             @ApiImplicitParam(value = "是否包邮 0=不包邮，1=包邮",name = "isfree",required = true,dataType = "int",paramType = "query"),
-            @ApiImplicitParam(value = "计价方式 1=按重量",name = "counttype",required = true,dataType = "int",paramType = "query"),
-            @ApiImplicitParam(value = "默认运费公斤",name = "defaultfreight",required = true,dataType = "string",paramType = "query"),
-            @ApiImplicitParam(value = "默认运费元",name = "defaultcost",required = true,dataType = "string",paramType = "query"),
-            @ApiImplicitParam(value = "每增加公斤",name = "perkilogramadded",required = true,dataType = "string",paramType = "query"),
-            @ApiImplicitParam(value = "增加运费元",name = "perkilogramcost",required = true,dataType = "string",paramType = "query"),
+            @ApiImplicitParam(value = "计价方式 1=按重量 2-按金额",name = "counttype",required = true,dataType = "int",paramType = "query"),
+            @ApiImplicitParam(value = "默认运费公斤",name = "defaultfreight",required = true,dataType = "string",paramType = "query",defaultValue = "0"),
+            @ApiImplicitParam(value = "默认运费元",name = "defaultcost",required = true,dataType = "string",paramType = "query",defaultValue = "0"),
+            @ApiImplicitParam(value = "每增加公斤",name = "perkilogramadded",required = true,dataType = "string",paramType = "query",defaultValue = "0"),
+            @ApiImplicitParam(value = "增加运费元",name = "perkilogramcost",required = true,dataType = "string",paramType = "query",defaultValue = "0"),
             @ApiImplicitParam(value = "其他指定运费Json,例如：[{\"province\":\"山东,浙江\",\"city\":\"烟台，青岛，杭州\"，\"perkilogramcost\":1,\"defaultfreight\":3,\"defaultcost\":4,\"perkilogramadded\":2,\"selectarea\":\"\"},{\"province\":\"北京,浙江\",\"city\":\"北京，绍兴\"，\"perkilogramcost\":2,\"defaultfreight\":5,\"defaultcost\":4,\"perkilogramadded\":2,\"selectarea\":\"\"}]",name = "templateJson",required = false,dataType = "string",paramType = "query"),
+            @ApiImplicitParam(value = "类型，1商家端，2商家合单集合",name = "temtype",required = true,dataType = "int",paramType = "query"),
+            @ApiImplicitParam(value = "满免金额",name = "defaultfreeprice",required = true,dataType = "string",paramType = "query",defaultValue = "0"),
+            @ApiImplicitParam(value = "如果类型是1商家端，则为-1)",name = "shopgroupid",required = true,dataType = "string",paramType = "query"),
     })
     @PreAuthorize("hasAuthority('"+ SellerAuthorityConst.LOGISTICS+"') || hasAuthority('"+ SellerAuthorityConst.ALL+"')")
     public BasicRet addTemplate(
@@ -86,11 +91,15 @@ public class ShippingTemplatesSellerAction {
             @RequestParam(required = true,defaultValue = "0") BigDecimal perkilogramadded,
             @RequestParam(required = true,defaultValue = "0") BigDecimal perkilogramcost,
             @RequestParam(required = false,defaultValue = "") String templateJson,
+            @RequestParam(required = true,defaultValue = "1") int temtype,
+            @RequestParam(required = true,defaultValue = "0") BigDecimal defaultfreeprice,
+            @RequestParam(required = true)  long shopgroupid,
             Model model, HttpServletRequest request){
 
         BasicRet basicRet = new BasicRet();
 
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
+        Admin  admin  = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
 
         ShippingTemplates templates = new ShippingTemplates();
         templates.setTemname(temname);
@@ -106,7 +115,25 @@ public class ShippingTemplatesSellerAction {
         templates.setPerkilogramadded(perkilogramadded);
         templates.setPerkilogramcost(perkilogramcost);
         templates.setMemberid(member.getId());
-
+        templates.setTemtype((short)temtype);
+        templates.setDefaultfreeprice(defaultfreeprice);
+        if (temtype== Quantity.INT_1){
+            templates.setShopgroupid(-1L);
+            templates.setMemberid(member.getId());
+        }else if(temtype==Quantity.INT_2){
+            templates.setMemberid(-1L);
+            templates.setShopgroupid(shopgroupid);
+        }
+        ShippingTemplatesExample example=new ShippingTemplatesExample();
+        ShippingTemplatesExample.Criteria criteria=example.createCriteria();
+        criteria.andMemberidEqualTo(member.getId());
+        criteria.andTemnameEqualTo(temname);
+        List<ShippingTemplates> shippingTemplatesList=shippingTemplatesService.listTemplates(example);
+        if (shippingTemplatesList!=null&&shippingTemplatesList.size()>0){
+            basicRet.setMessage("运费模版名称不能重复");
+            basicRet.setResult(BasicRet.ERR);
+            return basicRet;
+        }
         shippingTemplatesService.add(templates);
 
 
@@ -137,6 +164,7 @@ public class ShippingTemplatesSellerAction {
                     areaCost.setPerkilogramadded(new BigDecimal( map.get("perkilogramadded").toString()));
                     areaCost.setPerkilogramcost(new BigDecimal( map.get("perkilogramcost").toString()));
                     areaCost.setSelectarea(map.get("selectarea").toString());
+                    areaCost.setDefaultfreeprice(new BigDecimal(map.get("defaultfreeprice").toString()));
 
                     areaCostService.add(areaCost);
                 }
@@ -174,6 +202,9 @@ public class ShippingTemplatesSellerAction {
             @ApiImplicitParam(value = "每增加公斤",name = "perkilogramadded",required = true,dataType = "double",paramType = "query"),
             @ApiImplicitParam(value = "增加运费元",name = "perkilogramcost",required = true,dataType = "double",paramType = "query"),
             @ApiImplicitParam(value = "其他指定运费Json,例如：[{\"province\":\"山东,浙江\",\"city\":\"烟台，青岛，杭州\"，\"perkilogramcost\":1,\"defaultfreight\":3,\"defaultcost\":4,\"perkilogramadded\":2,\"selectarea\":\"\"},{\"province\":\"北京,浙江\",\"city\":\"北京，绍兴\"，\"perkilogramcost\":2,\"defaultfreight\":5,\"defaultcost\":4,\"perkilogramadded\":2,\"selectarea\":\"\"}]",name = "templateJson",required = false,dataType = "string",paramType = "query"),
+            @ApiImplicitParam(value = "类型，1商家端，2商家合单集合",name = "temtype",required = true,dataType = "int",paramType = "query"),
+            @ApiImplicitParam(value = "满免金额",name = "defaultfreeprice",required = true,dataType = "string",paramType = "query",defaultValue = "0"),
+            @ApiImplicitParam(value = "如果类型是1商家端，则为-1)",name = "shopgroupid",required = true,dataType = "string",paramType = "query"),
     })
     @PreAuthorize("hasAuthority('"+ SellerAuthorityConst.LOGISTICS+"') || hasAuthority('"+ SellerAuthorityConst.ALL+"')")
     public BasicRet updateTemplate(
@@ -189,7 +220,11 @@ public class ShippingTemplatesSellerAction {
             @RequestParam(required = true,defaultValue = "0") BigDecimal defaultcost,
             @RequestParam(required = true,defaultValue = "0") BigDecimal perkilogramadded,
             @RequestParam(required = true,defaultValue = "0") BigDecimal perkilogramcost,
-            @RequestParam(required = false,defaultValue = "") String templateJson,Model model,HttpServletRequest request ){
+            @RequestParam(required = false,defaultValue = "") String templateJson,
+            @RequestParam(required = true,defaultValue = "1") int temtype,
+            @RequestParam(required = true,defaultValue = "0") BigDecimal defaultfreeprice,
+            @RequestParam(required = true)  long shopgroupid,
+            Model model,HttpServletRequest request ){
 
         BasicRet basicRet = new BasicRet();
 
@@ -222,6 +257,19 @@ public class ShippingTemplatesSellerAction {
         templates.setDefaultcost(defaultcost);
         templates.setPerkilogramadded(perkilogramadded);
         templates.setPerkilogramcost(perkilogramcost);
+        templates.setTemtype((short) temtype);
+        templates.setDefaultfreeprice(defaultfreeprice);
+
+        ShippingTemplatesExample example=new ShippingTemplatesExample();
+        ShippingTemplatesExample.Criteria criteria=example.createCriteria();
+        criteria.andMemberidEqualTo(member.getId());
+        criteria.andTemnameEqualTo(temname);
+        List<ShippingTemplates> shippingTemplatesList=shippingTemplatesService.listTemplates(example);
+        if (shippingTemplatesList!=null&&shippingTemplatesList.size()>0&&shippingTemplatesList.get(0).getId().compareTo(id)!=0){
+            basicRet.setMessage("运费模版名称不能重复");
+            basicRet.setResult(BasicRet.ERR);
+            return basicRet;
+        }
 
         shippingTemplatesService.update(templates);
 
@@ -277,13 +325,19 @@ public class ShippingTemplatesSellerAction {
         }
 
 
-        ProductStoreExample example = new ProductStoreExample();
-        example.createCriteria().andFreightmodeEqualTo(id);
-        int count = productStoreService.countByExample(example);
+//        ProductStoreExample example = new ProductStoreExample();
+//        example.createCriteria().andFreightmodeEqualTo(id);
+//        int count = productStoreService.countByExample(example);
+//
+//        if(count>0){
+//            basicRet.setResult(BasicRet.ERR);
+//            basicRet.setMessage("该模版还有产品在使用，不可删除");
+//            return  basicRet;
+//        }
 
-        if(count>0){
+        if(shippingTemplateGroupService.getCountUsedShippingTemplates(id) >0){
             basicRet.setResult(BasicRet.ERR);
-            basicRet.setMessage("该模版还有产品在使用，不可删除");
+            basicRet.setMessage("该模版还有运费集合在使用，不可删除");
             return  basicRet;
         }
 
@@ -343,6 +397,7 @@ public class ShippingTemplatesSellerAction {
         List<ShippingTemplates> list =  shippingTemplatesService.listTemplatesByMemberid(member.getId());
         templateRet.setData(list);
         templateRet.setResult(BasicRet.SUCCESS);
+        templateRet.setMessage("获取成功");
         return  templateRet;
     }
 
@@ -371,6 +426,5 @@ public class ShippingTemplatesSellerAction {
             this.data = data;
         }
     }
-
 
 }

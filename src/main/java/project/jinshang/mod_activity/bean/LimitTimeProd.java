@@ -35,6 +35,7 @@ public class LimitTimeProd implements Serializable{
 
     private BigDecimal normalprice;
 
+    private Integer sort;
 
     public Long getId() {
         return id;
@@ -154,5 +155,13 @@ public class LimitTimeProd implements Serializable{
 
     public void setNormalprice(BigDecimal normalprice) {
         this.normalprice = normalprice;
+    }
+
+    public Integer getSort() {
+        return sort;
+    }
+
+    public void setSort(Integer sort) {
+        this.sort = sort;
     }
 }

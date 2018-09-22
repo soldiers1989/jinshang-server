@@ -1,7 +1,6 @@
 package project.jinshang.mod_techplatform;
 
 import com.github.pagehelper.PageInfo;
-import com.netflix.discovery.converters.Auto;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -14,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import project.jinshang.common.bean.Page;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.Quantity;
+import project.jinshang.common.utils.GenerateNo;
 import project.jinshang.common.utils.MD5Tools;
 import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_company.bean.SellerCompanyInfo;
@@ -22,6 +22,7 @@ import project.jinshang.mod_company.bean.Store;
 import project.jinshang.mod_company.service.SellerCompanyInfoService;
 import project.jinshang.mod_company.service.StoreService;
 import project.jinshang.mod_product.bean.*;
+import project.jinshang.mod_product.service.LogisticsInfoService;
 import project.jinshang.mod_product.service.OrdersService;
 import project.jinshang.mod_product.service.ProductStoreService;
 
@@ -50,6 +51,8 @@ public class ApiTecPlatformAction {
     public ProductStoreService productStoreService;
     @Autowired
     public StoreService storeService;
+    @Autowired
+    private LogisticsInfoService logisticsInfoService;
 
     @RequestMapping(value = "/jinshang",method = {RequestMethod.POST,RequestMethod.GET})
     @ApiOperation(value = "调用主入口")
@@ -75,13 +78,13 @@ public class ApiTecPlatformAction {
             SellerCompanyInfoExample example=new SellerCompanyInfoExample();
             SellerCompanyInfoExample.Criteria criteria=example.createCriteria();
             criteria.andAppidEqualTo(appId);
-//            List<SellerCompanyInfo> sellerCompanyInfoList=sellerCompanyInfoService.selectByExample(example);
-//            开始调用库存同步共用方法
-//            BasicRet basicRet1=productStoreService.stockSynCom(sellerCompanyInfoList.get(0).getMemberid());
+            List<SellerCompanyInfo> sellerCompanyInfoList=sellerCompanyInfoService.selectByExample(example);
+            //开始调用库存同步共用方法
+            BasicRet basicRet1=productStoreService.stockSynCom(sellerCompanyInfoList.get(0).getMemberid());
             apiTecRet.setStatus("success");
             apiTecRet.setType(DockType.JS005.getType());
-//            apiTecRet.setErrcode(basicRet1.getResult());
-//            apiTecRet.setErrdesc(basicRet1.getMessage());
+            apiTecRet.setErrcode(basicRet1.getResult());
+            apiTecRet.setErrdesc(basicRet1.getMessage());
             //不清楚这个timestamp的值怎么获取
             apiTecRet.setTimestamp(System.currentTimeMillis());
             return apiTecRet;
@@ -110,8 +113,17 @@ public class ApiTecPlatformAction {
         String logisticscompany= (String) paraMap.get("logisticscompany");
         String couriernumber= (String) paraMap.get("couriernumber");
         order.setOrderstatus(transorderstatus);
-        order.setLogisticscompany(logisticscompany);
-        order.setCouriernumber(couriernumber);
+        //order.setLogisticscompany(logisticscompany);
+        //order.setCouriernumber(couriernumber);
+        LogisticsInfo logisticsInfo = logisticsInfoService.selectLogisticsInfoByOrderNoAndTime(orderNo);
+        logisticsInfo.setLogisticscompany(logisticscompany);
+        logisticsInfo.setCouriernumber(couriernumber);
+        //todo 没有中间件管理平台好像没有启用 当前2个字段暂时不处理
+       /* logisticsInfo.setTime(new Date());
+        logisticsInfo.setDeliveryno(GenerateNo.getInvoiceNo());*/
+        logisticsInfoService.updateLogisticsInfo(logisticsInfo);
+
+
         ordersService.updateByExampleSelective(order,ordersExample);
         apiTecRet.setStatus("success");
         apiTecRet.setType(DockType.JS002.getType());
@@ -137,17 +149,17 @@ public class ApiTecPlatformAction {
         SellerCompanyInfoExample example=new SellerCompanyInfoExample();
         SellerCompanyInfoExample.Criteria criteria=example.createCriteria();
         criteria.andAppidEqualTo(appId);
-//        List<SellerCompanyInfo> sellerCompanyInfoList=sellerCompanyInfoService.selectByExample(example);
-//        String appSecret=sellerCompanyInfoList.get(0).getAppsecret();
-//        String checkNotify=MD5Tools.MD5(appId+appSecret+timeStamp);
+        List<SellerCompanyInfo> sellerCompanyInfoList=sellerCompanyInfoService.selectByExample(example);
+        String appSecret=sellerCompanyInfoList.get(0).getAppsecret();
+        String checkNotify=MD5Tools.MD5(appId+appSecret+timeStamp);
         String notify=(String)param.get("notify");
-//        if (StringUtils.hasText(checkNotify)&&StringUtils.hasText(notify)&&checkNotify.equals(notify)){
+        if (StringUtils.hasText(checkNotify)&&StringUtils.hasText(notify)&&checkNotify.equals(notify)){
             return basicRet;
-//        }else{
-//            basicRet.setMessage("校验不通过！");
-//            basicRet.setResult(BasicRet.TOKEN_ERR);
-//            return basicRet;
-//        }
+        }else{
+            basicRet.setMessage("校验不通过！");
+            basicRet.setResult(BasicRet.TOKEN_ERR);
+            return basicRet;
+        }
     }
 
 

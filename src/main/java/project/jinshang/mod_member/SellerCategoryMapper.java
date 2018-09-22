@@ -62,7 +62,6 @@ public interface SellerCategoryMapper {
 
 
     @Select("select sellerid  from  sellercategory GROUP BY sellerid")
-    @Cacheable(value = "SellerCategoriesCache",key = "'project.jinshang.mod_member.SellerCategoryMapper.getSellerIdGroupBy'")
     List<Long> getSellerIdGroupBy();
 
 }

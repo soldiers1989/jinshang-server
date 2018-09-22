@@ -9,23 +9,23 @@ import io.swagger.annotations.ApiOperation;
 import mizuki.project.core.restserver.config.BasicRet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.util.ResourceUtils;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
+import project.jinshang.common.bean.AdminLogOperator;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.utils.CommonUtils;
 import project.jinshang.common.utils.GenerateNo;
-import project.jinshang.common.utils.ProductCategoryUtils;
-import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_admin.mod_upload.ProductBatchImport;
 import project.jinshang.mod_admin.mod_upload.ProductStoreModel;
+import project.jinshang.mod_member.bean.Admin;
 import project.jinshang.mod_product.bean.*;
 import project.jinshang.mod_product.bean.dto.AttributetblDto1;
 import project.jinshang.mod_product.service.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -59,7 +59,8 @@ public class ProductsManageAction {
     @Autowired
     private  ProductsService productsService;
 
-
+    @Autowired
+    private AdminOperateLogService adminOperateLogService;
     @Autowired
     private  ProductInfoService productInfoService;
 
@@ -74,7 +75,7 @@ public class ProductsManageAction {
     @Autowired
     private  Gson gson;
 
-
+    AdminLogOperator adminLogOperator =new AdminLogOperator();
     @Value("${upload.dir.moduleIcon}")
     private  String uploadPath;
 
@@ -102,7 +103,7 @@ public class ProductsManageAction {
 
     @RequestMapping(value = "/delete",method = RequestMethod.POST)
     @ApiOperation("删除紧固件产品库")
-    public  BasicRet delete(long id){
+    public  BasicRet delete(long id, Model model, HttpServletRequest request){
         BasicRet basicRet =  new BasicRet();
 
         ProductInfoExample example =new ProductInfoExample();
@@ -114,10 +115,12 @@ public class ProductsManageAction {
             basicRet.setResult(BasicRet.ERR);
             return  basicRet;
         }
-
+        Products products = productsService.getById(id);
         productsService.deleteById(id);
         basicRet.setMessage("删除成功");
         basicRet.setResult(BasicRet.SUCCESS);
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        adminLogOperator.saveAdminLog(admin,"删除紧固件产品["+products.getProductname()+"]",(short)2,"products",request,adminOperateLogService);
         return  basicRet;
     }
 
@@ -161,7 +164,8 @@ public class ProductsManageAction {
             @RequestParam(required = false,defaultValue = "") String pddes,
             @RequestParam(required = true) String[] pdpicture,  //商品图片
             @RequestParam(required = false) String[] pddrawing,  //商品图纸
-            @RequestParam(required = true) String attribute
+            @RequestParam(required = true) String attribute,
+            Model model, HttpServletRequest request
 
     ){
         BasicRet basicRet =  new BasicRet();
@@ -338,9 +342,48 @@ public class ProductsManageAction {
         //修改图片
         productInfoService.updateImgByProductsno(products);
 
+        //根据要修改的id 去查询是否productinfo里面是否为pdstate为5 已下架才去更新
+        List<ProductInfo> productInfoList = productInfoService.getProductInfoByProductId(id);
+        for (ProductInfo productInfo:productInfoList) {
+            if(productInfo.getPdstate() == Quantity.STATE_5){
+                ProductInfo updateProductInfo = new ProductInfo();
+                updateProductInfo.setId(productInfo.getId());
+                updateProductInfo.setLevel1(products.getLevel1());
+                updateProductInfo.setLevel1id(products.getLevel1id());
+                updateProductInfo.setLevel2(products.getLevel2());
+                updateProductInfo.setLevel2id(products.getLevel2id());
+                updateProductInfo.setLevel3(products.getLevel3());
+                updateProductInfo.setLevel3id(products.getLevel3id());
+                updateProductInfo.setProductname(productName.getName());
+                updateProductInfo.setProductnameid(productnameid);
+                updateProductInfo.setProductalias(productalias);
+                updateProductInfo.setBrand(brand.getName());
+                updateProductInfo.setBrandid((long)brandid);
+                updateProductInfo.setMaterial(material.getName());
+                updateProductInfo.setMaterialid(materialid);
+                updateProductInfo.setCardnum(cardNum.getName());
+                updateProductInfo.setCardnumid(cardnumid);
+                updateProductInfo.setMark(mark);
+                updateProductInfo.setUnit(unit);
+                updateProductInfo.setSurfacetreatment(surfacetreatment);
+                updateProductInfo.setPackagetype(packagetype);
+                updateProductInfo.setWeight(weight);
+                updateProductInfo.setPddes(pddes);
+                updateProductInfo.setPddrawing(pddrawing);
+                updateProductInfo.setPdpicture(pdpicture);
+                updateProductInfo.setCreatetime(new Date());
+                updateProductInfo.setStand(stand);
+                productInfoService.updateByPrimaryKeySelective(updateProductInfo);
+            }
+
+        }
+
 
         basicRet.setMessage("更新成功");
         basicRet.setResult(BasicRet.SUCCESS);
+        //日志
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        adminLogOperator.saveAdminLog(admin,"修改紧固件产品["+products.getProductname()+"]",(short)3,"products",request,adminOperateLogService);
         return basicRet;
     }
 
@@ -383,7 +426,8 @@ public class ProductsManageAction {
             @RequestParam(required = false,defaultValue = "") String pddes,
             @RequestParam(required = true) String[] pdpicture,  //商品图片
             @RequestParam(required = false) String[] pddrawing,  //商品图纸
-            @RequestParam(required = true) String attribute
+            @RequestParam(required = true) String attribute,
+            Model model,HttpServletRequest request
             ){
         BasicRet basicRet =  new BasicRet();
 
@@ -565,6 +609,8 @@ public class ProductsManageAction {
         productsService.insertSelective(products);
         basicRet.setMessage("添加成功");
         basicRet.setResult(BasicRet.SUCCESS);
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        adminLogOperator.saveAdminLog(admin,"新增紧固件产品["+products.getProductname()+"]",(short)1,"products",request,adminOperateLogService);
         return basicRet;
     }
 
@@ -600,7 +646,7 @@ public class ProductsManageAction {
 
     @PostMapping("/mould/addProducts")
     @ApiOperation("excel导入紧固件商品库")
-    public synchronized BasicRet addProductsByMould(@RequestParam("file") CommonsMultipartFile file) throws Exception {
+    public synchronized BasicRet addProductsByMould(@RequestParam("file") CommonsMultipartFile file,Model model,HttpServletRequest request) throws Exception {
         if(!file.getOriginalFilename().endsWith(".xlsx") && !file.getOriginalFilename().endsWith(".xls")){
             return  new BasicRet(BasicRet.ERR,"请上传Excel文件");
         }
@@ -713,11 +759,12 @@ public class ProductsManageAction {
                     Attr attr =  new Attr();
                     attr.setAttribute(aArr[0]);
                     attr.setValue(aArr[1]);
+
+                    this.checkValue(attr);
                     prodAttrList.add(attr);
                 }
 
 //                [{"attributeid":191,"attribute":"尺寸","value":"M6"},{"attributeid":192,"attribute":"长度","value":"60"}]
-
                 List<AttributetblDto1> attributetblList = attributetblService.getAttributeByProdnameid(products.getProductnameid());
 
                 for(AttributetblDto1 attributetbl : attributetblList){
@@ -795,6 +842,10 @@ public class ProductsManageAction {
 
         Set<String> keySet = new HashSet<>();
         for(Products p : productsList){
+            if(keySet.contains(p.getProdstr())){
+                System.out.println(p.getProdstr());
+            }
+
             keySet.add(p.getProdstr());
         }
 
@@ -826,7 +877,8 @@ public class ProductsManageAction {
                 productsService.insertSelective(products);
             }
         }
-
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        adminLogOperator.saveAdminLog(admin,"批量导入紧固件产品",(short)1,"products",request,adminOperateLogService);
         return  new BasicRet(BasicRet.SUCCESS,"导入成功");
     }
 
@@ -898,5 +950,32 @@ public class ProductsManageAction {
 //    public static void main(String[] args) {
 //        System.out.println(System.currentTimeMillis());
 //    }
+
+
+    /**
+     * 处理属性数据
+     * @param attribute
+     */
+    private void checkValue(Attr attribute){
+        String attv = attribute.getValue();
+        if(attribute.getAttribute().equals("公称直径")) {
+            if (attribute.getValue().startsWith("#")) {
+                attv = attv.substring(1, attv.length()) + "#";
+                attribute.setValue(attv);
+            }else if(attv.endsWith("\"") || attv.endsWith("″")){
+                attv = attv.substring(0, attv.length()-1);
+                attribute.setValue(attv);
+            }else if(attv.startsWith("φ") || attv.startsWith("∮")){
+                attv = "Ф"+attv.substring(1, attv.length());
+                attribute.setValue(attv);
+            }
+        }else if(attribute.getAttribute().equals("长度")){
+            if(attv.endsWith("\"") || attv.endsWith("″")) {
+                attv = attv.substring(0, attv.length() - 1);
+                attribute.setValue(attv);
+            }
+        }
+    }
+
 
 }

@@ -674,6 +674,66 @@ public class AreaCostExample {
             addCriterion("selectarea not between", value1, value2, "selectarea");
             return (Criteria) this;
         }
+
+        public Criteria andDefaultfreepriceIsNull() {
+            addCriterion("defaultfreeprice is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDefaultfreepriceIsNotNull() {
+            addCriterion("defaultfreeprice is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDefaultfreepriceEqualTo(BigDecimal value) {
+            addCriterion("defaultfreeprice =", value, "defaultfreeprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDefaultfreepriceNotEqualTo(BigDecimal value) {
+            addCriterion("defaultfreeprice <>", value, "defaultfreeprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDefaultfreepriceGreaterThan(BigDecimal value) {
+            addCriterion("defaultfreeprice >", value, "defaultfreeprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDefaultfreepriceGreaterThanOrEqualTo(BigDecimal value) {
+            addCriterion("defaultfreeprice >=", value, "defaultfreeprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDefaultfreepriceLessThan(BigDecimal value) {
+            addCriterion("defaultfreeprice <", value, "defaultfreeprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDefaultfreepriceLessThanOrEqualTo(BigDecimal value) {
+            addCriterion("defaultfreeprice <=", value, "defaultfreeprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDefaultfreepriceIn(List<BigDecimal> values) {
+            addCriterion("defaultfreeprice in", values, "defaultfreeprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDefaultfreepriceNotIn(List<BigDecimal> values) {
+            addCriterion("defaultfreeprice not in", values, "defaultfreeprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDefaultfreepriceBetween(BigDecimal value1, BigDecimal value2) {
+            addCriterion("defaultfreeprice between", value1, value2, "defaultfreeprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDefaultfreepriceNotBetween(BigDecimal value1, BigDecimal value2) {
+            addCriterion("defaultfreeprice not between", value1, value2, "defaultfreeprice");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

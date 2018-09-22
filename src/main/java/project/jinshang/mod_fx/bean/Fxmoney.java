@@ -1,5 +1,7 @@
 package project.jinshang.mod_fx.bean;
 
+import io.swagger.annotations.ApiModelProperty;
+
 import java.math.BigDecimal;
 
 /**
@@ -10,19 +12,14 @@ import java.math.BigDecimal;
  * @date 2018-05-05
  */
 public class Fxmoney {
-    /**
-     * ID自增
-     */
+
+    @ApiModelProperty("ID自增")
     private Long id;
 
-    /**
-     * 买家ID
-     */
+    @ApiModelProperty("买家ID")
     private Long memberid;
 
-    /**
-     * 佣金余额
-     */
+    @ApiModelProperty("佣金余额")
     private BigDecimal moneytotal;
 
     public Long getId() {

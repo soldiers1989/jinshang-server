@@ -7,6 +7,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.types.Expiration;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 import org.springframework.stereotype.Component;
@@ -39,6 +40,27 @@ public class RedisUtils {
         });
         return result;
     }
+
+    /**
+     *设置key-value对，并设置expireTime,单位秒
+     * @author xiazy
+     * @date  2018/6/16 16:21
+     * @param key
+     * @param value
+     * @return boolean
+     */
+    public boolean set(final String key, final String value,Expiration expiration) {
+        boolean result = (boolean) redisTemplate.execute(new RedisCallback<Boolean>() {
+            @Override
+            public Boolean doInRedis(RedisConnection connection) throws DataAccessException {
+                RedisSerializer<String> serializer = redisTemplate.getStringSerializer();
+                connection.set(serializer.serialize(key), serializer.serialize(value),expiration,null);
+                return true;
+            }
+        });
+        return result;
+    }
+
 
 
     public String get(final String key){

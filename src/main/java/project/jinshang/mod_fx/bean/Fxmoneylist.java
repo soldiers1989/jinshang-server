@@ -1,54 +1,41 @@
 package project.jinshang.mod_fx.bean;
 
+import io.swagger.annotations.ApiModelProperty;
+
 import java.math.BigDecimal;
 import java.util.Date;
 
 /**
  * null
  * 
- * @author wcyong
+ * @author zzy
  * 
  * @date 2018-05-05
  */
 public class Fxmoneylist {
-    /**
-     * ID自增
-     */
+
+    @ApiModelProperty("ID自增")
     private Long id;
 
-    /**
-     * 买家ID
-     */
+    @ApiModelProperty("买家ID")
     private Long memberid;
 
-    /**
-     * 类型1：佣金入账2：佣金使用
-     */
+    @ApiModelProperty("类型1：佣金入账2：佣金使用")
     private Long listtype;
 
-    /**
-     * 备注
-     */
+    @ApiModelProperty("备注")
     private String listtext;
 
-    /**
-     * 变动数量
-     */
+    @ApiModelProperty("变动数量")
     private BigDecimal moneynum;
 
-    /**
-     * 佣金余额
-     */
+    @ApiModelProperty("佣金余额")
     private BigDecimal moneytotal;
 
-    /**
-     * 已使用佣金总额
-     */
+    @ApiModelProperty("已使用佣金总额")
     private BigDecimal moneyprocessed;
 
-    /**
-     * 记录时间
-     */
+    @ApiModelProperty("记录时间")
     private Date createtime;
 
     public Long getId() {

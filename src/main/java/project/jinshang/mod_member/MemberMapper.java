@@ -6,7 +6,6 @@ import org.apache.ibatis.annotations.SelectProvider;
 import org.apache.ibatis.annotations.Update;
 import org.apache.ibatis.jdbc.SQL;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_admin.mod_count.bean.MemberQueryParam;
 import project.jinshang.mod_admin.mod_count.bean.MemberStatistcModel;
@@ -14,6 +13,7 @@ import project.jinshang.mod_member.bean.Member;
 import project.jinshang.mod_member.bean.MemberExample;
 import project.jinshang.mod_member.bean.dto.MemberAdminQueryDto;
 import project.jinshang.mod_member.bean.dto.MemberAdminViewDto;
+import project.jinshang.mod_member.bean.dto.MemberDto;
 import project.jinshang.mod_member.provider.MemberProvider;
 import project.jinshang.mod_server.bean.ServerPageModel;
 import project.jinshang.mod_server.bean.ServerQueryParam;
@@ -38,7 +38,7 @@ public interface MemberMapper {
 
     List<Member> selectByExample(MemberExample example);
 
-    @Cacheable(value = "jinshang-member",key = "'jinshang-member-selectByPrimaryKey-id:'+#p0")
+    //    @Cacheable(value = "jinshang-member",key = "'jinshang-member-selectByPrimaryKey-id:'+#p0")
     Member selectByPrimaryKey(Long id);
 
     @CacheEvict(value = {"jinshang-member"},allEntries = true)
@@ -55,11 +55,11 @@ public interface MemberMapper {
 
 
     @Select("select * from member where parentid=#{parentid} and userName=#{subUsername} and flag=false limit 1")
-    Member getSubMember(@Param("parentid") Long parentid,@Param("subUsername") String subUsername);
+    Member getSubMember(@Param("parentid") Long parentid, @Param("subUsername") String subUsername);
 
 
     @Select("select count(*) from member where parentname=#{parentUsername} and username=#{subUsername}")
-    int queryExisSubAccount(@Param("parentUsername") String parentUsername,@Param("subUsername") String subUsername);
+    int queryExisSubAccount(@Param("parentUsername") String parentUsername, @Param("subUsername") String subUsername);
 
 
     @Select("select sellerbanlance,sellerfreezebanlance from member where id=#{id}")
@@ -75,17 +75,17 @@ public interface MemberMapper {
 
     @CacheEvict(value = {"jinshang-member"},key ="'jinshang-member-selectByPrimaryKey-id:'+#p0")
     @Update("update member set sellerbanlance=sellerbanlance + #{sellerBalance},sellerfreezebanlance=sellerfreezebanlance + #{sellerfreezebanlance} where id=#{id}")
-    int updateSellerMemberBalanceInDb(@Param("id") long id,@Param("sellerBalance") BigDecimal sellerBalance,@Param("sellerfreezebanlance") BigDecimal sellerfreezebanlance);
+    int updateSellerMemberBalanceInDb(@Param("id") long id, @Param("sellerBalance") BigDecimal sellerBalance, @Param("sellerfreezebanlance") BigDecimal sellerfreezebanlance);
 
 
     @CacheEvict(value = {"jinshang-member"},key ="'jinshang-member-selectByPrimaryKey-id:'+#p0")
     @Update("update member set goodsbanlance= goodsbanlance + #{goodsbalance} where id=#{id}")
-    int  updateSellerMemberGoodsBalanceInDb(@Param("id") long id,@Param("goodsbalance") BigDecimal goodsbalance);
+    int  updateSellerMemberGoodsBalanceInDb(@Param("id") long id, @Param("goodsbalance") BigDecimal goodsbalance);
 
 
     @CacheEvict(value = {"jinshang-member"},key ="'jinshang-member-selectByPrimaryKey-id:'+#p0")
     @Update("update member set integrals= integrals + #{integrals},availableintegral=availableintegral + #{availableintegral} where id=#{id}")
-    int updateIntegralInDb(@Param("id") long id,@Param("integrals") BigDecimal integrals, @Param("availableintegral") BigDecimal availableintegral);
+    int updateIntegralInDb(@Param("id") long id, @Param("integrals") BigDecimal integrals, @Param("availableintegral") BigDecimal availableintegral);
 
 
 //    @CacheEvict(value = {"jinshang-member"},key ="'jinshang-member-selectByPrimaryKey-id:'+#p0")
@@ -95,12 +95,12 @@ public interface MemberMapper {
 
     @CacheEvict(value = {"jinshang-member"},key ="'jinshang-member-selectByPrimaryKey-id:'+#p0")
     @Update("update member set balance=balance + #{balance} where id=#{id}")
-    int updateBuyerMemberBalanceInDb(@Param("id") long id,@Param("balance") BigDecimal balance);
+    int updateBuyerMemberBalanceInDb(@Param("id") long id, @Param("balance") BigDecimal balance);
 
 
     @CacheEvict(value = {"jinshang-member"},key ="'jinshang-member-selectByPrimaryKey-id:'+#p0")
     @Update("update member set usedlimit=usedlimit + #{usedlimit},availablelimit=availablelimit + #{availablelimit} where id=#{id}")
-    int updateBuyerMemberCreditBalanceInDb(@Param("id") long id,@Param("usedlimit") BigDecimal usedlimit,@Param("availablelimit") BigDecimal availablelimit);
+    int updateBuyerMemberCreditBalanceInDb(@Param("id") long id, @Param("usedlimit") BigDecimal usedlimit, @Param("availablelimit") BigDecimal availablelimit);
 
 
     /**
@@ -115,12 +115,12 @@ public interface MemberMapper {
     @CacheEvict(value = {"jinshang-member"},key ="'jinshang-member-selectByPrimaryKey-id:'+#p0")
     @Update("update member set sellerbanlance=sellerbanlance + #{sellerbanlance},sellerfreezebanlance=sellerfreezebanlance + #{sellerfreezebanlance}," +
             "goodsbanlance=goodsbanlance + #{goodsbanlance},billmoney=billmoney + #{billmoney} where id=#{id}")
-    int updateSellerMemberBalanceInDb2(@Param("id") long id,@Param("sellerbanlance") BigDecimal sellerbanlance,@Param("sellerfreezebanlance") BigDecimal sellerfreezebanlance,
-                                      @Param("goodsbanlance") BigDecimal goodsbanlance,@Param("billmoney") BigDecimal billmoney);
+    int updateSellerMemberBalanceInDb2(@Param("id") long id, @Param("sellerbanlance") BigDecimal sellerbanlance, @Param("sellerfreezebanlance") BigDecimal sellerfreezebanlance,
+                                       @Param("goodsbanlance") BigDecimal goodsbanlance, @Param("billmoney") BigDecimal billmoney);
 
 
     @SelectProvider(type = MemberProvider.class,method = "adminList")
-    List<MemberAdminViewDto> adminListMemberInfo(@Param("dto")MemberAdminQueryDto dto);
+    List<MemberAdminViewDto> adminListMemberInfo(@Param("adminrealname")String adminrealname,@Param("dto") MemberAdminQueryDto dto);
 
 
     /**
@@ -129,9 +129,15 @@ public interface MemberMapper {
      * @return
      */
     @SelectProvider(type = MemberProvider.class,method = "adminListForExcelExport")
-    List<Map<String,Object>> adminListMemberInfoForExcelExport(@Param("dto")MemberAdminQueryDto dto);
+    List<Map<String,Object>> adminListMemberInfoForExcelExport(@Param("adminrealname")String adminrealname,@Param("dto") MemberAdminQueryDto dto);
 
-
+    /**
+     * 后台导出会员Excel 统计会员总数
+     * @param dto
+     * @return
+     */
+    /*@SelectProvider(type = MemberProvider.class,method = "getAdminCount")
+    long getAdminCount(@Param("dto")MemberAdminQueryDto dto);*/
 
 
     /**
@@ -142,7 +148,7 @@ public interface MemberMapper {
      */
     @CacheEvict(value = {"jinshang-member"},key ="'jinshang-member-selectByPrimaryKey-id:'+#p0")
     @Update("update member set balance=balance-#{balance},usedlimit=usedlimit-#{balance},availablelimit=availablelimit+#{balance} where id=#{id}")
-    int creditRepayment(@Param("id") long id,@Param("balance") BigDecimal balance);
+    int creditRepayment(@Param("id") long id, @Param("balance") BigDecimal balance);
 
 
     @Select("select m.*,g.groupname from member m left join sellergroup g on m.sellergroupid=g.id where m.parentid=#{parentid} ")
@@ -156,7 +162,7 @@ public interface MemberMapper {
      * @param param
      * @return
      */
-    @SelectProvider(type = MemberMapper.StatisProvider.class, method = "queryMemberRegisterByParam")
+    @SelectProvider(type = StatisProvider.class, method = "queryMemberRegisterByParam")
     List<MemberStatistcModel> getMemberRegisterStatistic(MemberQueryParam param);
 
 
@@ -192,7 +198,7 @@ public interface MemberMapper {
     }
 
 
-    @SelectProvider(type = MemberMapper.MemberServerProvider.class,method = "queryMemberServer")
+    @SelectProvider(type = MemberServerProvider.class,method = "queryMemberServer")
     List<ServerPageModel> getMemberServerList(ServerQueryParam param);
 
     public class MemberServerProvider{
@@ -214,7 +220,8 @@ public interface MemberMapper {
             if(StringUtils.hasText(param.getCompanyname())){
                 String companyname = "%"+param.getCompanyname()+"%";
                 param.setCompanyname(companyname);
-                sql.WHERE("case when bcinfo.companyname is null then meb.realname like #{companyname} ELSE bcinfo.companyname like #{companyname} end");
+                //sql.WHERE("case when bcinfo.companyname is null then meb.realname like #{companyname} ELSE bcinfo.companyname like #{companyname} end");
+                sql.WHERE("(bcinfo.companyname like #{companyname} or meb.realname like #{companyname} or meb.username like #{companyname})");
             }
 
             if(StringUtils.hasText(param.getMobile())){
@@ -251,7 +258,7 @@ public interface MemberMapper {
             "from \"member\" m1 where flag=TRUE and " +
             "createdate>=#{startDate} and createdate<=#{endDate} group by to_char(createdate,'YYYY-MM-DD') \n" +
             ") as t1 ORDER BY registerday asc")
-    List<Map<String,Object>> getRegisterRate(@Param("startDate") Date startDate,@Param("endDate") Date endDate);
+    List<Map<String,Object>> getRegisterRate(@Param("startDate") Date startDate, @Param("endDate") Date endDate);
 
 
 
@@ -267,7 +274,7 @@ public interface MemberMapper {
      * 显示会员列表 真实姓名和用户名
      * @return
      */
-    @Select("<script>select m.id,m.realname,m.username " +
+    @Select("<script>select m.id,m.realname,m.username,m.mobile " +
             "from member m " +
             "<where> 1=1 " +
             "</where> order by m.id desc" +
@@ -275,23 +282,162 @@ public interface MemberMapper {
     List<Map<String,Object>> findAllMemberList();
 
 
-    @Select("<script>SELECT m.id,m.username,m.realname,b.companyname,m.mobile,m.clerkname  FROM  member m left join buyercompanyinfo b on m.id=b.memberid where 1=1 " +
+    /**
+     * 三级分销邀请人列表
+     * @param memberDto
+     * @return
+     */
+    @Select("<script>select m.id,m.realname,m.username,m.gradleid,m.invitecode,m.nick,m.invitecode,m.inviterid,m.isbuy,m.telephone,g.gradename,m.company " +
+            "from member m " +
+            "left join membergrade g on g.id = m.gradleid " +
+            "<where> 1=1 " +
+            "<if test=\"memberDto.id != null  \">and m.id = #{memberDto.id} </if>" +
+            "<if test=\"memberDto.username != null  \">and m.username LIKE '%${memberDto.username}%'</if>" +
+            "<if test=\"memberDto.realname != null  \">and m.realname LIKE '%${memberDto.realname}%'</if>" +
+            "<if test=\"memberDto.clerkname != null  \">and m.clerkname LIKE '%${memberDto.clerkname}%'</if>" +
+            "<if test=\"memberDto.mobile != null  \">and m.mobile LIKE '%${memberDto.mobile}%'</if>" +
+            "<if test=\"memberDto.registDateStart != null \">and m.createdate &gt;= #{memberDto.registDateStart} </if>" +
+            "<if test=\"memberDto.registDateEnd != null \">and m.createdate &lt;= #{memberDto.registDateEnd} </if>" +
+            "<if test=\"memberDto.loginDateStart != null \">and m.lastlogindate &gt;= #{memberDto.loginDateStart} </if>" +
+            "<if test=\"memberDto.loginDateEnd != null \">and m.lastlogindate &lt;= #{memberDto.loginDateEnd} </if>" +
+            "<if test=\"memberDto.labelid != null \">and m.labelid = #{memberDto.labelid} </if>" +
+            "<if test=\"memberDto.gradleid != null \">and m.gradleid = #{memberDto.gradleid} </if>" +
+            "<if test=\"memberDto.isbuy != null \">and m.isbuy = #{memberDto.isbuy} </if>" +
+            "<if test=\"memberDto.invitecode != null \">and m.invitecode = #{memberDto.invitecode} </if>" +
+            "<if test=\"flag == 1 and flag != null \">and m.company = true </if>" +
+            "<if test=\"flag == 2 and flag != null  \">and m.company = false </if>" +
+            "</where> order by m.id desc" +
+            "</script>")
+    List<MemberDto> selectInverterList(@Param("memberDto") MemberDto memberDto,@Param("flag") long flag);
+
+
+
+    /**
+     * 三级分销邀请人列表for excel导出
+     * @param memberDto
+     * @return
+     */
+    @Select("<script>select m.id,m.realname,m.username,m.gradleid,m.invitecode,m.nick,m.invitecode,m.inviterid,m.isbuy,m.telephone,g.gradename " +
+            "from member m " +
+            "left join membergrade g on g.id = m.gradleid " +
+            "<where> 1=1 " +
+            "<if test=\"memberDto.id != null  \">and m.id = #{memberDto.id} </if>" +
+            "<if test=\"memberDto.username != null  \">and m.username LIKE '%${memberDto.username}%'</if>" +
+            "<if test=\"memberDto.realname != null  \">and m.realname LIKE '%${memberDto.realname}%'</if>" +
+            "<if test=\"memberDto.clerkname != null  \">and m.clerkname LIKE '%${memberDto.clerkname}%'</if>" +
+            "<if test=\"memberDto.mobile != null  \">and m.mobile LIKE '%${memberDto.mobile}%'</if>" +
+            "<if test=\"memberDto.registDateStart != null \">and m.createdate &gt;= #{memberDto.registDateStart} </if>" +
+            "<if test=\"memberDto.registDateEnd != null \">and m.createdate &lt;= #{memberDto.registDateEnd} </if>" +
+            "<if test=\"memberDto.loginDateStart != null \">and m.lastlogindate &gt;= #{memberDto.loginDateStart} </if>" +
+            "<if test=\"memberDto.loginDateEnd != null \">and m.lastlogindate &lt;= #{memberDto.loginDateEnd} </if>" +
+            "<if test=\"memberDto.labelid != null \">and m.labelid = #{memberDto.labelid} </if>" +
+            "<if test=\"memberDto.gradleid != null \">and m.gradleid = #{memberDto.gradleid} </if>" +
+            "<if test=\"memberDto.isbuy != null \">and m.isbuy = #{memberDto.isbuy} </if>" +
+            "<if test=\"memberDto.invitecode != null \">and m.invitecode = #{memberDto.invitecode} </if>" +
+            "</where> order by m.id desc" +
+            "</script>")
+    List<Map<String,Object>> selectInverterList1(@Param("memberDto") MemberDto memberDto);
+
+    @Select("<script>select count(0) " +
+            "from member m " +
+            "<where> 1=1 " +
+            "<if test=\"inviterid != null \">and m.inviterid = #{inviterid} </if>" +
+            "</where> order by m.id desc" +
+            "</script>")
+    int selectCountByInviterId(@Param("inviterid") long inviterid);
+
+
+
+    @Select("<script>select m.id,m.username,m.realname,m.clerkname,m.mobile,m.labelid,m.gradleid " +
+            "from member m " +
+            "<where> 1=1 " +
+            "<if test=\"inviterid != null \">and m.inviterid = #{inviterid} </if>" +
+            "</where> order by m.id desc" +
+            "</script>")
+    List<Member> selectFirstInviters(@Param("inviterid") long inviterid);
+
+    @Select("<script>select m.id,m.username,m.realname,m.clerkname,m.mobile,m.labelid,m.gradleid " +
+            "from member m " +
+            "<where> 1=1 " +
+            "<if test=\"inviterid != null \">and m.inviterid = #{inviterid} </if>" +
+            "</where> order by m.id desc" +
+            "</script>")
+    List<Map<String,Object>> selectFirstInviters1(@Param("inviterid") long inviterid);
+
+    @Select("<script>select m.id,m.username,m.realname,m.clerkname,m.mobile,m.labelid,m.gradleid " +
+            "from member m " +
+            "<where> 1=1 " +
+            "<if test=\"inviterid2 != null \">and m.inviterid2 = #{inviterid2} </if>" +
+            "</where> order by m.id desc" +
+            "</script>")
+    List<Member> selectSecondInviters(@Param("inviterid2")long inviterid2);
+
+    @Select("<script>select m.id,m.username,m.realname,m.clerkname,m.mobile,m.labelid,m.gradleid " +
+            "from member m " +
+            "<where> 1=1 " +
+            "<if test=\"inviterid2 != null \">and m.inviterid2 = #{inviterid2} </if>" +
+            "</where> order by m.id desc" +
+            "</script>")
+    List<Member> selectSecondInviters1(@Param("inviterid2")long inviterid2);
+
+    @Select("<script>select m.id,m.username,m.realname,m.mobile,m.invitecode,m.inviterid,m.createdate,g.gradename " +
+            "from member m " +
+            "left join membergrade g on g.id = m.gradleid " +
+            "<where> 1=1 " +
+            "<if test=\"type == 1 \">and m.inviterid = #{inviterid} </if>" +
+            "<if test=\"type ==2  \">and m.inviterid2 = #{inviterid} </if>" +
+            "</where> order by m.id desc" +
+            "</script>")
+    List<Map<String,Object>> getMemberByInviterid(@Param("inviterid") long inviterid,@Param("type") long type);
+
+
+    @Select("<script>SELECT m.id,m.username,m.realname,m.createdate,b.companyname,m.mobile,m.clerkname,m.labelname  FROM  member m left join buyercompanyinfo b on m.id=b.memberid where 1=1 " +
             "<if test='id != null and id != \"\" '>AND m.id=#{id}</if>"+
             "<if test='companyname != null and companyname != \"\"'>AND b.companyname LIKE CONCAT('%',#{companyname,jdbcType=VARCHAR},'%')</if>"+
             "<if test='realname != null and realname != \"\"'>AND m.realname LIKE CONCAT('%',#{realname,jdbcType=VARCHAR},'%')</if>"+
             "<if test='mobile != null and mobile != \"\"'>AND m.mobile LIKE CONCAT('%',#{mobile,jdbcType=VARCHAR},'%')</if>"+
+            "<if test='disStatus ==0 and disStatus !=null'>and (m.clerkname is null or m.clerkname = '') </if>"+
+            "<if test='disStatus ==1 and disStatus !=null'>and (m.clerkname  is not null and m.clerkname !='') </if>"+
+            " order by m.createdate desc"+
             "</script>")
-    List<MemberAdminViewDto> findNotAddMembers(@Param("id") Long id,@Param("companyname") String companyname,@Param("realname") String realname,@Param("mobile") String mobile);
+    List<MemberAdminViewDto> findNotAddMembers(@Param("id") Long id, @Param("companyname") String companyname,@Param("realname") String realname, @Param("mobile") String mobile,@Param("disStatus")Long disStatus);
 
-
-    @Select("<script>SELECT m.id,m.username,m.realname,b.companyname,m.mobile FROM  member m left join buyercompanyinfo b on m.id=b.memberid where 1=1 " +
+    @Select("<script>SELECT m.id,m.username,m.realname,m.createdate,b.companyname,m.mobile,m.clerkname,m.waysalesman,m.labelname  FROM  member m left join buyercompanyinfo b on m.id=b.memberid where 1=1 " +
             "<if test='id != null and id != \"\" '>AND m.id=#{id}</if>"+
             "<if test='companyname != null and companyname != \"\"'>AND b.companyname LIKE CONCAT('%',#{companyname,jdbcType=VARCHAR},'%')</if>"+
             "<if test='realname != null and realname != \"\"'>AND m.realname LIKE CONCAT('%',#{realname,jdbcType=VARCHAR},'%')</if>"+
             "<if test='mobile != null and mobile != \"\"'>AND m.mobile LIKE CONCAT('%',#{mobile,jdbcType=VARCHAR},'%')</if>"+
-            "and m.id IN(SELECT userid FROM adminuser where  adminid=#{adminid})"+
+            "<if test='labelname != null and labelname != \"\"'>AND m.labelname = #{labelname}</if>"+
+            "<if test='labelname == null or labelname == \"\"'>AND (m.labelname is null or m.labelname = '')</if>"+
+            "<if test='disStatus ==0 and disStatus !=null'>and (m.waysalesman is null or m.waysalesman = '') </if>"+
+            "<if test='disStatus ==1 and disStatus !=null'>and (m.waysalesman is not null and m.waysalesman !='')</if>"+
+            " order by m.createdate desc"+
             "</script>")
-    List<MemberAdminViewDto> findManageMemberList(@Param("id") Long id,@Param("companyname") String companyname,@Param("realname") String realname,@Param("mobile") String mobile,@Param("adminid") Long adminid);
+    List<MemberAdminViewDto> findNotAddWaysalesman(@Param("id") Long id, @Param("companyname") String companyname, @Param("realname") String realname, @Param("mobile") String mobile,@Param("labelname") String labelname,@Param("disStatus")Long disStatus);
+
+
+    @Select("<script>SELECT m.id,m.username,m.realname,m.createdate,b.companyname,m.mobile,m.labelname FROM  member m left join buyercompanyinfo b on m.id=b.memberid where 1=1 " +
+            "<if test='id != null and id != \"\" '>AND m.id=#{id}</if>"+
+            "<if test='companyname != null and companyname != \"\"'>AND b.companyname LIKE CONCAT('%',#{companyname,jdbcType=VARCHAR},'%')</if>"+
+            "<if test='clerkname != null and clerkname != \"\"'>AND m.clerkname LIKE CONCAT('%',#{clerkname,jdbcType=VARCHAR},'%')</if>"+
+            "<if test='realname != null and realname != \"\"'>AND m.realname LIKE CONCAT('%',#{realname,jdbcType=VARCHAR},'%')</if>"+
+            "<if test='mobile != null and mobile != \"\"'>AND m.mobile LIKE CONCAT('%',#{mobile,jdbcType=VARCHAR},'%')</if>"+
+            "</script>")
+    List<MemberAdminViewDto> findManageMemberList(@Param("id") Long id, @Param("companyname") String companyname, @Param("clerkname") String clerkname,@Param("realname")String realname, @Param("mobile") String mobile, @Param("adminid") Long adminid);
+
+
+    @Select("<script>SELECT m.id,m.username,m.realname,m.createdate,b.companyname,m.mobile,m.waysalesman,m.labelname FROM  member m left join buyercompanyinfo b on m.id=b.memberid where 1=1 " +
+            "<if test='id != null and id != \"\" '>AND m.id=#{id}</if>"+
+            "<if test='companyname != null and companyname != \"\"'>AND b.companyname LIKE CONCAT('%',#{companyname,jdbcType=VARCHAR},'%')</if>"+
+            "<if test='realname != null and realname != \"\"'>AND m.realname LIKE CONCAT('%',#{realname,jdbcType=VARCHAR},'%')</if>"+
+            "<if test='mobile != null and mobile != \"\"'>AND m.mobile LIKE CONCAT('%',#{mobile,jdbcType=VARCHAR},'%')</if>"+
+            "<if test='labelname != null and labelname != \"\"'>AND m.labelname LIKE CONCAT('%',#{labelname,jdbcType=VARCHAR},'%')</if>"+
+            "and m.id IN(SELECT userid FROM adminwaysalesman where  adminid=#{adminid})"+
+            "</script>")
+    List<MemberAdminViewDto> findManageWaysalesmanList(@Param("id") Long id, @Param("companyname") String companyname, @Param("realname") String realname, @Param("mobile") String mobile, @Param("adminid") Long adminid,@Param("labelname") String labelname);
+
+
+
 
 
     @Select("<script>SELECT DISTINCT BG.invoiceheadup,m.id,m.username,m.realname,b.companyname,m.mobile  FROM  member m left join buyercompanyinfo b on m.id=b.memberid LEFT JOIN billingrecord BG ON m.id=BG.memberid where 1=1 " +
@@ -301,12 +447,75 @@ public interface MemberMapper {
             "<if test='mobile != null and mobile != \"\"'>AND m.mobile LIKE CONCAT('%',#{mobile,jdbcType=VARCHAR},'%')</if>"+
             "<if test='invoiceheadup !=null and invoiceheadup != \"\"'>AND BG.invoiceheadup LIKE CONCAT('%',#{invoiceheadup,jdbcType=VARCHAR},'%')</if>"+
             "</script>")
-    List<Map<String,Object>> findMembersByFuzzy(@Param("username") String username,@Param("companyname") String companyname,@Param("realname") String realname,@Param("mobile") String mobile,@Param("invoiceheadup") String invoiceheadup);
+    List<Map<String,Object>> findMembersByFuzzy(@Param("username") String username, @Param("companyname") String companyname, @Param("realname") String realname, @Param("mobile") String mobile, @Param("invoiceheadup") String invoiceheadup);
 
     @Update("update member set clerkname=#{clerkname}where id=#{id}")
-    int  updateMemberClerknameByid(@Param("id") Long id,@Param("clerkname") String clerkname);
+    int  updateMemberClerknameByid(@Param("id") Long id, @Param("clerkname") String clerkname);
 
 
 
+    @Select("select * from member WHERE id=#{id}")
+    Member getMemberByid(@Param("id") Long id);
+
+
+    @Update("<script>update member  set inviterid2 = #{inviterid2} " +
+            "<where> 1=1 " +
+            "<if test=\"id != null \">and id = #{id} </if>" +
+            "</where> " +
+            "</script>")
+    void updateMemberInviterid2ById(@Param("id") Long id, @Param("inviterid2") Long inviterid2);
+
+
+    @Select("<script>select m.id,m.username,m.realname,m.clerkname,m.mobile,m.labelid,m.gradleid,m.nick,m.company,s.companyname,s.province,s.city,s.citysmall,s.address " +
+            "from member m " +
+            "left join sellercompanyinfo s on s.memberid = m.id " +
+            "<where> 1=1 " +
+            "<if test=\"username != null \">and (m.username like  '%${username}%' or  m.realname like '%${username}%') </if>" +
+            "<if test=\"id != null and id !=0 \">and m.id = #{id} </if>" +
+            "<if test=\"companyname != null  \">and s.companyname like  '%${companyname}%' </if>" +
+            "<if test=\"clerkname != null \"> and m.clerkname = #{clerkname}  </if>" +
+            "</where> order by m.id desc" +
+            "</script>")
+    List<Map<String,Object>> getMemberInfoByUserName(@Param("username") String username,@Param("clerkname") String clerkname,@Param("id") Long id,@Param("companyname")String companyname);
+
+
+
+
+
+    @Select({"<script>",
+            "select m.id from member m ",
+            "where m.invitecode in ",
+            "<foreach item='item' index='index' collection='invitecodeList'",
+            "open='(' separator=',' close=')'>",
+            "#{item}",
+            "</foreach>",
+            "</script>"
+    })
+    List<Member> getMemberByInvitecodes(@Param("invitecodeList") List invitecodeList);
+
+
+    @Select({"<script>",
+            "select m.id,m.username,m.realname,m.mobile,m.inviterid,m.inviterid2,m.invitecode from member m ",
+            "where m.inviterid in ",
+            "<foreach item='item' index='index' collection='ids'",
+            "open='(' separator=',' close=')'>",
+            "#{item}",
+            "</foreach>",
+            "</script>"
+    })
+    List<Member> getMemmberByIdsList(@Param("ids") long[] ids);
+
+    @Select("select m.* from member m where m.inviterid = #{inviterid} ")
+    List<Member> selectMemberByInviterid(@Param("inviterid") Long inviterid);
+
+
+    @Select("select m.id,m.username,m.realname,m.mobile from member m where m.mobile= #{mobile}  limit 1")
+    Member selectMemberByMobile(@Param("mobile") String mobile);
+
+    @Update("update member set labelname=#{labelname},waysalesman = #{realname} where id=#{memberid}")
+    void updateMemberLabelnameAndWaysalesman(@Param("labelname") String labelname,@Param("realname") String realname,@Param("memberid") Long memberid);
+
+    @Update("update member set clerkname = null where id in (${ids})")
+    void updateMemberByIds(@Param("ids") StringBuffer ids);
 
 }

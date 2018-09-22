@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_product.mapper.SearchAttrSortValueMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_product.bean.SearchAttrSortValue" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="search_attr_id" property="searchAttrId" jdbcType="BIGINT" />
+    <result column="key" property="key" jdbcType="VARCHAR" />
+    <result column="weight" property="weight" jdbcType="INTEGER" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, search_attr_id, key, weight
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_product.bean.SearchAttrSortValueExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from search_attr_sort_value
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from search_attr_sort_value
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from search_attr_sort_value
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_product.bean.SearchAttrSortValueExample" >
+    delete from search_attr_sort_value
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_product.bean.SearchAttrSortValue" >
+    insert into search_attr_sort_value (id, search_attr_id, key, 
+      weight)
+    values (#{id,jdbcType=BIGINT}, #{searchAttrId,jdbcType=BIGINT}, #{key,jdbcType=VARCHAR}, 
+      #{weight,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_product.bean.SearchAttrSortValue" >
+    insert into search_attr_sort_value
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="searchAttrId != null" >
+        search_attr_id,
+      </if>
+      <if test="key != null" >
+        key,
+      </if>
+      <if test="weight != null" >
+        weight,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="searchAttrId != null" >
+        #{searchAttrId,jdbcType=BIGINT},
+      </if>
+      <if test="key != null" >
+        #{key,jdbcType=VARCHAR},
+      </if>
+      <if test="weight != null" >
+        #{weight,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_product.bean.SearchAttrSortValueExample" resultType="java.lang.Integer" >
+    select count(*) from search_attr_sort_value
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update search_attr_sort_value
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.searchAttrId != null" >
+        search_attr_id = #{record.searchAttrId,jdbcType=BIGINT},
+      </if>
+      <if test="record.key != null" >
+        key = #{record.key,jdbcType=VARCHAR},
+      </if>
+      <if test="record.weight != null" >
+        weight = #{record.weight,jdbcType=INTEGER},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update search_attr_sort_value
+    set id = #{record.id,jdbcType=BIGINT},
+      search_attr_id = #{record.searchAttrId,jdbcType=BIGINT},
+      key = #{record.key,jdbcType=VARCHAR},
+      weight = #{record.weight,jdbcType=INTEGER}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_product.bean.SearchAttrSortValue" >
+    update search_attr_sort_value
+    <set >
+      <if test="searchAttrId != null" >
+        search_attr_id = #{searchAttrId,jdbcType=BIGINT},
+      </if>
+      <if test="key != null" >
+        key = #{key,jdbcType=VARCHAR},
+      </if>
+      <if test="weight != null" >
+        weight = #{weight,jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_product.bean.SearchAttrSortValue" >
+    update search_attr_sort_value
+    set search_attr_id = #{searchAttrId,jdbcType=BIGINT},
+      key = #{key,jdbcType=VARCHAR},
+      weight = #{weight,jdbcType=INTEGER}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

@@ -3,6 +3,7 @@ package project.jinshang.mod_product.bean;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -90,7 +91,7 @@ public class Orders {
     @ApiModelProperty(notes = "买家确认验货时间")
     private Date buyerinspectiontime;
 
-    @ApiModelProperty(notes = "订单状态0=待付款1=待发货3=待收货4=待验货5=已完成7=已关闭8=备货中9=备货完成")
+    @ApiModelProperty(notes = "订单状态0=待付款1=待发货3=待收货4=待验货5=已完成7=已关闭8=备货中9=备货完成10部分发货")
     private Short orderstatus;
 
     @ApiModelProperty(notes = "实付款")
@@ -198,12 +199,69 @@ public class Orders {
 
     private List<OrderProduct> orderProducts;
 
-    //添加业务员
-    @ApiModelProperty(notes = "业务员")
+
+    ///介绍人 添加时间:2018年6月8日
+    @ApiModelProperty(notes = "介绍人")
+    private String waysalesman;
+
+    //添加卖家确认远期预售：0=卖家未确认该远期订单，1=卖家已确认接收该远期订单，2=卖家已确认不接收该远期订单
+    @ApiModelProperty(notes = "卖家确认远期预售")
+    private Short presellconfim;
+
+    //添加卖家预计备货完成时间
+    @ApiModelProperty(notes = "卖家预计备货完成时间")
+    private Date prestocktime;
+
+    //添加卖家远期订单手机号提醒
+    @ApiModelProperty(notes = "卖家远期订单手机号提醒")
+    private String forwardnoticephone;
+
+
+    @ApiModelProperty(notes = "发票抬头")
+    private String invoiceheadup;
+
+    @ApiModelProperty(notes = "发货方式  包邮=1  自提=2 顺丰到付=3  物流自提=4 物流到户=5  快递=6")
+    private Short orderfright;
+
+    @ApiModelProperty(notes = "运费模板json")
+    private String frighttemplate;
+
+    @ApiModelProperty(notes = "客服")
     private String clerkname;
-    ///业务员联系方式
-    @ApiModelProperty(notes = "业务员")
+
+    @ApiModelProperty(notes = "客服电话")
     private String clerknamephone;
+
+    private List<OrderProduct> orderProductList;
+
+    public List<OrderProduct> getOrderProductList() {
+        if(orderProductList==null) orderProductList = new ArrayList<>();
+        return orderProductList;
+    }
+
+    public Orders setOrderProductList(List<OrderProduct> orderProductList) {
+        this.orderProductList = orderProductList;
+        return this;
+    }
+
+    public String getInvoiceheadup() {
+        return invoiceheadup;
+    }
+
+    public void setInvoiceheadup(String invoiceheadup) {
+        this.invoiceheadup = invoiceheadup;
+    }
+
+    private Long ordermainid;
+
+    public Long getOrdermainid() {
+        return ordermainid;
+    }
+
+    public Orders setOrdermainid(Long ordermainid) {
+        this.ordermainid = ordermainid;
+        return this;
+    }
 
     public Long getYuordertime() {
         return yuordertime;
@@ -732,5 +790,53 @@ public class Orders {
 
     public void setSelfsupport(boolean selfsupport) {
         this.selfsupport = selfsupport;
+    }
+
+    public String getWaysalesman() {
+        return waysalesman;
+    }
+
+    public void setWaysalesman(String waysalesman) {
+        this.waysalesman = waysalesman;
+    }
+
+    public Short getPresellconfim() {
+        return presellconfim;
+    }
+
+    public void setPresellconfim(Short presellconfim) {
+        this.presellconfim = presellconfim;
+    }
+
+    public Date getPrestocktime() {
+        return prestocktime;
+    }
+
+    public void setPrestocktime(Date prestocktime) {
+        this.prestocktime = prestocktime;
+    }
+
+    public String getForwardnoticephone() {
+        return forwardnoticephone;
+    }
+
+    public void setForwardnoticephone(String forwardnoticephone) {
+        this.forwardnoticephone = forwardnoticephone;
+    }
+
+    public Short getOrderfright() {
+        return orderfright;
+    }
+
+    public void setOrderfright(Short orderfright) {
+        this.orderfright = orderfright;
+    }
+
+    public String getFrighttemplate() {
+        return frighttemplate;
+    }
+
+    public void setFrighttemplate(String frighttemplate) {
+        this.frighttemplate = frighttemplate;
     }
 }

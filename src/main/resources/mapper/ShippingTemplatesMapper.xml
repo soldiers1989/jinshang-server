@@ -15,6 +15,9 @@
     <result column="perkilogramadded" property="perkilogramadded" jdbcType="NUMERIC" />
     <result column="perkilogramcost" property="perkilogramcost" jdbcType="NUMERIC" />
     <result column="memberid" property="memberid" jdbcType="BIGINT" />
+    <result column="temtype" property="temtype" jdbcType="SMALLINT" />
+    <result column="defaultfreeprice" property="defaultfreeprice" jdbcType="NUMERIC" />
+    <result column="shopgroupid" property="shopgroupid" jdbcType="BIGINT" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -76,7 +79,7 @@
   </sql>
   <sql id="Base_Column_List" >
     id, temname, province, city, area, address, isfree, counttype, defaultfreight, defaultcost, 
-    perkilogramadded, perkilogramcost, memberid
+    perkilogramadded, perkilogramcost, memberid, temtype, defaultfreeprice, shopgroupid
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_product.bean.ShippingTemplatesExample" >
     select
@@ -114,12 +117,14 @@
       city, area, address, 
       isfree, counttype, defaultfreight, 
       defaultcost, perkilogramadded, perkilogramcost, 
-      memberid)
+      memberid, temtype, defaultfreeprice, 
+      shopgroupid)
     values ( #{temname,jdbcType=VARCHAR}, #{province,jdbcType=VARCHAR},
       #{city,jdbcType=VARCHAR}, #{area,jdbcType=VARCHAR}, #{address,jdbcType=VARCHAR}, 
       #{isfree,jdbcType=SMALLINT}, #{counttype,jdbcType=SMALLINT}, #{defaultfreight,jdbcType=NUMERIC}, 
       #{defaultcost,jdbcType=NUMERIC}, #{perkilogramadded,jdbcType=NUMERIC}, #{perkilogramcost,jdbcType=NUMERIC}, 
-      #{memberid,jdbcType=BIGINT})
+      #{memberid,jdbcType=BIGINT}, #{temtype,jdbcType=SMALLINT}, #{defaultfreeprice,jdbcType=NUMERIC}, 
+      #{shopgroupid,jdbcType=BIGINT})
   </insert>
   <insert id="insertSelective" parameterType="project.jinshang.mod_product.bean.ShippingTemplates" >
     insert into shippingtemplates
@@ -163,6 +168,15 @@
       <if test="memberid != null" >
         memberid,
       </if>
+      <if test="temtype != null" >
+        temtype,
+      </if>
+      <if test="defaultfreeprice != null" >
+        defaultfreeprice,
+      </if>
+      <if test="shopgroupid != null" >
+        shopgroupid,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="id != null" >
@@ -203,6 +217,15 @@
       </if>
       <if test="memberid != null" >
         #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="temtype != null" >
+        #{temtype,jdbcType=SMALLINT},
+      </if>
+      <if test="defaultfreeprice != null" >
+        #{defaultfreeprice,jdbcType=NUMERIC},
+      </if>
+      <if test="shopgroupid != null" >
+        #{shopgroupid,jdbcType=BIGINT},
       </if>
     </trim>
   </insert>
@@ -254,6 +277,15 @@
       <if test="record.memberid != null" >
         memberid = #{record.memberid,jdbcType=BIGINT},
       </if>
+      <if test="record.temtype != null" >
+        temtype = #{record.temtype,jdbcType=SMALLINT},
+      </if>
+      <if test="record.defaultfreeprice != null" >
+        defaultfreeprice = #{record.defaultfreeprice,jdbcType=NUMERIC},
+      </if>
+      <if test="record.shopgroupid != null" >
+        shopgroupid = #{record.shopgroupid,jdbcType=BIGINT},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -273,7 +305,10 @@
       defaultcost = #{record.defaultcost,jdbcType=NUMERIC},
       perkilogramadded = #{record.perkilogramadded,jdbcType=NUMERIC},
       perkilogramcost = #{record.perkilogramcost,jdbcType=NUMERIC},
-      memberid = #{record.memberid,jdbcType=BIGINT}
+      memberid = #{record.memberid,jdbcType=BIGINT},
+      temtype = #{record.temtype,jdbcType=SMALLINT},
+      defaultfreeprice = #{record.defaultfreeprice,jdbcType=NUMERIC},
+      shopgroupid = #{record.shopgroupid,jdbcType=BIGINT}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -317,6 +352,15 @@
       <if test="memberid != null" >
         memberid = #{memberid,jdbcType=BIGINT},
       </if>
+      <if test="temtype != null" >
+        temtype = #{temtype,jdbcType=SMALLINT},
+      </if>
+      <if test="defaultfreeprice != null" >
+        defaultfreeprice = #{defaultfreeprice,jdbcType=NUMERIC},
+      </if>
+      <if test="shopgroupid != null" >
+        shopgroupid = #{shopgroupid,jdbcType=BIGINT},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -333,7 +377,10 @@
       defaultcost = #{defaultcost,jdbcType=NUMERIC},
       perkilogramadded = #{perkilogramadded,jdbcType=NUMERIC},
       perkilogramcost = #{perkilogramcost,jdbcType=NUMERIC},
-      memberid = #{memberid,jdbcType=BIGINT}
+      memberid = #{memberid,jdbcType=BIGINT},
+      temtype = #{temtype,jdbcType=SMALLINT},
+      defaultfreeprice = #{defaultfreeprice,jdbcType=NUMERIC},
+      shopgroupid = #{shopgroupid,jdbcType=BIGINT}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

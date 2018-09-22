@@ -2,13 +2,15 @@ package project.jinshang.mod_product;
 
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.jdbc.SQL;
-import org.springframework.security.access.method.P;
+import project.jinshang.common.utils.DateUtils;
+import org.springframework.cache.annotation.Cacheable;
 import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_batchprice.bean.ProductQueryParam;
 import project.jinshang.mod_product.bean.ProductInfo;
+import project.jinshang.mod_product.bean.ProductInfoQuery;
 import project.jinshang.mod_product.bean.ProductStore;
 import project.jinshang.mod_product.bean.ProductStoreExample;
-
+import project.jinshang.mod_product.bean.dto.OtherProductQueryDto;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -83,48 +85,172 @@ public interface ProductStoreMapper {
 
 
     @SelectProvider(type = excelProductProvider.class, method = "queryProductByParam")
-    List<Map<String, Object>> getExcelProduct(ProductQueryParam productQueryParam);
+    List<Map<String, Object>> getExcelProduct(ProductInfoQuery productInfo);
 
     public class excelProductProvider {
 
         private final String TBL_PRODUCT_INFO = "productinfo info on ps.pdid=info.id";
         private final String TBL_PRODUCT_STORE = "productstore ps";
 
-        public String queryProductByParam(ProductQueryParam productQueryParam) {
+        public String queryProductByParam(ProductInfoQuery productInfo) {
             StringBuffer sb = new StringBuffer();
             sb.append("ps.id,ps.pdid,ps.pdno,info.productname,info.stand,ps.prodprice,ps.thirtyprice,ps.sixtyprice,ps.ninetyprice,ps.storename");
             SQL sql = new SQL().SELECT(sb.toString()).FROM(TBL_PRODUCT_STORE);
             sql.LEFT_OUTER_JOIN(TBL_PRODUCT_INFO);
-            sql.WHERE("info.memberid=#{sellerId}");
+            sql.WHERE("info.memberid=#{memberid}");
             sql.WHERE("info.pdstate=5");
             sql.WHERE("info.producttype='紧固件'");
-            if (StringUtils.hasText(productQueryParam.getProductName())) {
-                String pdName = "%" + productQueryParam.getProductName() + "%";
-                productQueryParam.setProductName(pdName);
-                sql.WHERE("info.productname LIKE #{productName}");
+            if (StringUtils.hasText(productInfo.getProductname())) {
+                String pdName = "%" + productInfo.getProductname() + "%";
+                productInfo.setProductname(pdName);
+                sql.WHERE("info.productname LIKE #{productname}");
             }
 
-            if (StringUtils.hasText(productQueryParam.getStand())) {
-                String stand = "%" + productQueryParam.getStand() + "%";
-                productQueryParam.setStand(stand);
+            if (StringUtils.hasText(productInfo.getStand())) {
+                String stand = "%" + productInfo.getStand() + "%";
+                productInfo.setStand(stand);
                 sql.WHERE("info.stand LIKE #{stand}");
             }
 
-            if (StringUtils.hasText(productQueryParam.getCardnum())) {
+            if (StringUtils.hasText(productInfo.getCardnum())) {
                 sql.WHERE("info.cardnum=#{cardnum}");
             }
-            if (StringUtils.hasText(productQueryParam.getMaterial())) {
+            if (StringUtils.hasText(productInfo.getMaterial())) {
                 sql.WHERE("info.material=#{material}");
             }
 
-            if (productQueryParam.getLevel1() != null) {
-                sql.WHERE("info.level1id=#{level1}");
+            if (productInfo.getLevel1id() != null) {
+                sql.WHERE("info.level1id=#{level1id}");
             }
-            if (productQueryParam.getLevel2() != null) {
-                sql.WHERE("info.level2id=#{level2}");
+            if (productInfo.getLevel2id() != null) {
+                sql.WHERE("info.level2id=#{level2id}");
             }
-            if (productQueryParam.getLevel3() != null) {
-                sql.WHERE("info.level3id=#{level3}");
+            if (productInfo.getLevel3id() != null) {
+                sql.WHERE("info.level3id=#{level3id}");
+            }
+            if(StringUtils.hasText(productInfo.getPdno())){
+                String pdNo = "%"+productInfo.getPdno()+"%";
+                productInfo.setPdno(pdNo);
+                sql.WHERE("ps.pdno like #{pdno}");
+            }
+            if(StringUtils.hasText(productInfo.getBrand())){
+                sql.WHERE("info.brand = #{brand}");
+            }
+            if(productInfo.getMaterialid()>0){
+                sql.WHERE("info.materialid=#{materialid}");
+            }
+            if(productInfo.getCardnumid()>0){
+                sql.WHERE("info.cardnumid=#{cardnumid}");
+            }
+            if(productInfo.getPdids()!=null){
+                String pdids = org.apache.commons.lang.StringUtils.join(productInfo.getPdids().toArray(), ",");
+                sql.WHERE("info.id in ("+pdids+")");
+            }
+            if(productInfo.getUptimeStart()!=null){
+                sql.WHERE("info.uptime &lt; #{uptimeEnd}");
+            }
+            if (productInfo.getUptimeEnd() != null) {
+                productInfo.setUptimeEnd(DateUtils.addDays(productInfo.getUptimeEnd(), 1));
+                sql.WHERE("info.uptime &lt; #{uptimeEnd}");
+            }
+            if(productInfo.getDowntimeStart()!=null){
+                sql.WHERE("info.downtime &gt; #{downtimeStart}");
+            }
+            if(productInfo.getDowntimeEnd()!=null){
+                productInfo.setDowntimeEnd(DateUtils.addDays(productInfo.getDowntimeEnd(),1));
+                sql.WHERE("info.downtime &lt; #{downtimeEnd}");
+            }
+            if(productInfo.getUpdatetimeStart()!=null){
+                sql.WHERE("info.updatetime &gt; #{updatetimeStart}");
+            }
+            if(productInfo.getUpdatetimeEnd()!=null){
+                productInfo.setUpdatetimeEnd(DateUtils.addDays(productInfo.getUpdatetimeEnd(),1));
+                sql.WHERE("info.updatetime &lt; #{updatetimeEnd}");
+            }
+
+            return sql.toString();
+        }
+    }
+
+    @SelectProvider(type = excelOtherProductProvider.class, method = "queryProductByParam")
+    List<Map<String, Object>> getExcelOtherProduct(OtherProductQueryDto queryDto);
+
+    public class excelOtherProductProvider {
+
+        private final String TBL_PRODUCT_INFO = "productinfo info on ps.pdid=info.id";
+        private final String TBL_PRODUCT_STORE = "productstore ps";
+
+        public String queryProductByParam(OtherProductQueryDto queryDto) {
+            StringBuffer sb = new StringBuffer();
+            sb.append("ps.id,ps.pdid,ps.pdno,info.productname,info.stand,ps.prodprice,ps.thirtyprice,ps.sixtyprice,ps.ninetyprice,ps.storename");
+            SQL sql = new SQL().SELECT(sb.toString()).FROM(TBL_PRODUCT_STORE);
+            sql.LEFT_OUTER_JOIN(TBL_PRODUCT_INFO);
+            sql.WHERE("info.memberid=#{memberid}");
+            sql.WHERE("info.pdstate=5");
+            sql.WHERE("info.producttype !='紧固件'");
+
+            if(StringUtils.hasText(queryDto.getBrand())){
+                sql.WHERE("info.brand = #{brand} ");
+            }
+            if (StringUtils.hasText(queryDto.getProductname())) {
+                String pdName = "%" + queryDto.getProductname() + "%";
+                queryDto.setProductname(pdName);
+                sql.WHERE("info.productname LIKE #{productName}");
+            }
+
+            if (StringUtils.hasText(queryDto.getStand())) {
+                String stand = "%" + queryDto.getStand() + "%";
+                queryDto.setStand(stand);
+                sql.WHERE("info.stand LIKE #{stand}");
+            }
+
+            if (StringUtils.hasText(queryDto.getCardnum())) {
+                sql.WHERE("info.cardnum=#{cardnum}");
+            }
+            if (StringUtils.hasText(queryDto.getMaterial())) {
+                sql.WHERE("info.material=#{material}");
+            }
+
+            if (queryDto.getLevel1id() != null) {
+                sql.WHERE("info.level1id=#{level1id}");
+            }
+            if (queryDto.getLevel2id() != null) {
+                sql.WHERE("info.level2id=#{level2id}");
+            }
+            if (queryDto.getLevel3id() != null) {
+                sql.WHERE("info.level3id=#{level3id}");
+            }
+            if(queryDto.getCreateStart()!=null){
+                sql.WHERE("info.createtime >= #{createStart} ");
+            }
+            if(queryDto.getCreateEnd()!=null){
+                sql.WHERE("info.createtime < #{createEnd}");
+            }
+            if(queryDto.getUptimeStart() != null){
+                sql.WHERE("info.uptime >= #{uptimeStart} ");
+            }
+            if(queryDto.getUptimeEnd() != null){
+                sql.WHERE("info.uptime < #{uptimeEnd} ");
+            }
+
+            if(queryDto.getDowntimeStart() != null){
+                sql.WHERE("info.downtime >= #{downtimeStart} ");
+            }
+            if(queryDto.getDowntimeEnd() != null){
+                sql.WHERE("info.downtime < #{downtimeEnd} ");
+            }
+
+            if(queryDto.getUpdatetimeStart() != null){
+                sql.WHERE("info.updatetime >= #{updatetimeStart} ");
+            }
+            if(queryDto.getUpdatetimeEnd() != null){
+                sql.WHERE("info.updatetime < #{updatetimeEnd} ");
+            }
+            if(queryDto.getPdids() != null && queryDto.getPdids() != ""){
+                sql.WHERE("info.id in ( "+ queryDto.getPdids() +" ) ");
+            }
+            if(StringUtils.hasText(queryDto.getPdno())){
+                sql.WHERE("ps.pdno = #{pdno}");
             }
 
             return sql.toString();
@@ -148,8 +274,44 @@ public interface ProductStoreMapper {
                               @Param("memberIds") String memberIds);
 
 
+    @Select("select pst.* from productstore pst  where pst.storeid=#{storeid} and pst.pdno=#{pdno}")
+    ProductStore getByStoreidAndPdNoForStockSyn(@Param("storeid") long storeid,@Param("pdno") String pdno);
+
+
+    @Update("update productstore set pdstorenum=#{num} where id in (select pst.id from productinfo pi,productstore pst " +
+            "where pi.id=pst.pdid and pi.memberid=#{memberid} and pst.storeid=#{storeid} and pi.pdstate<>6 and pst.pdno=#{pdno})")
+    int updateNumByMemberidStoreidAndPdno(@Param("memberid") Long memberid,@Param("storeid") Long storeid,@Param("pdno") String pdno, @Param("num") BigDecimal num);
+
 
     @Select("select * from productstore where pdid=#{pdid} and pdno=#{pdno} and storeid=#{storeid} order by id desc limit 1")
     ProductStore getProductStore(@Param("pdid") Long pdid,@Param("pdno") String pdno,@Param("storeid") Long storeid);
 
+
+
+    /**
+     *根据卖家id,仓库编码,上架商品等条件查询出商品进行库存同步
+     * @author xiazy
+     * @date  2018/6/7 10:52
+     * @param storeid 库存编码
+     * @param memberid 卖家id
+     * @param pdstate 商品的状态
+     * @return java.util.List<project.jinshang.mod_product.bean.ProductInfo>
+     */
+    @Select("SELECT pt.* \n" +
+            "\t FROM productstore pt \n" +
+            "\t LEFT JOIN productinfo pi ON pi.id = pt.pdid WHERE \n" +
+            "\t pt.storeid = #{storeid} \n" +
+            "\t AND pi.memberid = #{memberid} \n" +
+            "\t AND pi.pdstate = #{pdstate} \n" +
+            "\t ORDER BY pt.id")
+    List<ProductStore> selectProductStoreForSyn(@Param("storeid") Long storeid, @Param("memberid") Long memberid, @Param("pdstate") int pdstate);
+
+
+    @Update("update productstore set intervalprice = #{jsonList} where id = #{psid}")
+    void updateProductStore(@Param("psid") long psid,@Param("jsonList") String jsonList);
+
+
+    @Cacheable(value = "ProductStore",key = "'getPdidByStoreidAndPdno:'+#p0+'#'+#p1")
+    @Select("select pdid from productstore where storeid=#{storeid} and pdno=#{pdno}")
+    Long getPdidByStoreidAndPdno(@Param("storeid") Long storeid,@Param("pdno") String pdno);
 }

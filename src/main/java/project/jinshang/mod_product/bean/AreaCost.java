@@ -31,6 +31,8 @@ public class AreaCost {
 
     private String selectarea;
 
+    private BigDecimal defaultfreeprice;
+
     public Long getId() {
         return id;
     }
@@ -100,6 +102,14 @@ public class AreaCost {
     }
 
     public void setSelectarea(String selectarea) {
-        this.selectarea = selectarea;
+        this.selectarea = selectarea == null ? null : selectarea.trim();
+    }
+
+    public BigDecimal getDefaultfreeprice() {
+        return defaultfreeprice;
+    }
+
+    public void setDefaultfreeprice(BigDecimal defaultfreeprice) {
+        this.defaultfreeprice = defaultfreeprice;
     }
 }

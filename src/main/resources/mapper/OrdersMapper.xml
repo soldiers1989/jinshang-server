@@ -63,6 +63,12 @@
     <result column="billtoserver" property="billtoserver" jdbcType="SMALLINT" />
     <result column="clerkname" property="clerkname" jdbcType="VARCHAR" />
     <result column="clerknamephone" property="clerknamephone" jdbcType="VARCHAR" />
+    <result column="waysalesman" property="waysalesman" jdbcType="VARCHAR" />
+    <result column="presellconfim" property="presellconfim" jdbcType="SMALLINT" />
+    <result column="prestocktime" property="prestocktime" jdbcType="DATE" />
+    <result column="forwardnoticephone" property="forwardnoticephone" jdbcType="VARCHAR" />
+    <result column="orderfright" property="orderfright" jdbcType="SMALLINT" />
+    <result column="frighttemplate" property="frighttemplate" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -130,7 +136,8 @@
     logisticscompany, isbilling, billingtype, uuid, membercompany, isonline, allpay, 
     phone, shipto, isbackcredit, paytype, membername, sellername, shopname, brokepay, 
     frozepay, serverpay, yuuuid, delaydays, ifdelay, delaypenalty, ordertime, yuordertime, 
-    deliverybill, transactionid, reason, deliverytype, billtoserver,clerkname,clerknamephone
+    deliverybill, transactionid, reason, deliverytype, billtoserver, clerkname, clerknamephone, 
+    waysalesman, presellconfim, prestocktime, forwardnoticephone, orderfright, frighttemplate
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_product.bean.OrdersExample" >
     select
@@ -183,7 +190,10 @@
       yuuuid, delaydays, ifdelay, 
       delaypenalty, ordertime, yuordertime, 
       deliverybill, transactionid, reason, 
-      deliverytype, billtoserver,clerkname,clerknamephone)
+      deliverytype, billtoserver, clerkname, 
+      clerknamephone, waysalesman, presellconfim, 
+      prestocktime, forwardnoticephone, orderfright, 
+      frighttemplate)
     values (#{id,jdbcType=BIGINT}, #{memberid,jdbcType=BIGINT}, #{saleid,jdbcType=BIGINT}, 
       #{orderno,jdbcType=VARCHAR}, #{createtime,jdbcType=TIMESTAMP}, #{province,jdbcType=VARCHAR}, 
       #{city,jdbcType=VARCHAR}, #{area,jdbcType=VARCHAR}, #{receivingaddress,jdbcType=VARCHAR}, 
@@ -203,7 +213,10 @@
       #{yuuuid,jdbcType=VARCHAR}, #{delaydays,jdbcType=INTEGER}, #{ifdelay,jdbcType=SMALLINT}, 
       #{delaypenalty,jdbcType=NUMERIC}, #{ordertime,jdbcType=BIGINT}, #{yuordertime,jdbcType=BIGINT}, 
       #{deliverybill,jdbcType=SMALLINT}, #{transactionid,jdbcType=VARCHAR}, #{reason,jdbcType=VARCHAR}, 
-      #{deliverytype,jdbcType=SMALLINT}, #{billtoserver,jdbcType=SMALLINT},#{clerkname,jdbcType=VARCHAR},#{clerknamephone,jdbcType=VARCHAR})
+      #{deliverytype,jdbcType=SMALLINT}, #{billtoserver,jdbcType=SMALLINT}, #{clerkname,jdbcType=VARCHAR}, 
+      #{clerknamephone,jdbcType=VARCHAR}, #{waysalesman,jdbcType=VARCHAR}, #{presellconfim,jdbcType=SMALLINT}, 
+      #{prestocktime,jdbcType=DATE}, #{forwardnoticephone,jdbcType=VARCHAR}, #{orderfright,jdbcType=SMALLINT}, 
+      #{frighttemplate,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="project.jinshang.mod_product.bean.Orders" useGeneratedKeys="true" keyProperty="id">
     insert into orders
@@ -391,6 +404,24 @@
       <if test="clerknamephone != null" >
         clerknamephone,
       </if>
+      <if test="waysalesman != null" >
+        waysalesman,
+      </if>
+      <if test="presellconfim != null" >
+        presellconfim,
+      </if>
+      <if test="prestocktime != null" >
+        prestocktime,
+      </if>
+      <if test="forwardnoticephone != null" >
+        forwardnoticephone,
+      </if>
+      <if test="orderfright != null" >
+        orderfright,
+      </if>
+      <if test="frighttemplate != null" >
+        frighttemplate,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="id != null" >
@@ -575,6 +606,24 @@
       </if>
       <if test="clerknamephone != null" >
         #{clerknamephone,jdbcType=VARCHAR},
+      </if>
+      <if test="waysalesman != null" >
+        #{waysalesman,jdbcType=VARCHAR},
+      </if>
+      <if test="presellconfim != null" >
+        #{presellconfim,jdbcType=SMALLINT},
+      </if>
+      <if test="prestocktime != null" >
+        #{prestocktime,jdbcType=DATE},
+      </if>
+      <if test="forwardnoticephone != null" >
+        #{forwardnoticephone,jdbcType=VARCHAR},
+      </if>
+      <if test="orderfright != null" >
+        #{orderfright,jdbcType=SMALLINT},
+      </if>
+      <if test="frighttemplate != null" >
+        #{frighttemplate,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -770,6 +819,24 @@
       <if test="record.clerknamephone != null" >
         clerknamephone = #{record.clerknamephone,jdbcType=VARCHAR},
       </if>
+      <if test="record.waysalesman != null" >
+        waysalesman = #{record.waysalesman,jdbcType=VARCHAR},
+      </if>
+      <if test="record.presellconfim != null" >
+        presellconfim = #{record.presellconfim,jdbcType=SMALLINT},
+      </if>
+      <if test="record.prestocktime != null" >
+        prestocktime = #{record.prestocktime,jdbcType=DATE},
+      </if>
+      <if test="record.forwardnoticephone != null" >
+        forwardnoticephone = #{record.forwardnoticephone,jdbcType=VARCHAR},
+      </if>
+      <if test="record.orderfright != null" >
+        orderfright = #{record.orderfright,jdbcType=SMALLINT},
+      </if>
+      <if test="record.frighttemplate != null" >
+        frighttemplate = #{record.frighttemplate,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -837,7 +904,13 @@
       deliverytype = #{record.deliverytype,jdbcType=SMALLINT},
       billtoserver = #{record.billtoserver,jdbcType=SMALLINT},
       clerkname = #{record.clerkname,jdbcType=VARCHAR},
-      clerknamephone = #{record.clerknamephone,jdbcType=VARCHAR}
+      clerknamephone = #{record.clerknamephone,jdbcType=VARCHAR},
+      waysalesman = #{record.waysalesman,jdbcType=VARCHAR},
+      presellconfim = #{record.presellconfim,jdbcType=SMALLINT},
+      prestocktime = #{record.prestocktime,jdbcType=DATE},
+      forwardnoticephone = #{record.forwardnoticephone,jdbcType=VARCHAR},
+      orderfright = #{record.orderfright,jdbcType=SMALLINT},
+      frighttemplate = #{record.frighttemplate,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -1025,6 +1098,24 @@
       <if test="clerknamephone != null" >
         clerknamephone = #{clerknamephone,jdbcType=VARCHAR},
       </if>
+      <if test="waysalesman != null" >
+        waysalesman = #{waysalesman,jdbcType=VARCHAR},
+      </if>
+      <if test="presellconfim != null" >
+        presellconfim = #{presellconfim,jdbcType=SMALLINT},
+      </if>
+      <if test="prestocktime != null" >
+        prestocktime = #{prestocktime,jdbcType=DATE},
+      </if>
+      <if test="forwardnoticephone != null" >
+        forwardnoticephone = #{forwardnoticephone,jdbcType=VARCHAR},
+      </if>
+      <if test="orderfright != null" >
+        orderfright = #{orderfright,jdbcType=SMALLINT},
+      </if>
+      <if test="frighttemplate != null" >
+        frighttemplate = #{frighttemplate,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -1089,7 +1180,13 @@
       deliverytype = #{deliverytype,jdbcType=SMALLINT},
       billtoserver = #{billtoserver,jdbcType=SMALLINT},
       clerkname = #{clerkname,jdbcType=VARCHAR},
-      clerknamephone = #{clerknamephone,jdbcType=VARCHAR}
+      clerknamephone = #{clerknamephone,jdbcType=VARCHAR},
+      waysalesman = #{waysalesman,jdbcType=VARCHAR},
+      presellconfim = #{presellconfim,jdbcType=SMALLINT},
+      prestocktime = #{prestocktime,jdbcType=DATE},
+      forwardnoticephone = #{forwardnoticephone,jdbcType=VARCHAR},
+      orderfright = #{orderfright,jdbcType=SMALLINT},
+      frighttemplate = #{frighttemplate,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

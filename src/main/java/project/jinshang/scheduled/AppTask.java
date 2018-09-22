@@ -1,6 +1,5 @@
 package project.jinshang.scheduled;
 
-import mizuki.project.core.restserver.config.BasicRet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -17,9 +16,13 @@ import project.jinshang.mod_product.bean.*;
 import project.jinshang.mod_product.bean.dto.AttributetblDto1;
 import project.jinshang.mod_product.service.*;
 import project.jinshang.scheduled.mapper.AppTaskMapper;
+import project.jinshang.service.AppTaskService;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class AppTask {
@@ -57,6 +60,9 @@ public class AppTask {
 
     @Autowired
     private MemberService memberService;
+
+    @Autowired
+    private AppTaskService appTaskService;
 
 
     //@Scheduled(cron = "0 4 10 * * ?")
@@ -187,6 +193,64 @@ public class AppTask {
                 invoiceService.addInvoiceInfo(invoiceInfo);
                 System.out.println("定时任务已执行…………自动为没有发票信息的公司用户添加发票");
             }
+        }
+    }
+
+    /**
+     * 根据productinfo表中packagetype（包装方式）字段更新productstore表中intervalprice（区间价）字段
+     */
+    //@Scheduled(cron = "0 */5 * * * ?")
+    @Scheduled(cron = "0 05 18 14 6 ?")
+    public void updateProductStore(){
+        List<Map<String,Object>> list = appTaskService.getProductinfoList();
+        for(Map<String,Object> map:list){
+                String packagetype = map.get("packagetype").toString().replace(" ","");
+                //根据“|”截取字符串:0.450千/盒
+                String[] typechar = packagetype.split("\\|");
+                if(typechar.length==2) {//只有当包装方式这个字段的数据完整的情况下才更新区间价
+                    String typechar1 = "";
+                    String typechar2 = "" + typechar[1].charAt(0);
+                    for (int i = 0; i < typechar[0].length(); i++) {
+                        if ((typechar[0].charAt(i) >= 48 && typechar[0].charAt(i) <= 57) || typechar[0].charAt(i) == 46) {//只有字符是数字和小数点时添加
+                            typechar1 += typechar[0].charAt(i);
+                        }
+                    }
+                    BigDecimal bd1 = new BigDecimal(typechar1);
+                    BigDecimal bd2 = new BigDecimal(typechar2);
+                    BigDecimal b3 = bd1.multiply(bd2);
+                    //[{"start":"1","end":"5","rate":"98"},{"start":"5","end":"10","rate":"97"},{"start":"10","end":"0","rate":"95"}]
+                    List<String> jsonList = new ArrayList<String>();
+                    for (int i = 0; i < 3; i++) {
+                        //Map<String,Object> jsonMap = new HashMap<String,Object>();
+                        String jsonStr = "";
+                        if (i == 0) {
+                            /*jsonMap.put("start", "0");
+                            jsonMap.put("end", typechar1);
+                            jsonMap.put("rate", "120");*/
+                            jsonStr = "{\"start\": \"0\",\"end\": \"" + typechar1 + "\",\"rate\": \"110\"}";
+                            jsonList.add(jsonStr);
+                        } else if (i == 1) {
+                            /*jsonMap.put("start", typechar1);
+                            jsonMap.put("end", b3);
+                            jsonMap.put("rate", "110");*/
+                            jsonStr = "{\"start\": \"" + typechar1 + "\",\"end\": \"" + b3 + "\",\"rate\": \"103\"}";
+                            jsonList.add(jsonStr);
+                        } else {
+                            /*jsonMap.put("start", b3);
+                            jsonMap.put("end", 0);
+                            jsonMap.put("rate", "100");*/
+                            jsonStr = "{\"start\": \"" + b3 + "\",\"end\": \"0\",\"rate\": \"100\"}";
+                            jsonList.add(jsonStr);
+                        }
+
+                    }
+                    System.out.println(jsonList);
+                    if (map.get("psid") != null) {
+                        long psid = Long.parseLong(map.get("psid").toString());
+                        appTaskService.updateProductStore(psid, jsonList.toString());//更新字段
+                    }
+
+                }
         }
     }
 

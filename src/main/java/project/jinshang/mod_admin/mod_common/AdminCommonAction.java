@@ -141,6 +141,9 @@ public class AdminCommonAction {
         dataMap.put("待开票",billingRecordService.countByExample(billingRecordExample));
 
 
+        //当日卖家违约订单数
+        dataMap.put("今日卖家违约订单数",ordersService.getSellerBreachOrders());
+
 
         indexCountRet.data.dataMap = dataMap;
         indexCountRet.setResult(BasicRet.SUCCESS);

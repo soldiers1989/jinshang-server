@@ -2,11 +2,15 @@ package project.jinshang.mod_member.service;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import mizuki.project.core.restserver.config.BasicRet;
 import org.apache.ibatis.annotations.Param;
+import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
-import org.springframework.ui.Model;
+import project.jinshang.common.bean.PageRet;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.utils.*;
@@ -25,16 +29,15 @@ import project.jinshang.mod_member.MemberMapper;
 import project.jinshang.mod_member.bean.Member;
 import project.jinshang.mod_member.bean.MemberExample;
 import project.jinshang.mod_member.bean.MemberGrade;
+import project.jinshang.mod_member.bean.RegisteType;
 import project.jinshang.mod_member.bean.dto.MemberAdminViewDto;
+import project.jinshang.mod_member.bean.dto.MemberDto;
 import project.jinshang.mod_shop.bean.ShopGrade;
 import project.jinshang.mod_shop.service.ShopGradeService;
 import project.jinshang.scheduled.mapper.AppTaskMapper;
-
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 /**
@@ -146,6 +149,7 @@ public class MemberService {
             member.setParentid((long) 0);
             member.setParentname("");
             member.setFlag(true);
+            member.setRegistesource(member.getRegistesource()!=null?member.getRegistesource(): RegisteType.TYPE03.getType());
 
             //生成邀请码
             String inviteCode = null;
@@ -164,12 +168,19 @@ public class MemberService {
 
             member.setInvitecode(inviteCode);
             //查询是谁邀请的，设置邀请者的id
-            if(null != customInvitecode) {
+            if(StringUtils.hasText(customInvitecode)) {
                 Member inviterMember = getByInvitecode(customInvitecode);
                 if(inviterMember != null) {
                     member.setInviterid(inviterMember.getId());
+                    //设置邀请人的二级邀请者id
+                    if(null != inviterMember.getInviterid()){
+                        member.setInviterid2(inviterMember.getInviterid());
+                    }
                 }
+
+
             }
+
 
             MemberGrade memberGrade = memberGradeService.getDefaultMemberGrade();
             if (memberGrade != null) {
@@ -265,6 +276,7 @@ public class MemberService {
             member.setParentid((long) 0);
             member.setParentname("");
             member.setFlag(true);
+            member.setRegistesource(member.getRegistesource()!=null?member.getRegistesource():RegisteType.TYPE03.getType());
 
             //生成邀请码
             String inviteCode = null;
@@ -283,11 +295,16 @@ public class MemberService {
 
             member.setInvitecode(inviteCode);
             //查询是谁邀请的，设置邀请者的id
-            if(null != customInvitecode) {
+            if(StringUtils.hasText(customInvitecode)) {
                 Member inviterMember = getByInvitecode(customInvitecode);
                 if(inviterMember != null) {
                     member.setInviterid(inviterMember.getId());
+                    //设置邀请人的二级邀请者id
+                    if(null != inviterMember.getInviterid()) {
+                        member.setInviterid2(inviterMember.getInviterid());
+                    }
                 }
+
             }
 
             MemberGrade memberGrade = memberGradeService.getDefaultMemberGrade();
@@ -826,5 +843,225 @@ public class MemberService {
 
     public int updateMemberClerknameByid(Long id, String clerkname) {
         return memberMapper.updateMemberClerknameByid(  id, clerkname);
+    }
+
+
+
+    public Member getMemberByid(Long id) {
+        return memberMapper.getMemberByid(  id);
+    }
+
+    /**
+     * 三级分销邀请人列表
+     * @param memberDto
+     * @param pageNo
+     * @param pageSize
+     * @return
+     */
+    public PageInfo selectInverterList(MemberDto memberDto, int pageNo, int pageSize) {
+        if (pageNo != -1) {
+            PageHelper.startPage(pageNo, pageSize);
+        }
+        JsonArray jsonarray = new JsonArray();
+
+
+        int flag = 0;//是否是公司 0-全部，1-是，2-否
+        if(memberDto.getCompanyType()>0){
+
+            if(memberDto.getCompanyType() == Quantity.STATE_1){
+                flag = 1;
+            }else if(memberDto.getCompanyType() == Quantity.STATE_2){
+                flag = 2;
+            }
+
+
+        }
+        List<MemberDto> list1 =  memberMapper.selectInverterList(memberDto,flag);
+        for (MemberDto memberDto1:list1) {
+            JsonObject json =new JsonObject();
+
+            JSONObject json1 = JSONObject.fromObject(memberDto1);
+            String str = json1.toString();//将json对象转换为字符串
+            json.addProperty("memberDto1",str);
+                //统计该用户的一级和二级邀请人数
+                //一级邀请人数
+                //先查询自己下面的一级的id
+                List<Member> firstList = memberMapper.selectFirstInviters(memberDto1.getId());
+                memberDto1.setFirstinviternum(new Long(firstList.size()));
+                //二级邀请人数
+            if(firstList!=null&&firstList.size()>0) {
+                for (Member member : firstList) {
+                    //查询出二级
+                    List<Member> secondList = memberMapper.selectSecondInviters(memberDto1.getId());
+                    if (secondList != null && secondList.size() > 0) {
+                        memberDto1.setSecondinviternum(new Long(secondList.size()));
+                    } else {
+                        memberDto1.setSecondinviternum(0l);
+                    }
+                }
+            }else{
+                memberDto1.setSecondinviternum(0l);
+            }
+            jsonarray.add(json);
+        }
+        PageInfo pageInfo = new PageInfo(list1);
+        return pageInfo;
+    }
+
+
+    /**
+     * 三级分销邀请人列表forexcel导出
+     * @param memberDto
+     * @return
+     */
+    public List<Map<String,Object>> selectInverterList1(MemberDto memberDto) {
+        //存放结果
+        List<Map<String,Object>> resList = new ArrayList<>();
+
+        JsonArray jsonarray = new JsonArray();
+
+        // List<Map<String,Object>> list1 = memberMapper.selectInverterList(memberDto);
+        int flag = 0;//是否是公司 0-全部，1-是，2-否
+        if(memberDto.getCompanyType()>0){
+            if(memberDto.getCompanyType() == Quantity.STATE_1){
+                flag = 1;
+            }else if(memberDto.getCompanyType() == Quantity.STATE_2){
+                flag = 2;
+            }
+
+
+        }
+        List<MemberDto> list1 = memberMapper.selectInverterList(memberDto,flag);
+
+        for (MemberDto memberDto1:list1) {
+            JsonObject json =new JsonObject();
+
+            JSONObject json1 = JSONObject.fromObject(memberDto1);
+            String str = json1.toString();//将json对象转换为字符串
+            json.addProperty("memberDto1",str);
+            //统计该用户的一级和二级邀请人数
+            //一级邀请人数
+            //先查询自己下面的一级的id
+            List<Member> firstList = memberMapper.selectFirstInviters(memberDto1.getId());
+            memberDto1.setFirstinviternum(new Long(firstList.size()));
+            //二级邀请人数
+            if(firstList!=null&&firstList.size()>0) {
+                for (Member member : firstList) {
+                    //查询出二级
+                    List<Member> secondList = memberMapper.selectSecondInviters(memberDto1.getId());
+                    System.out.println("secondList" + secondList.size());
+                    if (secondList != null && secondList.size() > 0) {
+                        memberDto1.setSecondinviternum(new Long(secondList.size()));
+                    } else {
+                        memberDto1.setSecondinviternum(0l);
+                    }
+                }
+            }else{
+                memberDto1.setSecondinviternum(0l);
+            }
+            jsonarray.add(json);
+        }
+
+        //将List<T>转换为List<Map<String, Object>>
+        List<Map<String, Object>> list2 = BeanUtils.objectsToMaps(list1);
+        for(Map<String,Object> beanMap: list2){
+            Map<String,Object> resMap = new HashMap<>();
+            resMap.put("邀请码",beanMap.get("invitecode"));
+            resMap.put("会员ID",beanMap.get("id"));
+            resMap.put("真实姓名",beanMap.get("realname"));
+            resMap.put("会员全称",beanMap.get("username"));
+            resMap.put("会员等级",beanMap.get("gradename"));
+            resMap.put("一级邀请人数量",beanMap.get("firstinviternum"));
+            resMap.put("二级邀请人数量",beanMap.get("secondinviternum"));
+            resList.add(resMap);
+        }
+        return  resList;
+    }
+
+    public PageInfo getMemberByInviterid(long inviterid,long type,int pageNo,int pageSize) {
+        if (pageNo != -1) {
+            PageHelper.startPage(pageNo, pageSize);
+        }
+        List<Map<String, Object>> list = null;
+        if(type == 1) {
+             list = memberMapper.getMemberByInviterid(inviterid,type);
+        }else if(type == 2){
+            list = memberMapper.getMemberByInviterid(inviterid,type);
+        }
+
+        PageInfo pageInfo = new PageInfo(list);
+        return pageInfo;
+    }
+
+
+    public void updateMemberInviterid2ById(Long id, Long inviterid2) {
+        memberMapper.updateMemberInviterid2ById(id,inviterid2);
+    }
+
+    /**
+     * 导出一级邀请人或者二级邀请人 for excel
+     * @param inviterid
+     * @param type
+     * @return
+     */
+    public List<Map<String,Object>> getMemberByInviterid1(long inviterid, long type) {
+        //存放结果
+        List<Map<String,Object>> resList = new ArrayList<>();
+
+
+        List<Map<String, Object>> list = null;
+        if(type == 1) {
+            list = memberMapper.getMemberByInviterid(inviterid,type);
+        }else if(type == 2){
+            list = memberMapper.getMemberByInviterid(inviterid,type);
+        }
+
+        for(Map<String,Object> beanMap : list){
+            Map<String,Object> resMap = new HashMap<>();
+            resMap.put("会员名",beanMap.get("username"));
+            resMap.put("真实姓名",beanMap.get("realname"));
+            resMap.put("手机号",beanMap.get("mobile"));
+            resMap.put("会员等级",beanMap.get("gradename"));
+            resMap.put("邀请时间", DateUtils.format((Date) beanMap.get("createdate"),"yyyy/MM/dd HH:mm:ss"));
+            resList.add(resMap);
+        }
+
+
+        return  resList;
+    }
+
+    public Member selectById(@Param("memberid") long memberid) {
+       return memberMapper.selectByPrimaryKey(memberid);
+    }
+
+    public List<Map<String,Object>> getMemberInfoByUserName(String username,String clerkname,Long id,String companyname) {
+        List<Map<String,Object>> list =  memberMapper.getMemberInfoByUserName(username,clerkname,id,companyname);
+        return list;
+    }
+
+
+    public List<Member> getMemberByInvitecodes(List invitecodeList) {
+      return  memberMapper.getMemberByInvitecodes(invitecodeList);
+    }
+
+    public List<Member> getMemmberByIdsList(long[] idsList) {
+        return  memberMapper.getMemmberByIdsList(idsList);
+    }
+
+    public List<Member> selectMemberByInviterid(Long inviterid) {
+        return memberMapper.selectMemberByInviterid(inviterid);
+    }
+
+
+    public Member selectMemberByMobile(String mobile) {
+      return   memberMapper.selectMemberByMobile(mobile);
+    }
+
+    public void updateMemberLabelnameAndWaysalesman(String labelname,String realname,Long memberid) {
+          memberMapper.updateMemberLabelnameAndWaysalesman(labelname,realname,memberid);
+    }
+
+    public void updateMemberByIds(StringBuffer ids){
+        memberMapper.updateMemberByIds(ids);
     }
 }

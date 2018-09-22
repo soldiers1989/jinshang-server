@@ -42,6 +42,17 @@ public class GoodsStock {
      */
     private String gwf5;
 
+    /**
+     * 用户id
+     */
+    private Long memberid;
+
+    /**
+     * 仓库id
+     */
+    private Long storeid;
+
+
     public String getWarehouseCode() {
         return warehouseCode;
     }
@@ -120,5 +131,21 @@ public class GoodsStock {
 
     public void setGwf5(String gwf5) {
         this.gwf5 = gwf5;
+    }
+
+    public Long getMemberid() {
+        return memberid;
+    }
+
+    public void setMemberid(Long memberid) {
+        this.memberid = memberid;
+    }
+
+    public Long getStoreid() {
+        return storeid;
+    }
+
+    public void setStoreid(Long storeid) {
+        this.storeid = storeid;
     }
 }

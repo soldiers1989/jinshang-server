@@ -65,6 +65,9 @@ public class SalerCapitalQueryDto {
 
     private  Short withdrawtype;
 
+    @ApiModelProperty(notes = "卖家是否已向平台开票开违约金发票 0-未开，1-已开，-1= 老数据")
+    private Short billtoserver;
+
 
 
     public String getPresentationnumber() {
@@ -213,5 +216,13 @@ public class SalerCapitalQueryDto {
 
     public void setRealname(String realname) {
         this.realname = realname;
+    }
+
+    public Short getBilltoserver() {
+        return billtoserver;
+    }
+
+    public void setBilltoserver(Short billtoserver) {
+        this.billtoserver = billtoserver;
     }
 }

@@ -14,6 +14,8 @@ import project.jinshang.mod_cash.bean.BuyerCapital;
 import project.jinshang.mod_cash.bean.BuyerCapitalExample;
 import project.jinshang.mod_cash.bean.dto.*;
 import project.jinshang.mod_member.service.MemberService;
+import project.jinshang.mod_product.bean.OrderProductBackInfo;
+import project.jinshang.mod_product.mapper.OrderProductBackInfoMapper;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -24,7 +26,8 @@ public class BuyerCapitalService {
 
     @Resource
     private BuyerCapitalMapper buyerCapitalMapper;
-
+    @Resource
+    private OrderProductBackInfoMapper orderProductBackInfoMapper;
 
     @Autowired
     private MemberService memberService;
@@ -546,6 +549,23 @@ public class BuyerCapitalService {
                             //capitalType类型为违约时，显示remark字段的内容
                             buyerCapitalAccountDto.setRemark("买家违约");
                             buyerCapitalAccountDtos.add(buyerCapitalAccountDto);
+                            //查询出这笔违约金是否有对应的退货记录存在，有的话，则插入一条退货记录
+                            List<OrderProductBackInfo> orderProductBackInfoList=orderProductBackInfoMapper.getOrderProductBackByOrderNo(buyerCapitalAccountDto.getOddnumber());
+                            if (orderProductBackInfoList!=null&&orderProductBackInfoList.size()>0){
+                                buyerCapitalAccountDto=this.transferViewDto2AccountDto(buyerCapitalViewDto);
+                                buyerCapitalAccountDto.setDeliveryamount(buyerCapitalAccountDto.getDeliveryamount().multiply(new BigDecimal(-1)));
+                                buyerCapitalAccountDto.setOtheramount(null);
+                                buyerCapitalAccountDto.setCapitaltypename("退货");
+                                buyerCapitalAccountDto.setReceiptamount(null);
+                                sumReceivableAccount= sumReceivableAccount.add(buyerCapitalAccountDto.getDeliveryamount());
+                                buyerCapitalAccountDto.setReceivableaccount(sumReceivableAccount);
+                                sumInvoiceBalance=sumInvoiceBalance.add(buyerCapitalAccountDto.getDeliveryamount());
+                                buyerCapitalAccountDto.setInvoicebalance(sumInvoiceBalance);
+                                //支付方式填空
+                                buyerCapitalAccountDto.setPaytype((short) 5);
+                                buyerCapitalAccountDto.setRemark((buyerCapitalViewDto.getInvoiceheadup()==null?"":buyerCapitalViewDto.getInvoiceheadup())+"$"+buyerCapitalViewDto.getMemberid()+"$"+buyerCapitalViewDto.getUsername());
+                                buyerCapitalAccountDtos.add(buyerCapitalAccountDto);
+                            }
                             break;
                         }
                         //卖家违约，金额归为其他，金额变为负数，进行相加
@@ -612,14 +632,16 @@ public class BuyerCapitalService {
                         case BuyerCapitalConst.CAPITALTYPE_WITHDRAWAL:
                         {
                             buyerCapitalAccountDto=this.transferViewDto2AccountDto(buyerCapitalViewDto);
-                            buyerCapitalAccountDto.setDeliveryamount(null);
-                            buyerCapitalAccountDto.setOtheramount(null);
-                            buyerCapitalAccountDto.setCapitaltypename(capitalType==BuyerCapitalConst.CAPITALTYPE_REFUND?"退款":"提现");
-                            buyerCapitalAccountDto.setReceiptamount(buyerCapitalAccountDto.getReceiptamount().multiply(new BigDecimal(-1)));
-                            sumReceivableAccount= sumReceivableAccount.subtract(buyerCapitalAccountDto.getReceiptamount());
-                            buyerCapitalAccountDto.setReceivableaccount(sumReceivableAccount);
-                            buyerCapitalAccountDto.setInvoicebalance(sumInvoiceBalance);
-                            buyerCapitalAccountDtos.add(buyerCapitalAccountDto);
+                            if (buyerCapitalAccountDto.getRechargestate()==(short)1){
+                                buyerCapitalAccountDto.setDeliveryamount(null);
+                                buyerCapitalAccountDto.setOtheramount(null);
+                                buyerCapitalAccountDto.setCapitaltypename(capitalType==BuyerCapitalConst.CAPITALTYPE_REFUND?"退款":"提现");
+                                buyerCapitalAccountDto.setReceiptamount(buyerCapitalAccountDto.getReceiptamount().multiply(new BigDecimal(-1)));
+                                sumReceivableAccount= sumReceivableAccount.subtract(buyerCapitalAccountDto.getReceiptamount());
+                                buyerCapitalAccountDto.setReceivableaccount(sumReceivableAccount);
+                                buyerCapitalAccountDto.setInvoicebalance(sumInvoiceBalance);
+                                buyerCapitalAccountDtos.add(buyerCapitalAccountDto);
+                            }
                             break;
                         }
                         default:
@@ -723,6 +745,260 @@ public class BuyerCapitalService {
         }
         return result;
     }
+
+    /**
+     *新增开票对账单功能模块
+     * @author xiazy
+     * @date  2018/6/21 9:19
+     * @param dto
+     * @return java.util.List<project.jinshang.mod_cash.bean.dto.BuyerCapitalAccountDto>
+     */
+    public List<BuyerCapitalAccountDto> listForInvoiceAccount(BuyerCapitalAccountQueryDto dto){
+        List<BuyerCapitalAccountDto> totalbuyerCapitalAccountDtos=new ArrayList<BuyerCapitalAccountDto>();
+        if(!StringUtils.hasText(dto.getInvoicename())){
+            return totalbuyerCapitalAccountDtos;
+        }
+        BuyerCapitalAccountQueryDto newDto=new BuyerCapitalAccountQueryDto();
+        String companyname=dto.getInvoicename();
+        newDto.setCompanyname(companyname);
+        newDto.setTradetimeStart(dto.getTradetimeStart());
+        newDto.setTradetimeEnd(dto.getTradetimeEnd());
+        List<BuyerCapitalAccountDto> oldbuyerCapitalAccountDtos=this.listForAccount(newDto);
+        BuyerCapitalAccountDto lastAccountDto=new BuyerCapitalAccountDto();
+        if (oldbuyerCapitalAccountDtos.size()>0){
+            lastAccountDto=oldbuyerCapitalAccountDtos.get(oldbuyerCapitalAccountDtos.size()-1);
+            oldbuyerCapitalAccountDtos.remove(oldbuyerCapitalAccountDtos.size()-1);
+            totalbuyerCapitalAccountDtos.addAll(oldbuyerCapitalAccountDtos);
+        }
+//        if(dto.getTradetimeEnd() != null) {
+//            dto.setTradetimeEnd(DateUtils.addDays(dto.getTradetimeEnd(),1));
+//        }
+        List<BuyerCapitalViewDto> currentbuyerCapitalAccountDtos=buyerCapitalMapper.listForInvoiceAccount(dto);
+        final BigDecimal[] sumDeliveryAmount = {new BigDecimal(0.00)};
+        final BigDecimal[] sumReceiptAmount = {new BigDecimal(0.00)};
+        final BigDecimal[] sumOtherAmount = {new BigDecimal(0.00)};
+        BigDecimal sumReceivableAccount =new BigDecimal(0.00);
+        BigDecimal sumInvoiceBalance    =new BigDecimal(0.00);
+        sumDeliveryAmount[0].setScale(2,BigDecimal.ROUND_HALF_UP);
+        sumReceiptAmount[0].setScale(2,BigDecimal.ROUND_HALF_UP);
+        sumOtherAmount[0].setScale(2,BigDecimal.ROUND_HALF_UP);
+        sumReceivableAccount.setScale(2,BigDecimal.ROUND_HALF_UP);
+        sumInvoiceBalance.setScale(2,BigDecimal.ROUND_HALF_UP);
+        //使应收账款、发票结余保持一致
+        sumReceivableAccount=lastAccountDto.getReceivableaccount()==null?new BigDecimal(0.00):lastAccountDto.getReceivableaccount();
+        sumInvoiceBalance=lastAccountDto.getInvoicebalance()==null?new BigDecimal(0.00):lastAccountDto.getInvoicebalance();
+        if(currentbuyerCapitalAccountDtos!=null && currentbuyerCapitalAccountDtos.size()>0){
+            for (int i = 0; i < currentbuyerCapitalAccountDtos.size(); i++) {
+                BuyerCapitalViewDto buyerCapitalViewDto=currentbuyerCapitalAccountDtos.get(i);
+                short payType=buyerCapitalViewDto.getPaytype()==null?0:buyerCapitalViewDto.getPaytype();
+                short capitalType=buyerCapitalViewDto.getCapitaltype();
+                BuyerCapitalAccountDto buyerCapitalAccountDto=null;
+                //根据capitalType进行分组计算
+                switch  (capitalType){
+                    case BuyerCapitalConst.CAPITALTYPE_CONSUM:
+                    {
+                        //当记录为网络支付时，先添加一条收款记录，【应收账款】减钱
+                        buyerCapitalAccountDto = this.transferViewDto2AccountDto(buyerCapitalViewDto);
+                        buyerCapitalAccountDto.setDeliveryamount(null);
+                        buyerCapitalAccountDto.setOtheramount(null);
+                        buyerCapitalAccountDto.setCapitaltypename("收款");
+                        sumReceivableAccount=sumReceivableAccount.subtract(buyerCapitalAccountDto.getReceiptamount());
+                        buyerCapitalAccountDto.setReceivableaccount(sumReceivableAccount);
+                        buyerCapitalAccountDto.setInvoicebalance(sumInvoiceBalance);
+                        buyerCapitalAccountDto.setRemark((buyerCapitalViewDto.getInvoiceheadup()==null?"":buyerCapitalViewDto.getInvoiceheadup())+"$"+buyerCapitalViewDto.getMemberid()+"$"+buyerCapitalViewDto.getUsername());
+                        //添加到对应的结果集合中去
+                        totalbuyerCapitalAccountDtos.add(buyerCapitalAccountDto);
+                        //然后再添加一条发货记录，【应收账款】加钱
+                        buyerCapitalAccountDto = this.transferViewDto2AccountDto(buyerCapitalViewDto);
+                        buyerCapitalAccountDto.setReceiptamount(null);
+                        buyerCapitalAccountDto.setOtheramount(null);
+                        buyerCapitalAccountDto.setCapitaltypename("发货");
+                        //填写对应的发货单编号
+//                                buyerCapitalAccountDto.setOddnumber(buyerCapitalViewDto.getDeliveryno());
+                        sumReceivableAccount=sumReceivableAccount.add(buyerCapitalAccountDto.getDeliveryamount());
+                        buyerCapitalAccountDto.setReceivableaccount(sumReceivableAccount);
+                        //当发货=加法，发票结余进行累加，其他情况不处理
+                        sumInvoiceBalance=sumInvoiceBalance.add(buyerCapitalAccountDto.getDeliveryamount());
+                        buyerCapitalAccountDto.setInvoicebalance(sumInvoiceBalance);
+                        buyerCapitalAccountDto.setRemark((buyerCapitalViewDto.getInvoiceheadup()==null?"":buyerCapitalViewDto.getInvoiceheadup())+"$"+buyerCapitalViewDto.getMemberid()+"$"+buyerCapitalViewDto.getUsername());
+                        //添加到对应的结果集合中去
+                        totalbuyerCapitalAccountDtos.add(buyerCapitalAccountDto);
+                        break;
+                    }
+                    case BuyerCapitalConst.CAPITALTYPE_RECHARGE:
+                    {
+                        buyerCapitalAccountDto = this.transferViewDto2AccountDto(buyerCapitalViewDto);
+                        if (buyerCapitalAccountDto.getRechargestate()==(short)1){
+                            //此时的单号获取的为充值平台的单号
+                            buyerCapitalAccountDto.setOddnumber(buyerCapitalViewDto.getRechargenumber());
+                            buyerCapitalAccountDto.setDeliveryamount(null);
+                            buyerCapitalAccountDto.setOtheramount(null);
+                            buyerCapitalAccountDto.setCapitaltypename("充值");
+                            sumReceivableAccount=sumReceivableAccount.subtract(buyerCapitalAccountDto.getReceiptamount());
+                            buyerCapitalAccountDto.setReceivableaccount(sumReceivableAccount);
+                            buyerCapitalAccountDto.setInvoicebalance(sumInvoiceBalance);
+                            //添加到对应的结果集合中去
+                            totalbuyerCapitalAccountDtos.add(buyerCapitalAccountDto);
+                        }
+                        break;
+                    }
+                    //买家违约，金额归为其他，进行相加
+                    case BuyerCapitalConst.CAPITALTYPE_PENALTY:
+                    {
+                        buyerCapitalAccountDto=this.transferViewDto2AccountDto(buyerCapitalViewDto);
+                        buyerCapitalAccountDto.setDeliveryamount(null);
+                        buyerCapitalAccountDto.setReceiptamount(null);
+                        buyerCapitalAccountDto.setCapitaltypename("违约金");
+                        sumReceivableAccount=sumReceivableAccount.add(buyerCapitalAccountDto.getOtheramount());
+                        buyerCapitalAccountDto.setReceivableaccount(sumReceivableAccount);
+                        buyerCapitalAccountDto.setInvoicebalance(sumInvoiceBalance);
+                        buyerCapitalAccountDto.setPaytype((short)5);
+                        //capitalType类型为违约时，显示remark字段的内容
+                        buyerCapitalAccountDto.setRemark("买家违约");
+                        totalbuyerCapitalAccountDtos.add(buyerCapitalAccountDto);
+                        break;
+                    }
+                    //卖家违约，金额归为其他，金额变为负数，进行相加
+                    case BuyerCapitalConst.CAPITALTYPE_PENALTY_SELLER:
+                    {
+                        buyerCapitalAccountDto=this.transferViewDto2AccountDto(buyerCapitalViewDto);
+                        buyerCapitalAccountDto.setDeliveryamount(null);
+                        buyerCapitalAccountDto.setReceiptamount(null);
+                        buyerCapitalAccountDto.setCapitaltypename("违约金");
+                        buyerCapitalAccountDto.setOtheramount(buyerCapitalAccountDto.getOtheramount().multiply(new BigDecimal(-1)));
+                        sumReceivableAccount=sumReceivableAccount.add(buyerCapitalAccountDto.getOtheramount());
+                        buyerCapitalAccountDto.setReceivableaccount(sumReceivableAccount);
+                        buyerCapitalAccountDto.setInvoicebalance(sumInvoiceBalance);
+                        //违约金没有支付方式
+                        buyerCapitalAccountDto.setPaytype((short)5);
+                        //capitalType类型为违约时，显示remark字段的内容
+                        buyerCapitalAccountDto.setRemark("卖家违约");
+                        totalbuyerCapitalAccountDtos.add(buyerCapitalAccountDto);
+                        break;
+                    }
+                    //退款
+                    case BuyerCapitalConst.CAPITALTYPE_REFUND:{
+                        buyerCapitalAccountDto=this.transferViewDto2AccountDto(buyerCapitalViewDto);
+                        buyerCapitalAccountDto.setDeliveryamount(buyerCapitalAccountDto.getDeliveryamount().multiply(new BigDecimal(-1)));
+                        buyerCapitalAccountDto.setOtheramount(null);
+                        buyerCapitalAccountDto.setCapitaltypename("退货");
+                        buyerCapitalAccountDto.setReceiptamount(null);
+                        sumReceivableAccount= sumReceivableAccount.add(buyerCapitalAccountDto.getDeliveryamount());
+                        buyerCapitalAccountDto.setReceivableaccount(sumReceivableAccount);
+                        sumInvoiceBalance=sumInvoiceBalance.add(buyerCapitalAccountDto.getDeliveryamount());
+                        buyerCapitalAccountDto.setInvoicebalance(sumInvoiceBalance);
+                        buyerCapitalAccountDto.setPaytype((short) 5);
+                        buyerCapitalAccountDto.setRemark((buyerCapitalViewDto.getInvoiceheadup()==null?"":buyerCapitalViewDto.getInvoiceheadup())+"$"+buyerCapitalViewDto.getMemberid()+"$"+buyerCapitalViewDto.getUsername());
+                        totalbuyerCapitalAccountDtos.add(buyerCapitalAccountDto);
+
+                        buyerCapitalAccountDto=this.transferViewDto2AccountDto(buyerCapitalViewDto);
+                        buyerCapitalAccountDto.setDeliveryamount(null);
+                        buyerCapitalAccountDto.setOtheramount(null);
+                        buyerCapitalAccountDto.setCapitaltypename("退款");
+                        buyerCapitalAccountDto.setReceiptamount(buyerCapitalAccountDto.getReceiptamount().multiply(new BigDecimal(-1)));
+                        sumReceivableAccount= sumReceivableAccount.subtract(buyerCapitalAccountDto.getReceiptamount());
+                        buyerCapitalAccountDto.setReceivableaccount(sumReceivableAccount);
+                        buyerCapitalAccountDto.setInvoicebalance(sumInvoiceBalance);
+                        buyerCapitalAccountDto.setRemark((buyerCapitalViewDto.getInvoiceheadup()==null?"":buyerCapitalViewDto.getInvoiceheadup())+"$"+buyerCapitalViewDto.getMemberid()+"$"+buyerCapitalViewDto.getUsername());
+                        totalbuyerCapitalAccountDtos.add(buyerCapitalAccountDto);
+                        break;
+                    }
+                    case BuyerCapitalConst.CAPITALTYPE_WITHDRAWAL:
+                    {
+                        buyerCapitalAccountDto=this.transferViewDto2AccountDto(buyerCapitalViewDto);
+                        if (buyerCapitalAccountDto.getRechargestate()==(short)1){
+                            buyerCapitalAccountDto.setDeliveryamount(null);
+                            buyerCapitalAccountDto.setOtheramount(null);
+                            buyerCapitalAccountDto.setCapitaltypename(capitalType==BuyerCapitalConst.CAPITALTYPE_REFUND?"退款":"提现");
+                            buyerCapitalAccountDto.setReceiptamount(buyerCapitalAccountDto.getReceiptamount().multiply(new BigDecimal(-1)));
+                            sumReceivableAccount= sumReceivableAccount.subtract(buyerCapitalAccountDto.getReceiptamount());
+                            buyerCapitalAccountDto.setReceivableaccount(sumReceivableAccount);
+                            buyerCapitalAccountDto.setInvoicebalance(sumInvoiceBalance);
+                            totalbuyerCapitalAccountDtos.add(buyerCapitalAccountDto);
+                        }
+                        break;
+                    }
+                    default:
+                }
+
+            }
+        }
+        if (totalbuyerCapitalAccountDtos!=null&&totalbuyerCapitalAccountDtos.size()>0){
+            //计算发货金额当期结算、收款金额当期结算、其他当期结算
+            totalbuyerCapitalAccountDtos.stream().forEach(buyerCapitalAccountDto -> {
+                        sumDeliveryAmount[0] = buyerCapitalAccountDto.getDeliveryamount() == null ? sumDeliveryAmount[0] : sumDeliveryAmount[0].add(buyerCapitalAccountDto.getDeliveryamount());
+                        sumReceiptAmount[0] = buyerCapitalAccountDto.getReceiptamount() == null ? sumReceiptAmount[0] : sumReceiptAmount[0].add(buyerCapitalAccountDto.getReceiptamount());
+                        sumOtherAmount[0] = buyerCapitalAccountDto.getOtheramount() == null ? sumOtherAmount[0] : sumOtherAmount[0].add(buyerCapitalAccountDto.getOtheramount());
+                    }
+            );
+            sumReceivableAccount=totalbuyerCapitalAccountDtos.get(totalbuyerCapitalAccountDtos.size()-1).getReceivableaccount();
+            sumInvoiceBalance=totalbuyerCapitalAccountDtos.get(totalbuyerCapitalAccountDtos.size()-1).getInvoicebalance();
+            //当期结算的金额统计数据,最后一个Dto
+            BuyerCapitalAccountDto buyerCapitalAccountDto1=new BuyerCapitalAccountDto();
+            buyerCapitalAccountDto1.setDeliveryamount(sumDeliveryAmount[0]);
+            buyerCapitalAccountDto1.setReceiptamount(sumReceiptAmount[0]);
+            buyerCapitalAccountDto1.setOtheramount(sumOtherAmount[0]);
+            buyerCapitalAccountDto1.setReceivableaccount(sumReceivableAccount);
+            buyerCapitalAccountDto1.setInvoicebalance(sumInvoiceBalance);
+            buyerCapitalAccountDto1.setPaytype((short)5);
+            totalbuyerCapitalAccountDtos.add(buyerCapitalAccountDto1);
+        }
+
+        return totalbuyerCapitalAccountDtos;
+    }
+
+
+
+    /**
+     * 发票对账单列表查询结果导出
+     * @param dto
+     * @return
+     */
+    public List<Map<String,Object>>  excelExportListForInvoiceAccount(BuyerCapitalAccountQueryDto dto){
+        String[] rowTitles = new String[]{"日期","合同编号","类别","发货金额","收款金额","其他","应收账款","开票金额","发票结余","支付方式","支付单号","备注"};
+        List<Map<String,Object>> result=new ArrayList<Map<String,Object>>();
+        List<BuyerCapitalAccountDto> buyerCapitalAccountDtos=null;
+        if (StringUtils.isEmpty(dto.getInvoicename())&&dto.getTradetimeEnd()==null &&dto.getTradetimeStart()==null){
+
+        }else{
+            buyerCapitalAccountDtos=this.listForInvoiceAccount(dto);
+            if (buyerCapitalAccountDtos!=null&&buyerCapitalAccountDtos.size()>0){
+                Map<String,Object> map=new HashMap<>();
+                map.put("日期","");
+                map.put("合同编号","上期结转");
+                map.put("类别","");
+                map.put("发货金额","");
+                map.put("收款金额","");
+                map.put("其他","");
+                map.put("应收账款","0.00");
+                map.put("开票金额","");
+                map.put("发票结余","0.00");
+                map.put("支付方式","");
+                map.put("支付单号","");
+                map.put("备注","");
+                result.add(map);
+                for (BuyerCapitalAccountDto dto1:buyerCapitalAccountDtos){
+                    map=new HashMap<>();
+                    map.put("日期",dto1.getTradetime());
+                    map.put("合同编号",dto1.getOddnumber());
+                    map.put("类别",dto1.getCapitaltypename());
+                    map.put("发货金额",dto1.getDeliveryamount());
+                    map.put("收款金额",dto1.getReceiptamount());
+                    map.put("其他",dto1.getOtheramount());
+                    map.put("应收账款",dto1.getReceivableaccount());
+                    map.put("开票金额",dto1.getInvoiceamount());
+                    map.put("发票结余",dto1.getInvoicebalance());
+                    map.put("支付方式",JinshangUtils.buyerCapitalPaytype(dto1.getPaytype()));
+                    map.put("支付单号",dto1.getPayno());
+                    map.put("备注",dto1.getRemark()==null?"":dto1.getRemark().replaceAll("\\$"," "));
+                    result.add(map);
+                }
+                result.get(buyerCapitalAccountDtos.size()).put("合同编号","本月结算");
+            }
+        }
+        return result;
+    }
+
 
    public void  updateBillcreateid( long billcreateid,String ids){
         buyerCapitalMapper.updateBillcreateid(billcreateid,ids);

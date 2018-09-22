@@ -25,7 +25,12 @@ public class Quantity {
 
     public static final int INT_0 = 0;
 
+
     public static final int INT_ = -1;
+
+    public static final int INT_1 = 1;
+
+    public static final int INT_2 = 2;
 
     public static final String LIJIFAHUO = "立即发货";
     public static final String SANTIANFAHUO = "3天内发货";

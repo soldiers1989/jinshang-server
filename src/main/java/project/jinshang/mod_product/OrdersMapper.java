@@ -7,15 +7,13 @@ import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_admin.mod_count.bean.OrderStatisticModel;
 import project.jinshang.mod_cash.bean.SalerCapital;
 import project.jinshang.mod_product.bean.*;
+import project.jinshang.mod_product.bean.dto.OrdersLogisticsInfoDto;
 import project.jinshang.mod_product.bean.dto.OrdersView;
 import project.jinshang.mod_product.provider.OrdersProvider;
 
 import java.math.BigDecimal;
 import java.text.MessageFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public interface OrdersMapper {
     int countByExample(OrdersExample example);
@@ -233,20 +231,78 @@ public interface OrdersMapper {
                 sql.WHERE("od.transactionnumber LIKE #{tranNo}");
             }
 
+            if (StringUtils.hasText(param.getShipto())) {
+                String shipto = "%" + param.getShipto() + "%";
+                param.setShipto(shipto);
+                sql.WHERE("od.shipto LIKE #{shipto}");
+            }
+
+            if(param.getDeliverytype() != null){
+                sql.WHERE(" deliverytype=#{deliverytype} ");
+            }
+
+
             if (StringUtils.hasText(param.getStand())) {
                 String stand = "%" + param.getStand() + "%";
                 param.setStand(stand);
                 sql.WHERE("od.orderno in (select orderno from orderproduct where standard like #{stand})");
             }
-
+            Short sendstatus = param.getSendstatus();
             if (param.getOrderState() != null) {
                 if(param.getOrderState().toString().equals("11")){
                     sql.WHERE(" (od.orderstatus=7 and  od.reason='卖家取消订单')");
+                }else if(param.getOrderState()== 3 && sendstatus== 3){
+                    //后台管理--订单管理--待发货 传3待收货  但是要查状态为3待收货和10部分发货的
+                    sql.WHERE(" (od.orderstatus='3' or od.orderstatus='10')");
+                }else if(param.getOrderState()== 1 && sendstatus== 10){
+                    //后台管理--待发货  orderstate只传1 但是要查状态为1待发货和10部分发货的
+                    sql.WHERE(" (od.orderstatus='1' or od.orderstatus='10')");
                 }else {
                     sql.WHERE(" od.orderstatus=#{orderState} ");
                 }
             }else{
                 sql.WHERE(" (od.orderstatus!=7 and  od.orderstatus!=0)");
+            }
+            if(StringUtils.hasText(param.getTransactionid())){
+                sql.WHERE("transactionid = #{transactionid}");
+            }
+            if (StringUtils.hasText(param.getOrderStates())) {
+                List<String> list = new ArrayList<>(Arrays.asList(param.getOrderStates().split(",")));
+                List<String> removeList = new ArrayList<>();
+                StringBuffer sb = new StringBuffer("(");
+                int count = 0;
+                for (String i:list){
+                    if (i.equals("11")) {
+                        if(count>0){sb.append(" or ");}
+                        sb.append(" (od.orderstatus='7' and  od.reason='卖家取消订单') ");
+                        removeList.add("11");
+                        count++;
+                    }
+                    if (i.equals("3")) {
+                        if(count>0){sb.append(" or ");}
+                        //后台管理--订单管理--待发货 传3待收货  但是要查状态为3待收货和10部分发货的
+                        sb.append("  (od.orderstatus='3' or od.orderstatus='10') ");
+                        removeList.add("3");
+                        count++;
+                    }
+                    if(i.equals("1")){
+                        if(count>0){sb.append(" or ");}
+                        //后台管理--待发货  orderstate只传1 但是要查状态为1待发货和10部分发货的
+                        sb.append("  (od.orderstatus='1' or od.orderstatus='10')  ");
+                        removeList.add("1");
+                        count++;
+                    }
+                }
+                if (removeList.size()>0){
+                    list.removeAll(removeList);
+                }
+                String str = String.join(",", list);
+                if(StringUtils.hasText(str)){
+                    if(count>0){sb.append(" or ");}
+                    sb.append(" od.orderstatus in ("+str+") ");
+                }
+                sb.append(")");
+                sql.WHERE(sb.toString());
             }
 
 
@@ -265,6 +321,18 @@ public interface OrdersMapper {
                 Date tomorrow = c.getTime();
                 param.setEndTime(tomorrow);
                 sql.WHERE("od.createtime <=#{endTime}");
+            }
+
+            if (param.getRegisterTimeStart() != null) {
+                sql.WHERE("mm.createdate >=#{registerTimeStart}");
+            }
+            if (param.getRegisterTimeEnd() != null) {
+                Calendar c = Calendar.getInstance();
+                c.setTime(param.getRegisterTimeEnd());
+                c.add(Calendar.DAY_OF_MONTH, 1);// 今天+1天
+                Date tomorrow = c.getTime();
+                param.setRegisterTimeEnd(tomorrow);
+                sql.WHERE("mm.createdate <=#{registerTimeEnd}");
             }
 
             return sql.toString();
@@ -290,7 +358,7 @@ public interface OrdersMapper {
 
         public String queryByParam(OrderQueryParam param) {
 
-            SQL sql = new SQL().SELECT("sum(od.actualpayment-od.freight)").FROM(TBL_ORDER);
+            SQL sql = new SQL().SELECT("sum(od.totalprice)").FROM(TBL_ORDER);
             sql.LEFT_OUTER_JOIN(TBL_MEMBER);
             sql.LEFT_OUTER_JOIN(TBL_BUYERCOMPANYINFO);
             sql.LEFT_OUTER_JOIN(TBL_MEMBER2);
@@ -305,6 +373,9 @@ public interface OrdersMapper {
                 String waySalesMan = "%" + param.getWaysalesman() + "%";
                 param.setWaysalesman(waySalesMan);
                 sql.WHERE(" od.waysalesman like #{waysalesman} ");
+            }
+            if(StringUtils.hasText(param.getTransactionid())){
+                sql.WHERE("transactionid = #{transactionid}");
             }
 
             if (StringUtils.hasText(param.getMemberName())) {
@@ -342,23 +413,78 @@ public interface OrdersMapper {
                 sql.WHERE("od.transactionnumber LIKE #{tranNo}");
             }
 
+            if (StringUtils.hasText(param.getShipto())) {
+                String shipto = "%" + param.getShipto() + "%";
+                param.setShipto(shipto);
+                sql.WHERE("od.shipto LIKE #{shipto}");
+            }
+
+            if(param.getDeliverytype() != null){
+                sql.WHERE(" deliverytype=#{deliverytype} ");
+            }
+
             if (StringUtils.hasText(param.getStand())) {
                 String stand = "%" + param.getStand() + "%";
                 param.setStand(stand);
                 sql.WHERE("od.orderno in (select orderno from orderproduct where standard like #{stand})");
             }
-
+            Short sendstatus = param.getSendstatus();
             if (param.getOrderState() != null) {
                 if(param.getOrderState().toString().equals("11")){
                     sql.WHERE(" (od.orderstatus=7 and  od.reason='卖家取消订单')");
+                }else if(param.getOrderState()== 3 && sendstatus== 3){
+                    //后台管理--订单管理--待发货 传3待收货  但是要查状态为3待收货和10部分发货的
+                    sql.WHERE(" (od.orderstatus='3' or od.orderstatus='10')");
+                }else if(param.getOrderState()== 1 && sendstatus== 10){
+                    //后台管理--待发货  orderstate只传1 但是要查状态为1待发货和10部分发货的
+                    sql.WHERE(" (od.orderstatus='1' or od.orderstatus='10')");
                 }else {
                     sql.WHERE(" od.orderstatus=#{orderState} ");
                 }
             }else{
                 sql.WHERE(" (od.orderstatus!=7 and  od.orderstatus!=0)");
             }
-
-
+            if(StringUtils.hasText(param.getTransactionid())){
+                sql.WHERE("transactionid = #{transactionid}");
+            }
+            if (StringUtils.hasText(param.getOrderStates())) {
+                List<String> list = new ArrayList<>(Arrays.asList(param.getOrderStates().split(",")));
+                List<String> removeList = new ArrayList<>();
+                StringBuffer sb = new StringBuffer("(");
+                int count = 0;
+                for (String i:list){
+                    if (i.equals("11")) {
+                        if(count>0){sb.append(" or ");}
+                        sb.append(" (od.orderstatus='7' and  od.reason='卖家取消订单') ");
+                        removeList.add("11");
+                        count++;
+                    }
+                    if (i.equals("3")) {
+                        if(count>0){sb.append(" or ");}
+                        //后台管理--订单管理--待发货 传3待收货  但是要查状态为3待收货和10部分发货的
+                        sb.append("  (od.orderstatus='3' or od.orderstatus='10') ");
+                        removeList.add("3");
+                        count++;
+                    }
+                    if(i.equals("1")){
+                        if(count>0){sb.append(" or ");}
+                        //后台管理--待发货  orderstate只传1 但是要查状态为1待发货和10部分发货的
+                        sb.append("  (od.orderstatus='1' or od.orderstatus='10')  ");
+                        removeList.add("1");
+                        count++;
+                    }
+                }
+                if (removeList.size()>0){
+                    list.removeAll(removeList);
+                }
+                String str = String.join(",", list);
+                if(StringUtils.hasText(str)){
+                    if(count>0){sb.append(" or ");}
+                    sb.append(" od.orderstatus in ("+str+") ");
+                }
+                sb.append(")");
+                sql.WHERE(sb.toString());
+            }
             if (param.getShopName() != null) {
                 String shopName = "%" + param.getShopName() + "%";
                 param.setShopName(shopName);
@@ -374,6 +500,18 @@ public interface OrdersMapper {
                 Date tomorrow = c.getTime();
                 param.setEndTime(tomorrow);
                 sql.WHERE("od.createtime <=#{endTime}");
+            }
+
+            if (param.getRegisterTimeStart() != null) {
+                sql.WHERE("mm.createdate >=#{registerTimeStart}");
+            }
+            if (param.getRegisterTimeEnd() != null) {
+                Calendar c = Calendar.getInstance();
+                c.setTime(param.getRegisterTimeEnd());
+                c.add(Calendar.DAY_OF_MONTH, 1);// 今天+1天
+                Date tomorrow = c.getTime();
+                param.setRegisterTimeEnd(tomorrow);
+                sql.WHERE("mm.createdate <=#{registerTimeEnd}");
             }
 
             return sql.toString();
@@ -382,32 +520,27 @@ public interface OrdersMapper {
 
 
     /**
-     * 获取销售总金额
+     * 获取订单总运费
      *
      * @return
      */
-    @SelectProvider(type = OrderSellSumProvider.class, method = "queryByParam")
-    public BigDecimal getOrderSellSum(OrderQueryParam param);
+    @SelectProvider(type = OrderFreightProvider.class, method = "queryByParam")
+    public BigDecimal getOrderFreight(OrderQueryParam param);
 
-    public class OrderSellSumProvider {
+    public class OrderFreightProvider {
 
-        private final String TBL_ORDER_PRODUCT = "orderproduct op";
-        private final String TBL_ORDER = "orders od on op.orderid=od.id";
+        private final String TBL_ORDER = "orders od";
+        private final String TBL_BUYERCOMPANYINFO = "buyercompanyinfo bci on od.memberid=bci.memberid";
         private final String TBL_MEMBER = "member m on od.saleid=m.id";
         private final String TBL_MEMBER2 = "member mm on od.memberid=mm.id";
-        private final String TBL_BUYERCOMPANYINFO = "buyercompanyinfo bci on od.memberid=bci.memberid";
 
 
         public String queryByParam(OrderQueryParam param) {
 
-            SQL sql = new SQL().SELECT("sum(op.actualpayment-op.freight)").FROM(TBL_ORDER_PRODUCT);
-
-            sql.LEFT_OUTER_JOIN(TBL_ORDER);
+            SQL sql = new SQL().SELECT("sum(od.freight)").FROM(TBL_ORDER);
             sql.LEFT_OUTER_JOIN(TBL_MEMBER);
             sql.LEFT_OUTER_JOIN(TBL_BUYERCOMPANYINFO);
             sql.LEFT_OUTER_JOIN(TBL_MEMBER2);
-
-            sql.WHERE("op.backstate=0");
 
             if (StringUtils.hasText(param.getClerkname())) {
                 String clerkName = "%" + param.getClerkname() + "%";
@@ -456,20 +589,77 @@ public interface OrdersMapper {
                 sql.WHERE("od.transactionnumber LIKE #{tranNo}");
             }
 
+            if (StringUtils.hasText(param.getShipto())) {
+                String shipto = "%" + param.getShipto() + "%";
+                param.setShipto(shipto);
+                sql.WHERE("od.shipto LIKE #{shipto}");
+            }
+
+            if(param.getDeliverytype() != null){
+                sql.WHERE(" deliverytype=#{deliverytype} ");
+            }
+
             if (StringUtils.hasText(param.getStand())) {
                 String stand = "%" + param.getStand() + "%";
                 param.setStand(stand);
                 sql.WHERE("od.orderno in (select orderno from orderproduct where standard like #{stand})");
             }
-
+            Short sendstatus = param.getSendstatus();
             if (param.getOrderState() != null) {
                 if(param.getOrderState().toString().equals("11")){
                     sql.WHERE(" (od.orderstatus=7 and  od.reason='卖家取消订单')");
+                }else if(param.getOrderState()== 3 && sendstatus== 3){
+                    //后台管理--订单管理--待发货 传3待收货  但是要查状态为3待收货和10部分发货的
+                    sql.WHERE(" (od.orderstatus='3' or od.orderstatus='10')");
+                }else if(param.getOrderState()== 1 && sendstatus== 10){
+                    //后台管理--待发货  orderstate只传1 但是要查状态为1待发货和10部分发货的
+                    sql.WHERE(" (od.orderstatus='1' or od.orderstatus='10')");
                 }else {
                     sql.WHERE(" od.orderstatus=#{orderState} ");
                 }
             }else{
-                sql.WHERE(" (od.orderstatus!=7 and  od.orderstatus!='0')");
+                sql.WHERE(" (od.orderstatus!=7 and  od.orderstatus!=0)");
+            }
+            if(StringUtils.hasText(param.getTransactionid())){
+                sql.WHERE("transactionid = #{transactionid}");
+            }
+            if (StringUtils.hasText(param.getOrderStates())) {
+                List<String> list = new ArrayList<>(Arrays.asList(param.getOrderStates().split(",")));
+                List<String> removeList = new ArrayList<>();
+                StringBuffer sb = new StringBuffer("(");
+                int count = 0;
+                for (String i:list){
+                    if (i.equals("11")) {
+                        if(count>0){sb.append(" or ");}
+                        sb.append(" (od.orderstatus='7' and  od.reason='卖家取消订单') ");
+                        removeList.add("11");
+                        count++;
+                    }
+                    if (i.equals("3")) {
+                        if(count>0){sb.append(" or ");}
+                        //后台管理--订单管理--待发货 传3待收货  但是要查状态为3待收货和10部分发货的
+                        sb.append("  (od.orderstatus='3' or od.orderstatus='10') ");
+                        removeList.add("3");
+                        count++;
+                    }
+                    if(i.equals("1")){
+                        if(count>0){sb.append(" or ");}
+                        //后台管理--待发货  orderstate只传1 但是要查状态为1待发货和10部分发货的
+                        sb.append("  (od.orderstatus='1' or od.orderstatus='10')  ");
+                        removeList.add("1");
+                        count++;
+                    }
+                }
+                if (removeList.size()>0){
+                    list.removeAll(removeList);
+                }
+                String str = String.join(",", list);
+                if(StringUtils.hasText(str)){
+                    if(count>0){sb.append(" or ");}
+                    sb.append(" od.orderstatus in ("+str+") ");
+                }
+                sb.append(")");
+                sql.WHERE(sb.toString());
             }
 
 
@@ -488,6 +678,18 @@ public interface OrdersMapper {
                 Date tomorrow = c.getTime();
                 param.setEndTime(tomorrow);
                 sql.WHERE("od.createtime <=#{endTime}");
+            }
+
+            if (param.getRegisterTimeStart() != null) {
+                sql.WHERE("mm.createdate >=#{registerTimeStart}");
+            }
+            if (param.getRegisterTimeEnd() != null) {
+                Calendar c = Calendar.getInstance();
+                c.setTime(param.getRegisterTimeEnd());
+                c.add(Calendar.DAY_OF_MONTH, 1);// 今天+1天
+                Date tomorrow = c.getTime();
+                param.setRegisterTimeEnd(tomorrow);
+                sql.WHERE("mm.createdate <=#{registerTimeEnd}");
             }
 
             return sql.toString();
@@ -567,20 +769,77 @@ public interface OrdersMapper {
                 sql.WHERE("od.transactionnumber LIKE #{tranNo}");
             }
 
+            if (StringUtils.hasText(param.getShipto())) {
+                String shipto = "%" + param.getShipto() + "%";
+                param.setShipto(shipto);
+                sql.WHERE("od.shipto LIKE #{shipto}");
+            }
+
+            if(param.getDeliverytype() != null){
+                sql.WHERE(" deliverytype=#{deliverytype} ");
+            }
+
             if (StringUtils.hasText(param.getStand())) {
                 String stand = "%" + param.getStand() + "%";
                 param.setStand(stand);
                 sql.WHERE("od.orderno in (select orderno from orderproduct where standard like #{stand})");
             }
-
+            Short sendstatus = param.getSendstatus();
             if (param.getOrderState() != null) {
                 if(param.getOrderState().toString().equals("11")){
                     sql.WHERE(" (od.orderstatus=7 and  od.reason='卖家取消订单')");
+                }else if(param.getOrderState()== 3 && sendstatus== 3){
+                    //后台管理--订单管理--待发货 传3待收货  但是要查状态为3待收货和10部分发货的
+                    sql.WHERE(" (od.orderstatus='3' or od.orderstatus='10')");
+                }else if(param.getOrderState()== 1 && sendstatus== 10){
+                    //后台管理--待发货  orderstate只传1 但是要查状态为1待发货和10部分发货的
+                    sql.WHERE(" (od.orderstatus='1' or od.orderstatus='10')");
                 }else {
                     sql.WHERE(" od.orderstatus=#{orderState} ");
                 }
             }else{
                 sql.WHERE(" (od.orderstatus!=7 and  od.orderstatus!=0)");
+            }
+            if(StringUtils.hasText(param.getTransactionid())){
+                sql.WHERE("transactionid = #{transactionid}");
+            }
+            if (StringUtils.hasText(param.getOrderStates())) {
+                List<String> list = new ArrayList<>(Arrays.asList(param.getOrderStates().split(",")));
+                List<String> removeList = new ArrayList<>();
+                StringBuffer sb = new StringBuffer("(");
+                int count = 0;
+                for (String i:list){
+                    if (i.equals("11")) {
+                        if(count>0){sb.append(" or ");}
+                        sb.append(" (od.orderstatus='7' and  od.reason='卖家取消订单') ");
+                        removeList.add("11");
+                        count++;
+                    }
+                    if (i.equals("3")) {
+                        if(count>0){sb.append(" or ");}
+                        //后台管理--订单管理--待发货 传3待收货  但是要查状态为3待收货和10部分发货的
+                        sb.append("  (od.orderstatus='3' or od.orderstatus='10') ");
+                        removeList.add("3");
+                        count++;
+                    }
+                    if(i.equals("1")){
+                        if(count>0){sb.append(" or ");}
+                        //后台管理--待发货  orderstate只传1 但是要查状态为1待发货和10部分发货的
+                        sb.append("  (od.orderstatus='1' or od.orderstatus='10')  ");
+                        removeList.add("1");
+                        count++;
+                    }
+                }
+                if (removeList.size()>0){
+                    list.removeAll(removeList);
+                }
+                String str = String.join(",", list);
+                if(StringUtils.hasText(str)){
+                    if(count>0){sb.append(" or ");}
+                    sb.append(" od.orderstatus in ("+str+") ");
+                }
+                sb.append(")");
+                sql.WHERE(sb.toString());
             }
 
 
@@ -599,6 +858,18 @@ public interface OrdersMapper {
                 Date tomorrow = c.getTime();
                 param.setEndTime(tomorrow);
                 sql.WHERE("od.createtime <=#{endTime}");
+            }
+
+            if (param.getRegisterTimeStart() != null) {
+                sql.WHERE("mm.createdate >=#{registerTimeStart}");
+            }
+            if (param.getRegisterTimeEnd() != null) {
+                Calendar c = Calendar.getInstance();
+                c.setTime(param.getRegisterTimeEnd());
+                c.add(Calendar.DAY_OF_MONTH, 1);// 今天+1天
+                Date tomorrow = c.getTime();
+                param.setRegisterTimeEnd(tomorrow);
+                sql.WHERE("mm.createdate <=#{registerTimeEnd}");
             }
 
             return sql.toString();
@@ -680,20 +951,77 @@ public interface OrdersMapper {
                 sql.WHERE("od.transactionnumber LIKE #{tranNo}");
             }
 
+            if (StringUtils.hasText(param.getShipto())) {
+                String shipto = "%" + param.getShipto() + "%";
+                param.setShipto(shipto);
+                sql.WHERE("od.shipto LIKE #{shipto}");
+            }
+
+            if(param.getDeliverytype() != null){
+                sql.WHERE(" deliverytype=#{deliverytype} ");
+            }
+
             if (StringUtils.hasText(param.getStand())) {
                 String stand = "%" + param.getStand() + "%";
                 param.setStand(stand);
                 sql.WHERE("od.orderno in (select orderno from orderproduct where standard like #{stand})");
             }
-
+            Short sendstatus = param.getSendstatus();
             if (param.getOrderState() != null) {
                 if(param.getOrderState() == 11) {
                     sql.WHERE(" (od.orderstatus=7 and  od.reason='卖家取消订单')");
+                }else if(param.getOrderState()== 3 && sendstatus== 3){
+                    //后台管理--订单管理--待发货 传3待收货  但是要查状态为3待收货和10部分发货的
+                    sql.WHERE(" (od.orderstatus='3' or od.orderstatus='10')");
+                }else if(param.getOrderState()== 1 && sendstatus== 10){
+                    //后台管理--待发货  orderstate只传1 但是要查状态为1待发货和10部分发货的
+                    sql.WHERE(" (od.orderstatus='1' or od.orderstatus='10')");
                 }else {
                     sql.WHERE(" od.orderstatus=#{orderState} ");
                 }
             }else{
                 sql.WHERE(" (od.orderstatus!=7 and  od.orderstatus!=0)");
+            }
+            if(StringUtils.hasText(param.getTransactionid())){
+                sql.WHERE("transactionid = #{transactionid}");
+            }
+            if (StringUtils.hasText(param.getOrderStates())) {
+                List<String> list = new ArrayList<>(Arrays.asList(param.getOrderStates().split(",")));
+                List<String> removeList = new ArrayList<>();
+                StringBuffer sb = new StringBuffer("(");
+                int count = 0;
+                for (String i:list){
+                    if (i.equals("11")) {
+                        if(count>0){sb.append(" or ");}
+                        sb.append(" (od.orderstatus='7' and  od.reason='卖家取消订单') ");
+                        removeList.add("11");
+                        count++;
+                    }
+                    if (i.equals("3")) {
+                        if(count>0){sb.append(" or ");}
+                        //后台管理--订单管理--待发货 传3待收货  但是要查状态为3待收货和10部分发货的
+                        sb.append("  (od.orderstatus='3' or od.orderstatus='10') ");
+                        removeList.add("3");
+                        count++;
+                    }
+                    if(i.equals("1")){
+                        if(count>0){sb.append(" or ");}
+                        //后台管理--待发货  orderstate只传1 但是要查状态为1待发货和10部分发货的
+                        sb.append("  (od.orderstatus='1' or od.orderstatus='10')  ");
+                        removeList.add("1");
+                        count++;
+                    }
+                }
+                if (removeList.size()>0){
+                    list.removeAll(removeList);
+                }
+                String str = String.join(",", list);
+                if(StringUtils.hasText(str)){
+                    if(count>0){sb.append(" or ");}
+                    sb.append(" od.orderstatus in ("+str+") ");
+                }
+                sb.append(")");
+                sql.WHERE(sb.toString());
             }
 
 
@@ -715,10 +1043,28 @@ public interface OrdersMapper {
                 sql.WHERE("od.createtime <=#{endTime}");
             }
 
+            if (param.getRegisterTimeStart() != null) {
+                sql.WHERE("mm.createdate >=#{registerTimeStart}");
+            }
+            if (param.getRegisterTimeEnd() != null) {
+                Calendar c = Calendar.getInstance();
+                c.setTime(param.getRegisterTimeEnd());
+                c.add(Calendar.DAY_OF_MONTH, 1);// 今天+1天
+                Date tomorrow = c.getTime();
+                param.setRegisterTimeEnd(tomorrow);
+                sql.WHERE("mm.createdate <=#{registerTimeEnd}");
+            }
+
             return sql.toString();
         }
     }
 
+    /**
+     * 获取当日卖家违约订单数
+     */
+    @Select("select count(1) from orders where orderstatus = 7 and reason='卖家取消订单' and \n" +
+            "to_char(paymenttime,'yyyy-MM-DD HH24:MI:SS')>= to_char(current_date,'yyyy-MM-DD HH24:MI:SS') AND paymenttime<=now()")
+    public BigDecimal getSellerBreachOrders();
 
     /**
      * 根据ids数组计算总金额
@@ -848,6 +1194,201 @@ public interface OrdersMapper {
                 param.setClerkname(clerkName);
                 sql.WHERE(" od.clerkname like #{clerkname} ");
             }
+            if(StringUtils.hasText(param.getTransactionid())){
+                sql.WHERE("od.transactionid = #{transactionid}");
+            }
+            if (StringUtils.hasText(param.getWaysalesman())) {
+                String waySalesMan = "%" + param.getWaysalesman() + "%";
+                param.setWaysalesman(waySalesMan);
+                sql.WHERE(" od.waysalesman like #{waysalesman} ");
+            }
+            if (StringUtils.hasText(param.getStand())) {
+                String stand = "%" + param.getStand() + "%";
+                param.setStand(stand);
+                sql.WHERE("od.orderno in (select orderno from orderproduct where standard like #{stand})");
+            }
+
+            if (StringUtils.hasText(param.getCode())) {
+                String code = "%" + param.getCode() + "%";
+                param.setCode(code);
+                sql.WHERE("od.code LIKE #{code}");
+            }
+            if (StringUtils.hasText(param.getTranNo())) {
+                String tranNo = "%" + param.getTranNo() + "%";
+                param.setTranNo(tranNo);
+                sql.WHERE("od.transactionnumber LIKE #{tranNo}");
+            }
+            if (param.getOrderState() != null) {
+                if(param.getOrderState().toString().equals("11")){
+                    sql.WHERE(" (od.orderstatus='7' and  od.reason='卖家取消订单')");
+                }else {
+                    sql.WHERE(" od.orderstatus=#{orderState} ");
+                }
+            }
+            if (StringUtils.hasText(param.getOrderStates())) {
+                List<String> list = new ArrayList<>(Arrays.asList(param.getOrderStates().split(",")));
+                List<String> removeList = new ArrayList<>();
+                StringBuffer sbb = new StringBuffer("(");
+                int count = 0;
+                for (String i:list){
+                    if (i.equals("11")) {
+                        if(count>0){sbb.append(" or ");}
+                        sbb.append(" (od.orderstatus='7' and  od.reason='卖家取消订单') ");
+                        removeList.add("11");
+                        count++;
+                    }
+                }
+                if (removeList.size()>0){
+                    list.removeAll(removeList);
+                }
+                String str = String.join(",", list);
+                if(StringUtils.hasText(str)){
+                    if(count>0){sbb.append(" or ");}
+                    sbb.append(" od.orderstatus in ("+str+") ");
+                }
+                sbb.append(")");
+                sql.WHERE(sbb.toString());
+            }
+
+            if (param.getShopName() != null) {
+                String shopName = "%" + param.getShopName() + "%";
+                param.setShopName(shopName);
+                sql.WHERE("od.shopname LIKE #{shopName}");
+            }
+
+            if (param.getShipto() != null) {
+                String shipto = "%" + param.getShipto() + "%";
+                param.setShipto(shipto);
+                sql.WHERE("od.shipto LIKE #{shipto}");
+            }
+
+            if (param.getDeliverytype() != null) {
+                sql.WHERE("od.deliverytype = #{deliverytype}");
+            }
+
+            if (param.getStartTime() != null) {
+                sql.WHERE("od.createtime >=#{startTime}");
+            }
+            if (param.getEndTime() != null) {
+                Calendar c = Calendar.getInstance();
+                c.setTime(param.getEndTime());
+                c.add(Calendar.DAY_OF_MONTH, 1);// 今天+1天
+                Date tomorrow = c.getTime();
+                param.setEndTime(tomorrow);
+                sql.WHERE("od.createtime <=#{endTime}");
+            }
+
+            if (param.getRegisterTimeStart() != null) {
+                sql.WHERE("m.createdate >=#{registerTimeStart}");
+            }
+            if (param.getRegisterTimeEnd() != null) {
+                Calendar c = Calendar.getInstance();
+                c.setTime(param.getRegisterTimeEnd());
+                c.add(Calendar.DAY_OF_MONTH, 1);// 今天+1天
+                Date tomorrow = c.getTime();
+                param.setRegisterTimeEnd(tomorrow);
+                sql.WHERE("m.createdate <=#{registerTimeEnd}");
+            }
+
+            sql.ORDER_BY("od.createtime desc");
+
+            return sql.toString();
+        }
+    }
+
+
+    @SelectProvider(type = SellerBillOrderExcelProvider.class, method = "queryOrderByParam")
+    List<Map<String, Object>> getExcelSellerBillOrders(@Param("saleid") Long saleid,@Param("orderid") String orderid);
+
+
+    public class SellerBillOrderExcelProvider {
+
+        private final String TBL_ORDER = "orders od on op.orderid=od.id";
+        private final String TBL_ORDER_PRODUCT = "orderproduct op";
+        private final String TBL_PRODUCT_INFO = "productinfo info on op.pdid=info.id";
+
+        public String queryOrderByParam(@Param("saleid") Long saleid,@Param("orderid") String orderid) {
+            StringBuffer sb = new StringBuffer();
+            sb.append("od.createtime,od.code,od.orderno,od.transactionnumber,od.frozepay,");
+            sb.append("case od.paytype when 0 then '支付宝' when 1 then '微信' when 2 then '银行卡' when 3 then '余额' when 4 then '授信' end as paytype, ");//支付方式0=支付宝1=微信2=银行卡3=余额4=授信
+            sb.append("case when od.ordertype=0 then '现货' else '远期' END as ordertype,");
+            sb.append("case when od.isonline=1 then '线下' ELSE '线上' end as inonline,");
+            sb.append("op.pdname,op.attrjson,op.standard,op.material,op.gradeno,op.brand,info.mark,");
+            sb.append("info.surfacetreatment,info.packagetype,op.unit,op.price,op.num,op.actualpayment,info.level1,info.level2,info.level3,");
+            sb.append("case od.orderstatus when 0 then '待付款' when 1 then '待发货'");
+            sb.append("when 3 then '待收货' when 4 then '待验货' when 5 then '已完成'");
+            sb.append("when 7 then '已关闭' when 8 then '备货中' when 9 then '备货完成'");
+            sb.append("ELSE '其它' END as orderstatus");
+
+            SQL sql = new SQL().SELECT(sb.toString()).FROM(TBL_ORDER_PRODUCT);
+
+            sql.JOIN(TBL_ORDER);
+            sql.LEFT_OUTER_JOIN(TBL_PRODUCT_INFO);
+            sql.WHERE("od.saleid = #{saleid}");
+            if (orderid != null && orderid != "") {
+                sql.WHERE("od.id in ("+orderid+")");
+            }
+            sql.ORDER_BY("od.createtime desc");
+
+            return sql.toString();
+        }
+    }
+
+
+    @SelectProvider(type = getOrdersCount.class, method = "queryOrderCountByParam")
+    Long getOrdersCount(OrderQueryParam param);
+
+
+    public class getOrdersCount {
+
+        private final String TBL_ORDER = "orders od on op.orderid=od.id";
+        private final String TBL_ORDER_PRODUCT = "orderproduct op";
+        private final String TBL_PRODUCT_INFO = "productinfo info on op.pdid=info.id";
+        private final String TBL_BILL_ORDER = "billorder bo on bo.orderid=od.id";
+        private final String TBL_BILL_RECORD = "billingrecord br on bo.billrecordid=br.id";
+
+
+        public String queryOrderCountByParam(OrderQueryParam param) {
+
+            SQL sql = new SQL().SELECT("count(1)").FROM(TBL_ORDER_PRODUCT);
+
+            sql.JOIN(TBL_ORDER);
+            sql.LEFT_OUTER_JOIN(TBL_PRODUCT_INFO);
+            sql.LEFT_OUTER_JOIN(TBL_BILL_ORDER);
+            sql.LEFT_OUTER_JOIN(TBL_BILL_RECORD);
+            sql.LEFT_OUTER_JOIN(" member m on od.memberid=m.id ");
+            sql.LEFT_OUTER_JOIN(" buyercompanyinfo  bci on od.memberid=bci.memberid ");
+
+
+            if (StringUtils.hasText(param.getMemberName())) {
+                String memberName = "%" + param.getMemberName() + "%";
+                param.setMemberName(memberName);
+                sql.WHERE("(m.realname like #{memberName} or bci.companyname like #{memberName})");
+            }
+            if (StringUtils.hasText(param.getSellerName())) {
+                String sellerName = "%" + param.getSellerName() + "%";
+                param.setSellerName(sellerName);
+                sql.WHERE("(od.membercompany like #{sellerName} or od.shopname like #{sellerName})");
+            }
+            if (param.getIsonline() != null) {
+                sql.WHERE("od.isonline=#{isonline}");
+            }
+            if (param.getPayType() != null) {
+                sql.WHERE("od.paytype=#{payType}");
+            }
+            if (param.getOrderType() != null) {
+                sql.WHERE("od.ordertype=#{orderType}");
+            }
+            if (StringUtils.hasText(param.getOrderNo())) {
+                String orderNo = "%" + param.getOrderNo() + "%";
+                param.setOrderNo(orderNo);
+                sql.WHERE("od.orderno LIKE #{orderNo}");
+            }
+            if (StringUtils.hasText(param.getClerkname())) {
+                String clerkName = "%" + param.getClerkname() + "%";
+                param.setClerkname(clerkName);
+                sql.WHERE(" od.clerkname like #{clerkname} ");
+            }
 
             if (StringUtils.hasText(param.getWaysalesman())) {
                 String waySalesMan = "%" + param.getWaysalesman() + "%";
@@ -894,12 +1435,11 @@ public interface OrdersMapper {
                 param.setEndTime(tomorrow);
                 sql.WHERE("od.createtime <=#{endTime}");
             }
-            sql.ORDER_BY("od.createtime desc");
+            //sql.ORDER_BY("od.createtime desc");
 
             return sql.toString();
         }
     }
-
 
     @SelectProvider(type = ProductBackProvider.class, method = "queryOrderByParam")
     List<Map<String, Object>> getExcelProductBack(BackQueryParam backQueryParam);
@@ -990,6 +1530,10 @@ public interface OrdersMapper {
      */
     @SelectProvider(type = OrdersProvider.class, method = "queryOrderByParam")
     List<Orders> getMemberOrdersList(OrderQueryParam param);
+
+
+    @SelectProvider(type = OrdersProvider.class, method = "queryOrderByParamForUser")
+    List<Orders> getMemberOrdersListForUser(OrderQueryParam param);
 
 
 
@@ -1153,43 +1697,62 @@ public interface OrdersMapper {
     List<Map<String, Object>> getSellerCenterOrdersNum(OrderQueryParam param);
 
 
-    @Select("SELECT " +
-            "od.id, " +
-            "CASE " +
-            "WHEN (od.orderstatus = 1 " +
-            "OR od.orderstatus = 3 or od.orderstatus=4 or od.orderstatus=5) " +
-            "AND od.ordertype = 0 THEN " +
-            "SUM (od.actualpayment) " +
-            "WHEN ( " +
-            "od.orderstatus = 1 OR od.orderstatus = 3 or od.orderstatus=4 or od.orderstatus=5 " +
-            "OR od.orderstatus = 8 " +
-            "OR od.orderstatus = 9 " +
-            ") " +
-            "AND od.ordertype = 1 THEN " +
-            "SUM (od.allpay) " +
-            "WHEN (od.orderstatus = 1 OR od.orderstatus = 3 or od.orderstatus=4 or od.orderstatus=5) " +
-            "AND od.ordertype = 3 THEN " +
-            "SUM (od.actualpayment) " +
-            "when (od.orderstatus = 8 or od.orderstatus=9) and od.ordertype=3 THEN " +
-            "    SUM(od.deposit)  " +
-            "END as actualpayment " +
-            "FROM " +
-            "orders od " +
-            "WHERE " +
-            "( " +
-            "od.orderstatus = 1 " +
-            "OR od.orderstatus = 8 " +
-            "OR od.orderstatus = 9 " +
-            "OR od.orderstatus = 3 or od.orderstatus=4 or od.orderstatus=5 " +
-            " " +
-            ") and  " +
-            "to_char(od.createtime,'yyyy-MM-DD HH24:MI:SS')>= to_char(current_date,'yyyy-MM-DD HH24:MI:SS') AND od.createtime<=now() " +
-            "GROUP BY od.id ")
-    List<Orders> getCurrentOrdersSumPay();
+//    @Select("SELECT " +
+//            "od.id, " +
+//            "CASE " +
+//            "WHEN (od.orderstatus = 1 " +
+//            "OR od.orderstatus = 3 or od.orderstatus=4 or od.orderstatus=5) " +
+//            "AND od.ordertype = 0 THEN " +
+//            "SUM (od.actualpayment) " +
+//            "WHEN ( " +
+//            "od.orderstatus = 1 OR od.orderstatus = 3 or od.orderstatus=4 or od.orderstatus=5 " +
+//            "OR od.orderstatus = 8 " +
+//            "OR od.orderstatus = 9 " +
+//            ") " +
+//            "AND od.ordertype = 1 THEN " +
+//            "SUM (od.allpay) " +
+//            "WHEN (od.orderstatus = 1 OR od.orderstatus = 3 or od.orderstatus=4 or od.orderstatus=5) " +
+//            "AND od.ordertype = 3 THEN " +
+//            "SUM (od.actualpayment) " +
+//            "when (od.orderstatus = 8 or od.orderstatus=9) and od.ordertype=3 THEN " +
+//            "    SUM(od.deposit)  " +
+//            "END as actualpayment " +
+//            "FROM " +
+//            "orders od " +
+//            "WHERE " +
+//            "( " +
+//            "od.orderstatus = 1 " +
+//            "OR od.orderstatus = 8 " +
+//            "OR od.orderstatus = 9 " +
+//            "OR od.orderstatus = 3 or od.orderstatus=4 or od.orderstatus=5 " +
+//            " " +
+//            ") and  " +
+//            "to_char(od.createtime,'yyyy-MM-DD HH24:MI:SS')>= to_char(current_date,'yyyy-MM-DD HH24:MI:SS') AND od.createtime<=now() " +
+//            "GROUP BY od.id ")
+    @Select("select sum(od.totalprice) from orders od where od.createtime>= current_date AND od.createtime<=now() and od.orderstatus in (1,3,4,5,8,9,10)")
+    BigDecimal getCurrentOrdersSumPay();
 
 
     @SelectProvider(type = OrdersProvider.class,method = "getAllMemberOrdersList")
     List<OrdersView> getAllMemberOrdersList(OrderQueryParam param);
+
+
+    //后台统计订单列表
+    @SelectProvider(type = OrdersProvider.class,method = "getAllMemberOrdersCountList")
+    List<Map<String,Object>> getAllMemberOrdersCountList(OrderQueryParam param);
+
+    //后台统计订单详情
+    @SelectProvider(type = OrdersProvider.class,method = "getAllMemberOrderCountDetail")
+    List<Map<String,Object>> getAllMemberOrderCountDetail(OrderQueryParam param);
+
+    //后台统计订单详情
+    @Select("<script> select o.id,o.orderno,m.username buyerusername,m.realname buyerrealname,bci.companyname buyercompanyname,mm.username sellerusername," +
+            "mm.realname sellerrealname,o.membercompany sellercompanyname,o.phone,o.createtime,o.orderstatus,o.shipto,o.province,o.city,o.area," +
+            "o.receivingaddress,case when o.orderstatus = 3 then 1 when o.orderstatus = 8 then 2 when o.orderstatus = 1 then 3 when o.orderstatus = 10 then 4 end as dataorder " +
+            "from orders o left join member m on o.memberid=m.id left join buyercompanyinfo bci on o.memberid=bci.memberid left join " +
+            "member mm on o.saleid=mm.id  where o.id in <foreach collection=\"orderids\" item=\"item\" index=\"index\" " +
+            "open=\"(\" separator=\",\" close=\")\">#{item}</foreach>  order by dataorder,o.createtime desc </script>")
+    List<Map<String,Object>> getAllMemberOrderCountPrint(@Param("orderids") Long[] orderids);
 
     /**
      * 获取超时未付款的限时购订单
@@ -1217,7 +1780,8 @@ public interface OrdersMapper {
     List<Map<String,Object>> getWaitOpenBillList(@Param("saleid") long saleid);
 
 
-    @Select("<script>select * from orders where id in <foreach collection=\"ids\" item=\"item\" index=\"index\" \n" +
+    @Select("<script>select os.*,br.invoiceheadup from orders os LEFT OUTER JOIN billingrecord br on \n" +
+            "os.id ||'' = br.orderno where os.id in <foreach collection=\"ids\" item=\"item\" index=\"index\" \n" +
             "open=\"(\" separator=\",\" close=\")\">#{item}</foreach></script>")
     List<Orders> getOrdersByIds(@Param("ids") Long[] ids);
 
@@ -1237,4 +1801,80 @@ public interface OrdersMapper {
      */
     @Select("select o.*  from orders o WHERE o.memberid=#{memberid}")
     List<Orders> findOrdersByuserid(@Param("memberid") Long memberid);
+
+    /**
+     * 根据用户id获取用户所有订单 且为已支付 即orderstatus不等于0
+     * @param memberid
+     * @return
+     */
+    @Select("select o.*  from orders o WHERE o.memberid=#{memberid} and o.orderstatus !=0")
+    List<Orders> findOrdersByuseridAndOrderStatus(@Param("memberid") Long memberid);
+
+
+    /**
+     *
+     * 根据用户id修改业务员
+     *
+     * @return
+     */
+    @Update("update orders set clerkname=#{clerkname},clerknamephone=#{clerknamephone} where memberid=#{memberid}")
+    int updateOrdersClerknameBymemberid(@Param("clerkname") String clerkname,@Param("clerknamephone") String clerknamephone,@Param("memberid") Long memberid);
+
+    /**
+     *
+     * 根据用户id修改介绍人
+     *
+     * @return
+     */
+    @Update("update orders set waysalesman=#{waysalesman} where memberid=#{memberid}")
+    int updateOrdersWaysalesmanBymemberid(@Param("waysalesman") String waysalesman,@Param("memberid") Long memberid);
+
+    /**
+     * 取第三方支付的总金额，该方法在paylogs表上线后会自动弃用，之后可以删除该方法
+     * @param uuid
+     * @return
+     */
+    @Select("select sum(actualpayment) from orders where uuid=#{uuid}")
+    BigDecimal getSumActualpaymentByUUID(@Param("uuid") String uuid);
+
+    /**
+     * 分单部分
+     */
+    @Insert("insert into ordermain(ordermoney,freight,couponid,couponmoney,type,createDt) " +
+            "values(#{ordermoney},#{freight},#{couponid},#{couponmoney},#{type},now())")
+    @Options(useGeneratedKeys = true)
+    void saveOrderMain(OrderMain orderMain);
+
+    @Select("select shopgroupid from store where id=#{param1}")
+    Long getShopgidFromStore(long storeid);
+
+
+    /**
+     * 查询出所有订单 且id 从小到大
+     * @return
+     */
+    @Select("select o.* from orders o order by o.id asc")
+    List<Orders> getAllOrders();
+
+    @Select("select o.* from orders o where orderno =#{orderno}")
+    List<Orders> getByOrderNo(@Param("orderno") String orderno);
+
+
+    @Select("<script>select o.*,li.id as id1,li.orderid as orderid1,li.orderno as orderno1,li.couriernumber as couriernumber1,li.logisticscompany as logisticscompany1,li.time,li.deliveryno as deliveryno1  " +
+            "from orders o " +
+            "left join logisticsinfo li on li.orderid=o.id " +
+            "<where> 1=1 " +
+            "<if test=\"param.sellerid != null and param.sellerid!='' \">and o.saleid = #{param.sellerid} </if>" +
+            "<if test=\"param.deliveryno != null and param.deliveryno !='' \">and (li.deliveryno is not null and  li.deliveryno = #{param.deliveryno}) </if>" +
+            "<if test=\"param.deliveryno == null or param.deliveryno =='' \">and li.deliveryno is not null </if>" +
+            "<if test=\"param.startTime != null \">and(li.time is not null and li.time &gt;= #{param.startTime})</if>" +
+            "<if test=\"param.endTime != null \">and(li.time is not null and li.time &lt;= #{param.endTime})</if>" +
+            "</where> order by li.time desc" +
+            "</script>")
+    List<OrdersLogisticsInfoDto> getDeliveryNewRecord(@Param("param") OrderQueryParam param);
+
+
+
+    @Update("update orders set clerkname = null where memberid in (${ids})")
+    void updateOrdersByIds(@Param("ids") StringBuffer ids);
 }

@@ -10,6 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.session.Session;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +18,6 @@ import project.jinshang.common.bean.PageRet;
 import project.jinshang.common.constant.AdminAuthorityConst;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.Quantity;
-import project.jinshang.common.constant.TradeConstant;
 import project.jinshang.common.utils.DateUtils;
 import project.jinshang.common.utils.ExcelGen;
 import project.jinshang.common.utils.StringUtils;
@@ -25,11 +25,8 @@ import project.jinshang.mod_admin.mod_creditapplyrecord.bean.AccountDetailQuery;
 import project.jinshang.mod_admin.mod_creditapplyrecord.bean.CreatingAccount;
 import project.jinshang.mod_admin.mod_creditapplyrecord.bean.OutAccount;
 import project.jinshang.mod_admin.mod_creditapplyrecord.service.AdminCreditapplyService;
-import project.jinshang.mod_cash.bean.BuyerCapital;
 import project.jinshang.mod_cash.bean.dto.BuyerCapitalQueryDto;
 import project.jinshang.mod_cash.service.BuyerCapitalService;
-import project.jinshang.mod_company.bean.BuyerCompanyInfo;
-import project.jinshang.mod_company.bean.SellerCompanyInfo;
 import project.jinshang.mod_company.service.BuyerCompanyService;
 import project.jinshang.mod_credit.bean.BillCreate;
 import project.jinshang.mod_credit.bean.CreditApplyRecord;
@@ -40,7 +37,6 @@ import project.jinshang.mod_member.service.AdminService;
 import project.jinshang.mod_member.service.MemberService;
 import project.jinshang.scheduled.mapper.BillcreateTaskMapper;
 
-import javax.security.auth.login.AccountException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -454,6 +450,7 @@ public class CreditapplyManageAction {
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.CREDITCHECK + "')")
     public  BasicRet checkApplyData(@RequestParam(required = true) long id,
                                     @RequestParam(required = true) short state,
+                                    @RequestParam(required = false) String reviewnotes,
                                     Model model) throws Exception {
         BasicRet basicRet = new BasicRet();
         Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
@@ -471,7 +468,6 @@ public class CreditapplyManageAction {
             basicRet.setMessage("状态不正确");
             return  basicRet;
         }
-
 
         Member member =  memberService.getMemberById(creditApplyRecord.getMemberid());
         if(member == null){
@@ -523,12 +519,29 @@ public class CreditapplyManageAction {
             }
         }
 
+
         CreditApplyRecord updateRecord = new CreditApplyRecord();
         updateRecord.setId(id);
         updateRecord.setState(state);
         updateRecord.setReviewer(admin.getUsername());
         updateRecord.setReviewerid(admin.getId());
         updateRecord.setReviewtime(new Date());
+        String[] oldArray= (String[])creditApplyRecord.getReviewnotes();//查询之前保存数据库数组数据
+
+        CreditApplyRecord creditApplyRecord1 = new CreditApplyRecord();
+        String[] retArray = null;
+
+        if(oldArray != null&&oldArray.length>0){
+            int len=oldArray.length + 3;
+            retArray=new String[len];
+            System.arraycopy(oldArray,0, retArray,0, oldArray.length);
+            retArray[len-3] = admin.getRealname();
+            retArray[len-2] =DateUtils.format(new Date(),"yyyy-MM-dd HH:mm:ss");
+            retArray[len-1] =reviewnotes;
+        }else{
+            retArray=new String[]{ admin.getRealname(),DateUtils.format(new Date(),"yyyy-MM-dd HH:mm:ss"),reviewnotes};
+        }
+        updateRecord.setReviewnotes(retArray);
         adminCreditapplyService.updateByPrimaryKeySelective(updateRecord);
 
         basicRet.setMessage("提交成功");
@@ -536,37 +549,91 @@ public class CreditapplyManageAction {
         return  basicRet;
     }
 
+    /**
+     * 更新复核备注信息
+     * @param id
+     * @param reviewnotes
+     * @return
+     */
+    @RequestMapping(value = "updateCreditApplyRecordReviewnotesByid",method = RequestMethod.POST)
+    @ApiOperation(value = "更新复核备注信息")
+    @ApiImplicitParams({
+    })
+    public  BasicRet  updateCreditApplyRecordReviewnotesByid(@RequestParam(required = true) long id,
+                                                             @RequestParam(required = false) String reviewnotes,
+                                                             Model model) {
+        Admin admin= (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        String realname=admin.getRealname();
+        String dateStr=DateUtils.format(new Date(),"yyyy-MM-dd HH:mm:ss");
+        CreditApplyRecord creditApplyRecord= adminCreditapplyService.getById(id);
+        String[] oldArray= (String[])creditApplyRecord.getReviewnotes();//查询之前保存数据库数组数据
+        CreditApplyRecord creditApplyRecord1 = new CreditApplyRecord();
+        String[] retArray = null;
+
+        if(oldArray != null&&oldArray.length>0){
+            int len=oldArray.length + 3;
+            retArray=new String[len];
+            System.arraycopy(oldArray,0, retArray,0, oldArray.length);
+            retArray[len-3] = realname;
+            retArray[len-2] =dateStr;
+            retArray[len-1] =reviewnotes;
+        }else{
+            retArray=new String[]{realname,dateStr,reviewnotes};
+        }
+        BasicRet basicRet = new BasicRet();
+        basicRet.setMessage("更新成功");
+        basicRet.setResult(BasicRet.SUCCESS);
+        creditApplyRecord1.setId(id);
+        creditApplyRecord1.setReviewnotes(retArray);
+        //把新的数组放到数据库
+        adminCreditapplyService.updateCreditApplyRecordReviewnotesByid(creditApplyRecord1);
+        return basicRet;
+    }
 
 
     @PostMapping("/detail")
-    public  CreditDetailRet  detail(@RequestParam(required = true) long id){
-        CreditDetailRet creditDetailRet = new CreditDetailRet();
+    public  CreditDetailRet1  detail(@RequestParam(required = true) long id){
+        CreditDetailRet1 creditDetailRet1 = new CreditDetailRet1();
 
         CreditApplyRecord creditApplyRecord =  adminCreditapplyService.getById(id);
 
         if(creditApplyRecord == null){
-            creditDetailRet.setMessage("授信信息不存在");
-            creditDetailRet.setResult(BasicRet.ERR);
-            return  creditDetailRet;
+            creditDetailRet1.setMessage("授信信息不存在");
+            creditDetailRet1.setResult(BasicRet.ERR);
+            return  creditDetailRet1;
         }
 
         Member member =  memberService.getMemberById(creditApplyRecord.getMemberid());
         if(member == null){
-            creditDetailRet.setMessage("申请的用户不存在");
-            creditDetailRet.setResult(BasicRet.ERR);
-            return  creditDetailRet;
+            creditDetailRet1.setMessage("申请的用户不存在");
+            creditDetailRet1.setResult(BasicRet.ERR);
+            return  creditDetailRet1;
         }
 
 //        BuyerCompanyInfo buyerCompanyInfo = buyerCompanyService.getBuyerCompanyInfoByMemberId(member.getId());
 //        member.setBuyerCompanyInfo(buyerCompanyInfo);
         memberService.fillMember(member);
 
-        creditDetailRet.setResult(BasicRet.SUCCESS);
-        creditDetailRet.setMessage("查询成功");
-        creditDetailRet.data.creditApplyRecord =  creditApplyRecord;
-        creditDetailRet.data.member = member;
+        creditDetailRet1.setResult(BasicRet.SUCCESS);
+        creditDetailRet1.setMessage("查询成功");
+        creditDetailRet1.data.creditApplyRecord =  creditApplyRecord;
+        String[] retStr = (String[]) creditApplyRecord.getReviewnotes();
+        List<String[]> reviewContent = new ArrayList<String[]>();
+        if (retStr != null && retStr.length > 0){
+            int len = (retStr.length)/3;
+            for (int i = 0; i<len; i++){
+                String[] current = new String[3];
+                int step = i*3;
+                current[0] = retStr[step];
+                current[1] = retStr[step+1];
+                current[2] = retStr[step+2];
+                reviewContent.add(current);
+            }
+        }
+        creditDetailRet1.data1.reviewList = reviewContent;
+        creditDetailRet1.data.member = member;
 
-        return  creditDetailRet;
+        return  creditDetailRet1;
     }
 
 
@@ -591,8 +658,8 @@ public class CreditapplyManageAction {
             public void setMember(Member member) {
                 this.member = member;
             }
-        }
 
+        }
 
         private  CreditDetailData data = new CreditDetailData();
 
@@ -602,6 +669,61 @@ public class CreditapplyManageAction {
 
         public void setData(CreditDetailData data) {
             this.data = data;
+        }
+    }
+
+    private  class  CreditDetailRet1 extends  BasicRet{
+        private  class  CreditDetailData{
+            private  CreditApplyRecord creditApplyRecord;
+            private  Member member;
+
+            public CreditApplyRecord getCreditApplyRecord() {
+                return creditApplyRecord;
+            }
+
+            public void setCreditApplyRecord(CreditApplyRecord creditApplyRecord) {
+                this.creditApplyRecord = creditApplyRecord;
+            }
+
+            public Member getMember() {
+                return member;
+            }
+
+            public void setMember(Member member) {
+                this.member = member;
+            }
+
+        }
+        private class Review{
+            private List<String[]> reviewList;
+
+            public List<String[]> getReviewList() {
+                return reviewList;
+            }
+
+            public void setReviewList(List<String[]> reviewList) {
+                this.reviewList = reviewList;
+            }
+        }
+
+
+        private  CreditDetailData data = new CreditDetailData();
+        private  Review data1=new Review();
+
+        public CreditDetailData getData() {
+            return data;
+        }
+
+        public void setData(CreditDetailData data) {
+            this.data = data;
+        }
+
+        public Review getData1() {
+            return data1;
+        }
+
+        public void setData1(Review data1) {
+            this.data1 = data1;
         }
     }
 
@@ -913,6 +1035,19 @@ public class CreditapplyManageAction {
        creatingAccount.setAccountDate(DateUtils.format(new Date(),"yyyyMM"));
 
 
+
+       //对应bug310代码
+       Calendar calendar = Calendar.getInstance();
+       calendar.set(Calendar.DAY_OF_MONTH,27);
+       Date buyerinspectiontimeEndDate = calendar.getTime();
+       calendar.add(Calendar.MONTH,-1);
+       calendar.add(Calendar.DATE,1);
+       Date buyerinspectiontimeStartDate =  calendar.getTime();
+
+       String buyerinspectiontimeStart = DateUtils.format(buyerinspectiontimeStartDate,"yyyy-MM-dd")+" 00:00:00";
+       String buyerinspectiontimeEnd =  DateUtils.format(buyerinspectiontimeEndDate,"yyyy-MM-dd")+" 23:59:59.999";
+
+       /*
        Calendar calendar = Calendar.getInstance();
        calendar.set(Calendar.DAY_OF_MONTH,27);
        Date buyerinspectiontimeEndDate = calendar.getTime();
@@ -921,6 +1056,7 @@ public class CreditapplyManageAction {
 
        String buyerinspectiontimeStart = DateUtils.format(buyerinspectiontimeStartDate,"yyyy-MM-dd")+" 00:00:00";
        String buyerinspectiontimeEnd =  DateUtils.format(buyerinspectiontimeEndDate,"yyyy-MM-dd")+" 23:59:59";
+       */
 
        //结算期
        creatingAccount.setJiesuanDate(DateUtils.format(buyerinspectiontimeStartDate,"yyyy.MM.dd")+"-"+DateUtils.format(buyerinspectiontimeEndDate,"yyyy.MM.dd"));
@@ -1020,6 +1156,7 @@ public class CreditapplyManageAction {
            @ApiImplicitParam(value = "会员姓名",name ="membername",required = false,paramType = "query"),
            @ApiImplicitParam(value = "单位名称",name ="companyname",required = false,paramType = "query"),
            @ApiImplicitParam(value = "状态 状态0=未缴清1=已缴清2=已逾期 -1=所有",name ="state",required = false,paramType = "query"),
+           @ApiImplicitParam(value = "客服人员",name ="clerkname",required = false,paramType = "query"),
    })
    public  AccountDetailRet getAccountDetai(@RequestParam(required = true) String settlement,
                                             @RequestParam(required = false,defaultValue = "") String billno,
@@ -1027,6 +1164,7 @@ public class CreditapplyManageAction {
                                             @RequestParam(required = false,defaultValue = "") String membername,
                                             @RequestParam(required = false,defaultValue = "") String companyname,
                                             @RequestParam(required = false,defaultValue = "-1") Short state,
+                                            @RequestParam(required = false,defaultValue = "")String clerkname,
                                             @RequestParam(required = true,defaultValue = "1") int pageNo,
                                             @RequestParam(required = true,defaultValue = "20") int pageSize){
        AccountDetailRet accountDetailRet = new AccountDetailRet();
@@ -1054,6 +1192,7 @@ public class CreditapplyManageAction {
        query.setMembername(membername);
        query.setSettlement(settlement);
        query.setState(state);
+       query.setClerkname(clerkname);
 
        PageInfo pageInfo =  adminCreditapplyService.getAccountDetaiByPage(query, pageNo, pageSize);
 
@@ -1064,6 +1203,73 @@ public class CreditapplyManageAction {
 
        return  accountDetailRet;
    }
+
+
+    @GetMapping("/excelExport/getAccountDetai")
+    @ApiOperation("导出授信账期明细")
+    @ApiImplicitParams({
+            @ApiImplicitParam(value = "账期",name ="settlement",required = true,paramType = "query"),
+            @ApiImplicitParam(value = "结算账单号",name ="billno",required = false,paramType = "query"),
+            @ApiImplicitParam(value = "会员ID",name ="memberid",required = false,paramType = "query"),
+            @ApiImplicitParam(value = "会员姓名",name ="membername",required = false,paramType = "query"),
+            @ApiImplicitParam(value = "单位名称",name ="companyname",required = false,paramType = "query"),
+            @ApiImplicitParam(value = "状态 状态0=未缴清1=已缴清2=已逾期 -1=所有",name ="state",required = false,paramType = "query"),
+            @ApiImplicitParam(value = "客服人员",name ="clerkname",required = false,paramType = "query"),
+    })
+    public  ResponseEntity<InputStreamResource> exportAccountDetai(@RequestParam(required = true) String settlement,
+                                             @RequestParam(required = false,defaultValue = "") String billno,
+                                             @RequestParam(required = false,defaultValue = "0") long memberid,
+                                             @RequestParam(required = false,defaultValue = "") String membername,
+                                             @RequestParam(required = false,defaultValue = "") String companyname,
+                                             @RequestParam(required = false,defaultValue = "-1") Short state,
+                                             @RequestParam(required = false,defaultValue = "")String clerkname){
+        List<Map<String,Object>> resList = new ArrayList<>();
+
+        String[] rowTitles = null;
+        String name = "授信账期明细";
+
+        AccountDetailQuery query = new AccountDetailQuery();
+        query.setBillno(billno);
+        query.setCompanyname(companyname);
+        query.setMemberid(memberid);
+        query.setMembername(membername);
+        query.setSettlement(settlement);
+        query.setState(state);
+        query.setClerkname(clerkname);
+
+        resList =  adminCreditapplyService.getExportAccountDetaiByPage(query);
+        rowTitles =  new String[]{"结算账单号","会员ID","单位名称","应缴授信金额","违约金额","已缴金额","待还款金额","客服人员","每月还款日","状态"};
+        XSSFWorkbook workbook = null;
+        try {
+            workbook = ExcelGen.common(name,rowTitles,resList,null);
+            if(workbook!=null){
+                ByteArrayOutputStream baos=new ByteArrayOutputStream();
+                workbook.write(baos);
+//                System.out.println(baos.toByteArray().length);
+                HttpHeaders headers = new HttpHeaders();
+                headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+                headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", new String((name+".xlsx").getBytes(),"iso-8859-1")));
+                headers.add("Pragma", "no-cache");
+                headers.add("Expires", "0");
+                String contentType = "application/vnd.ms-excel";
+                return ResponseEntity.ok()
+                        .headers(headers).contentType(MediaType.parseMediaType(contentType))
+                        .body(new InputStreamResource(new ByteArrayInputStream(baos.toByteArray())));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if(workbook != null){
+                try {
+                    workbook.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return null;
+    }
+
 
 
 

@@ -44,7 +44,7 @@ public class PicTransfer2Oss {
                 errs.add(path);
             }
         }
-        System.out.println(errs);
+        //System.out.println(errs);
         // 关闭client
         ossClient.shutdown();
     }

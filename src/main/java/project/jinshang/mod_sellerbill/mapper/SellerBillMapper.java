@@ -2,6 +2,7 @@ package project.jinshang.mod_sellerbill.mapper;
 
 import java.util.List;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.SelectProvider;
 import project.jinshang.mod_sellerbill.bean.SellerBill;
 import project.jinshang.mod_sellerbill.bean.SellerBillExample;
@@ -33,4 +34,10 @@ public interface SellerBillMapper {
 
     @SelectProvider(type = SellerBillProvider.class,method = "getSellerBill")
     List<SellerBill> getSellerBill(SellerBillQuery query);
+
+    @SelectProvider(type = SellerBillProvider.class,method = "getSellerBill1")
+    List<SellerBill> getSellerBill1(SellerBillQuery query);
+
+    @Select("select * from sellerBill where id = #{id}")
+    List<SellerBill> getSellerBillById(@Param("id") long id);
 }

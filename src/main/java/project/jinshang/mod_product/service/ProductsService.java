@@ -5,6 +5,7 @@ import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import project.jinshang.common.utils.StringUtils;
+import project.jinshang.mod_batchprice.bean.ProductQueryParam;
 import project.jinshang.mod_product.ProductsMapper;
 import project.jinshang.mod_product.bean.Products;
 import project.jinshang.mod_product.bean.ProductsExample;
@@ -90,11 +91,47 @@ public class ProductsService {
      */
     public PageInfo list(String productno,String productname, String stand,String brand,String mark,long categoryid,int level,long materialid,long  cardnumid,String productalias,int pageNo,int pageSize){
         PageHelper.startPage(pageNo,pageSize);
-        ProductsExample example = new ProductsExample();
-        example.setOrderByClause(" id desc ");
-        ProductsExample.Criteria criteria =  example.createCriteria();
-
+        //ProductsExample example = new ProductsExample();
+        ProductQueryParam productQueryParam = new ProductQueryParam();
+        if(StringUtils.hasText("productname")){
+            productQueryParam.setProductName(productname);
+        }
+        if(StringUtils.hasText("stand")){
+            productQueryParam.setStand(stand);
+        }
         if(level >0){
+            if(level == 1){
+                productQueryParam.setLevel1(categoryid);
+            }else if(level == 2){
+                productQueryParam.setLevel2(categoryid);
+            }else if(level == 3){
+                productQueryParam.setLevel3(categoryid);
+            }
+        }
+        if(StringUtils.hasText(productno)){
+            productQueryParam.setProductno(productno);
+        }
+
+        if(StringUtils.hasText(brand)){
+            productQueryParam.setBrand(brand);
+        }
+
+        if(StringUtils.hasText(mark)){
+            productQueryParam.setMark(mark);
+        }
+
+        if(materialid>0){
+            productQueryParam.setMaterialid(materialid);
+        }
+
+        if(cardnumid >0){
+            productQueryParam.setCardnumid(cardnumid);
+        }
+
+        //example.setOrderByClause(" id desc ");
+        //ProductsExample.Criteria criteria =  example.createCriteria();
+
+        /*if(level >0){
             if(level == 1){
                 criteria.andLevel1idEqualTo(categoryid);
             }else if(level == 2){
@@ -115,9 +152,9 @@ public class ProductsService {
 
         if(StringUtils.hasText(productno)){
             criteria.andProductnoLike("%"+productno+"%");
-        }
+        }*/
 
-        if(StringUtils.hasText(productname)){
+        /*if(StringUtils.hasText(productname)){
             criteria.andProductnameLike("%"+productname+"%");
         }
 
@@ -137,9 +174,9 @@ public class ProductsService {
         if(StringUtils.hasText(productalias)){
             criteria.andProductaliasLike("%"+productalias+"%");
         }
+*/
 
-
-        List<Products> list = productsMapper.selectByExample(example);
+        List<Products> list = productsMapper.selectProductList(productQueryParam);
 
         PageInfo pageInfo = new PageInfo(list);
         return  pageInfo;
@@ -149,9 +186,10 @@ public class ProductsService {
 
 
 
+
     public List<Products> listForExcel(String productno,String productname, String stand,String brand,String mark,long categoryid,int level,long materialid,long  cardnumid,String productalias){
         ProductsExample example = new ProductsExample();
-        example.setOrderByClause(" id desc ");
+        example.setOrderByClause(" id asc ");
         ProductsExample.Criteria criteria =  example.createCriteria();
 
         if(level >0){

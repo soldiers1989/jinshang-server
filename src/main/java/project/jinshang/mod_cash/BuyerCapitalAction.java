@@ -142,7 +142,7 @@ public class BuyerCapitalAction {
             if(workbook!=null){
                 ByteArrayOutputStream baos=new ByteArrayOutputStream();
                 workbook.write(baos);
-                System.out.println(baos.toByteArray().length);
+                //System.out.println(baos.toByteArray().length);
                 HttpHeaders headers = new HttpHeaders();
                 headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
                 headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", new String((name+".xlsx").getBytes(),"iso-8859-1")));
@@ -287,7 +287,7 @@ public class BuyerCapitalAction {
             if(workbook!=null){
                 ByteArrayOutputStream baos=new ByteArrayOutputStream();
                 workbook.write(baos);
-                System.out.println(baos.toByteArray().length);
+//                System.out.println(baos.toByteArray().length);
                 HttpHeaders headers = new HttpHeaders();
                 headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
                 headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", new String((name+".xlsx").getBytes(),"iso-8859-1")));

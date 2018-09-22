@@ -109,7 +109,8 @@ public class BuyerCapitalProvider {
         sql.append("SELECT B.*,O.deliveryno,BG.invoiceheadup,M.username FROM buyercapital B\n"+
                 "\tLEFT JOIN member M ON B.memberid = M.id LEFT JOIN buyercompanyinfo BC ON B.memberid = BC.memberid\n"+
                 "\tLEFT JOIN orders O ON O.orderno = B.orderno LEFT JOIN billingrecord BG ON (BG.orderno LIKE concat( '', O.id, '' )\n"+
-                 "\tOR BG.orderno LIKE concat( '', o.id, ',%' ) OR BG.orderno LIKE concat( '%,', o.id, ',%' ) )\n"+
+                 "\tOR BG.orderno LIKE concat( '', o.id, ',%' ) OR BG.orderno LIKE concat( '%,', o.id, ',%' ) \n"+
+                "\tOR BG.orderno LIKE concat( '%,', o.id, '' ) )\n"+
                 "WHERE 1=1");
         if (dto.getTradetimeStart()!=null){
             sql.append(" and B.tradetime >= #{dto.tradetimeStart} ");
@@ -139,6 +140,41 @@ public class BuyerCapitalProvider {
         if (dto.getUsername()!=null && !"".equals(dto.getUsername())){
             dto.setUsername("%"+dto.getUsername()+"%");
             sql.append(" and M.username like #{dto.username} ");
+        }
+        sql.append(" order by B.tradetime ASC ");
+        return sql.toString();
+    }
+
+
+    public String listForInvoiceAccount(@Param("dto")BuyerCapitalAccountQueryDto dto){
+        StringBuilder sql=new StringBuilder();
+//        sql.append("select bc.companyname as buyercompanyname,M.username,os.* from orders os  left JOIN billingrecord bg on (\n" +
+//                "\tbg.orderno  like concat('',os.id,'')\n" +
+//                "\tor bg.orderno  like concat('',os.id,',%')\n" +
+//                "\tor bg.orderno  like concat('%,',os.id,',%')\n" +
+//                "\tor bg.orderno  like concat('%,',os.id,'')\n" +
+//                "\t) left join buyercompanyinfo bc on os.memberid = bc.memberid\n" +
+//                "\t left join member M on os.memberid = M.id\n"+
+//                "\twhere  bg.invoiceheadup=#{dto.invoicename} and os.memberid <>(\n" +
+//                "\tselect memberid from buyercompanyinfo  where companyname=#{dto.invoicename}\n" +
+//                "\t)");
+        sql.append("select B.*,A.deliveryno,A.username,A.invoiceheadup from buyercapital B inner join\n" +
+                "\t(select M.username,os.orderno,bg.invoiceheadup,os.deliveryno from orders os  left JOIN billingrecord bg on (\n" +
+                "\t   bg.orderno  like concat('',os.id,'')\n" +
+                "\tor bg.orderno  like concat('',os.id,',%')\n" +
+                "\tor bg.orderno  like concat('%,',os.id,',%')\n" +
+                "\tor bg.orderno  like concat('%,',os.id,'')\n" +
+                ")\n" +
+                "\tleft join member M on os.memberid = M.id\n" +
+                "\twhere  bg.invoiceheadup=#{dto.invoicename} and os.memberid not in(\n" +
+                "\tselect memberid from buyercompanyinfo  where companyname=#{dto.invoicename} \n" +
+                ")\n" +
+                ")A on B.orderno=A.orderno");
+        if (dto.getTradetimeStart()!=null){
+            sql.append(" and B.tradetime >= #{dto.tradetimeStart} ");
+        }
+        if (dto.getTradetimeEnd()!=null){
+            sql.append(" and B.tradetime <= #{dto.tradetimeEnd} ");
         }
         sql.append(" order by B.tradetime ASC ");
         return sql.toString();

@@ -40,5 +40,5 @@ public interface FxcategoriesMapper {
     Fxcategories getCategoriesInfoById(@Param("cid") Long cid);
 
     @Select("update fx_categories f set ratio = ${ratio}   where f.cid = #{cid} ")
-    void updateFxCategories(@Param("cid") Long cid,@Param("ratio") BigDecimal ratio);
+    void updateFxCategories(@Param("cid") Long cid, @Param("ratio") BigDecimal ratio);
 }

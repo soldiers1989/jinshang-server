@@ -1,23 +1,28 @@
 package project.jinshang.test;
 
-import DesignPattern.ConcreateBuilder;
-import DesignPattern.Person;
-import DesignPattern.PersonDirector;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+import project.jinshang.common.exception.CashException;
+import project.jinshang.scheduled.ProdShipTempTask;
 
 /**
- * test
- *
- * @author xiazy
- * @create 2018-06-08 17:26
- **/
+ * create : wyh
+ * date : 2018/8/1
+ */
+
+@RunWith(SpringRunner.class)
+@SpringBootTest
 public class Test {
 
+    @Autowired
+    private ProdShipTempTask prodShipTempTask;
 
-    public static void main(String[] args) {
-        PersonDirector pd=new PersonDirector();
-        Person person=pd.constructPerson(new ConcreateBuilder());
-        System.out.println(person.getBody());
-        System.out.println(person.getFoot());
-        System.out.println(person.getHead());
+    @org.junit.Test
+    public void  t1() throws CashException {
+        prodShipTempTask.fixProdShipTemp();
+
     }
+
 }

@@ -30,7 +30,6 @@ public class ExpressUtils {
             urlStream.close();
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("快递查询错误");
         }
         return content;
     }
@@ -57,7 +56,7 @@ public class ExpressUtils {
             urlStream.close();
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("快递查询错误");
+            //System.out.println("快递查询错误");
         }
         return content;
     }

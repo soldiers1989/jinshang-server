@@ -233,7 +233,7 @@ public class StoreManageAction {
         store.setCitysmall(citysmall);
         store.setAddress(address);
         store.setName(name);
-
+        store.setShopgroupid(0L);
         storeService.add(store);
 
         basicRet.setResult(BasicRet.SUCCESS);

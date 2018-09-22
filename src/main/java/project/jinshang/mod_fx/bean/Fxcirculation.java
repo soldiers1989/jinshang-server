@@ -1,5 +1,8 @@
 package project.jinshang.mod_fx.bean;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiModelProperty;
+
 import java.util.Date;
 
 /**
@@ -10,59 +13,37 @@ import java.util.Date;
  * @date 2018-05-05
  */
 public class Fxcirculation {
-    /**
-     * ID自增
-     */
+    @ApiModelProperty("ID自增")
     private Long id;
 
-    /**
-     * 订单/单据ID
-     */
+    @ApiModelProperty("订单/单据ID")
     private Long commisionid;
 
-    /**
-     * 订单id
-     */
+    @ApiModelProperty("订单id")
     private Long orderid;
 
-    /**
-     * 订单单号
-     */
+    @ApiModelProperty("订单单号")
     private String orderno;
 
-    /**
-     * 买家ID
-     */
+    @ApiModelProperty("买家ID")
     private Long memberid;
 
-    /**
-     * 卖家id
-     */
+    @ApiModelProperty("卖家id")
     private Long saleid;
 
-    /**
-     * 调整内容
-     */
+    @ApiModelProperty("调整内容")
     private String circulationtext;
 
-    /**
-     * 原状态
-     */
+    @ApiModelProperty("原状态")
     private Long circulationold;
 
-    /**
-     * 调整后状态
-     */
+    @ApiModelProperty("调整后状态")
     private Long circulationnew;
 
-    /**
-     * 操作内容备份
-     */
+    @ApiModelProperty("操作内容备份")
     private String other;
 
-    /**
-     * 调整时间
-     */
+    @ApiModelProperty("调整时间")
     private Date createtime;
 
     public Long getId() {

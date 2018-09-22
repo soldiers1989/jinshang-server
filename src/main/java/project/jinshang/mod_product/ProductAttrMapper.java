@@ -25,6 +25,11 @@ public interface ProductAttrMapper {
     @Select("select * from productattr where productid=#{productid} and pdno=#{pdno} order by attributeid asc ")
     List<ProductAttr> getListByPidAndPdno(@Param("productid") Long productid,@Param("pdno") String pdno);
 
+//    @Select("select * from productattr where productid=#{productid} and pdno=#{pdno} order by attributeid asc ")
+    @Select("select p.*,a.sort from productattr p left join attvalue a on p.attributeid=a.attid and p.value=a.paramvalue" +
+            " where p.productid=#{productid} and p.pdno=#{pdno} order by p.attributeid asc")
+    List<ProductAttr> getListByPidAndPdno2(@Param("productid") Long productid,@Param("pdno") String pdno);
+
     @Cacheable(value = "productattr",key = "'getListByPid:'+#p0")
     @Select("select * from productattr where productid=#{productid}")
     List<ProductAttr> getListByPid(@Param("productid") Long productid);

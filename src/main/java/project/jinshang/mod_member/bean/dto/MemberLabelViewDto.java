@@ -7,6 +7,8 @@ public class MemberLabelViewDto {
 
     private  int count;
 
+    private String remarks;
+
 
     public Long getId() {
         return id;
@@ -30,5 +32,13 @@ public class MemberLabelViewDto {
 
     public void setCount(int count) {
         this.count = count;
+    }
+
+    public String getRemarks() {
+        return remarks;
+    }
+
+    public void setRemarks(String remarks) {
+        this.remarks = remarks ==null ? null : remarks.trim();
     }
 }

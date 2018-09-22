@@ -1,5 +1,7 @@
 package project.jinshang.mod_invoice.service;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import project.jinshang.mod_invoice.InvoiceInfoMapper;
@@ -34,6 +36,13 @@ public class InvoiceService {
         return invoiceInfoMapper.invoiceInfoListByMemberId2(memberId);
     }
 
+    public PageInfo getInvoiceInfoListByMemberIdAndInv(int pageNo, int pageSize, Long memberId, String invoiceheadup){
+        PageHelper.startPage(pageNo, pageSize);
+        List<InvoiceInfo> list = invoiceInfoMapper.invoiceInfoListByMemberIdAndInv(memberId,invoiceheadup);
+        return new PageInfo(list);
+    }
+
+
     public InvoiceInfo getDefaultInvoiceInfoByMemberId(Long memberId){
         return invoiceInfoMapper.defaultInvoiceInfoByMemberId(memberId);
     }
@@ -62,5 +71,10 @@ public class InvoiceService {
 //
 //        return invoiceInfoMapper.countByExample(invoiceInfoExample);
 //    }
+
+    public InvoiceInfo selectInvoiceInfo(String invoiceheadup,String texno){
+        return invoiceInfoMapper.selectInvoiceInfo(invoiceheadup,texno);
+    }
+
 
 }

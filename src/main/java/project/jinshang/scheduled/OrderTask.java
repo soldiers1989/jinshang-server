@@ -1,6 +1,7 @@
 package project.jinshang.scheduled;
 
 
+import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -15,17 +16,20 @@ import project.jinshang.mod_member.bean.Member;
 import project.jinshang.mod_member.service.MemberService;
 import project.jinshang.mod_product.bean.Categories;
 import project.jinshang.mod_product.bean.OrderProduct;
+import project.jinshang.mod_product.bean.OrderQueryParam;
 import project.jinshang.mod_product.bean.Orders;
+import project.jinshang.mod_product.bean.dto.OrdersView;
 import project.jinshang.mod_product.service.CategoriesService;
 import project.jinshang.mod_product.service.OrderProductServices;
 import project.jinshang.mod_product.service.OrdersService;
 
 import java.math.BigDecimal;
 
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 
 
 /**
@@ -513,5 +517,36 @@ public class OrderTask {
         }
     }
 
+    /**
+     * 每天上午8点执行一次
+     *
+     */
+    @Scheduled(cron = "0 0 8 * * ?")
+    public void futureOrderPrepareRemind(){
+        LocalDate localDate = LocalDate.now();
+        OrderQueryParam queryFutureParam = new OrderQueryParam();
+        queryFutureParam.setPresellconfim((short)1);
+        PageInfo allMemberFutureOrdersList = ordersService.getAllMemberOrdersList(queryFutureParam);
+        List<OrdersView> list = allMemberFutureOrdersList.getList();
+        for (OrdersView futureOrder:list){
+            Date prestocktime = futureOrder.getPrestocktime();
+            Instant instant = prestocktime.toInstant();
+            ZoneId zoneId = ZoneId.systemDefault();
+
+            // atZone()方法返回在指定时区从此Instant生成的ZonedDateTime。
+            LocalDate newPrestocktime = instant.atZone(zoneId).toLocalDate();
+            String forwardnoticephone = futureOrder.getForwardnoticephone();
+            if (prestocktime.equals(localDate) || (localDate.plus(3,ChronoUnit.DAYS)).compareTo(newPrestocktime) == 0){
+                List<Orders> orderViewList = new ArrayList<>();
+                for (OrdersView ordersView:list) {
+                    Orders orders = new Orders();
+                    //属性转换
+                    orderViewList.add(orders);
+                }
+                ordersService.smsNotifySellerToFutureOrders(orderViewList);
+            }
+
+        }
+    }
 
 }

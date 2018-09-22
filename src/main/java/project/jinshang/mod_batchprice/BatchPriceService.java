@@ -7,7 +7,9 @@ import project.jinshang.mod_batchprice.bean.ProductQueryParam;
 import project.jinshang.mod_product.ProductInfoMapper;
 import project.jinshang.mod_product.ProductStoreMapper;
 import project.jinshang.mod_product.bean.ProductInfo;
+import project.jinshang.mod_product.bean.ProductInfoQuery;
 import project.jinshang.mod_product.bean.ProductStore;
+import project.jinshang.mod_product.bean.dto.OtherProductQueryDto;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,11 +63,11 @@ public class BatchPriceService {
 
     /**
      * 导出exel
-     * @param productQueryParam
+     * @param productInfo
      * @return
      */
-    List<Map<String,Object>> getExcelProduct(ProductQueryParam productQueryParam){
-        List<Map<String,Object>> list= productStoreMapper.getExcelProduct(productQueryParam);
+    List<Map<String,Object>> getExcelProduct(ProductInfoQuery productInfo){
+        List<Map<String,Object>> list= productStoreMapper.getExcelProduct(productInfo);
         List<Map<String,Object>> list2 = new ArrayList<>();
         for(Map<String,Object> map:list){
             Map<String,Object> maptemp = new HashMap<>();
@@ -80,11 +82,34 @@ public class BatchPriceService {
             maptemp.put("90天发货价格",map.get("ninetyprice"));
             maptemp.put("仓库名称",map.get("storename"));
             list2.add(maptemp);
+
         }
         return list2;
     }
 
-
+    /**
+     * 导出exel
+     * @param queryDto
+     * @return
+     */
+    List<Map<String,Object>> getExcelOtherProduct(OtherProductQueryDto queryDto){
+        List<Map<String,Object>> list= productStoreMapper.getExcelOtherProduct(queryDto);
+        List<Map<String,Object>> list2 = new ArrayList<>();
+        for(Map<String,Object> map:list){
+            Map<String,Object> maptemp = new HashMap<>();
+            maptemp.put("商品库存id",map.get("id"));
+            maptemp.put("商品id",map.get("pdid"));
+            maptemp.put("商品编码",map.get("pdno"));
+            maptemp.put("规格",map.get("stand"));
+            maptemp.put("商品价格",map.get("prodprice"));
+            maptemp.put("30天发货价格",map.get("thirtyprice"));
+            maptemp.put("60天发货价格",map.get("sixtyprice"));
+            maptemp.put("90天发货价格",map.get("ninetyprice"));
+            maptemp.put("仓库名称",map.get("storename"));
+            list2.add(maptemp);
+        }
+        return list2;
+    }
 
 
 }

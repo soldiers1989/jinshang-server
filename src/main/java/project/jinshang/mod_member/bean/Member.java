@@ -226,6 +226,26 @@ public class Member implements Serializable{
     @ApiModelProperty(notes = "三级分销 邀请人id")
     private Long inviterid;
 
+    @ApiModelProperty(notes = "三级分销 邀请人id 二级")
+    private Long inviterid2;
+
+    @ApiModelProperty(notes = "注册来源")
+    private Short registesource;
+
+    @ApiModelProperty(notes = "注册来源标识")
+    private String registersourcelabel;
+
+    @ApiModelProperty(notes = "注册类型标识")
+    private String registertypelabel;
+
+    @ApiModelProperty(notes = "注册渠道标识")
+    private String registerchannellabel;
+
+    @ApiModelProperty(notes = "标签名称")
+    private String labelname;
+
+    @ApiModelProperty(notes = "关联业务员时间")
+    private Date waysalesmansetdate;
 
     public Short getIsbuy() {
         return isbuy;
@@ -822,5 +842,59 @@ public class Member implements Serializable{
 
     public void setInviterid(Long inviterid) {
         this.inviterid = inviterid;
+    }
+
+    public Long getInviterid2() {
+        return inviterid2;
+    }
+
+    public void setInviterid2(Long inviterid2) {
+        this.inviterid2 = inviterid2;
+    }
+
+    public Short getRegistesource() {
+        return registesource;
+    }
+
+    public void setRegistesource(Short registesource) {
+        this.registesource = registesource;
+    }
+
+    public String getRegistersourcelabel() {
+        return registersourcelabel;
+    }
+
+    public void setRegistersourcelabel(String registersourcelabel) {
+        this.registersourcelabel = registersourcelabel == null ? null : registersourcelabel.trim();
+    }
+
+    public String getRegistertypelabel() {
+        return registertypelabel;
+    }
+
+    public void setRegistertypelabel(String registertypelabel) {
+        this.registertypelabel = registertypelabel == null ? null : registertypelabel.trim();
+    }
+
+    public String getRegisterchannellabel() {
+        return registerchannellabel;
+    }
+
+    public void setRegisterchannellabel(String registerchannellabel) {
+        this.registerchannellabel = registerchannellabel == null ? null : registerchannellabel.trim();
+    }
+    public String getLabelname() {
+        return labelname;
+    }
+
+    public void setLabelname(String labelname) {
+        this.labelname = labelname == null ? null : labelname.trim();
+    }
+    public Date getWaysalesmansetdate() {
+        return waysalesmansetdate;
+    }
+
+    public void setWaysalesmansetdate(Date waysalesmansetdate) {
+        this.waysalesmansetdate = waysalesmansetdate;
     }
 }

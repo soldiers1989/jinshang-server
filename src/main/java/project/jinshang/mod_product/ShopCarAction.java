@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.*;
 import project.jinshang.common.bean.MemberLogOperator;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.Quantity;
+import project.jinshang.common.constant.TradeConstant;
 import project.jinshang.common.utils.JinshangUtils;
+import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_activity.bean.LimitTimeProd;
 import project.jinshang.mod_activity.bean.LimitTimeStore;
 import project.jinshang.mod_activity.service.LimitTimeProdService;
@@ -31,9 +33,12 @@ import project.jinshang.mod_member.bean.MemberRateSetting;
 import project.jinshang.mod_member.service.MemberRateSettingService;
 import project.jinshang.mod_product.bean.*;
 import project.jinshang.mod_product.service.*;
+import project.jinshang.mod_shippingaddress.bean.ShippingAddress;
+import project.jinshang.mod_shippingaddress.service.ShippingAddressService;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
+import java.awt.geom.Area;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -48,10 +53,13 @@ import java.util.*;
 public class ShopCarAction {
     @Autowired
     ShopCarService shopCarService;
+    @Autowired
+    private OrdersService ordersService;
 
     @Autowired
     private MemberRateSettingService memberRateSettingService;
-
+    @Autowired
+    private AreaCostService areaCostService;
     @Autowired
     private TransactionSettingService transactionSettingService;
     @Autowired
@@ -64,6 +72,8 @@ public class ShopCarAction {
     private LimitTimeStoreService limitTimeStoreService;
     @Autowired
     private StoreMapper storeMapper;
+    @Autowired
+    private FreightService freightService;
 
 
     @Autowired
@@ -75,9 +85,10 @@ public class ShopCarAction {
 
     @Autowired
     private ProductStoreService productStoreService;
+    @Autowired
+    private ShippingAddressService shippingAddressService;
 
-    //远期全款打折率
-    private static final BigDecimal allPayRate = new BigDecimal(0.99);
+
 
     MemberLogOperator memberLogOperator = new MemberLogOperator();
 
@@ -199,7 +210,7 @@ public class ShopCarAction {
                 }*/
 
                 //阶梯价计算
-                saleprice = updatePriceByNum(convertNum, productStore, shopCar.getDelivertime(), info.getMemberid(), info.getLevel3id(), member.getGradleid());
+                saleprice = ordersService.updatePriceByNum(convertNum, productStore, shopCar.getDelivertime(), info.getMemberid(), info.getLevel3id(), member.getGradleid());
                 shopCar.setPrice(saleprice);
                 shopCar.setPdnumber(convertNum);
                 shopCar.setUnit(converUnit);
@@ -207,7 +218,7 @@ public class ShopCarAction {
                 if (!shopCar.getDelivertime().equals(Quantity.LIJIFAHUO)) {
                     shopCar.setProtype(protype);
                     //全款
-                    shopCar.setAllpay(saleprice.multiply(convertNum).multiply(allPayRate));
+                    shopCar.setAllpay(saleprice.multiply(convertNum).multiply(TradeConstant.allPayRate));
                     //定金
                     shopCar.setPartpay(saleprice.multiply(convertNum).multiply(transactionSettingService.getTransactionSetting().getRemotepurchasingmargin().multiply(new BigDecimal(0.01))));
                     //余款
@@ -240,7 +251,7 @@ public class ShopCarAction {
                 return shopCarRet;
             }
             //阶梯价计算
-            saleprice = updatePriceByNum(convertNum, productStore, diliveryTime, info.getMemberid(), info.getLevel3id(), member.getGradleid());
+            saleprice = ordersService.updatePriceByNum(convertNum, productStore, diliveryTime, info.getMemberid(), info.getLevel3id(), member.getGradleid());
         }
         shopCarRet.setResult(BasicRet.SUCCESS);
         shopCarRet.setMessage("返回成功");
@@ -313,73 +324,7 @@ public class ShopCarAction {
     }
 
 
-    /**
-     * 计算价格
-     *
-     * @param num
-     * @param productStore
-     * @param diliverTime
-     * @return
-     */
-    private BigDecimal updatePriceByNum(BigDecimal num, ProductStore productStore, @NotNull String diliverTime, long sellerid, long levelid, long gradeid) {
 
-        //计算阶梯价格
-        BigDecimal basicPrice = new BigDecimal(0);
-
-        if (diliverTime.equals(Quantity.SANTIANFAHUO)) {
-            basicPrice = productStore.getThreeprice();
-        } else if (diliverTime.equals(Quantity.JIUSHITIANFAHUO)) {
-            basicPrice = productStore.getNinetyprice();
-        } else if (diliverTime.equals(Quantity.SANSHITIANFAHUO)) {
-            basicPrice = productStore.getThirtyprice();
-        } else if (diliverTime.equals(Quantity.LIUSHITIANFAHUO)) {
-            basicPrice = productStore.getSixtyprice();
-        } else {
-            basicPrice = productStore.getProdprice();
-        }
-        MemberRateSetting memberRateSetting = memberRateSettingService.getSetting(sellerid, levelid, gradeid);
-        basicPrice = basicPrice.multiply(memberRateSetting.getRate());
-        BigDecimal saleprice = new BigDecimal(0);
-        //判断是否开启阶梯价格
-        if (productStore.getStepwiseprice()) {
-            Gson gson = new Gson();
-            List<StepWisePrice> list = gson.fromJson(productStore.getIntervalprice(), new TypeToken<ArrayList<StepWisePrice>>() {
-            }.getType());
-            //是否匹配价格区间
-            boolean flag = false;
-            //最大价格区间百分比
-            BigDecimal lastPercent = new BigDecimal(0);
-            BigDecimal maxstart = new BigDecimal(0);
-            //匹配价格区间
-            for (StepWisePrice stepWisePrice : list) {
-                BigDecimal start = stepWisePrice.getStart();
-                BigDecimal end = stepWisePrice.getEnd();
-                BigDecimal percent = stepWisePrice.getRate();
-                //end为0是最大价格区间
-                if (end.compareTo(new BigDecimal(0)) == 0) {
-                    lastPercent = percent;
-                    maxstart = start;
-                }
-                if ((num.compareTo(start) == 1) && (num.compareTo(end) == -1 || num.compareTo(end) == 0)) {
-                    saleprice = basicPrice.multiply(percent.multiply(new BigDecimal(0.01)));
-                    flag = true;
-                    break;
-                }
-            }
-            //没有任何价格区间匹配，取最大的价格区间
-            if (!flag) {
-                if (num.compareTo(maxstart) == 1) {
-                    saleprice = basicPrice.multiply(lastPercent.multiply(new BigDecimal(0.01)));
-                } else {
-                    saleprice = basicPrice;
-                }
-            }
-        } else {
-            saleprice = basicPrice;
-        }
-
-        return saleprice;
-    }
 
     @RequestMapping(value = "/loadAllShopCar", method = RequestMethod.POST)
     @ApiOperation(value = "加载用户购物车信息")
@@ -419,40 +364,32 @@ public class ShopCarAction {
     }
 
 
-    private boolean checkBuyNum(BigDecimal buynum,BigDecimal minplus){
-        try {
-            BigDecimal a = buynum.divide(minplus);
-
-            //System.out.println(a.intValue());
-
-            if(new BigDecimal(a.intValue()).compareTo(a) != 0){
-                return false;
-            }
-
-            return  true;
-        } catch (Exception e) {
-            return  false;
-        }
+    @RequestMapping(value = "/loadSelectProduct", method = RequestMethod.POST)
+    @ApiOperation(value = "订单确认页面商品列表")
+    public ShopCarRet loadSelectProduct(Model model, String shopcarids, Long pdids, String pdno,String uProvince, String uCity, BigDecimal pdnum, String pdunit, String pddilivery, Long pdstoreid, int type, Short protype,@RequestParam(defaultValue = "0") Short isonline,Long limitid){
+        ShopCarRet shopCarRet = new ShopCarRet();
+        shopCarRet.setMessage("APP升级中，请到电脑或微信端下单");
+        shopCarRet.setResult(BasicRet.ERR);
+        return shopCarRet;
     }
 
-
-
+/*
     @RequestMapping(value = "/loadSelectProduct", method = RequestMethod.POST)
     @ApiOperation(value = "订单确认页面商品列表")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "pdids", value = "如果单个商品购买就传一个id", required = false, paramType = "query", dataType = "long"),
-            @ApiImplicitParam(name = "pdno", value = "如果单个商品购买就传一个pdno", required = false, paramType = "query", dataType = "string"),
-            @ApiImplicitParam(name = "uProvince", value = "收货地址省", required = false, paramType = "query", dataType = "string"),
-            @ApiImplicitParam(name = "uCity", value = "收货地址市", required = false, paramType = "query", dataType = "string"),
-            @ApiImplicitParam(name = "pdnum", value = "针对单个商品数量", required = false, paramType = "query", dataType = "double"),
-            @ApiImplicitParam(name = "pdunit", value = "针对单个商品单位", required = false, paramType = "query", dataType = "string"),
-            @ApiImplicitParam(name = "pddilivery", value = "针对单个商品发货时间", required = false, paramType = "query", dataType = "string"),
-            @ApiImplicitParam(name = "pdstoreid", value = "针对单个商品仓库id", required = false, paramType = "query", dataType = "long"),
+            @ApiImplicitParam(name = "pdids", value = "如果单个商品购买就传一个id", paramType = "query", dataType = "long"),
+            @ApiImplicitParam(name = "pdno", value = "如果单个商品购买就传一个pdno", paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "uProvince", value = "收货地址省", paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "uCity", value = "收货地址市", paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "pdnum", value = "针对单个商品数量", paramType = "query", dataType = "double"),
+            @ApiImplicitParam(name = "pdunit", value = "针对单个商品单位", paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "pddilivery", value = "针对单个商品发货时间", paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "pdstoreid", value = "针对单个商品仓库id", paramType = "query", dataType = "long"),
             @ApiImplicitParam(name = "type", value = "单个商品购买就传0，从购物车结算就传1", required = true, paramType = "query", dataType = "int"),
-            @ApiImplicitParam(name = "protype", value = "针对单个商品，远期类型0=不是远期1=全款2=定金", required = false, paramType = "query", dataType = "int"),
-            @ApiImplicitParam(name = "shopcarids", value = "购物车id", required = false, paramType = "query", dataType = "string"),
-            @ApiImplicitParam(name = "isonline", value = "订单类型0=普通订单1=线上2=限时购", required = false, paramType = "query", dataType = "int"),
-            @ApiImplicitParam(name = "limitid", value = "活动id", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "protype", value = "针对单个商品，远期类型0=不是远期1=全款2=定金", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "shopcarids", value = "购物车id", paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "isonline", value = "订单类型0=普通订单1=线上2=限时购", paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "limitid", value = "活动id", paramType = "query", dataType = "int"),
     })
     public ShopCarRet loadSelectProduct(Model model, String shopcarids, Long pdids, String pdno,String uProvince, String uCity, BigDecimal pdnum, String pdunit, String pddilivery, Long pdstoreid, int type, Short protype,@RequestParam(defaultValue = "0") Short isonline,Long limitid) {
 
@@ -460,6 +397,15 @@ public class ShopCarAction {
         shopCarRet.setMessage("返回成功");
         shopCarRet.setResult(BasicRet.SUCCESS);
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
+
+        if(!StringUtils.hasText(uProvince)){
+            ShippingAddress shippingAddress = shippingAddressService.getDefaultShippingAddress(member.getId(),Quantity.STATE_2);
+            if(shippingAddress != null) {
+                uProvince = shippingAddress.getProvince();
+                uCity = shippingAddress.getCity();
+            }
+        }
+
         //立即购买
         if (type == Quantity.STATE_0) {
             List<Map<String, Object>> maplist = new ArrayList<Map<String, Object>>();
@@ -505,7 +451,7 @@ public class ShopCarAction {
 
 
                     if(productStore.getMinplus() != null && productStore.getMinplus().compareTo(Quantity.BIG_DECIMAL_0)>0){
-                        if(!this.checkBuyNum(converNum,productStore.getMinplus())){
+                        if(!ordersService.checkBuyNum(converNum,productStore.getMinplus())){
                             shopCarRet.setMessage("购买量必须是加购量的倍数");
                             shopCarRet.setResult(BasicRet.ERR);
                             return  shopCarRet;
@@ -514,9 +460,7 @@ public class ShopCarAction {
 
 
 
-                    /*
-                    修改后代码
-                     */
+
                     if(AppConstant.FASTENER_PRO_TYPE.equals(productInfo.getProducttype())){
                         map.put("unit",convertUnit);
                         map.put("packageStr",JinshangUtils.packageToString(packagetype,converNum,convertUnit));
@@ -556,7 +500,7 @@ public class ShopCarAction {
                     map.put("protype", protype);
 
                     //计算价格
-                    BigDecimal salePrice = updatePriceByNum(converNum, productStore, pddilivery, productInfo.getMemberid(), productInfo.getLevel3id(), member.getGradleid());
+                    BigDecimal salePrice = ordersService.updatePriceByNum(converNum, productStore, pddilivery, productInfo.getMemberid(), productInfo.getLevel3id(), member.getGradleid());
 //                    salePrice = salePrice.setScale(2, BigDecimal.ROUND_HALF_UP);
                     map.put("price", salePrice);
 
@@ -569,7 +513,7 @@ public class ShopCarAction {
                     }
                     //全款
                     if (protype == Quantity.STATE_1) {
-                        map.put("allpay", paymoney.multiply(allPayRate));
+                        map.put("allpay", paymoney.multiply(TradeConstant.allPayRate));
                         map.put("partpay", new BigDecimal(0));
                         map.put("yupay", new BigDecimal(0));
                     }
@@ -583,59 +527,11 @@ public class ShopCarAction {
                     long freightmode = productStore.getFreightmode();
                     //商品重量
                     BigDecimal weight = productStore.getWeight();
+                    BigDecimal totalweight = weight.multiply(converNum);
+
+
                     //计算运费
-                    if (freightmode != Quantity.STATE_) {
-                        ShippingTemplates shippingTemplates = shopCarService.getShippingTemp(freightmode);
-                        //默认运费公斤
-                        BigDecimal defaultfreight = shippingTemplates.getDefaultfreight();
-                        //默认运费
-                        BigDecimal defaultcost = shippingTemplates.getDefaultcost();
-                        //每增加公斤
-                        BigDecimal perkilogramadded = shippingTemplates.getPerkilogramadded();
-                        //每增加运费
-                        BigDecimal perkilogramcost = shippingTemplates.getPerkilogramcost();
-                        //商品总重量
-                        BigDecimal totalweight = weight.multiply(converNum);
-                        //匹配地区运费
-                        AreaCost areaCost = shopCarService.getAreaCost(freightmode);
-                        //如果用户默认收货地址为空，则用商品默认运费
-                        if (uProvince == null || uCity == null) {
-                            if (shippingTemplates != null) {
-                                //计算默认运费
-                                map.put("totalCost", getTotalCost(defaultfreight, defaultcost, perkilogramadded, perkilogramcost, totalweight));
-                            }
-                        } else {
-                            //如果有地区运费模板，就用地区运费模板，否则用默认运费模板
-                            if (areaCost != null) {
-                                String province = areaCost.getProvince();
-                                String city = areaCost.getCity();
-                                //判断省市是否匹配
-                                if (province.contains(uProvince) && city.contains(uCity)) {
-                                    BigDecimal udefaultfreight = areaCost.getDefaultfreight();
-                                    //默认运费
-                                    BigDecimal udefaultcost = areaCost.getDefaultcost();
-                                    //每增加公斤
-                                    BigDecimal uperkilogramadded = areaCost.getPerkilogramadded();
-                                    //每增加运费
-                                    BigDecimal uperkilogramcost = areaCost.getPerkilogramcost();
-                                    //计算地区运费
-                                    map.put("totalCost", getTotalCost(udefaultfreight, udefaultcost, uperkilogramadded, uperkilogramcost, totalweight));
-
-                                } else {
-                                    //计算默认运费
-                                    map.put("totalCost", getTotalCost(defaultfreight, defaultcost, perkilogramadded, perkilogramcost, totalweight));
-                                }
-
-                            } else {
-                                //计算默认运费
-                                map.put("totalCost", getTotalCost(defaultfreight, defaultcost, perkilogramadded, perkilogramcost, totalweight));
-                            }
-                        }
-                    } else {
-                        //包邮
-                        map.put("totalCost", new BigDecimal(0));
-                    }
-
+                    map.put("totalCost",freightService.getFreight(freightmode,totalweight,uProvince,uCity));
                 }
             }else if(isonline==Quantity.STATE_2) {//限时购
 
@@ -722,9 +618,7 @@ public class ShopCarAction {
                         converNum = (BigDecimal) (JinshangUtils.toLowerUnit(packagetype, pdnum, pdunit)).get("num");
                         convertUnit = (String) (JinshangUtils.toLowerUnit(packagetype, pdnum, pdunit)).get("unit");
                     }
-                     /*
-                    修改后代码
-                     */
+
                     if(AppConstant.FASTENER_PRO_TYPE.equals(productInfo.getProducttype())){
                         map.put("unit",convertUnit);
                         map.put("packageStr",JinshangUtils.packageToString(packagetype,converNum,convertUnit));
@@ -768,59 +662,10 @@ public class ShopCarAction {
                     BigDecimal converNum = (BigDecimal) map.get("pdnumber");
                     //商品重量
                     BigDecimal weight = (BigDecimal) map.get("weight");
+                    BigDecimal totalweight = weight.multiply(converNum);
+
                     //计算运费
-                    if (freightmode != Quantity.STATE_) {
-                        //获取商品运费模板
-                        ShippingTemplates shippingTemplates = shopCarService.getShippingTemp(freightmode);
-                        //默认运费公斤
-                        BigDecimal defaultfreight = shippingTemplates.getDefaultfreight();
-                        //默认运费
-                        BigDecimal defaultcost = shippingTemplates.getDefaultcost();
-                        //每增加公斤
-                        BigDecimal perkilogramadded = shippingTemplates.getPerkilogramadded();
-                        //每增加运费
-                        BigDecimal perkilogramcost = shippingTemplates.getPerkilogramcost();
-                        //商品总重量
-                        BigDecimal totalweight = weight.multiply(converNum);
-                        //匹配地区运费
-                        AreaCost areaCost = shopCarService.getAreaCost(freightmode);
-                        //如果用户默认收货地址为空，则用商品默认运费
-                        if (uProvince == null || uCity == null) {
-                            if (shippingTemplates != null) {
-                                //计算默认运费
-                                map.put("totalCost", getTotalCost(defaultfreight, defaultcost, perkilogramadded, perkilogramcost, totalweight));
-                            }
-                        } else {
-                            //如果有地区运费模板，就用地区运费模板，否则用默认运费模板
-                            if (areaCost != null) {
-                                String province = areaCost.getProvince();
-                                String city = areaCost.getCity();
-                                //判断省市是否匹配
-                                if (province.contains(uProvince) && city.contains(uCity)) {
-                                    BigDecimal udefaultfreight = areaCost.getDefaultfreight();
-                                    //默认运费
-                                    BigDecimal udefaultcost = areaCost.getDefaultcost();
-                                    //每增加公斤
-                                    BigDecimal uperkilogramadded = areaCost.getPerkilogramadded();
-                                    //每增加运费
-                                    BigDecimal uperkilogramcost = areaCost.getPerkilogramcost();
-                                    //计算地区运费
-                                    map.put("totalCost", getTotalCost(udefaultfreight, udefaultcost, uperkilogramadded, uperkilogramcost, totalweight));
-
-                                } else {
-                                    //计算默认运费
-                                    map.put("totalCost", getTotalCost(defaultfreight, defaultcost, perkilogramadded, perkilogramcost, totalweight));
-                                }
-
-                            } else {
-                                //计算默认运费
-                                map.put("totalCost", getTotalCost(defaultfreight, defaultcost, perkilogramadded, perkilogramcost, totalweight));
-                            }
-                        }
-                    } else {
-                        //包邮
-                        map.put("totalCost", new BigDecimal(0));
-                    }
+                    map.put("totalCost",freightService.getFreight(freightmode,totalweight,uProvince,uCity));
                 }
 
                 Store store = storeMapper.selectByPrimaryKey((Long) map.get("storeid"));
@@ -830,6 +675,8 @@ public class ShopCarAction {
             return shopCarRet;
         }
     }
+*/
+
 
     @RequestMapping(value = "/countSinglePdFight", method = RequestMethod.POST)
     @ApiOperation(value = "计算单个商品运费")
@@ -866,6 +713,13 @@ public class ShopCarAction {
         */
         BigDecimal weight = productStore.getWeight();
         long freightmode = productStore.getFreightmode();
+
+        BigDecimal totalweight = weight.multiply(convertNum);
+
+        //计算运费
+        shopCarRet.data.bigDecimal =    freightService.getFreight(freightmode,totalweight,uprovince,ucity);
+
+        /*
         if (freightmode != Quantity.STATE_) {
             //获取商品运费模板
             ShippingTemplates shippingTemplates = shopCarService.getShippingTemp(freightmode);
@@ -922,49 +776,12 @@ public class ShopCarAction {
             shopCarRet.data.bigDecimal = new BigDecimal(0);
             return shopCarRet;
         }
-        shopCarRet.data.bigDecimal = new BigDecimal(0);
+       shopCarRet.data.bigDecimal = new BigDecimal(0);*/
         return shopCarRet;
     }
 
 
-    /**
-     * 计算运费
-     *
-     * @param defaultfreight   默认运费公斤
-     * @param defaultcost      默认运费
-     * @param perkilogramadded 每增加公斤
-     * @param perkilogramcost  每增加运费
-     * @param totalweight      商品总重量
-     * @return 每个商品的运费
-     */
-    private BigDecimal getTotalCost(BigDecimal defaultfreight, BigDecimal defaultcost, BigDecimal perkilogramadded, BigDecimal perkilogramcost, BigDecimal totalweight) {
 
-        BigDecimal totalCost = new BigDecimal(0);
-        //判断重量计算运费
-        //如果小于或等于默认重量
-        if (totalweight.compareTo(defaultfreight) == -1 || totalweight.compareTo(defaultfreight) == 0) {
-            totalCost = defaultcost;
-        } else {
-            //剩余的重量
-            BigDecimal substractWeight = totalweight.subtract(defaultfreight);
-            //倍数和余数
-            BigDecimal[] results = substractWeight.divideAndRemainder(perkilogramadded);
-            //如果剩下的重量小于每增加公斤数
-            if (results[0].compareTo(new BigDecimal(0)) == Quantity.INT_0) {
-                totalCost = defaultcost.add(perkilogramcost);
-            } else {
-                BigDecimal multiplycost = results[0].multiply(perkilogramcost);
-                //如果没有余数
-                if (results[1].compareTo(new BigDecimal(0)) == Quantity.INT_0) {
-                    totalCost = multiplycost.add(defaultcost);
-                } else {
-                    //如果有余数
-                    totalCost = multiplycost.add(perkilogramcost).add(defaultcost);
-                }
-            }
-        }
-        return totalCost;
-    }
 
     @RequestMapping(value = "/insertShopCar", method = RequestMethod.POST)
     @ApiOperation(value = "新增商品到购物车")
@@ -978,9 +795,15 @@ public class ShopCarAction {
             @ApiImplicitParam(name = "unit", value = "单位", required = true, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "protype", value = "远期类型0=不是远期1=全款2=定金", required = true, paramType = "query", dataType = "int"),
             @ApiImplicitParam(name = "isonline", value = "订单类型标识0=线上1=线下2=限时购", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "source", value = "订单来源 1=PC,2=微信，3=安卓，4=IOS", required = false, paramType = "query", dataType = "int"),
     })
-    public BasicRet insertShopCar(ShopCar shopCar, Model model, HttpServletRequest request,Long limitid) throws Exception {
+    public BasicRet insertShopCar(ShopCar shopCar, Model model, HttpServletRequest request,Long limitid,Short source) throws Exception {
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
+
+        if(source == null){
+            return new BasicRet(BasicRet.ERR,"APP升级中，请到电脑或微信端下单");
+        }
+
         if(shopCar.getIsonline()==null){
             shopCar.setIsonline(Quantity.STATE_0);
         }
@@ -1029,7 +852,7 @@ public class ShopCarAction {
 
                 if(productStore != null && productStore.getMinplus()!=null && productStore.getMinplus().compareTo(Quantity.BIG_DECIMAL_0)>0){
 
-                    if(!this.checkBuyNum(convertNum,productStore.getMinplus())){
+                    if(!ordersService.checkBuyNum(convertNum,productStore.getMinplus())){
                         basicRet.setMessage("购买量必须是加购量的倍数");
                         basicRet.setResult(BasicRet.ERR);
                         return basicRet;
@@ -1059,14 +882,15 @@ public class ShopCarAction {
                 }
                 boolean flag = false;
                 //计算阶梯价格
-                BigDecimal salePrice = updatePriceByNum(convertNum, productStore, shopCar.getDelivertime(), info.getMemberid(), info.getLevel3id(), member.getGradleid());
+                BigDecimal salePrice = ordersService.updatePriceByNum(convertNum, productStore, shopCar.getDelivertime(), info.getMemberid(), info.getLevel3id(), member.getGradleid());
                 //远期定金和全款计算
                 BigDecimal allpap = salePrice.multiply(convertNum);
                 //如果是远期，需计算远期定金，全款和余额
                 if (shopCar.getProtype() != Quantity.STATE_0) {
                     if (shopCar.getProtype() == Quantity.STATE_1) {
                         //全款
-                        shopCar.setAllpay(allpap.multiply(allPayRate));
+                        shopCar.setAllpay(allpap.multiply(TradeConstant.allPayRate));
+                        salePrice = salePrice.multiply(TradeConstant.allPayRate);
                     } else {
                         //定金
                         shopCar.setPartpay(allpap.multiply(transactionSettingService.getTransactionSetting().getRemotepurchasingmargin().multiply(new BigDecimal(0.01))));
@@ -1100,7 +924,7 @@ public class ShopCarAction {
                         BigDecimal appPap = salePrice.multiply(shopCar1.getPdnumber());
                         shopCar1.setProtype(shopCar.getProtype());
                         //全款
-                        shopCar1.setAllpay(appPap.multiply(allPayRate));
+                        shopCar1.setAllpay(appPap.multiply(TradeConstant.allPayRate));
                         //定金
                         shopCar1.setPartpay(appPap.multiply(transactionSettingService.getTransactionSetting().getRemotepurchasingmargin().multiply(new BigDecimal(0.01))));
                         //余款
@@ -1121,6 +945,12 @@ public class ShopCarAction {
         }
 
         if(shopCar.getIsonline()==Quantity.STATE_2){  //限时购
+            if(Arrays.asList("207,208,209,210".split(",")).contains(StringUtils.nvl(shopCar.getLimitid()))){
+                if(!"8".equals(member.getRegistertypelabel()) || !"9".equals(member.getRegisterchannellabel())){
+                    return new BasicRet(BasicRet.ERR,"该商品您不可购买");
+                }
+            }
+
             LimitTimeProd prod = shopCarService.getLimitTimeProd(shopCar.getPdid(),limitid);
             //判断活动是否开始
             Date startTime = prod.getBegintime();
@@ -1250,6 +1080,9 @@ public class ShopCarAction {
         StringBuffer sb = new StringBuffer();
         //验证
         for (ShopCar shopCar : list) {
+            ProductInfo info = shopCarService.getProductInfo(shopCar.getPdid());
+            shopCar.setSaleid(info.getMemberid());
+
             sb.setLength(0);
             //判断买家卖家是否是同一账号
             Long sellerId = shopCar.getSaleid();
@@ -1260,10 +1093,8 @@ public class ShopCarAction {
             }
 
             //判断商品是否下架
-            ProductInfo info = shopCarService.getProductInfo(shopCar.getPdid());
             ProductStore productStore = null;
             if (info != null) {
-
                 BigDecimal convertNum = shopCar.getPdnumber();
                 String convertUnit = shopCar.getUnit();
                 if (AppConstant.FASTENER_PRO_TYPE.equals(info.getProducttype())) {
@@ -1305,13 +1136,13 @@ public class ShopCarAction {
 
 
                 //计算阶梯价格
-                BigDecimal salePrice = updatePriceByNum(convertNum, productStore, shopCar.getDelivertime(), info.getMemberid(), info.getLevel3id(), member.getGradleid());
+                BigDecimal salePrice = ordersService.updatePriceByNum(convertNum, productStore, shopCar.getDelivertime(), info.getMemberid(), info.getLevel3id(), member.getGradleid());
                 //远期定金和全款计算
                 BigDecimal allpap = salePrice.multiply(convertNum);
                 //计算远期定金，全款和余额
                 if (shopCar.getProtype() != Quantity.STATE_0) {
                     //全款
-                    shopCar.setAllpay(allpap.multiply(allPayRate));
+                    shopCar.setAllpay(allpap.multiply(TradeConstant.allPayRate));
                     //定金
                     shopCar.setPartpay(allpap.multiply(transactionSettingService.getTransactionSetting().getRemotepurchasingmargin().multiply(new BigDecimal(0.01))));
                     //余款
@@ -1344,7 +1175,7 @@ public class ShopCarAction {
                         shopCar1.setProtype(shopCar.getProtype());
                         //全款
                         if (shopCar.getProtype() == Quantity.STATE_1) {
-                            shopCar1.setAllpay(appPap.multiply(allPayRate));
+                            shopCar1.setAllpay(appPap.multiply(TradeConstant.allPayRate));
                         } else {
                             //定金
                             shopCar1.setPartpay(appPap.multiply(transactionSettingService.getTransactionSetting().getRemotepurchasingmargin().multiply(new BigDecimal(0.01))));
@@ -1419,50 +1250,5 @@ public class ShopCarAction {
 
 
 
-/*
-   public static void main(String[] args) {
 
-       *//* Gson gson = new Gson();
-        ShopCar op = new ShopCar();
-        op.setSaleid(1l);
-        op.setStoreid(3l);
-        op.setPdid(7l);
-        op.setPdno("2222");
-        op.setPdnumber(10);
-        op.setPrice(new BigDecimal(15));
-        op.setProprice(new BigDecimal(0));
-        op.setDelivertime("立即发货");
-
-       ShopCar op1 = new ShopCar();
-        op1.setSaleid(2l);
-        op1.setStoreid(4l);
-        op1.setPdid(6l);
-        op1.setPdno("3333");
-        op1.setPdnumber(5);
-        op1.setPrice(new BigDecimal(25));
-        op1.setProprice(new BigDecimal(2.5));
-        op1.setDelivertime("30天发货");
-
-        List<ShopCar> list = new ArrayList<ShopCar>();
-        list.add(op);
-        list.add(op1);
-
-        String str = gson.toJson(list);
-
-        System.out.println(str);
-
-        List<ShopCar> list2 = gson.fromJson(str,new TypeToken<ArrayList<ShopCar>>() {}.getType());
-
-
-        System.out.println(str);*//*
-
-       Map<String,Object> map = JinshangUtils.toLowerUnit("奥展无/2千/盒|6盒/箱",new BigDecimal(30),"箱");
-
-       BigDecimal num = (BigDecimal)map.get("num");
-       String unit = (String)map.get("unit");
-
-       System.out.println(num);
-       System.out.println(unit);
-
-    }*/
 }

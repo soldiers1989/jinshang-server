@@ -24,15 +24,15 @@ import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.utils.DateUtils;
 import project.jinshang.common.utils.ExcelGen;
 import project.jinshang.common.utils.StringUtils;
+import project.jinshang.mod_admin.mod_excelexport.ExcepExportAction;
 import project.jinshang.mod_company.bean.BuyerCompanyInfo;
 import project.jinshang.mod_company.service.BuyerCompanyService;
-import project.jinshang.mod_member.bean.Admin;
-import project.jinshang.mod_member.bean.AdminUser;
-import project.jinshang.mod_member.bean.Member;
-import project.jinshang.mod_member.bean.MemberGrade;
+import project.jinshang.mod_member.bean.*;
 import project.jinshang.mod_member.bean.dto.MemberAdminQueryDto;
+import project.jinshang.mod_member.bean.dto.MemberAdminViewDto;
 import project.jinshang.mod_member.service.*;
 import project.jinshang.mod_product.service.MemberOperateLogService;
+import project.jinshang.mod_product.service.OrdersService;
 import project.jinshang.mod_server.service.MemberServerService;
 
 import javax.servlet.http.HttpServletRequest;
@@ -40,6 +40,8 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -61,6 +63,8 @@ public class MemberAdminRestAction {
     @Autowired
     private MemberAdminService memberAdminService;
 
+
+
     @Autowired
     private BuyerCompanyService buyerCompanyService;
 
@@ -80,6 +84,12 @@ public class MemberAdminRestAction {
     private AdminUserService adminUserService;
     @Autowired
     private AdminService adminService;
+    @Autowired
+    private OrdersService ordersService;
+    @Autowired
+    private AdminWaysalesmanService adminWaysalesmanService;
+    @Autowired
+    private MemberMapper memberMapper;
 
     @PostMapping("/editMember")
     @ApiOperation("修改会员信息")
@@ -174,9 +184,39 @@ public class MemberAdminRestAction {
             member.setGradleid((long) gradeid);
             member.setGradename(memberGrade.getGradename());
         }
+        //2018年5月31日10:53:04更新业务员操作 waysalesman(介绍人)
+        if (waysalesman != null && !"".equals(waysalesman)) {
+            // 这个业务员是不是和他之前的业务员相同
+            if (!waysalesman.equals(member.getWaysalesman())) {
+                //更新该用户之前所有的介绍人
+                ordersService.updateOrdersWaysalesmanBymemberid(waysalesman, id);
+            }
+        }
+        //根据id查询旧的业务员Waysalesman
+        Member oldmember = memberService.selectById(id);
+        if(StringUtils.hasText(waysalesman)){//不为空
+            if(oldmember.getWaysalesman()== waysalesman){//业务员相同
+                member.setWaysalesman(waysalesman);
+            }else{//业务员不同,则表示修改了业务员同时需要更新时间
+                if(null ==oldmember.getWaysalesman()) {
+                    member.setWaysalesman(waysalesman);
+                    member.setWaysalesmansetdate(new Date());
+                    member.setLabelname("F");
+                }else{
+                    member.setWaysalesman(waysalesman);
+                    member.setWaysalesmansetdate(new Date());
+                }
+            }
+        }else{
+            member.setWaysalesman(waysalesman);
+            member.setWaysalesmansetdate(new Date());
+            member.setLabelname("F");
+        }
+
+
 
         member.setRealname(realname);
-        member.setWaysalesman(waysalesman);
+
         member.setMobile(mobile);
         member.setEmail(email);
         member.setFaxes(faxes);
@@ -192,6 +232,9 @@ public class MemberAdminRestAction {
         member.setAddress(address);
         member.setClerkname(clerkname);
         member.setRemark(remark);
+
+
+
         //更新业务员
         if (adminid != null && !"".equals(adminid)) {
             Admin adminuser = adminService.getById(adminid);
@@ -233,31 +276,31 @@ public class MemberAdminRestAction {
 
             buyerCompanyService.updateByPrimaryKeySelective(buyerCompanyInfo);
         }
-        if(clerkname==null||"".equals(clerkname)){
+        if (clerkname == null || "".equals(clerkname)) {
             adminUserService.delAdminUserByuserid(id);
         }
         //2018年5月31日10:53:04更新业务员操作
-
         if (adminid != null && !"".equals(adminid)) {
+            //修改日期 2018年6月7日16:02:52
+            //查询业务员详情获取业务员
+            Admin admininfo = adminService.getById(adminid);
+            //更新该用户之前所有的订单
+            ordersService.updateOrdersClerknameBymemberid(admininfo.getRealname(), admininfo.getMobile(), id);
+            //批量更新用户订单
             //查找是否存在之前的业务员
             AdminUser result = adminUserService.getAdminUserByUserid(id);
             if (result != null) {
-                adminUserService.delAdminUserByid(result.getId());//刪除之前的業務員
+                adminUserService.delAdminUserByid(result.getId());//`
                 AdminUser adminUser = new AdminUser();
                 adminUser.setUserid(id);
                 adminUser.setAdminid(adminid);
                 adminUserService.addManageUsersBylist(adminUser);//添加新业务员
-                // Admin adminuser = adminService.getById(clerkname);
-                //memberService.updateMemberClerknameByid(id, adminuser.getRealname());//更新业务员
             } else {
                 AdminUser adminUser = new AdminUser();
                 adminUser.setUserid(id);
                 adminUser.setAdminid(adminid);
                 adminUserService.addManageUsersBylist(adminUser);//添加新业务员
-                //  Admin adminuser = adminService.getById(clerkname);
-                //memberService.updateMemberClerknameByid(id, adminuser.getRealname());//更新业务员
             }
-
         }
 
         //保存日志
@@ -326,7 +369,8 @@ public class MemberAdminRestAction {
     @ApiOperation(value = "后台会员根据条件查询")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "username", value = "用户名", required = false, paramType = "query", dataType = "string"),
-            @ApiImplicitParam(name = "clerkname", value = "业务员", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "clerkname", value = "客服人员", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "waysalesman", value = "业务员", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "id", value = "编号", required = false, paramType = "query", dataType = "int"),
             @ApiImplicitParam(name = "mobile", value = "手机", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "registDateStart", value = "开始时间", required = false, paramType = "query", dataType = "string"),
@@ -337,10 +381,14 @@ public class MemberAdminRestAction {
             @ApiImplicitParam(name = "loginDateEnd", value = "最后登录时间-结束", required = false, paramType = "query", dataType = "date"),
             @ApiImplicitParam(name = "companyType", value = "是否是公司 0-全部，1-是，2-否", required = true, paramType = "query", dataType = "int"),
             @ApiImplicitParam(name = "isbuy", value = "是否消费0=全部1=无消费2=消费", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "registersourcelabel", value = "注册来源", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "registertypelabel", value = "注册类型", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "registerchannellabel", value = "注册渠道", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "labelname", value = "标签名称", required = false, paramType = "query", dataType = "string"),
     })
     public SelectMemberInfoRet selectmemberinfo(MemberAdminQueryDto dto,
-                                    @RequestParam(required = true) int pageNo,
-                                    @RequestParam(required = true) int pageSize,Model model) {
+                                                @RequestParam(required = true) int pageNo,
+                                                @RequestParam(required = true) int pageSize, Model model) {
         Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
         if (dto.getLoginDateEnd() != null) {
             dto.setLoginDateEnd(DateUtils.addDays(dto.getLoginDateEnd(), 1));
@@ -350,9 +398,52 @@ public class MemberAdminRestAction {
             dto.setRegistDateEnd(DateUtils.addDays(dto.getRegistDateEnd(), 1));
         }
 
-        PageInfo pageInfo = memberAdminService.list(dto, pageNo, pageSize);
-       List<AdminUser> list= adminUserService.findAdminUserByAdminid(admin.getId());
-        SelectMemberInfoRet selectMemberInfoRet=new SelectMemberInfoRet();
+        PageInfo pageInfo = memberAdminService.list(null,dto, pageNo, pageSize);
+        List<AdminUser> list = adminUserService.findAdminUserByAdminid(admin.getId());
+        SelectMemberInfoRet selectMemberInfoRet = new SelectMemberInfoRet();
+        selectMemberInfoRet.data.setPageInfo(pageInfo);
+        selectMemberInfoRet.data.setAdminUserList(list);
+        selectMemberInfoRet.setResult(BasicRet.SUCCESS);
+        return selectMemberInfoRet;
+    }
+
+    @RequestMapping(value = "/selectmemberinfo1", method = RequestMethod.POST)
+    @ApiOperation(value = "后台运营会员管理根据条件查询")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "username", value = "用户名", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "clerkname", value = "客服人员", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "waysalesman", value = "业务员", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "id", value = "编号", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "mobile", value = "手机", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "registDateStart", value = "开始时间", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "registDateEnd", value = "结束时间", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "labelid", value = "标签id", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "gradleid", value = "组别id", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "loginDateStart", value = "最后登录时间-开始", required = false, paramType = "query", dataType = "date"),
+            @ApiImplicitParam(name = "loginDateEnd", value = "最后登录时间-结束", required = false, paramType = "query", dataType = "date"),
+            @ApiImplicitParam(name = "companyType", value = "是否是公司 0-全部，1-是，2-否", required = true, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "isbuy", value = "是否消费0=全部1=无消费2=消费", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "registersourcelabel", value = "注册来源", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "registertypelabel", value = "注册类型", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "registerchannellabel", value = "注册渠道", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "labelname", value = "标签名称", required = false, paramType = "query", dataType = "string"),
+    })
+    @PreAuthorize("hasAnyAuthority('"+AdminAuthorityConst.OPERATINGMEMBER+"')")
+    public SelectMemberInfoRet selectmemberinfo1(MemberAdminQueryDto dto,
+                                                @RequestParam(required = true) int pageNo,
+                                                @RequestParam(required = true) int pageSize, Model model) {
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        if (dto.getLoginDateEnd() != null) {
+            dto.setLoginDateEnd(DateUtils.addDays(dto.getLoginDateEnd(), 1));
+        }
+
+        if (dto.getRegistDateEnd() != null) {
+            dto.setRegistDateEnd(DateUtils.addDays(dto.getRegistDateEnd(), 1));
+        }
+
+        PageInfo pageInfo = memberAdminService.list(admin.getRealname(),dto, pageNo, pageSize);
+        List<AdminUser> list = adminUserService.findAdminUserByAdminid(admin.getId());
+        SelectMemberInfoRet selectMemberInfoRet = new SelectMemberInfoRet();
         selectMemberInfoRet.data.setPageInfo(pageInfo);
         selectMemberInfoRet.data.setAdminUserList(list);
         selectMemberInfoRet.setResult(BasicRet.SUCCESS);
@@ -360,10 +451,11 @@ public class MemberAdminRestAction {
     }
 
 
-    private class SelectMemberInfoRet extends BasicRet{
-        private class SelectMemberInfoData{
-            private  PageInfo pageInfo;
-            private  List<AdminUser> adminUserList;
+    private class SelectMemberInfoRet extends BasicRet {
+        private class SelectMemberInfoData {
+            private PageInfo pageInfo;
+            private List<AdminUser> adminUserList;
+
             public PageInfo getPageInfo() {
                 return pageInfo;
             }
@@ -380,7 +472,8 @@ public class MemberAdminRestAction {
                 this.adminUserList = adminUserList;
             }
         }
-        public   SelectMemberInfoData data = new SelectMemberInfoData();
+
+        public SelectMemberInfoData data = new SelectMemberInfoData();
 
         public SelectMemberInfoData getData() {
             return data;
@@ -396,7 +489,8 @@ public class MemberAdminRestAction {
     @ApiOperation(value = "Excel导出后台会员")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "username", value = "用户名", required = false, paramType = "query", dataType = "string"),
-            @ApiImplicitParam(name = "clerkname", value = "业务员", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "clerkname", value = "客服人员", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "waysalesman", value = "业务员", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "id", value = "编号", required = false, paramType = "query", dataType = "int"),
             @ApiImplicitParam(name = "mobile", value = "手机", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "registDateStart", value = "开始时间", required = false, paramType = "query", dataType = "string"),
@@ -406,19 +500,32 @@ public class MemberAdminRestAction {
             @ApiImplicitParam(name = "loginDateStart", value = "最后登录时间-开始", required = false, paramType = "query", dataType = "date"),
             @ApiImplicitParam(name = "loginDateEnd", value = "最后登录时间-结束", required = false, paramType = "query", dataType = "date"),
             @ApiImplicitParam(name = "companyType", value = "是否是公司 0-全部，1-是，2-否", required = false, paramType = "query", dataType = "int"),
-            @ApiImplicitParam(name = "isbuy", value = "是否消费0=全部1=无消费2=消费", required = false, paramType = "query", dataType = "int")
+            @ApiImplicitParam(name = "isbuy", value = "是否消费0=全部1=无消费2=消费", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "registersourcelabel", value = "注册来源", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "registertypelabel", value = "注册类型", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "registerchannellabel", value = "注册渠道", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "labelname", value = "标签名称", required = false, paramType = "query", dataType = "string"),
     })
+    @PreAuthorize("hasAnyAuthority('"+AdminAuthorityConst.MEMBERMANAGEMENTEXCEL+"')")
     public ResponseEntity<InputStreamResource> exportExcelmemberinfo(MemberAdminQueryDto dto) {
+        ExcepExportAction eea = new ExcepExportAction();
+        long time = System.currentTimeMillis();
+        eea.map.put("memberinfo",time);
+
+        if (dto.getLoginDateEnd()!=null){
+            dto.setLoginDateEnd(DateUtils.addDays(dto.getLoginDateEnd(),1));
+        }
+        if (dto.getRegistDateEnd()!=null){
+            dto.setRegistDateEnd(DateUtils.addDays(dto.getRegistDateEnd(),1));
+        }
+        List<Map<String, Object>> resList = memberAdminService.listForExportExcel(null,dto);
 
 
-        List<Map<String, Object>> resList = memberAdminService.listForExportExcel(dto);
-
-
-        String[] rowTitles = new String[]{"会员编号", "会员全称", "会员类型", "真实姓名", "会员等级", "注册时间", "介绍人",
+        String[] rowTitles = new String[]{"会员编号", "会员全称", "会员类型", "真实姓名", "会员等级","标签","注册时间", "业务员",
                 "会员账号", "手机号码", "邮箱", "传真", "固定电话", "邮编", "邀请码", "QQ", "微信", "支付宝",
-                "爱好", "联系地址", "授信额度", "结算日（每月）", "业务员", "是否卖家", "单位简称", "单位全称",
+                "爱好", "联系地址", "授信额度", "结算日（每月）", "客服人员", "是否卖家", "单位简称", "单位全称",
                 "单位编号", "所在地", "详细地址", "单位电话", "联系手机", "结算方式", "开户银行", "开户行",
-                "银行账号", "纳税号"};
+                "银行账号", "纳税号","注册来源","注册类型","注册渠道"};
 
         XSSFWorkbook workbook = null;
         try {
@@ -433,6 +540,7 @@ public class MemberAdminRestAction {
                 headers.add("Pragma", "no-cache");
                 headers.add("Expires", "0");
                 String contentType = "application/vnd.ms-excel";
+                //time.clear();
                 return ResponseEntity.ok()
                         .headers(headers).contentType(MediaType.parseMediaType(contentType))
                         .body(new InputStreamResource(new ByteArrayInputStream(baos.toByteArray())));
@@ -440,6 +548,7 @@ public class MemberAdminRestAction {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
+            eea.map.remove("memberinfo");
             if (workbook != null) {
                 try {
                     workbook.close();
@@ -450,6 +559,84 @@ public class MemberAdminRestAction {
         }
         return null;
     }
+
+
+    @RequestMapping(value = "/excelExport/memberinfo1", method = RequestMethod.GET)
+    @ApiOperation(value = "Excel导出后台会员")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "username", value = "用户名", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "clerkname", value = "客服人员", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "waysalesman", value = "业务员", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "id", value = "编号", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "mobile", value = "手机", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "registDateStart", value = "开始时间", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "registDateEnd", value = "结束时间", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "labelid", value = "标签id", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "gradleid", value = "组别id", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "loginDateStart", value = "最后登录时间-开始", required = false, paramType = "query", dataType = "date"),
+            @ApiImplicitParam(name = "loginDateEnd", value = "最后登录时间-结束", required = false, paramType = "query", dataType = "date"),
+            @ApiImplicitParam(name = "companyType", value = "是否是公司 0-全部，1-是，2-否", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "isbuy", value = "是否消费0=全部1=无消费2=消费", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "registersourcelabel", value = "注册来源", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "registertypelabel", value = "注册类型", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "registerchannellabel", value = "注册渠道", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "labelname", value = "标签名称", required = false, paramType = "query", dataType = "string"),
+    })
+    @PreAuthorize("hasAnyAuthority('"+AdminAuthorityConst.OPERATINGMEMBEREXCEL+"')")
+    public ResponseEntity<InputStreamResource> exportExcelmemberinfo1(MemberAdminQueryDto dto,Model model) {
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        ExcepExportAction eea = new ExcepExportAction();
+        long time = System.currentTimeMillis();
+        eea.map.put("memberinfo",time);
+
+        if (dto.getLoginDateEnd()!=null){
+            dto.setLoginDateEnd(DateUtils.addDays(dto.getLoginDateEnd(),1));
+        }
+        if (dto.getRegistDateEnd()!=null){
+            dto.setRegistDateEnd(DateUtils.addDays(dto.getRegistDateEnd(),1));
+        }
+        List<Map<String, Object>> resList = memberAdminService.listForExportExcel(admin.getRealname(),dto);
+
+
+        String[] rowTitles = new String[]{"会员编号", "会员全称", "会员类型", "真实姓名", "会员等级","标签","注册时间", "业务员",
+                "会员账号", "手机号码", "邮箱", "传真", "固定电话", "邮编", "邀请码", "QQ", "微信", "支付宝",
+                "爱好", "联系地址", "授信额度", "结算日（每月）", "客服人员", "是否卖家", "单位简称", "单位全称",
+                "单位编号", "所在地", "详细地址", "单位电话", "联系手机", "结算方式", "开户银行", "开户行",
+                "银行账号", "纳税号","注册来源","注册类型","注册渠道"};
+
+        XSSFWorkbook workbook = null;
+        try {
+            workbook = ExcelGen.common("会员管理列表", rowTitles, resList, null);
+            if (workbook != null) {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                workbook.write(baos);
+                System.out.println(baos.toByteArray().length);
+                HttpHeaders headers = new HttpHeaders();
+                headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+                headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", new String("会员管理列表.xlsx".getBytes(), "iso-8859-1")));
+                headers.add("Pragma", "no-cache");
+                headers.add("Expires", "0");
+                String contentType = "application/vnd.ms-excel";
+                //time.clear();
+                return ResponseEntity.ok()
+                        .headers(headers).contentType(MediaType.parseMediaType(contentType))
+                        .body(new InputStreamResource(new ByteArrayInputStream(baos.toByteArray())));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            eea.map.remove("memberinfo");
+            if (workbook != null) {
+                try {
+                    workbook.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return null;
+    }
+
 
 
     @RequestMapping(value = "/updateMemberPassword", method = RequestMethod.POST)
@@ -529,7 +716,8 @@ public class MemberAdminRestAction {
     @ApiOperation(value = "编辑标签")
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.MEMBERMANAGEMENT + "')")
     public BasicRet setLebel(@RequestParam(required = true) long id,
-                             @RequestParam(required = true) String labelid,
+                             @RequestParam(required = false) String labelid,
+                             @RequestParam(required = false) String labelname,
                              @RequestParam(required = false, defaultValue = "") String clerkname) {
 
         if (StringUtils.hasText(labelid) && !labelid.endsWith(",")) {
@@ -538,8 +726,9 @@ public class MemberAdminRestAction {
 
         Member member = new Member();
         member.setId(id);
-        member.setLabelid(labelid);
+        //member.setLabelid(labelid);
         member.setClerkname(clerkname);
+        member.setLabelname(labelname);
         memberService.updateByPrimaryKeySelective(member);
         return new BasicRet(BasicRet.SUCCESS, "设置成功");
     }
@@ -630,19 +819,49 @@ public class MemberAdminRestAction {
             @ApiImplicitParam(name = "companyname", value = "公司名称", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "username", value = "个人姓名", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "mobile", value = "联系手机", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "disStatus", value = "分配状态 0/未分配、1/已分配、2/所有”，默认为“未分配", required = false, paramType = "query", dataType = "long",defaultValue = "1"),
     })
     public PageRet findNotAddMembers(@RequestParam(required = false, defaultValue = "") Long id,
                                      @RequestParam(required = false, defaultValue = "") String companyname,
                                      @RequestParam(required = false, defaultValue = "") String realname,
                                      @RequestParam(required = false, defaultValue = "") String mobile,
+                                     @RequestParam(required = false, defaultValue = "1") Long disStatus,
                                      @RequestParam(required = true) int pageNo,
                                      @RequestParam(required = true) int pageSize) {
         PageRet pageRet = new PageRet();
-        PageInfo pageInfo = memberAdminService.findNotAddMembers(id, companyname, realname, mobile, pageNo, pageSize);
+//        Admin admin = adminService.getById(adminid);
+
+        PageInfo pageInfo = memberAdminService.findNotAddMembers(id, companyname,realname, mobile,disStatus,pageNo, pageSize);
         pageRet.data.setPageInfo(pageInfo);
         pageRet.setResult(BasicRet.SUCCESS);
         return pageRet;
     }
+
+    @RequestMapping(value = "/findNotAddWaysalesman", method = RequestMethod.POST)
+    @ApiOperation(value = "查询未添加的业务员列表")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "编号", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "companyname", value = "公司名称", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "realname", value = "真实姓名", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "labelname", value = "标签名", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "mobile", value = "联系手机", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "disStatus", value = "分配状态 0/未分配、1/已分配、2/所有”，默认为“未分配", required = false, paramType = "query", dataType = "long",defaultValue = "1"),
+    })
+    public PageRet findNotAddWaysalesman(@RequestParam(required = false, defaultValue = "") Long id,
+                                     @RequestParam(required = false, defaultValue = "") String companyname,
+                                     @RequestParam(required = false, defaultValue = "") String realname,
+                                     @RequestParam(required = false, defaultValue = "") String mobile,
+                                     @RequestParam(required = false, defaultValue = "") String labelname,
+                                     @RequestParam(required = false, defaultValue = "1") Long disStatus,
+                                     @RequestParam(required = true) int pageNo,
+                                     @RequestParam(required = true) int pageSize) {
+        PageRet pageRet = new PageRet();
+        PageInfo pageInfo = memberAdminService.findNotAddWaysalesman(id, companyname, realname, mobile,labelname,disStatus,pageNo, pageSize);
+        pageRet.data.setPageInfo(pageInfo);
+        pageRet.setResult(BasicRet.SUCCESS);
+        return pageRet;
+    }
+
 
     @RequestMapping(value = "/findManageMemberList", method = RequestMethod.POST)
     @ApiOperation(value = "查询已添加的管理会员列表")
@@ -656,18 +875,45 @@ public class MemberAdminRestAction {
                                         @RequestParam(required = false, defaultValue = "") Long id,
                                         @RequestParam(required = false, defaultValue = "") String companyname,
                                         @RequestParam(required = false, defaultValue = "") String realname,
-                                        @RequestParam(required = false, defaultValue = "") String mobile, Model model,
+                                        @RequestParam(required = false, defaultValue = "") String mobile,Model model,
                                         @RequestParam(required = true) int pageNo,
                                         @RequestParam(required = true) int pageSize) {
         PageRet pageRet = new PageRet();
-        PageInfo pageInfo = memberAdminService.findManageMemberList(id, companyname, realname, mobile, adminid, pageNo, pageSize);
+        Admin admin = adminService.getById(adminid);
+
+        PageInfo pageInfo = memberAdminService.findManageMemberList(id, companyname, admin.getRealname(),realname, mobile, adminid ,pageNo, pageSize);
+        pageRet.data.setPageInfo(pageInfo);
+        pageRet.setResult(BasicRet.SUCCESS);
+        return pageRet;
+    }
+
+
+    @RequestMapping(value = "/findManageWaysalesmanList", method = RequestMethod.POST)
+    @ApiOperation(value = "查询已添加的管理业务员列表")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "编号", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "companyname", value = "公司名称", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "username", value = "个人姓名", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "mobile", value = "联系手机", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "labelname", value = "标签名称", required = false, paramType = "query", dataType = "string"),
+    })
+    public PageRet findManageWaysalesmanList(@RequestParam(required = true, defaultValue = "") Long adminid,
+                                        @RequestParam(required = false, defaultValue = "") Long id,
+                                        @RequestParam(required = false, defaultValue = "") String companyname,
+                                        @RequestParam(required = false, defaultValue = "") String realname,
+                                        @RequestParam(required = false, defaultValue = "") String mobile,
+                                        @RequestParam(required = false, defaultValue = "") String labelname,Model model,
+                                        @RequestParam(required = true) int pageNo,
+                                        @RequestParam(required = true) int pageSize) {
+        PageRet pageRet = new PageRet();
+        PageInfo pageInfo = memberAdminService.findManageWaysalesmanList(id, companyname, realname, mobile, adminid,labelname, pageNo, pageSize);
         pageRet.data.setPageInfo(pageInfo);
         pageRet.setResult(BasicRet.SUCCESS);
         return pageRet;
     }
 
     @RequestMapping(value = "/addManageUsersBylist", method = RequestMethod.POST)
-    @ApiOperation(value = "添加要管理的会员列表")
+    @ApiOperation(value = "添加要管理的客服人员列表")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "array", value = "编号数组", required = true, paramType = "query", dataType = "Long")
     })
@@ -676,13 +922,46 @@ public class MemberAdminRestAction {
         MemberAdminViewDtoRet memberAdminViewDtoRet = new MemberAdminViewDtoRet();
         Admin admin = adminService.getById(adminid);
         for (Long id : userid) {
-            AdminUser result = adminUserService.getAdminUserByAdminAndUserid(admin.getId(), id);
-            if (result == null) {
+            //AdminUser result = adminUserService.getAdminUserByAdminAndUserid(admin.getId(), id);
+            //if (result == null) {
+                adminUserService.delAdminUserByuserid(id);
                 AdminUser adminUser = new AdminUser();
                 adminUser.setAdminid(admin.getId());
                 adminUser.setUserid(id);
                 adminUserService.addManageUsersBylist(adminUser);
                 memberService.updateMemberClerknameByid(id, admin.getRealname());
+                ordersService.updateOrdersClerknameBymemberid(admin.getRealname(),admin.getMobile(),id);
+           // }
+        }
+        memberAdminViewDtoRet.setMessage("操作成功");
+        memberAdminViewDtoRet.setResult(BasicRet.SUCCESS);
+        return memberAdminViewDtoRet;
+    }
+
+    @RequestMapping(value = "/addManageWaysalesmanBylist", method = RequestMethod.POST)
+    @ApiOperation(value = "添加要管理的业务员列表")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "array", value = "编号数组", required = true, paramType = "query", dataType = "Long")
+    })
+    public MemberAdminViewDtoRet addManageWaysalesmanBylist(@RequestParam(required = true, defaultValue = "") Long adminid,
+                                                      @RequestParam(required = false) Long[] userid, Model model) {
+        MemberAdminViewDtoRet memberAdminViewDtoRet = new MemberAdminViewDtoRet();
+        Admin admin = adminService.getById(adminid);
+        for (Long id : userid) {
+            AdminWaysalesman result = adminWaysalesmanService.getAdminUserByAdminAndUserid(admin.getId(),id);
+            if (result == null) {
+                AdminWaysalesman adminWaysalesman = new AdminWaysalesman();
+                adminWaysalesman.setAdminid(admin.getId());
+                adminWaysalesman.setUserid(id);
+                adminWaysalesmanService.addManageUsersBylist(adminWaysalesman);
+
+                Member member = new Member();
+                member.setId(id);
+                member.setWaysalesman(admin.getRealname());
+                member.setWaysalesmansetdate(new Date());
+                member.setLabelname("F");
+                memberService.updateMember(member);
+                ordersService.updateOrdersWaysalesmanBymemberid(admin.getRealname(),id);
             }
         }
         memberAdminViewDtoRet.setMessage("操作成功");
@@ -691,21 +970,48 @@ public class MemberAdminRestAction {
     }
 
     @RequestMapping(value = "/delManageUsersByUserid", method = RequestMethod.POST)
-    @ApiOperation(value = "添加要管理的会员列表")
+    @ApiOperation(value = "删除要管理的客服人员列表")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "userid", value = "会员id", required = true, paramType = "query", dataType = "Long")
     })
     public MemberAdminViewDtoRet delManageUsersByid(@RequestParam(required = true, defaultValue = "") Long adminid,
                                                     @RequestParam(required = true) Long userid, Model model) {
         MemberAdminViewDtoRet memberAdminViewDtoRet = new MemberAdminViewDtoRet();
-        AdminUser result = adminUserService.getAdminUserByAdminAndUserid(adminid, userid);
+//        AdminUser result = adminUserService.getAdminUserByAdminAndUserid(adminid, userid);
+//        if (result != null) {
+        Member member = memberService.getMemberById(userid);
+        if (member != null) {
+            member.setClerkname("");
+            memberService.updateByPrimaryKeySelective(member);
+        }
+//        adminUserService.delAdminUserByid(result.getId());
+        ordersService.updateOrdersClerknameBymemberid("","",userid);
+//        }
+        memberAdminViewDtoRet.setMessage("操作成功");
+        memberAdminViewDtoRet.setResult(BasicRet.SUCCESS);
+        return memberAdminViewDtoRet;
+    }
+
+
+    @RequestMapping(value = "/delManageWaysalesmanByUserid", method = RequestMethod.POST)
+    @ApiOperation(value = "删除要管理的业务员列表")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "userid", value = "会员id", required = true, paramType = "query", dataType = "Long")
+    })
+    public MemberAdminViewDtoRet delManageWaysalesmanByid(@RequestParam(required = true, defaultValue = "") Long adminid,
+                                                    @RequestParam(required = true) Long userid, Model model) {
+        MemberAdminViewDtoRet memberAdminViewDtoRet = new MemberAdminViewDtoRet();
+        //AdminUser result = adminUserService.getAdminUserByAdminAndUserid(adminid, userid);
+        AdminWaysalesman result = adminWaysalesmanService.getAdminUserByAdminAndUserid(adminid, userid);
         if (result != null) {
-            Member member=memberService.getMemberById(result.getUserid());
-            if (member!=null){
-                member.setClerkname("");
+            Member member = memberService.getMemberById(result.getUserid());
+            if (member != null) {
+                member.setWaysalesman("");
+                member.setWaysalesmansetdate(null);
                 memberService.updateByPrimaryKeySelective(member);
             }
-            adminUserService.delAdminUserByid(result.getId());
+            adminWaysalesmanService.delAdminUserByid(result.getId());
+            ordersService.updateOrdersWaysalesmanBymemberid("",userid);
         }
         memberAdminViewDtoRet.setMessage("操作成功");
         memberAdminViewDtoRet.setResult(BasicRet.SUCCESS);
@@ -723,6 +1029,7 @@ public class MemberAdminRestAction {
         memberAdminViewDtoRet.setResult(BasicRet.SUCCESS);
         return memberAdminViewDtoRet;
     }
+
 
     public class MemberAdminViewDtoRet extends BasicRet {
         private List<Admin> list;

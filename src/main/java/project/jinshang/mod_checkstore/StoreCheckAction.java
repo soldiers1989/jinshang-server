@@ -302,9 +302,9 @@ public class StoreCheckAction {
                     }
 
 
-                    if (key.equals("level1")) {
-                        keyValue.value.sort((String v1, String v2) -> {
-                            return ProductSearchUtils.getBigSort(v1).compareTo(ProductSearchUtils.getBigSort(v2));
+                    if(key.equals("level1")){
+                        keyValue.value.sort((String v1,String v2)->{
+                            return ProductSearchSortUtils.getSortWeigth("大类",Quantity.STATE_0,v1).compareTo(ProductSearchSortUtils.getSortWeigth("大类",Quantity.STATE_0,v2));
                         });
                     }
 

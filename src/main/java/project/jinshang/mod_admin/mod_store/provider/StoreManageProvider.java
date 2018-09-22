@@ -4,6 +4,7 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.jdbc.SQL;
 import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_admin.mod_store.bean.StoreManageQueryDto;
+import project.jinshang.mod_company.bean.Store;
 
 /**
  * create : wyh
@@ -27,5 +28,20 @@ public class StoreManageProvider {
 
         return  sql.toString();
     }
+
+
+    public String getByShopGroupIdAndName(@Param("dto")Store dto){
+        StringBuilder sql=new StringBuilder();
+        sql.append("select S.*,M.username from store S left join member M on S.memberid=M.id where 1=1 ");
+        if (dto.getShopgroupid()!=null){
+            sql.append(" and S.shopgroupid=#{dto.shopgroupid} ");
+        }
+        if (dto.getName()!=null){
+            sql.append(" and S.name=#{dto.name} ");
+        }
+        sql.append(" order by S.id ASC");
+        return sql.toString();
+    }
+
 
 }

@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_admin.mod_app.AppVersionMapper" >
+
+    <resultMap id="BaseResultMap" type="project.jinshang.mod_admin.mod_app.bean.AppVersion" >
+        <id column="id" property="id" jdbcType="BIGINT" />
+        <result column="apptype" property="apptype" jdbcType="VARCHAR" />
+        <result column="version" property="version" jdbcType="VARCHAR" />
+        <result column="versionname" property="versionname" jdbcType="VARCHAR" />
+        <result column="type" property="type" jdbcType="SMALLINT" />
+        <result column="url" property="url" jdbcType="VARCHAR" />
+        <result column="downloadurl" property="downloadurl" jdbcType="VARCHAR" />
+        <result column="channel" property="channel" jdbcType="VARCHAR" />
+        <result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
+        <result column="updatetime" property="updatetime" jdbcType="TIMESTAMP" />
+        <result column="adminid" property="adminid" jdbcType="BIGINT" />
+        <result column="mobile" property="mobile" jdbcType="VARCHAR" />
+        <result column="remark" property="remark" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <sql id="Example_Where_Clause" >
+        <where >
+            <foreach collection="oredCriteria" item="criteria" separator="or" >
+                <if test="criteria.valid" >
+                    <trim prefix="(" suffix=")" prefixOverrides="and" >
+                        <foreach collection="criteria.criteria" item="criterion" >
+                            <choose >
+                                <when test="criterion.noValue" >
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue" >
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue" >
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue" >
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+
+    <sql id="Update_By_Example_Where_Clause" >
+        <where >
+            <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+                <if test="criteria.valid" >
+                    <trim prefix="(" suffix=")" prefixOverrides="and" >
+                        <foreach collection="criteria.criteria" item="criterion" >
+                            <choose >
+                                <when test="criterion.noValue" >
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue" >
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue" >
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue" >
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+
+    <sql id="Base_Column_List" >
+        id, apptype, version, versionname, type, url, downloadurl, channel, createtime, updatetime, 
+        adminid, mobile, remark
+    </sql>
+
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_admin.mod_app.bean.AppVersionExample" >
+        select
+        <if test="distinct" >
+            distinct
+        </if>
+        'true' as QUERYID,
+        <include refid="Base_Column_List" />
+        from public.appversion
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+        <if test="orderByClause != null" >
+            order by ${orderByClause}
+        </if>
+    </select>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+        select 
+        <include refid="Base_Column_List" />
+        from public.appversion
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+        delete from public.appversion
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+
+    <delete id="deleteByExample" parameterType="project.jinshang.mod_admin.mod_app.bean.AppVersionExample" >
+        delete from public.appversion
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+    </delete>
+
+    <insert id="insert" parameterType="project.jinshang.mod_admin.mod_app.bean.AppVersion" >
+        insert into public.appversion (id, apptype, version, 
+            versionname, type, url, 
+            downloadurl, channel, createtime, 
+            updatetime, adminid, mobile, 
+            remark)
+        values (#{id,jdbcType=BIGINT}, #{apptype,jdbcType=VARCHAR}, #{version,jdbcType=VARCHAR}, 
+            #{versionname,jdbcType=VARCHAR}, #{type,jdbcType=SMALLINT}, #{url,jdbcType=VARCHAR}, 
+            #{downloadurl,jdbcType=VARCHAR}, #{channel,jdbcType=VARCHAR}, #{createtime,jdbcType=TIMESTAMP}, 
+            #{updatetime,jdbcType=TIMESTAMP}, #{adminid,jdbcType=BIGINT}, #{mobile,jdbcType=VARCHAR}, 
+            #{remark,jdbcType=VARCHAR})
+    </insert>
+
+    <insert id="insertSelective" parameterType="project.jinshang.mod_admin.mod_app.bean.AppVersion" >
+        insert into public.appversion
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="id != null" >
+                id,
+            </if>
+            <if test="apptype != null" >
+                apptype,
+            </if>
+            <if test="version != null" >
+                version,
+            </if>
+            <if test="versionname != null" >
+                versionname,
+            </if>
+            <if test="type != null" >
+                type,
+            </if>
+            <if test="url != null" >
+                url,
+            </if>
+            <if test="downloadurl != null" >
+                downloadurl,
+            </if>
+            <if test="channel != null" >
+                channel,
+            </if>
+            <if test="createtime != null" >
+                createtime,
+            </if>
+            <if test="updatetime != null" >
+                updatetime,
+            </if>
+            <if test="adminid != null" >
+                adminid,
+            </if>
+            <if test="mobile != null" >
+                mobile,
+            </if>
+            <if test="remark != null" >
+                remark,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="id != null" >
+                #{id,jdbcType=BIGINT},
+            </if>
+            <if test="apptype != null" >
+                #{apptype,jdbcType=VARCHAR},
+            </if>
+            <if test="version != null" >
+                #{version,jdbcType=VARCHAR},
+            </if>
+            <if test="versionname != null" >
+                #{versionname,jdbcType=VARCHAR},
+            </if>
+            <if test="type != null" >
+                #{type,jdbcType=SMALLINT},
+            </if>
+            <if test="url != null" >
+                #{url,jdbcType=VARCHAR},
+            </if>
+            <if test="downloadurl != null" >
+                #{downloadurl,jdbcType=VARCHAR},
+            </if>
+            <if test="channel != null" >
+                #{channel,jdbcType=VARCHAR},
+            </if>
+            <if test="createtime != null" >
+                #{createtime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatetime != null" >
+                #{updatetime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="adminid != null" >
+                #{adminid,jdbcType=BIGINT},
+            </if>
+            <if test="mobile != null" >
+                #{mobile,jdbcType=VARCHAR},
+            </if>
+            <if test="remark != null" >
+                #{remark,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <select id="countByExample" parameterType="project.jinshang.mod_admin.mod_app.bean.AppVersionExample" resultType="java.lang.Integer" >
+        select count(*) from public.appversion
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+    </select>
+
+    <update id="updateByExampleSelective" parameterType="map" >
+        update public.appversion
+        <set >
+            <if test="record.id != null" >
+                id = #{record.id,jdbcType=BIGINT},
+            </if>
+            <if test="record.apptype != null" >
+                apptype = #{record.apptype,jdbcType=VARCHAR},
+            </if>
+            <if test="record.version != null" >
+                version = #{record.version,jdbcType=VARCHAR},
+            </if>
+            <if test="record.versionname != null" >
+                versionname = #{record.versionname,jdbcType=VARCHAR},
+            </if>
+            <if test="record.type != null" >
+                type = #{record.type,jdbcType=SMALLINT},
+            </if>
+            <if test="record.url != null" >
+                url = #{record.url,jdbcType=VARCHAR},
+            </if>
+            <if test="record.downloadurl != null" >
+                downloadurl = #{record.downloadurl,jdbcType=VARCHAR},
+            </if>
+            <if test="record.channel != null" >
+                channel = #{record.channel,jdbcType=VARCHAR},
+            </if>
+            <if test="record.createtime != null" >
+                createtime = #{record.createtime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.updatetime != null" >
+                updatetime = #{record.updatetime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.adminid != null" >
+                adminid = #{record.adminid,jdbcType=BIGINT},
+            </if>
+            <if test="record.mobile != null" >
+                mobile = #{record.mobile,jdbcType=VARCHAR},
+            </if>
+            <if test="record.remark != null" >
+                remark = #{record.remark,jdbcType=VARCHAR},
+            </if>
+        </set>
+        <if test="_parameter != null" >
+            <include refid="Update_By_Example_Where_Clause" />
+        </if>
+    </update>
+
+    <update id="updateByExample" parameterType="map" >
+        update public.appversion
+        set id = #{record.id,jdbcType=BIGINT},
+            apptype = #{record.apptype,jdbcType=VARCHAR},
+            version = #{record.version,jdbcType=VARCHAR},
+            versionname = #{record.versionname,jdbcType=VARCHAR},
+            type = #{record.type,jdbcType=SMALLINT},
+            url = #{record.url,jdbcType=VARCHAR},
+            downloadurl = #{record.downloadurl,jdbcType=VARCHAR},
+            channel = #{record.channel,jdbcType=VARCHAR},
+            createtime = #{record.createtime,jdbcType=TIMESTAMP},
+            updatetime = #{record.updatetime,jdbcType=TIMESTAMP},
+            adminid = #{record.adminid,jdbcType=BIGINT},
+            mobile = #{record.mobile,jdbcType=VARCHAR},
+            remark = #{record.remark,jdbcType=VARCHAR}
+        <if test="_parameter != null" >
+            <include refid="Update_By_Example_Where_Clause" />
+        </if>
+    </update>
+
+    <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_admin.mod_app.bean.AppVersion" >
+        update public.appversion
+        <set >
+            <if test="apptype != null" >
+                apptype = #{apptype,jdbcType=VARCHAR},
+            </if>
+            <if test="version != null" >
+                version = #{version,jdbcType=VARCHAR},
+            </if>
+            <if test="versionname != null" >
+                versionname = #{versionname,jdbcType=VARCHAR},
+            </if>
+            <if test="type != null" >
+                type = #{type,jdbcType=SMALLINT},
+            </if>
+            <if test="url != null" >
+                url = #{url,jdbcType=VARCHAR},
+            </if>
+            <if test="downloadurl != null" >
+                downloadurl = #{downloadurl,jdbcType=VARCHAR},
+            </if>
+            <if test="channel != null" >
+                channel = #{channel,jdbcType=VARCHAR},
+            </if>
+            <if test="createtime != null" >
+                createtime = #{createtime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatetime != null" >
+                updatetime = #{updatetime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="adminid != null" >
+                adminid = #{adminid,jdbcType=BIGINT},
+            </if>
+            <if test="mobile != null" >
+                mobile = #{mobile,jdbcType=VARCHAR},
+            </if>
+            <if test="remark != null" >
+                remark = #{remark,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_admin.mod_app.bean.AppVersion" >
+        update public.appversion
+        set apptype = #{apptype,jdbcType=VARCHAR},
+            version = #{version,jdbcType=VARCHAR},
+            versionname = #{versionname,jdbcType=VARCHAR},
+            type = #{type,jdbcType=SMALLINT},
+            url = #{url,jdbcType=VARCHAR},
+            downloadurl = #{downloadurl,jdbcType=VARCHAR},
+            channel = #{channel,jdbcType=VARCHAR},
+            createtime = #{createtime,jdbcType=TIMESTAMP},
+            updatetime = #{updatetime,jdbcType=TIMESTAMP},
+            adminid = #{adminid,jdbcType=BIGINT},
+            mobile = #{mobile,jdbcType=VARCHAR},
+            remark = #{remark,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+</mapper>

@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.exception.CashException;
+import project.jinshang.common.exception.MyException;
 import project.jinshang.common.utils.GenerateNo;
 import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_pay.bean.PayLogs;
@@ -138,7 +139,7 @@ public class BankPayAction {
     private PayLogsService payLogsService;
 
     @RequestMapping(value="/notify",method= {RequestMethod.POST, RequestMethod.GET})
-    public String notify(HttpServletRequest request) throws TrxException, CashException {
+    public String notify(HttpServletRequest request) throws TrxException, CashException, MyException {
 
         String msg = request.getParameter("MSG");
         PaymentResult tResult = new PaymentResult(msg);

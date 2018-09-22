@@ -23,7 +23,7 @@ public class MemberLabelService {
     private MemberLabelMapper memberLabelMapper;
 
     public void  addLable(MemberLabel memberLabel){
-        memberLabelMapper.insert(memberLabel);
+        memberLabelMapper.insertSelective(memberLabel);
     }
 
 

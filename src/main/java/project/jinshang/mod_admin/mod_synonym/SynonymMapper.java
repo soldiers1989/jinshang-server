@@ -3,6 +3,7 @@ package project.jinshang.mod_admin.mod_synonym;
 import mizuki.project.core.restserver.config.mybatis.provider.PGBaseSqlProvider;
 import mizuki.project.core.restserver.config.mybatis.typeHandler.array.StringArrayHandler;
 import org.apache.ibatis.annotations.*;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.util.List;
 
@@ -30,6 +31,8 @@ public interface SynonymMapper {
     })
     Synonym findById(int id);
 
+
+    //@Cacheable(value = "Synonym",key = "'searchForQuery:'+#p0")
     @Select("select * from synonym where to_tsvector(array_to_string(words, ' '))" +
             " @@ to_tsquery('${params}')")
     @Results({

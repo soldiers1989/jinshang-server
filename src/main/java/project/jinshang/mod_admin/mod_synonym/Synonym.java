@@ -3,11 +3,12 @@ package project.jinshang.mod_admin.mod_synonym;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.List;
 
 @Table(name = "synonym")
-public class Synonym {
+public class Synonym implements Serializable {
     @Id @GeneratedValue
     private int id;
     private List<String> words;

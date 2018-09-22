@@ -25,6 +25,9 @@ public class LimitTimeProdQuery {
     @ApiModelProperty(notes = "活动结束时间")
    private  Date endtime;
 
+    @ApiModelProperty(notes = "根据某些规则，不参加活动的活动id")
+    private String notInIds;
+
 
 
 
@@ -74,5 +77,13 @@ public class LimitTimeProdQuery {
 
     public void setEndtime(Date endtime) {
         this.endtime = endtime;
+    }
+
+    public String getNotInIds() {
+        return notInIds;
+    }
+
+    public void setNotInIds(String notInIds) {
+        this.notInIds = notInIds;
     }
 }

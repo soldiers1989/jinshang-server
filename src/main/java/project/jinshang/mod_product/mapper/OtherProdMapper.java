@@ -34,6 +34,14 @@ public interface OtherProdMapper {
     @SelectProvider(type = OtherProdProvider.class,method = "listOtherProd")
     List<OtherProdDetailViewDto> listOtherProd(@Param("queryDto")OtherProductQueryDto queryDto);
 
+    /**
+     * 非紧固件商品列表,商家中心商品管理专用
+     * @param queryDto
+     * @return
+     */
+    /*@SelectProvider(type = OtherProdProvider.class,method = "listOtherProductForSellerCenter")
+    List<OtherProdDetailViewDto> listOtherProductForSellerCenter(@Param("queryDto")OtherProductQueryDto queryDto);*/
+
 
     @SelectProvider(type = OtherProdProvider.class,method = "listOtherProdForSellerExcel")
     List<Map<String,Object>> listOtherProdForSellerExcel(@Param("queryDto")OtherProductQueryDto queryDto);
@@ -42,5 +50,7 @@ public interface OtherProdMapper {
     @SelectProvider(type = OtherProdProvider.class,method = "listOtherProdForAdminExcel")
     List<Map<String,Object>> listOtherProdForAdminExcel(@Param("queryDto")OtherProductQueryDto queryDto);
 
+    /*@SelectProvider(type = OtherProdProvider.class,method = "listOtherProdCount")
+    long getOtherProductInfoCount(@Param("queryDto")OtherProductQueryDto queryDto);*/
 
 }

@@ -11,6 +11,7 @@
     <result column="defaultcost" property="defaultcost" jdbcType="NUMERIC" />
     <result column="perkilogramadded" property="perkilogramadded" jdbcType="NUMERIC" />
     <result column="selectarea" property="selectarea" jdbcType="VARCHAR" />
+    <result column="defaultfreeprice" property="defaultfreeprice" jdbcType="NUMERIC" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -72,7 +73,7 @@
   </sql>
   <sql id="Base_Column_List" >
     id, temid, province, city, perkilogramcost, defaultfreight, defaultcost, perkilogramadded, 
-    selectarea
+    selectarea, defaultfreeprice
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_product.bean.AreaCostExample" >
     select
@@ -108,12 +109,12 @@
   <insert id="insert" parameterType="project.jinshang.mod_product.bean.AreaCost" >
     insert into areacost ( temid, province,
       city, perkilogramcost, defaultfreight, 
-      defaultcost, perkilogramadded, selectarea
-      )
+      defaultcost, perkilogramadded, selectarea, 
+      defaultfreeprice)
     values (#{temid,jdbcType=BIGINT}, #{province,jdbcType=VARCHAR},
       #{city,jdbcType=VARCHAR}, #{perkilogramcost,jdbcType=NUMERIC}, #{defaultfreight,jdbcType=NUMERIC}, 
-      #{defaultcost,jdbcType=NUMERIC}, #{perkilogramadded,jdbcType=NUMERIC}, #{selectarea,jdbcType=VARCHAR}
-      )
+      #{defaultcost,jdbcType=NUMERIC}, #{perkilogramadded,jdbcType=NUMERIC}, #{selectarea,jdbcType=VARCHAR}, 
+      #{defaultfreeprice,jdbcType=NUMERIC})
   </insert>
   <insert id="insertSelective" parameterType="project.jinshang.mod_product.bean.AreaCost" >
     insert into areacost
@@ -145,6 +146,9 @@
       <if test="selectarea != null" >
         selectarea,
       </if>
+      <if test="defaultfreeprice != null" >
+        defaultfreeprice,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="id != null" >
@@ -173,6 +177,9 @@
       </if>
       <if test="selectarea != null" >
         #{selectarea,jdbcType=VARCHAR},
+      </if>
+      <if test="defaultfreeprice != null" >
+        #{defaultfreeprice,jdbcType=NUMERIC},
       </if>
     </trim>
   </insert>
@@ -212,6 +219,9 @@
       <if test="record.selectarea != null" >
         selectarea = #{record.selectarea,jdbcType=VARCHAR},
       </if>
+      <if test="record.defaultfreeprice != null" >
+        defaultfreeprice = #{record.defaultfreeprice,jdbcType=NUMERIC},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -227,7 +237,8 @@
       defaultfreight = #{record.defaultfreight,jdbcType=NUMERIC},
       defaultcost = #{record.defaultcost,jdbcType=NUMERIC},
       perkilogramadded = #{record.perkilogramadded,jdbcType=NUMERIC},
-      selectarea = #{record.selectarea,jdbcType=VARCHAR}
+      selectarea = #{record.selectarea,jdbcType=VARCHAR},
+      defaultfreeprice = #{record.defaultfreeprice,jdbcType=NUMERIC}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -259,6 +270,9 @@
       <if test="selectarea != null" >
         selectarea = #{selectarea,jdbcType=VARCHAR},
       </if>
+      <if test="defaultfreeprice != null" >
+        defaultfreeprice = #{defaultfreeprice,jdbcType=NUMERIC},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -271,7 +285,8 @@
       defaultfreight = #{defaultfreight,jdbcType=NUMERIC},
       defaultcost = #{defaultcost,jdbcType=NUMERIC},
       perkilogramadded = #{perkilogramadded,jdbcType=NUMERIC},
-      selectarea = #{selectarea,jdbcType=VARCHAR}
+      selectarea = #{selectarea,jdbcType=VARCHAR},
+      defaultfreeprice = #{defaultfreeprice,jdbcType=NUMERIC}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

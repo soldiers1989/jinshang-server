@@ -25,6 +25,10 @@ public class MemberLabelProvider {
             sql.append(" and  ml.labelname like '%"+queryDto.getLabelname()+"%'");
         }
 
+        if(StringUtils.hasText(queryDto.getLabelname())){
+            sql.append(" and  ml.remarks like '%"+queryDto.getRemarks()+"%'");
+        }
+
         return  sql.toString();
     }
 

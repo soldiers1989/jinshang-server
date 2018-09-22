@@ -46,4 +46,15 @@ public class BillingRecordService {
         billingRecordMapper.updateAdminDecOrderProductnum(orderid,memberid, billcash);
     }
 
+    /**
+     * 根据订单id 和用户id 修改开票金额
+     * @param orderid
+     * @param memberid
+     * @param billcash
+     */
+    public  void  updateBillcashByMemberAndOrderid(String orderid,Long memberid,BigDecimal billcash){
+        billingRecordMapper.updateBillcashByMemberAndOrderid(orderid,memberid, billcash);
+    }
+
+
 }

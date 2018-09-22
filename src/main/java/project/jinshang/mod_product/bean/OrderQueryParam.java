@@ -39,10 +39,12 @@ public class OrderQueryParam {
     private Date endTime;
     @ApiModelProperty(notes = "订单状态")
     private Short orderState;
-
+    @ApiModelProperty(notes = "订单状态字符串")
+    private String orderStates;
+    @ApiModelProperty(notes = "支付宝交易号")
+    private String transactionid;
     @ApiModelProperty(notes = "评价状态")
     private Short evaState;
-
     @ApiModelProperty(notes = "退货状态")
     private Short backstate;
     @ApiModelProperty(notes = "规格")
@@ -72,9 +74,76 @@ public class OrderQueryParam {
     //介绍人
     @ApiModelProperty(notes = "介绍人")
     private String waysalesman;
+
+    @ApiModelProperty(notes = "收货人姓名")
+    private String shipto;
+
+    @ApiModelProperty(notes = "发货状态 全部订单为不传 1为待发货订单 3为已发货订单 10为部分发货订单 与orderstatus状态含义一样")
+    private Short sendstatus;
+
     private int pageNo;
 
     private int pageSize;
+
+    //添加卖家确认远期预售
+    @ApiModelProperty(notes = "卖家确认远期预售：0=卖家未确认该远期订单，1=卖家已确认接收该远期订单，2=卖家已确认不接收该远期订单")
+    private Short presellconfim;
+
+    //添加卖家预计备货完成时间-开始
+    @ApiModelProperty(notes = "卖家预计备货完成时间-开始")
+    private Date prestocktimeStart;
+
+    //添加卖家预计备货完成时间-结束
+    @ApiModelProperty(notes = "卖家预计备货完成时间-结束")
+    private Date prestocktimeEnd;
+
+    @ApiModelProperty(notes = "是否需要开票")
+    private Integer isbilling;
+    public Short getPresellconfim() {
+        return presellconfim;
+    }
+
+    public void setPresellconfim(Short presellconfim) {
+        this.presellconfim = presellconfim;
+    }
+
+    public Date getPrestocktimeStart() {
+        return prestocktimeStart;
+    }
+
+    public void setPrestocktimeStart(Date prestocktimeStart) {
+        this.prestocktimeStart = prestocktimeStart;
+    }
+
+    public Date getPrestocktimeEnd() {
+        return prestocktimeEnd;
+    }
+
+    public void setPrestocktimeEnd(Date prestocktimeEnd) {
+        this.prestocktimeEnd = prestocktimeEnd;
+    }
+
+    @ApiModelProperty(notes = "买家注册时间开始")
+    private Date registerTimeStart;
+
+    @ApiModelProperty(notes = "买家注册时间结束")
+    private Date registerTimeEnd;
+
+    public Date getRegisterTimeStart() {
+        return registerTimeStart;
+    }
+
+    public void setRegisterTimeStart(Date registerTimeStart) {
+        this.registerTimeStart = registerTimeStart;
+    }
+
+    public Date getRegisterTimeEnd() {
+        return registerTimeEnd;
+    }
+
+    public void setRegisterTimeEnd(Date registerTimeEnd) {
+        this.registerTimeEnd = registerTimeEnd;
+    }
 
     public String getWaysalesman() {
         return waysalesman;
@@ -299,5 +368,45 @@ public class OrderQueryParam {
 
     public void setClerkname(String clerkname) {
         this.clerkname = clerkname;
+    }
+
+    public String getShipto() {
+        return shipto;
+    }
+
+    public void setShipto(String shipto) {
+        this.shipto = shipto;
+    }
+
+    public Short getSendstatus() {
+        return sendstatus;
+    }
+
+    public void setSendstatus(Short sendstatus) {
+        this.sendstatus = sendstatus;
+    }
+
+    public String getOrderStates() {
+        return orderStates;
+    }
+
+    public void setOrderStates(String orderStates) {
+        this.orderStates = orderStates;
+    }
+
+    public String getTransactionid() {
+        return transactionid;
+    }
+
+    public void setTransactionid(String transactionid) {
+        this.transactionid = transactionid;
+    }
+
+    public Integer getIsbilling() {
+        return isbilling;
+    }
+
+    public void setIsbilling(Integer isbilling) {
+        this.isbilling = isbilling;
     }
 }

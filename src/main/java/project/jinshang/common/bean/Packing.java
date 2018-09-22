@@ -36,7 +36,11 @@ public class Packing {
     }
 
 
-
-
-
+    @Override
+    public String toString() {
+        return "Packing{" +
+                "unit='" + unit + '\'' +
+                ", num=" + num +
+                '}';
+    }
 }

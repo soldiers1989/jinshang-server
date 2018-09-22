@@ -1,5 +1,6 @@
 package project.jinshang.mod_pay.mod_alipay;
 
+import com.alipay.api.AlipayApiException;
 import com.alipay.api.AlipayClient;
 import com.alipay.api.DefaultAlipayClient;
 import com.alipay.api.internal.util.AlipaySignature;
@@ -19,6 +20,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import project.jinshang.common.constant.Quantity;
+import project.jinshang.common.exception.CashException;
+import project.jinshang.common.exception.MyException;
 import project.jinshang.common.utils.GenerateNo;
 import project.jinshang.mod_pay.bean.PayLogs;
 import project.jinshang.mod_pay.bean.Trade;
@@ -26,6 +29,8 @@ import project.jinshang.mod_pay.service.PayLogsService;
 import project.jinshang.mod_pay.service.TradeService;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.HashMap;
@@ -159,8 +164,8 @@ public class AlipayAction {
 
     @RequestMapping(value="/notify",method= {RequestMethod.POST, RequestMethod.GET})
     @ApiOperation(value = "")
-    public String notify2(HttpServletRequest request) {
-        try{
+    public String notify2(HttpServletRequest request, HttpServletResponse response) throws IOException, AlipayApiException, MyException, CashException {
+
             //获取支付宝POST过来反馈信息
             Map<String,String> params = new HashMap<String,String>();
             Map<String,String[]> requestParams = request.getParameterMap();
@@ -194,7 +199,14 @@ public class AlipayAction {
                 //支付金额
                 String total_amount = request.getParameter("total_amount");
                 if(project.jinshang.common.utils.StringUtils.hasText(total_amount)){
-                    PayLogs payLogs = new PayLogs();
+
+                    PayLogs payLogs =  payLogsService.getByOuttradeno(out_trade_no);
+                    if(payLogs != null){
+                        logger.error("支付宝重复推送支付成功数据 out_trade_no："+out_trade_no);
+                        return "success";
+                    }
+
+                    payLogs = new PayLogs();
                     payLogs.setTransactionid(trade_no);
                     payLogs.setOuttradeno(out_trade_no);
                     payLogs.setMoney(new BigDecimal(total_amount));
@@ -223,21 +235,22 @@ public class AlipayAction {
                         }
                     }
 
-                    if(res) logger.info("trade success :"+out_trade_no);
-                    // todo
-                    else return "fail";
+                    if(res) {
+                        logger.info("trade success :" + out_trade_no);
+                        // todo
+
+                    }else {
+                        throw new MyException("trade err:"+out_trade_no);
+                    }
                 }
                 return  "success";
-
             }else {//验证失败
                 //调试用，写文本函数记录程序运行情况是否正常
 //                String sWord = AlipaySignature.getSignCheckContentV1(params);
                 logger.error("验证失败");
+
                 return "fail";
             }
-        }catch (Exception e){
-            e.printStackTrace();
-            return "fail";
-        }
+
     }
 }

@@ -50,6 +50,8 @@
     <result column="appsecret" property="appsecret" jdbcType="VARCHAR" />
     <result column="appurl" property="appurl" jdbcType="VARCHAR" />
     <result column="disable" property="disable" jdbcType="BIT" />
+    <result column="isselflifting" property="isselflifting" jdbcType="BIT" />
+    <result column="freightmode" property="freightmode" jdbcType="SMALLINT" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -116,7 +118,8 @@
     bankbrachaccount, bankprovince, bankcity, bankcitysmall, bankorgnumpic, alipayname, 
     alipayno, wxname, wxno, taxregistrationno, taxregistrationcertificate, taxregistrationnopic, 
     createdate, updatedate, validate, shopname, businesscategory, shopgradeid, shopperiod, 
-    shopstate, isrecommend, deliverymode, smsnotify, appid, appsecret, appurl, disable
+    shopstate, isrecommend, deliverymode, smsnotify, appid, appsecret, appurl, disable, 
+    isselflifting, freightmode
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_company.bean.SellerCompanyInfoExample" >
     select
@@ -150,7 +153,7 @@
     </if>
   </delete>
   <insert id="insert" parameterType="project.jinshang.mod_company.bean.SellerCompanyInfo" >
-    insert into sellercompanyinfo ( memberid, companyname,
+    insert into sellercompanyinfo (id, memberid, companyname, 
       province, city, citysmall, 
       address, email, companytel, 
       linkman, linkmantel, employeenum, 
@@ -166,7 +169,8 @@
       shopgradeid, shopperiod, shopstate, 
       isrecommend, deliverymode, smsnotify, 
       appid, appsecret, appurl, 
-      disable)
+      disable, isselflifting, freightmode
+      )
     values (#{id,jdbcType=BIGINT}, #{memberid,jdbcType=BIGINT}, #{companyname,jdbcType=VARCHAR}, 
       #{province,jdbcType=VARCHAR}, #{city,jdbcType=VARCHAR}, #{citysmall,jdbcType=VARCHAR}, 
       #{address,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{companytel,jdbcType=VARCHAR}, 
@@ -183,7 +187,8 @@
       #{shopgradeid,jdbcType=INTEGER}, #{shopperiod,jdbcType=VARCHAR}, #{shopstate,jdbcType=SMALLINT}, 
       #{isrecommend,jdbcType=SMALLINT}, #{deliverymode,jdbcType=SMALLINT}, #{smsnotify,jdbcType=SMALLINT}, 
       #{appid,jdbcType=VARCHAR}, #{appsecret,jdbcType=VARCHAR}, #{appurl,jdbcType=VARCHAR}, 
-      #{disable,jdbcType=BIT})
+      #{disable,jdbcType=BIT}, #{isselflifting,jdbcType=BIT}, #{freightmode,jdbcType=SMALLINT}
+      )
   </insert>
   <insert id="insertSelective" parameterType="project.jinshang.mod_company.bean.SellerCompanyInfo" >
     insert into sellercompanyinfo
@@ -332,6 +337,12 @@
       <if test="disable != null" >
         disable,
       </if>
+      <if test="isselflifting != null" >
+        isselflifting,
+      </if>
+      <if test="freightmode != null" >
+        freightmode,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="id != null" >
@@ -477,6 +488,12 @@
       </if>
       <if test="disable != null" >
         #{disable,jdbcType=BIT},
+      </if>
+      <if test="isselflifting != null" >
+        #{isselflifting,jdbcType=BIT},
+      </if>
+      <if test="freightmode != null" >
+        #{freightmode,jdbcType=SMALLINT},
       </if>
     </trim>
   </insert>
@@ -633,6 +650,12 @@
       <if test="record.disable != null" >
         disable = #{record.disable,jdbcType=BIT},
       </if>
+      <if test="record.isselflifting != null" >
+        isselflifting = #{record.isselflifting,jdbcType=BIT},
+      </if>
+      <if test="record.freightmode != null" >
+        freightmode = #{record.freightmode,jdbcType=SMALLINT},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -687,7 +710,9 @@
       appid = #{record.appid,jdbcType=VARCHAR},
       appsecret = #{record.appsecret,jdbcType=VARCHAR},
       appurl = #{record.appurl,jdbcType=VARCHAR},
-      disable = #{record.disable,jdbcType=BIT}
+      disable = #{record.disable,jdbcType=BIT},
+      isselflifting = #{record.isselflifting,jdbcType=BIT},
+      freightmode = #{record.freightmode,jdbcType=SMALLINT}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -836,6 +861,12 @@
       <if test="disable != null" >
         disable = #{disable,jdbcType=BIT},
       </if>
+      <if test="isselflifting != null" >
+        isselflifting = #{isselflifting,jdbcType=BIT},
+      </if>
+      <if test="freightmode != null" >
+        freightmode = #{freightmode,jdbcType=SMALLINT},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -887,7 +918,9 @@
       appid = #{appid,jdbcType=VARCHAR},
       appsecret = #{appsecret,jdbcType=VARCHAR},
       appurl = #{appurl,jdbcType=VARCHAR},
-      disable = #{disable,jdbcType=BIT}
+      disable = #{disable,jdbcType=BIT},
+      isselflifting = #{isselflifting,jdbcType=BIT},
+      freightmode = #{freightmode,jdbcType=SMALLINT}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

@@ -25,6 +25,10 @@ public class AccountDetailQuery {
     @ApiModelProperty(notes = "状态")
     private Short state;
 
+    @ApiModelProperty(notes = "")
+    private String clerkname;
+
+
     public String getSettlement() {
         return settlement;
     }
@@ -71,5 +75,13 @@ public class AccountDetailQuery {
 
     public void setState(Short state) {
         this.state = state;
+    }
+
+    public String getClerkname() {
+        return clerkname;
+    }
+
+    public void setClerkname(String clerkname) {
+        this.clerkname = clerkname;
     }
 }

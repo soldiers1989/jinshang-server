@@ -18,10 +18,15 @@ public class AdminAuthorityConst {
     public   final  static String MATERIALMANAGEMENT="MaterialManagement";
 //    品名管理
     public   final  static String IDENTITYMANAGEMENT="IdentityManagement";
+    //品名属性管理
+    public  final static String PRODUCTATTRIBUTE="ProductAttribute";
 //    紧固件产品库
     public   final  static String PRODUCTLIBRARY="Productlibrary";
 //    公共数据管理
     public   final  static String PUBLICDATAMANAGEMENT="PublicDataManagement";
+
+    //搜索属性排序管理
+    public  final  static  String SEARCHSORTMANAGEMENT = "searchSortManagement";
 
 
 //    计费分类管理
@@ -185,8 +190,63 @@ public class AdminAuthorityConst {
     public  final  static  String CREDITCHECK="creditcheck";
 
 
+    //优惠卷分发
+    public  final  static  String   COUPONDISTRIBUTION = "couponDistribution";
 
-    ///
-    ///
+    //三级分销邀请人
+    public  final  static  String   THIRDPERSSION = "thirdPermission";
 
+
+
+
+    //对账单
+    public  final  static  String  CASHSTATEMENT="CashStatement";
+    //开票对账单
+    public  final  static  String  CREDITCASHSTATEMENT="CreditCashStatement";
+
+    //会员管理导出Excel
+    public  final  static  String  MEMBERMANAGEMENTEXCEL="MemberManagementExcel";
+    //商家管理导出Excel
+    public  final  static  String  BUSINESSMANAGEMENTEXCEL="BusinessManagementExcel";
+    //订单管理导出Excel
+    public  final  static  String  ORDERMANAGEMENTEXCEL="orderManagementExcel";
+    //代客户下单
+    public  final  static  String  VALETORDER = "valetOrder";
+    //注册来源
+    public final static  String REGISTRATIONMODEL = "RegistrationModel";
+
+    //商家合单合集:
+    public  final  static  String  ORDERCOLLECTIONS="orderCollections";
+
+    //回访记录/回访记录汇总
+    public final static  String RETURNVISIT = "Returnvisit";
+    //优惠券方案管理
+    public final static  String  COUPONMANAGE = "couponManage";
+    //优惠券管理
+    public final static  String COUPONLIST = "couponList";
+    //优惠券礼包管理
+    public final static  String COUPONPACKAGEMANAGE = "couponPackageManage";
+    //优惠券礼包领用记录
+    public final static  String COUPONRECEIVE = "couponReceive";
+    //三级分销佣金设置
+    public final static  String THIRDDISTRIBUTIONSETTINGS = "thirdDistributionSettings";
+    //订单佣金记录
+    public final static  String ORDERCOMMISSIONLOGS = "orderCommissionLogs";
+    //订单佣金汇总
+    public final static  String COMMISSIONSUMMATY = "commissionSummary";
+    //返佣比例设置
+    public final static  String CATEGORIESDISTRIBUTION = "categoriesDistribution";
+    //运营会员管理
+    public final static  String OPERATINGMEMBER = "operatingMember";
+    //运营会员管理导出excel
+    public final static  String OPERATINGMEMBEREXCEL = "operatingMemberExcel";
+    //excel导入回访记录
+    public final static String RETURNVISITEXCEL = "ReturnvisitExcel";
+    //优惠券配置审核/优惠券分发审核/优惠券礼包管理审核
+    public final static String COUPONREVIEW = "couponReview";
+    //app版本
+    public final static  String APPVERSIONCONTROL = "AppVersionControl";
+
+    //退货退款原因管理
+    public final static  String RETURNREASONS = "ReturnReasons";
 }

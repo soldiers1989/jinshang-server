@@ -3,16 +3,13 @@ package project.jinshang.mod_product;
 import com.github.pagehelper.PageInfo;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.TypeAdapterFactory;
 import com.google.gson.reflect.TypeToken;
 import io.swagger.annotations.*;
 import mizuki.project.core.restserver.config.BasicRet;
-import org.apache.commons.beanutils.converters.StringConverter;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -22,7 +19,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
-import org.w3c.dom.Attr;
 import project.jinshang.common.bean.MemberLogOperator;
 import project.jinshang.common.bean.Packing;
 import project.jinshang.common.bean.PageRet;
@@ -142,6 +138,9 @@ public class ProductSellerAction {
     private SellerCompanyCacheService sellerCompanyCacheService;
 
     @Autowired
+    private ShippingTemplateGroupService shippingTemplateGroupService;
+
+    @Autowired
     private  Gson gson;
 
 
@@ -259,7 +258,7 @@ public class ProductSellerAction {
             @ApiImplicitParam(value = "商品副标题", name = "subtitle", required = false, dataType = "string", paramType = "query"),
             @ApiImplicitParam(value = "商品价格", name = "prodprice", required = true, dataType = "float", paramType = "query"),
             @ApiImplicitParam(value = "起订量", name = "startnum", required = true, dataType = "double", paramType = "query"),
-            @ApiImplicitParam(value = "加购量", name = "minplus", required = false, dataType = "double", defaultValue = "0", paramType = "query"),
+            @ApiImplicitParam(value = "加购量", name = "minplus", required = false, dataType = "double",  paramType = "query"),
             @ApiImplicitParam(value = "是否开启阶梯价格", name = "stepwiseprice", required = true, dataType = "boolean", defaultValue = "false", paramType = "query"),
             @ApiImplicitParam(value = "3天发货价格", name = "threeprice", required = false, dataType = "float", paramType = "query"),
             @ApiImplicitParam(value = "90天发货价格", name = "ninetyprice", required = false, dataType = "float", paramType = "query"),
@@ -270,13 +269,14 @@ public class ProductSellerAction {
             @ApiImplicitParam(value = "成本价", name = "costprice", required = false, dataType = "float", paramType = "query"),
             @ApiImplicitParam(value = "库存", name = "pdstorenum", required = true, dataType = "float", defaultValue = "1", paramType = "query"),
             @ApiImplicitParam(value = "仓库id", name = "storeid", required = true, dataType = "int", paramType = "query"),
-            @ApiImplicitParam(value = "运费方式", name = "freightmode", required = true, dataType = "int", paramType = "query"),
+            @ApiImplicitParam(value = "运费方式", name = "shippingtemplatesgroup", required = true, dataType = "int", paramType = "query"),
             @ApiImplicitParam(value = "是否推荐", name = "recommended", required = false, dataType = "boolean", paramType = "query"),
             @ApiImplicitParam(value = "seo标题", name = "seotitle", required = false, dataType = "string", paramType = "query"),
             @ApiImplicitParam(value = "seo关键字", name = "seokey", required = false, dataType = "string", paramType = "query"),
             @ApiImplicitParam(value = "seo描述", name = "seovalue", required = false, dataType = "string", paramType = "query"),
             @ApiImplicitParam(value = "商品状态 0=放入仓库 1=待审核(立即发布) 2=审核通过 3=未通过 4=已上架(上架) 5=下架 6=删除 7-违规下架", name = "pdstate", required = true, dataType = "int", paramType = "query", defaultValue = "0"),
             @ApiImplicitParam(value = "商品编码", name = "pdno", required = true, dataType = "string", paramType = "query"),
+            @ApiImplicitParam(value = "折扣比例", name = "discountratio", required = true, dataType = "float", paramType = "query"),
     })
     @PreAuthorize("hasAuthority('" + SellerAuthorityConst.POSTGOODS + "') || hasAuthority('" + SellerAuthorityConst.ALL + "')")
     public AddProdRet updateFastenerProduct(
@@ -295,22 +295,27 @@ public class ProductSellerAction {
             @RequestParam(required = false, defaultValue = "0") BigDecimal costprice,
             @RequestParam(required = true) BigDecimal pdstorenum,
             @RequestParam(required = true) long storeid,
-            @RequestParam(required = true) long freightmode,
+           // @RequestParam(required = true) long freightmode,
+            @RequestParam(required = true) long shippingtemplatesgroup,
             @RequestParam(required = false) String[] tag,
             @RequestParam(required = true, defaultValue = "false") boolean recommended,
             @RequestParam(required = false, defaultValue = "") String seotitle,
             @RequestParam(required = false, defaultValue = "") String seokey,
             @RequestParam(required = false, defaultValue = "") String seovalue,
             @RequestParam(required = true, defaultValue = "0") short pdstate,
-            @RequestParam(required = true) String pdno,@RequestParam(required = false,defaultValue = "0") BigDecimal minplus,
+            @RequestParam(required = true) String pdno,
+            @RequestParam(required = false) BigDecimal minplus,
+            @RequestParam(required = true) BigDecimal discountratio,
             Model model, HttpServletRequest request
     ) {
         AddProdRet addProdRet = new AddProdRet();
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
 
         ProductInfo productInfo = productInfoService.getById(id);
+        Products products = productsService.getById(productInfo.getProductid());
+        //Products products = productsService.getById(productsid);
 
-        String mes = this.checkFastenerProductNum(productInfo.getPackagetype(),startnum,minplus);
+        String mes = this.checkFastenerProductNum(products.getPackagetype(),startnum,minplus);
         if(StringUtils.hasText(mes)){
             addProdRet.setResult(BasicRet.ERR);
             addProdRet.setMessage(mes);
@@ -346,7 +351,6 @@ public class ProductSellerAction {
             return addProdRet;
         }
 
-        Products products = productsService.getById(productsid);
 
         if (products == null) {
             errorMes.addError("productsid", "商品库不存在");
@@ -368,6 +372,20 @@ public class ProductSellerAction {
             addProdRet.setResult(BasicRet.ERR);
             return addProdRet;
         }
+
+
+        if(shippingtemplatesgroup != -1){
+            ShippingTemplateGroup shippingTemplateGroup = shippingTemplateGroupService.getShippingTemplateGroup(shippingtemplatesgroup);
+            if(shippingTemplateGroup == null || !shippingTemplateGroup.getMemberid().equals( member.getId())){
+                addProdRet.setMessage("运费合集不存在");
+                addProdRet.setResult(BasicRet.ERR);
+                return  addProdRet;
+            }
+            productInfo.setShippingtemplatesgroup(shippingTemplateGroup.getId());
+        }else{
+            productInfo.setShippingtemplatesgroup((long)-1);
+        }
+
 
         productInfo.setProductid(productsid);
         productInfo.setMemberid(member.getId());
@@ -442,6 +460,7 @@ public class ProductSellerAction {
         productStore.setAftersale(""); //售后包装
         productStore.setPdno(pdno);
         productStore.setMinplus(minplus);
+        productStore.setDiscountratio(discountratio);
 
         Store store = storeService.getByIdAndMemberId(storeid, member.getId());
         productStore.setStoreid(storeid);
@@ -450,14 +469,14 @@ public class ProductSellerAction {
             productStore.setLocation(store.getAddress());
         }
 
-        if (freightmode > 0) {
-            ShippingTemplates shippingTemplates = shippingTemplatesService.getById(freightmode);
-            if (shippingTemplates != null) {
-                productStore.setFreightmode(freightmode);
-            }
-        } else {
-            productStore.setFreightmode((long) -1);
-        }
+//        if (freightmode > 0) {
+//            ShippingTemplates shippingTemplates = shippingTemplatesService.getById(freightmode);
+//            if (shippingTemplates != null) {
+//                productStore.setFreightmode(freightmode);
+//            }
+//        } else {
+//            productStore.setFreightmode((long) -1);
+//        }
 
         errorMes = productInfoService.checkProductInfo(productInfo, productStore);
 
@@ -560,10 +579,10 @@ public class ProductSellerAction {
         if(minplus.compareTo(Quantity.BIG_DECIMAL_0)>0) {
             BigDecimal a = Quantity.BIG_DECIMAL_0;
             try {
-               a = startnum.divide(minplus);
-               if(new BigDecimal(a.intValue()).compareTo(a) != 0){
-                   return "起订量必须是加购量的倍数";
-               }
+                a = startnum.divide(minplus);
+                if(new BigDecimal(a.intValue()).compareTo(a) != 0){
+                    return "起订量必须是加购量的倍数";
+                }
             } catch (Exception e) {
                 return "起订量必须是加购量的倍数";
             }
@@ -593,13 +612,15 @@ public class ProductSellerAction {
             @ApiImplicitParam(value = "库存", name = "pdstorenum", required = true, dataType = "float", defaultValue = "1", paramType = "query"),
             @ApiImplicitParam(value = "加购量", name = "minplus", required = false, dataType = "double", defaultValue = "0", paramType = "query"),
             @ApiImplicitParam(value = "仓库id", name = "storeid", required = true, dataType = "int", paramType = "query"),
-            @ApiImplicitParam(value = "运费方式", name = "freightmode", required = true, dataType = "int", paramType = "query"),
+            //@ApiImplicitParam(value = "运费方式", name = "freightmode", required = true, dataType = "int", paramType = "query"),
+            @ApiImplicitParam(value = "运费方式", name = "shippingtemplatesgroup", required = true, dataType = "int", paramType = "query"),
             @ApiImplicitParam(value = "是否推荐", name = "recommended", required = false, dataType = "boolean", paramType = "query"),
             @ApiImplicitParam(value = "seo标题", name = "seotitle", required = false, dataType = "string", paramType = "query"),
             @ApiImplicitParam(value = "seo关键字", name = "seokey", required = false, dataType = "string", paramType = "query"),
             @ApiImplicitParam(value = "seo描述", name = "seovalue", required = false, dataType = "string", paramType = "query"),
             @ApiImplicitParam(value = "商品编码", name = "pdno", required = true, dataType = "string", paramType = "query"),
             @ApiImplicitParam(value = "商品状态 0=放入仓库 1=待审核(立即发布) 2=审核通过 3=未通过 4=已上架(上架) 5=下架 6=删除 7-违规下架", name = "pdstate", required = true, dataType = "int", paramType = "query", defaultValue = "0"),
+            @ApiImplicitParam(value = "折扣比例", name = "discountratio", required = true, dataType = "float", paramType = "query"),
     })
     @PreAuthorize("hasAuthority('" + SellerAuthorityConst.POSTGOODS + "') || hasAuthority('" + SellerAuthorityConst.ALL + "') ")
     public AddProdRet addFastenerProduct(
@@ -617,7 +638,8 @@ public class ProductSellerAction {
             @RequestParam(required = false, defaultValue = "0") BigDecimal costprice,
             @RequestParam(required = true) BigDecimal pdstorenum,
             @RequestParam(required = true) long storeid,
-            @RequestParam(required = true) long freightmode,
+            //@RequestParam(required = true) long freightmode,
+            @RequestParam(required = true) long shippingtemplatesgroup,
             @RequestParam(required = false) String[] tag,
             @RequestParam(required = true, defaultValue = "false") boolean recommended,
             @RequestParam(required = false, defaultValue = "") String seotitle,
@@ -626,6 +648,7 @@ public class ProductSellerAction {
             @RequestParam(required = true, defaultValue = "0") short pdstate,
             @RequestParam(required = true) String pdno,
             @RequestParam(required = false) BigDecimal minplus,
+            @RequestParam(required = true) BigDecimal discountratio,
             Model model, HttpServletRequest request
     ) {
         AddProdRet addProdRet = new AddProdRet();
@@ -722,6 +745,7 @@ public class ProductSellerAction {
         productStore.setThirtyprice(thirtyprice);
         productStore.setSixtyprice(sixtyprice);
         productStore.setMinplus(minplus);
+        productStore.setDiscountratio(discountratio);
 
         BigDecimal zeroBigDecimal = new BigDecimal(0);
         if (prodprice.compareTo(zeroBigDecimal) == 0) productStore.setProdprice(null);
@@ -753,14 +777,27 @@ public class ProductSellerAction {
         //商品编码
         productStore.setPdno(pdno);
 
-        if (freightmode != -1) {
-            ShippingTemplates shippingTemplates = shippingTemplatesService.getById(freightmode);
-            if (shippingTemplates != null) {
-                productStore.setFreightmode(freightmode);
+//        if (freightmode != -1) {
+//            ShippingTemplates shippingTemplates = shippingTemplatesService.getById(freightmode);
+//            if (shippingTemplates != null) {
+//                productStore.setFreightmode(freightmode);
+//            }
+//        } else {
+//            productStore.setFreightmode((long) -1);
+//        }
+
+        if(shippingtemplatesgroup != -1){
+            ShippingTemplateGroup shippingTemplateGroup = shippingTemplateGroupService.getShippingTemplateGroup(shippingtemplatesgroup);
+            if(shippingTemplateGroup == null || !shippingTemplateGroup.getMemberid().equals( member.getId())){
+                addProdRet.setMessage("运费合计不存在");
+                addProdRet.setResult(BasicRet.ERR);
+                return  addProdRet;
             }
-        } else {
-            productStore.setFreightmode((long) -1);
+            productInfo.setShippingtemplatesgroup(shippingTemplateGroup.getId());
+        }else{
+            productInfo.setShippingtemplatesgroup((long)-1);
         }
+
 
         //判断商品发布状态
         if (pdstate != 0 && pdstate != 1) {
@@ -854,7 +891,7 @@ public class ProductSellerAction {
         List<ProductInfo> infoList = new ArrayList<>();
         try {
             file.transferTo(newFile);
-             List<ProductImportModel> list = productBatchImport.excelToProductinfo(newFile.getAbsolutePath());
+            List<ProductImportModel> list = productBatchImport.excelToProductinfo(newFile.getAbsolutePath());
 
             if(list != null){
                 for(ProductImportModel importModel : list){
@@ -880,28 +917,39 @@ public class ProductSellerAction {
 
                     ProductStore dbStore = productStoreService.getByStoreidAndPdNo(member.getId(), store.getId(), importModel.getGoodsNum());
                     if (dbStore != null) {
-                        return new BasicRet(BasicRet.ERR,"编号为"+importModel.getPdno()+"的商品已经在"+store.getName()+"发布过了");
+                        return new BasicRet(BasicRet.ERR,"货号为"+importModel.getGoodsNum()+"的商品已经在"+store.getName()+"发布过了");
                     }
 
 
-                   ShippingTemplates shippingTemplates = null;
-                   if("包邮".equals(importModel.getDeliveryType())){
-                       shippingTemplates =  new ShippingTemplates();
-                       shippingTemplates.setId((long)-1);
-                   }else {
-                       shippingTemplates = shippingTemplatesService.getByNameAndMemberid(importModel.getDeliveryType(), member.getId());
-                   }
+//                    ShippingTemplates shippingTemplates = null;
+//                    if("包邮".equals(importModel.getDeliveryType())){
+//                        shippingTemplates =  new ShippingTemplates();
+//                        shippingTemplates.setId((long)-1);
+//                    }else {
+//                        shippingTemplates = shippingTemplatesService.getByNameAndMemberid(importModel.getDeliveryType(), member.getId());
+//                    }
+//
+//                    if(shippingTemplates == null){
+//                        return  new BasicRet(BasicRet.ERR,"名称为"+importModel.getDeliveryType()+"的运费方式不存在");
+//                    }
 
-                   if(shippingTemplates == null){
-                       return  new BasicRet(BasicRet.ERR,"名称为"+importModel.getDeliveryType()+"的运费方式不存在");
-                   }
+                    if("包邮".equals(importModel.getDeliveryType())){
+                        productInfo.setShippingtemplatesgroup((long)-1);
+                    }else{
+                        Long groupId = shippingTemplateGroupService.getGroupIdByMemberidAndName(member.getId(),importModel.getDeliveryType());
+                        if(groupId == null || groupId <=0){
+                            return  new BasicRet(BasicRet.ERR,"名称为"+importModel.getDeliveryType()+"的运费集合不存在");
+                        }
+                        productInfo.setShippingtemplatesgroup(groupId);
+                    }
+
 
 
                     List<StepWisePrice> stepWisePrices =  new ArrayList<>();
                     boolean  stepwiseprice = false;
                     if(StringUtils.hasText(importModel.getInterval1()) && StringUtils.hasText(importModel.getInterval2())
                             && StringUtils.hasText(importModel.getInterval3()) && StringUtils.hasText(importModel.getSale1()) &&
-                             StringUtils.hasText(importModel.getSale2()) && StringUtils.hasText(importModel.getSale3())){
+                            StringUtils.hasText(importModel.getSale2()) && StringUtils.hasText(importModel.getSale3())){
                         stepwiseprice =  true;
 
                         StepWisePrice step1 = createStepWisePrice(importModel.getInterval1(),importModel.getSale1());
@@ -987,7 +1035,7 @@ public class ProductSellerAction {
 
 
                     productStore.setIntervalprice(gson.toJson(stepWisePrices));
-                    productStore.setFreightmode(shippingTemplates.getId());
+                    //productStore.setFreightmode(shippingTemplates.getId());
                     productStore.setLocation(store.getAddress());
                     //商品货号
                     productStore.setPdno(importModel.getGoodsNum());
@@ -1049,7 +1097,7 @@ public class ProductSellerAction {
 
             }
         } catch (Exception e) {
-             throw  e;
+            throw  e;
         } finally {
             newFile.delete();
         }
@@ -1177,15 +1225,15 @@ public class ProductSellerAction {
         }
         productInfo.setPrices(list1);
 
-        ShippingTemplates shippingTemplates = null;
-
-        if (productInfo.getProductStore().getFreightmode() > 0) {
-            shippingTemplates = shippingTemplatesService.getFullTemplatesById(productInfo.getProductStore().getFreightmode());
-        }
+//        ShippingTemplates shippingTemplates = null;
+//
+//        if (productInfo.getProductStore().getFreightmode() > 0) {
+//            shippingTemplates = shippingTemplatesService.getFullTemplatesById(productInfo.getProductStore().getFreightmode());
+//        }
 
 
         productRet.data.productInfo = productInfo;
-        productRet.data.shippingTemplates = shippingTemplates;
+//        productRet.data.shippingTemplates = shippingTemplates;
 
         productRet.setMessage("查询成功");
         productRet.setResult(BasicRet.SUCCESS);
@@ -1251,7 +1299,7 @@ public class ProductSellerAction {
             basicRet.setMessage("要修改产品不属于你");
             return basicRet;
         }
-
+        boolean addIndex = false;
         boolean canUpdate = false;
         if (pdstate == 0 && (productInfo.getPdstate() == Quantity.STATE_1 || productInfo.getPdstate() == Quantity.STATE_5 || productInfo.getPdstate() == Quantity.STATE_7)) {
             canUpdate = true;
@@ -1340,7 +1388,7 @@ public class ProductSellerAction {
 
 
             //  加入搜索索引
-            productSearchService.saveIndex(productInfo);
+           // productSearchService.saveIndex(productInfo);
 
             info.setUptime(new Date());
 
@@ -1398,7 +1446,7 @@ public class ProductSellerAction {
                 pdbailLog.setType((short) 1);
                 pdbailLogService.add(pdbailLog);
             }
-            productSearchService.delIndex(productInfo.getId());
+            //productSearchService.delIndex(productInfo.getId());
             info.setDowntime(new Date());
         }
 
@@ -1413,7 +1461,7 @@ public class ProductSellerAction {
             info.setPdstate(pdstate);
             productInfoService.updateByPrimaryKeySelective(info);
 
-
+            productSearchService.saveIndex(info);
             //保存日志
             //0=放入仓库 1=待审核(立即发布) 2=审核通过 3=未通过 4=已上架(上架) 5=下架 6=删除 7-违规下架
             Map pdstatemap = new HashMap();
@@ -1473,6 +1521,8 @@ public class ProductSellerAction {
             updatInfo.setId(info.getId());
             updatInfo.setPdstate(Quantity.STATE_6);
             productInfoService.updateByPrimaryKeySelective(updatInfo);
+
+            productSearchService.delIndex(info.getId());
         }
 
 
@@ -1792,14 +1842,13 @@ public class ProductSellerAction {
             List<ProductAttr> attrList = productAttrService.getByProductid(info.getId());
             info.setAttrList(attrList);
 
-            //  加入搜索索引
-            productSearchService.saveIndex(info);
-
             ProductInfo updatInfo = new ProductInfo();
             updatInfo.setId(info.getId());
             updatInfo.setPdstate(Quantity.STATE_4);
             updatInfo.setUptime(new Date());
             productInfoService.updateByPrimaryKeySelective(updatInfo);
+            //  加入搜索索引
+            productSearchService.saveIndex(info);
         }
 
         //保存日志
@@ -1826,7 +1875,7 @@ public class ProductSellerAction {
             @ApiImplicitParam(value = "成本价", name = "costprice", required = false, dataType = "float", paramType = "query"),
 //            @ApiImplicitParam(value = "重量", name = "weight", required = true, dataType = "float", paramType = "query"),
             @ApiImplicitParam(value = "仓库id", name = "storeid", required = true, dataType = "int", paramType = "query"),
-            @ApiImplicitParam(value = "运费方式,包邮-1", name = "freightmode", required = true, dataType = "int", paramType = "query"),
+            @ApiImplicitParam(value = "运费方式,包邮-1", name = "shippingtemplatesgroup", required = true, dataType = "int", paramType = "query"),
             @ApiImplicitParam(value = "是否推荐", name = "recommended", required = false, dataType = "boolean", paramType = "query"),
             @ApiImplicitParam(value = "seo标题", name = "seotitle", required = false, dataType = "string", paramType = "query"),
             @ApiImplicitParam(value = "seo关键字", name = "seokey", required = false, dataType = "string", paramType = "query"),
@@ -1850,7 +1899,7 @@ public class ProductSellerAction {
                                     @RequestParam(required = false) BigDecimal costprice,
                                     //@RequestParam(required = true) BigDecimal weight,
                                     @RequestParam(required = true) long storeid,
-                                    @RequestParam(required = true) long freightmode,
+                                    @RequestParam(required = true) long shippingtemplatesgroup,
                                     @RequestParam(required = false) boolean recommended,
                                     @RequestParam(required = false, defaultValue = "") String seotitle,
                                     @RequestParam(required = false, defaultValue = "") String seokey,
@@ -1868,6 +1917,19 @@ public class ProductSellerAction {
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
 
         ProductInfo productInfo = new ProductInfo();
+
+
+        if(shippingtemplatesgroup != -1){
+            ShippingTemplateGroup shippingTemplateGroup = shippingTemplateGroupService.getShippingTemplateGroup(shippingtemplatesgroup);
+            if(shippingTemplateGroup == null || !shippingTemplateGroup.getMemberid() .equals(member.getId())){
+                basicRet.setMessage("运费合计不存在");
+                basicRet.setResult(BasicRet.ERR);
+                return  basicRet;
+            }
+            productInfo.setShippingtemplatesgroup(shippingTemplateGroup.getId());
+        }else{
+            productInfo.setShippingtemplatesgroup((long)-1);
+        }
 
 
         if (pdstate != Quantity.STATE_0 && pdstate != Quantity.STATE_1) {
@@ -2051,7 +2113,7 @@ public class ProductSellerAction {
             productStore.setPdstorenum(otherProductInfo.getPdstorenum());
             productStore.setStoreunit(unit);
             productStore.setLocation(store.getAddress());
-            productStore.setFreightmode(freightmode);
+           // productStore.setFreightmode(freightmode);
             productStore.setStorename(store.getName());
             productStore.setStoreid(storeid);
             productStore.setPdno(otherProductInfo.getPdno());
@@ -2201,6 +2263,83 @@ public class ProductSellerAction {
             for (int i = 0; i <str.length; i++) {
                 intTemp[i] = Integer.parseInt(str[i]);
             }*/
+            try {
+                List<Integer> PdidList = Arrays.asList(queryDto.getPdids().split(",")).stream().map(s -> Integer.parseInt(s.trim())).collect(Collectors.toList());
+                queryDto.setPdid(PdidList);
+                String pdidStr = org.apache.commons.lang3.StringUtils.join(PdidList, ",");
+                queryDto.setPdids(pdidStr);
+            }catch (NumberFormatException e){
+                pageRet.setResult(BasicRet.ERR);
+                pageRet.setMessage("输入商品id格式错误，多个商品id请用一个英文逗号隔开");
+                return pageRet;
+            }
+        }
+
+        PageInfo pageInfo = otherProdService.listOtherProd(queryDto, pageNo, pageSize);
+
+        pageRet.data.setPageInfo(pageInfo);
+        pageRet.setResult(BasicRet.SUCCESS);
+
+        return pageRet;
+    }
+
+    @RequestMapping(value = "/listOtherProductForSellerCenter", method = RequestMethod.POST)
+    @ApiOperation("非紧固件商品分页列表查询,商家中心商品管理专用")
+    @ApiImplicitParams({
+            @ApiImplicitParam(value = "第几页", name = "pageNo", paramType = "query", dataType = "int", required = true, defaultValue = "1"),
+            @ApiImplicitParam(value = "每页显示的条数", name = "pageSize", paramType = "query", dataType = "int", required = true, defaultValue = "20"),
+            @ApiImplicitParam(value = "商品名", name = "productname", paramType = "query", dataType = "string", required = false),
+            @ApiImplicitParam(value = "品牌", name = "brand", paramType = "query", dataType = "string", required = false),
+            @ApiImplicitParam(value = "分类id", name = "levelid", paramType = "query", dataType = "int", required = false, defaultValue = "0"),
+            @ApiImplicitParam(value = "商品状态 0=放入仓库 1=待审核(立即发布) 2=审核通过 3=未通过 4=已上架(上架) 5=下架 6=删除 7-违规下架", name = "pdstate", paramType = "query", dataType = "int", required = false, defaultValue = "-1"),
+            @ApiImplicitParam(value = "卖家id", name = "memberid", paramType = "query", dataType = "int", required = false, defaultValue = "0"),
+            @ApiImplicitParam(value = "用户名", name = "username", paramType = "query", dataType = "string", required = false, defaultValue = ""),
+            @ApiImplicitParam(value = "商品id，多个商品id用英文逗号隔开", name = "pdids", paramType = "query", dataType = "String", required = false),
+            @ApiImplicitParam(value = "商品编号", name = "pdno", paramType = "query", dataType = "int", required = false),
+            @ApiImplicitParam(value = "下架时间", name = "downtimeStart", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "下架时间", name = "downtimeEnd", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "最后修改价格时间", name = "updatetimeStart", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "最后修改价格时间", name = "updatetimeEnd", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "上架时间", name = "uptimeStart", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "上架时间", name = "uptimeEnd", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "发布时间区间", name = "createStart", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "发布时间区间", name = "createEnd", paramType = "query", dataType = "date", required = false),
+    })
+    public PageRet listOtherProductForSellerCenter(OtherProductQueryDto queryDto, int pageNo, int pageSize, Model model) {
+        PageRet pageRet = new PageRet();
+
+        Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
+        queryDto.setMemberid(member.getId());
+        if (queryDto.getLevelid() != null && queryDto.getLevelid() > 0) {
+            Categories productCategory = categoriesService.getCategoryLevel(queryDto.getLevelid());
+            if (productCategory != null) {
+                if (productCategory.getLevel() == 1) {
+                    queryDto.setLevel1id(queryDto.getLevelid());
+                } else if (productCategory.getLevel() == 2) {
+                    queryDto.setLevel2id(queryDto.getLevelid());
+                } else if (productCategory.getLevel() == 3) {
+                    queryDto.setLevel3id(queryDto.getLevelid());
+                }
+            }
+        }
+
+        if (queryDto.getUptimeEnd() != null) {
+            queryDto.setUptimeEnd(DateUtils.addDays(queryDto.getUptimeEnd(), 1));
+        }
+
+        if (queryDto.getCreateEnd() != null) {
+            queryDto.setCreateEnd(DateUtils.addDays(queryDto.getCreateEnd(), 1));
+        }
+
+        if (queryDto.getDowntimeEnd() != null) {
+            queryDto.setDowntimeEnd(DateUtils.addDays(queryDto.getDowntimeEnd(), 1));
+        }
+
+        if (queryDto.getUpdatetimeEnd() != null) {
+            queryDto.setUpdatetimeEnd(DateUtils.addDays(queryDto.getUpdatetimeEnd(), 1));
+        }
+
+        if(queryDto.getPdids() != null && queryDto.getPdids()!="") {
             try {
                 List<Integer> PdidList = Arrays.asList(queryDto.getPdids().split(",")).stream().map(s -> Integer.parseInt(s.trim())).collect(Collectors.toList());
                 queryDto.setPdid(PdidList);
@@ -2372,7 +2511,7 @@ public class ProductSellerAction {
             pdStore.setProductAttrList(attrList);
 
 
-            viewDto.setFreightmode(pdStore.getFreightmode());
+            //viewDto.setFreightmode(pdStore.getFreightmode());
             viewDto.setCostprice(pdStore.getCostprice());
             viewDto.setStepwiseprice(pdStore.isStepwiseprice());
 
@@ -2385,11 +2524,11 @@ public class ProductSellerAction {
         }
 
         //运费模版
-        ShippingTemplates shippingTemplates = null;
+    //    ShippingTemplates shippingTemplates = null;
 
-        if (viewDto.getFreightmode() > 0) {
-            shippingTemplates = shippingTemplatesService.getFullTemplatesById(viewDto.getFreightmode());
-        }
+//        if (viewDto.getFreightmode() > 0) {
+//            shippingTemplates = shippingTemplatesService.getFullTemplatesById(viewDto.getFreightmode());
+//        }
 
 //        List<Attributetbl> attributetblList =  attributetblService.getAttributeWithValue(productInfo.getProductnameid());
 
@@ -2397,7 +2536,7 @@ public class ProductSellerAction {
         detailRet.prodStoreList = prodStoreViewList;
 //        detailRet.attributetblList = attributetblList;
         detailRet.intervalprice = intervalprice;
-        detailRet.shippingTemplates = shippingTemplates;
+        //detailRet.shippingTemplates = shippingTemplates;
 
         detailRet.setResult(BasicRet.SUCCESS);
         return detailRet;
@@ -2473,7 +2612,7 @@ public class ProductSellerAction {
             @ApiImplicitParam(value = "市场价", name = "marketprice", required = true, dataType = "float", paramType = "query"),
             @ApiImplicitParam(value = "重量", name = "weight", required = true, dataType = "float", paramType = "query"),
             @ApiImplicitParam(value = "仓库id", name = "storeid", required = true, dataType = "int", paramType = "query"),
-            @ApiImplicitParam(value = "运费方式,包邮-1", name = "freightmode", required = true, dataType = "int", paramType = "query"),
+            @ApiImplicitParam(value = "运费方式,包邮-1", name = "shippingtemplatesgroup", required = true, dataType = "int", paramType = "query"),
             @ApiImplicitParam(value = "是否推荐", name = "recommended", required = false, dataType = "boolean", paramType = "query"),
             @ApiImplicitParam(value = "seo标题", name = "seotitle", required = false, dataType = "string", paramType = "query"),
             @ApiImplicitParam(value = "seo关键字", name = "seokey", required = false, dataType = "string", paramType = "query"),
@@ -2501,7 +2640,7 @@ public class ProductSellerAction {
             @RequestParam(required = false) BigDecimal costprice,
 //            @RequestParam(required = true) BigDecimal weight,
             @RequestParam(required = true) long storeid,
-            @RequestParam(required = true) long freightmode,
+            @RequestParam(required = true) long shippingtemplatesgroup,
             @RequestParam(required = false) boolean recommended,
             @RequestParam(required = false, defaultValue = "") String seotitle,
             @RequestParam(required = false, defaultValue = "") String seokey,
@@ -2622,7 +2761,7 @@ public class ProductSellerAction {
         prodJson = prodJson.replaceAll("\"thirtyprice\":\"\"","\"thirtyprice\":\"0\"").
                 replaceAll("\"sixtyprice\":\"\"","\"sixtyprice\":\"0\"")
                 .replaceAll("\"ninetyprice\":\"\"","\"ninetyprice\":\"0\"")
-        .replaceAll("\"minplus\":\"\"","\"minplus\":\"0\"");
+                .replaceAll("\"minplus\":\"\"","\"minplus\":\"0\"");
         List<OtherProductInfo> resultList = gson.fromJson(prodJson, new TypeToken<List<OtherProductInfo>>() {
         }.getType());
 
@@ -2705,6 +2844,21 @@ public class ProductSellerAction {
         productInfo.setId(id);
         productInfo.setPdstate(pdstate);
 
+
+
+        if(shippingtemplatesgroup != -1){
+            ShippingTemplateGroup shippingTemplateGroup = shippingTemplateGroupService.getShippingTemplateGroup(shippingtemplatesgroup);
+            if(shippingTemplateGroup == null || !shippingTemplateGroup.getMemberid().equals(member.getId())){
+                basicRet.setMessage("运费合计不存在");
+                basicRet.setResult(BasicRet.ERR);
+                return  basicRet;
+            }
+            productInfo.setShippingtemplatesgroup(shippingTemplateGroup.getId());
+        }else{
+            productInfo.setShippingtemplatesgroup((long)-1);
+        }
+
+
         BigDecimal minPrice = new BigDecimal(0);
         BigDecimal heightPrice = new BigDecimal(0);
 
@@ -2717,7 +2871,7 @@ public class ProductSellerAction {
             productStore.setPdstorenum(otherProductInfo.getPdstorenum());
             productStore.setStoreunit(unit);
             productStore.setLocation(store.getAddress());
-            productStore.setFreightmode(freightmode);
+            //productStore.setFreightmode(freightmode);
             productStore.setStorename(store.getName());
             productStore.setStoreid(storeid);
             productStore.setPdno(otherProductInfo.getPdno());
@@ -2796,6 +2950,7 @@ public class ProductSellerAction {
             @ApiImplicitParam(value = "最后修改价格时间", name = "updatetimeEnd", paramType = "query", dataType = "date", required = false),
             @ApiImplicitParam(value = "发布时间区间", name = "createStart", paramType = "query", dataType = "date", required = false),
             @ApiImplicitParam(value = "发布时间区间", name = "createEnd", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "多规格属性  {\"DIN933\":[\"M16\",\"M3\"],\"GB5783\":[\"M16\",\"M3\"]}", name = "standJson", paramType = "query", dataType = "string", required = false),
     })
     public PageRet listFastenerProduct(@RequestParam(required = true, defaultValue = "1") int pageNo,
                                        @RequestParam(required = true, defaultValue = "20") int pageSize,
@@ -2817,6 +2972,7 @@ public class ProductSellerAction {
                                        @RequestParam(required = false) Date updatetimeEnd,
                                        @RequestParam(required = false) Date createStart,
                                        @RequestParam(required = false) Date createEnd,
+                                       @RequestParam(required = false) String standJson,
                                        Model model) {
         PageRet pageRet = new PageRet();
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
@@ -2837,6 +2993,18 @@ public class ProductSellerAction {
         if (StringUtils.hasText(brand)) {
             productInfo.setBrand(brand);
         }
+
+        if (StringUtils.hasText(standJson)) {
+            if (!CommonUtils.isGoodJson(standJson)) {
+                pageRet.setResult(BasicRet.ERR);
+                pageRet.setMessage("json格式错误");
+                return pageRet;
+            }
+            Map<String,List> standMap = gson.fromJson(standJson, new TypeToken<Map<String,List>>() {
+            }.getType());
+            productInfo.setStandMap(standMap);
+        }
+
 
         if (levelid > 0) {
             Categories productCategory = categoriesService.getCategoryLevel(levelid);
@@ -2919,7 +3087,158 @@ public class ProductSellerAction {
     }
 
 
+    @RequestMapping(value = "/listFastenerProductMulti", method = RequestMethod.POST)
+    @ApiOperation("紧固件商品多规格查询")
+    @ApiImplicitParams({
+            /*@ApiImplicitParam(value = "第几页", name = "pageNo", paramType = "query", dataType = "int", required = true, defaultValue = "1"),
+            @ApiImplicitParam(value = "每页显示的条数", name = "pageSize", paramType = "query", dataType = "int", required = true, defaultValue = "20"),
+            */@ApiImplicitParam(value = "商品名", name = "productname", paramType = "query", dataType = "string", required = false),
+            @ApiImplicitParam(value = "品牌", name = "brand", paramType = "query", dataType = "string", required = false),
+            @ApiImplicitParam(value = "分类id", name = "levelid", paramType = "query", dataType = "int", required = false, defaultValue = "0"),
+            @ApiImplicitParam(value = "规格", name = "stand", paramType = "query", dataType = "string", required = false),
+            @ApiImplicitParam(value = "是否有库存,0-全部,1-有，2-没有", name = "haveStorenum", paramType = "query", dataType = "int", required = false, defaultValue = "0"),
+            @ApiImplicitParam(value = "商品状态0=放入仓库1=待审核2=审核通过3=未通过4=已上架5=下架6=删除7=违规下架", name = "pdstate", paramType = "query", dataType = "int", required = false, defaultValue = "-1"),
+            @ApiImplicitParam(value = "商品id，多个商品id用英文逗号隔开", name = "pdids", paramType = "query", dataType = "String", required = false),
+            @ApiImplicitParam(value = "商品编号", name = "pdno", paramType = "query", dataType = "int", required = false),
+            @ApiImplicitParam(value = "材质id", name = "materialid", paramType = "query", dataType = "int", required = false, defaultValue = "-1"),
+            @ApiImplicitParam(value = "牌号id", name = "cardnumid", paramType = "query", dataType = "int", required = false, defaultValue = "-1"),
+            @ApiImplicitParam(value = "上架时间", name = "uptimeStart", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "上架时间", name = "uptimeEnd", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "下架时间", name = "downtimeStart", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "下架时间", name = "downtimeEnd", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "最后修改价格时间", name = "updatetimeStart", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "最后修改价格时间", name = "updatetimeEnd", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "发布时间区间", name = "createStart", paramType = "query", dataType = "date", required = false),
+            @ApiImplicitParam(value = "发布时间区间", name = "createEnd", paramType = "query", dataType = "date", required = false),
+    })
+    public MultiRet MultiSpecification(/*@RequestParam(required = true, defaultValue = "1") int pageNo,
+                                       @RequestParam(required = true, defaultValue = "20") int pageSize,*/
+            @RequestParam(required = false) String productname,
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false, defaultValue = "0") long levelid,
+            @RequestParam(required = false) String stand,
+            @RequestParam(required = false, defaultValue = "0") short haveStorenum,
+            @RequestParam(required = false, defaultValue = "-1") short pdstate,
+            @RequestParam(required = false) String pdids,
+            @RequestParam(required = false) String pdno,
+            @RequestParam(required = false, defaultValue = "-1") long materialid,
+            @RequestParam(required = true, defaultValue = "-1") long cardnumid,
+            @RequestParam(required = false) Date uptimeStart,
+            @RequestParam(required = false) Date uptimeEnd,
+            @RequestParam(required = false) Date downtimeStart,
+            @RequestParam(required = false) Date downtimeEnd,
+            @RequestParam(required = false) Date updatetimeStart,
+            @RequestParam(required = false) Date updatetimeEnd,
+            @RequestParam(required = false) Date createStart,
+            @RequestParam(required = false) Date createEnd,
+            Model model){
+        MultiRet multiRet = new MultiRet();
+        Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
 
+        ProductInfoQuery productInfo = new ProductInfoQuery();
+        ProductStore productStore = new ProductStore();
+
+        productInfo.setMemberid(member.getId());
+
+        if (StringUtils.hasText(productname)) {
+            productInfo.setProductname(productname);
+        }
+
+        if (StringUtils.hasText(pdno)) {
+            productInfo.setPdno(pdno);
+        }
+
+        if (StringUtils.hasText(brand)) {
+            productInfo.setBrand(brand);
+        }
+
+        if (levelid > 0) {
+            Categories productCategory = categoriesService.getCategoryLevel(levelid);
+            if (productCategory != null) {
+                if (productCategory.getLevel() == 1) {
+                    productInfo.setLevel1id(levelid);
+                } else if (productCategory.getLevel() == 2) {
+                    productInfo.setLevel2id(levelid);
+                } else if (productCategory.getLevel() == 3) {
+                    productInfo.setLevel3id(levelid);
+                }
+            }
+        }
+
+        if (StringUtils.hasText(stand)) {
+            productInfo.setStand(stand);
+        }
+
+        if (haveStorenum == 1 || haveStorenum == 2) {
+            productStore.setHaveStorenum(haveStorenum);
+        }
+
+        productInfo.setCardnumid(cardnumid);
+        productInfo.setMaterialid(materialid);
+        productInfo.setPdstate(pdstate);
+
+        if (uptimeStart != null) {
+            productInfo.setUptimeStart(uptimeStart);
+        }
+
+        if (uptimeEnd != null) {
+            productInfo.setUptimeEnd(DateUtils.addDays(uptimeEnd, 1));
+        }
+
+        if(pdids != null && pdids !="") {
+            try {
+                List<Integer> PdidList = Arrays.asList(pdids.split(",")).stream().map(s -> Integer.parseInt(s.trim())).collect(Collectors.toList());
+                productInfo.setPdids(PdidList);
+            }catch (NumberFormatException e){
+                multiRet.setResult(BasicRet.ERR);
+                multiRet.setMessage("输入商品id格式错误，多个商品id请用一个英文逗号隔开");
+                return multiRet;
+            }
+        }
+
+        if (downtimeStart != null) {
+            productInfo.setDowntimeStart(downtimeStart);
+        }
+
+        if (downtimeEnd != null) {
+            productInfo.setDowntimeEnd(DateUtils.addDays(downtimeEnd, 1));
+        }
+
+        if (updatetimeStart != null) {
+            productInfo.setUpdatetimeStart(updatetimeStart);
+        }
+
+        if (updatetimeEnd != null) {
+            productInfo.setUpdatetimeEnd(DateUtils.addDays(updatetimeEnd, 1));
+        }
+
+        if (createStart != null) {
+            productInfo.setCreateStart(createStart);
+        }
+
+        if (createEnd != null) {
+            productInfo.setCreateEnd(DateUtils.addDays(createEnd, 1));
+        }
+
+        productInfo.setProductStore(productStore);
+        multiRet.setResult(BasicRet.SUCCESS);
+        multiRet.setMapData( productInfoService.MultiSpecification(productInfo));
+
+        return multiRet;
+
+    }
+
+    private class MultiRet extends BasicRet{
+        private List mapData;
+
+        public List getMapData() {
+            return mapData;
+        }
+
+        public void setMapData(List mapData) {
+            this.mapData = mapData;
+        }
+    }
 
     @RequestMapping(value = "/excelExport/fastenerProduct", method = RequestMethod.GET)
     @ApiOperation("紧固件商品excel导出")
@@ -2944,24 +3263,24 @@ public class ProductSellerAction {
             @ApiImplicitParam(value = "发布时间区间", name = "createEnd", paramType = "query", dataType = "date", required = false),
     })
     public ResponseEntity<InputStreamResource> excelExportFastenerProduct(
-                                       @RequestParam(required = false) String productname,
-                                       @RequestParam(required = false) String brand,
-                                       @RequestParam(required = false, defaultValue = "0") long levelid,
-                                       @RequestParam(required = false) String stand,
-                                       @RequestParam(required = false, defaultValue = "0") short haveStorenum,
-                                       @RequestParam(required = false, defaultValue = "-1") short pdstate,
-                                       @RequestParam(required = false) String pdids,
-                                       @RequestParam(required = false, defaultValue = "-1") long materialid,
-                                       @RequestParam(required = true, defaultValue = "-1") long cardnumid,
-                                       @RequestParam(required = false) Date uptimeStart,
-                                       @RequestParam(required = false) Date uptimeEnd,
-                                       @RequestParam(required = false) Date downtimeStart,
-                                       @RequestParam(required = false) Date downtimeEnd,
-                                       @RequestParam(required = false) Date updatetimeStart,
-                                       @RequestParam(required = false) Date updatetimeEnd,
-                                       @RequestParam(required = false) Date createStart,
-                                       @RequestParam(required = false) Date createEnd,
-                                       Model model) {
+            @RequestParam(required = false) String productname,
+            @RequestParam(required = false) String brand,
+            @RequestParam(required = false, defaultValue = "0") long levelid,
+            @RequestParam(required = false) String stand,
+            @RequestParam(required = false, defaultValue = "0") short haveStorenum,
+            @RequestParam(required = false, defaultValue = "-1") short pdstate,
+            @RequestParam(required = false) String pdids,
+            @RequestParam(required = false, defaultValue = "-1") long materialid,
+            @RequestParam(required = true, defaultValue = "-1") long cardnumid,
+            @RequestParam(required = false) Date uptimeStart,
+            @RequestParam(required = false) Date uptimeEnd,
+            @RequestParam(required = false) Date downtimeStart,
+            @RequestParam(required = false) Date downtimeEnd,
+            @RequestParam(required = false) Date updatetimeStart,
+            @RequestParam(required = false) Date updatetimeEnd,
+            @RequestParam(required = false) Date createStart,
+            @RequestParam(required = false) Date createEnd,
+            Model model) {
 
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
 

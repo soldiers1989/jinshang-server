@@ -28,6 +28,7 @@ import project.jinshang.common.utils.DateUtils;
 import project.jinshang.common.utils.ExcelGen;
 import project.jinshang.common.utils.JinshangUtils;
 import project.jinshang.common.utils.StringUtils;
+import project.jinshang.mod_admin.mod_excelexport.ExcepExportAction;
 import project.jinshang.mod_cash.service.SalerCapitalService;
 import project.jinshang.mod_member.bean.Admin;
 import project.jinshang.mod_member.bean.Member;
@@ -246,15 +247,15 @@ public class ProductManageAdminAction {
         }
         productInfo.setPrices(list1);
 
-        ShippingTemplates shippingTemplates = null;
+//        ShippingTemplates shippingTemplates = null;
 
-        if(productInfo.getProductStore().getFreightmode() >0) {
-            shippingTemplates =  shippingTemplatesService.getFullTemplatesById(productInfo.getProductStore().getFreightmode());
-        }
+//        if(productInfo.getProductStore().getFreightmode() >0) {
+//            shippingTemplates =  shippingTemplatesService.getFullTemplatesById(productInfo.getProductStore().getFreightmode());
+//        }
 
 
         productRet.data.productInfo = productInfo;
-        productRet.data.shippingTemplates = shippingTemplates;
+        //productRet.data.shippingTemplates = shippingTemplates;
 
         productRet.setMessage("查询成功");
         productRet.setResult(BasicRet.SUCCESS);
@@ -413,7 +414,7 @@ public class ProductManageAdminAction {
         return  pageRet;
     }
 
-
+    //static Map<String,Long> time = new HashMap();
 
     @RequestMapping(value =  "/excelExport/otherProduct",method = RequestMethod.GET)
     @ApiOperation("非紧固件商品Excel导出")
@@ -429,9 +430,14 @@ public class ProductManageAdminAction {
             @ApiImplicitParam(value = "发布时间区间",name = "createStart",paramType = "query",dataType = "date",required = false),
             @ApiImplicitParam(value = "发布时间区间",name = "createEnd",paramType = "query",dataType = "date",required = false),
             @ApiImplicitParam(value = "店铺名称",name = "shopname",paramType = "query",dataType = "string",required = false),
+            @ApiImplicitParam(value = "是否远期",name = "futurePrice",paramType = "query",dataType = "short",required = false,defaultValue = "0")
     })
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.COMMODITYANAGEMENT + "')")
-    public  ResponseEntity<InputStreamResource> listOtherProductForExportExcel(OtherProductQueryDto queryDto){
+    public ResponseEntity<InputStreamResource> listOtherProductForExportExcel(OtherProductQueryDto queryDto){
+
+        ExcepExportAction eea = new ExcepExportAction();
+        long time = System.currentTimeMillis();
+        eea.map.put("otherproduct",time);
 
         if(queryDto.getLevelid() != null && queryDto.getLevelid()>0){
             Categories productCategory =  categoriesService.getCategoryLevel(queryDto.getLevelid());
@@ -476,6 +482,7 @@ public class ProductManageAdminAction {
                 headers.add("Pragma", "no-cache");
                 headers.add("Expires", "0");
                 String contentType = "application/vnd.ms-excel";
+                //time.clear();
                 return ResponseEntity.ok()
                         .headers(headers).contentType(MediaType.parseMediaType(contentType))
                         .body(new InputStreamResource(new ByteArrayInputStream(baos.toByteArray())));
@@ -483,6 +490,7 @@ public class ProductManageAdminAction {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
+            eea.map.remove("otherproduct");
             if(workbook != null){
                 try {
                     workbook.close();
@@ -517,6 +525,7 @@ public class ProductManageAdminAction {
             @ApiImplicitParam(value = "发布时间区间",name = "createEnd",paramType = "query",dataType = "date",required = false),
             @ApiImplicitParam(value = "印记",name = "mark",paramType = "query",dataType = "string",required = false),
             @ApiImplicitParam(value = "店铺名称",name = "shopname",paramType = "query",dataType = "string",required = false),
+            @ApiImplicitParam(value = "是否远期",name = "futurePrice",paramType = "query",dataType = "short",required = false,defaultValue = "0")
     })
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.COMMODITYANAGEMENT + "')")
     public ResponseEntity<InputStreamResource> listFastenerProductForExportExcel(
@@ -535,8 +544,14 @@ public class ProductManageAdminAction {
                                        @RequestParam(required = false) Date createStart,
                                        @RequestParam(required = false) Date createEnd,
                                        @RequestParam(required = false) String mark,
-                                       @RequestParam(required = false) String shopname
+                                       @RequestParam(required = false) String shopname,
+                                       @RequestParam(required = false,defaultValue = "0") short futurePrice
     ){
+
+        ExcepExportAction eea = new ExcepExportAction();
+        long time = System.currentTimeMillis();
+        eea.map.put("product",time);
+
 
         ProductInfoQuery productInfo = new ProductInfoQuery();
         ProductStore productStore = new ProductStore();
@@ -583,6 +598,7 @@ public class ProductManageAdminAction {
         productInfo.setCardnumid(cardnumid);
         productInfo.setMemberid(memberid);
         productInfo.setUsername(username);
+        productInfo.setFuturePrice(futurePrice);
 
         if(uptimeStart!= null){
             productInfo.setUptimeStart(uptimeStart);
@@ -621,6 +637,7 @@ public class ProductManageAdminAction {
                 headers.add("Pragma", "no-cache");
                 headers.add("Expires", "0");
                 String contentType = "application/vnd.ms-excel";
+                //time.clear();
                 return ResponseEntity.ok()
                         .headers(headers).contentType(MediaType.parseMediaType(contentType))
                         .body(new InputStreamResource(new ByteArrayInputStream(baos.toByteArray())));
@@ -628,6 +645,7 @@ public class ProductManageAdminAction {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
+            eea.map.remove("product");
             if(workbook != null){
                 try {
                     workbook.close();
@@ -680,7 +698,7 @@ public class ProductManageAdminAction {
             pdStore.setProductAttrList(attrList);
 
 
-            viewDto.setFreightmode(pdStore.getFreightmode());
+           // viewDto.setFreightmode(pdStore.getFreightmode());
             viewDto.setCostprice(pdStore.getCostprice());
             viewDto.setStepwiseprice(pdStore.isStepwiseprice());
             viewDto.setMarketprice(pdStore.getMarketprice());
@@ -694,9 +712,9 @@ public class ProductManageAdminAction {
         //运费模版
         ShippingTemplates shippingTemplates = null;
 
-        if (viewDto.getFreightmode() > 0) {
-            shippingTemplates = shippingTemplatesService.getFullTemplatesById(viewDto.getFreightmode());
-        }
+//        if (viewDto.getFreightmode() > 0) {
+//            shippingTemplates = shippingTemplatesService.getFullTemplatesById(viewDto.getFreightmode());
+//        }
 
 
 
@@ -706,7 +724,7 @@ public class ProductManageAdminAction {
         detailRet.prodStoreList =  prodStoreViewList;
 //        detailRet.attributetblList = attributetblList;
         detailRet.intervalprice = intervalprice;
-        detailRet.shippingTemplates = shippingTemplates;
+        //detailRet.shippingTemplates = shippingTemplates;
 
         detailRet.setResult(BasicRet.SUCCESS);
         return  detailRet;
@@ -879,6 +897,8 @@ public class ProductManageAdminAction {
             if(productInfo.getProducttype().equals(AppConstant.FASTENER_PRO_TYPE)) {
                 salerCapitalService.backBail(productInfo);
             }
+
+            productSearchService.delIndex(productInfo.getId());
         }
 
 

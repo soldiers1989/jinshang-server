@@ -26,8 +26,8 @@ import java.util.Date;
 
 
 @RestController
-@RequestMapping(value = {"/rest/fxcommision"})
-@Api(tags = "佣金记录管理", description = "佣金记录管理接口")
+@RequestMapping(value = {"/rest/buyer/fxcommision"})
+@Api(tags = "买家佣金记录管理", description = "佣金记录管理接口")
 @SessionAttributes(AppConstant.MEMBER_SESSION_NAME)
 public class FxCommisionAction {
 
@@ -87,7 +87,7 @@ public class FxCommisionAction {
         return pageRet;
     }
 
-    @ApiOperation(value = "后台-佣金记录列表/后台-佣金记录搜索列表")
+  /*  @ApiOperation(value = "后台-佣金记录列表/后台-佣金记录搜索列表")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "orderno", value = "订单单号", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "cmemberid", value = "返佣人", required = false, paramType = "query", dataType = "long"),
@@ -107,7 +107,7 @@ public class FxCommisionAction {
         pageRet.setMessage("返回成功");
         pageRet.setResult(BasicRet.SUCCESS);
         return pageRet;
-    }
+    }*/
 
 
     @PostMapping("/list1")
@@ -143,7 +143,7 @@ public class FxCommisionAction {
     }
 
 
-    @ApiOperation(value = "后台-累计返佣/后台-待到账佣金")
+   /* @ApiOperation(value = "后台-累计返佣/后台-待到账佣金")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "progressnum", value = "progressNum进度状态（默认99为累计返佣，如果0为待到帐佣金）", required = true, paramType = "query", dataType = "long",defaultValue = "99"),
     })
@@ -164,7 +164,7 @@ public class FxCommisionAction {
             basicRet.setData(fxcommision);
 
         return basicRet;
-    }
+    }*/
 
 
 

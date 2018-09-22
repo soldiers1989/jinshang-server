@@ -1,6 +1,7 @@
 package project.jinshang.mod_product.bean;
 
 import io.swagger.annotations.ApiModelProperty;
+import io.swagger.annotations.ApiOperation;
 
 import javax.persistence.Transient;
 import java.math.BigDecimal;
@@ -45,7 +46,7 @@ public class OrderProduct {
     @ApiModelProperty(notes = "是否包邮")
     private Boolean mailornot;
 
-    @ApiModelProperty(notes = "退货状态0=正常1=退货中2=退货验收3=退货完成4=异议中")
+    @ApiModelProperty(notes = "退货状态0=正常1=退货中2=退货验收3=退货完成4=异议中5=卖家不同意退货")
     private Short backstate;
 
     @ApiModelProperty(notes = "规格")
@@ -150,7 +151,8 @@ public class OrderProduct {
     @ApiModelProperty(notes = "商品单位佣金=销售单价*商品佣金比例")
     private BigDecimal singlebrokepay;
 
-
+    @ApiModelProperty(notes = "分批发货ID")
+    private Long deliveryid;
 
     //=====================================//
     @ApiModelProperty(notes = "通俗易看的数量")
@@ -160,13 +162,14 @@ public class OrderProduct {
 
     private boolean selfsupport;
 
-    public boolean getSelfsupport() {
-        return selfsupport;
-    }
 
-    public void setSelfsupport(boolean selfsupport) {
-        this.selfsupport = selfsupport;
-    }
+    @ApiModelProperty(notes = "紧固件商品库编码")
+    private String productsno;
+
+    @ApiModelProperty(notes = "商品一级分类名称")
+    private String productTypeName;
+
+
 
     @Transient
     private Map<String,Object> extend;
@@ -597,5 +600,37 @@ public class OrderProduct {
 
     public void setSinglebrokepay(BigDecimal singlebrokepay) {
         this.singlebrokepay = singlebrokepay;
+    }
+
+    public boolean getSelfsupport() {
+        return selfsupport;
+    }
+
+    public void setSelfsupport(boolean selfsupport) {
+        this.selfsupport = selfsupport;
+    }
+
+    public String getProductsno() {
+        return productsno;
+    }
+
+    public void setProductsno(String productsno) {
+        this.productsno = productsno;
+    }
+
+    public String getProductTypeName() {
+        return productTypeName;
+    }
+
+    public void setProductTypeName(String productTypeName) {
+        this.productTypeName = productTypeName;
+    }
+
+    public Long getDeliveryid() {
+        return deliveryid;
+    }
+
+    public void setDeliveryid(Long deliveryid) {
+        this.deliveryid = deliveryid;
     }
 }

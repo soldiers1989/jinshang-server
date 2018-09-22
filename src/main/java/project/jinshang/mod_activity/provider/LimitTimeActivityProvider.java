@@ -80,7 +80,7 @@ public class LimitTimeActivityProvider {
         if(query.getActivitycateid() != null && query.getActivitycateid() >0){
             sql.append(" and l.categoryid=#{activitycateid} ");
         }
-        sql.append(" order by l.id desc ");
+        sql.append(" order by l.state=4 desc,l.sort asc,l.id desc ");
         return sql.toString();
     }
 
@@ -119,7 +119,7 @@ public class LimitTimeActivityProvider {
         if(query.getActivitycateid() != null && query.getActivitycateid() >0){
             sql.append(" and l.categoryid=#{activitycateid} ");
         }
-        sql.append(" order by l.id desc ");
+        sql.append(" order by l.state=4 desc,l.sort asc,l.id desc ");
         return sql.toString();
     }
 
@@ -140,6 +140,10 @@ public class LimitTimeActivityProvider {
             sql.append(" and l.state=1 and   begintime -now() <= '" + befoBuytime + " hour' ");
         }
 
+        if(StringUtils.hasText(query.getNotInIds())){
+            sql.append(" and l.id not in ("+query.getNotInIds()+") ");
+        }
+
         if(StringUtils.hasText(query.getActivitytitle())){
             sql.append(" and l.activitytitle=#{query.activitytitle} ");
         }
@@ -147,6 +151,10 @@ public class LimitTimeActivityProvider {
         if(query.getActivitycateid() != null && query.getActivitycateid() >0){
             sql.append(" and l.categoryid=#{query.activitycateid} ");
         }
+        sql.append("order by l.sort asc,l.id desc ");
+
+
+
 
         return sql.toString();
     }

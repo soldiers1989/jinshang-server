@@ -23,7 +23,7 @@ public interface WmsMiddlewareMsgMapper {
     void del(int id);
 
 
-    @Select("select pst.pdno,pst.pdid,p.memberid from productstore pst,productinfo p where " +
+    @Select("select pst.pdno,pst.pdid,pst.storeid,pst.storename,p.memberid from productstore pst,productinfo p where " +
             "pst.pdid=p.id and p.memberid=#{memberid} and p.pdstate<>6 order by pst.id desc ")
     List<Map<String,Object>> getProdStoreInfo(@Param("memberid") long memberid);
 }

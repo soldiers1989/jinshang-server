@@ -21,8 +21,11 @@ public class MemberAdminQueryDto implements Serializable{
     @ApiModelProperty(notes = "手机号")
     private String mobile;
 
-    @ApiModelProperty(notes = "业务员")
+    @ApiModelProperty(notes = "客服人员")
     private String clerkname;
+
+    @ApiModelProperty(notes = "业务员")
+    private String waysalesman;
 
 
     @ApiModelProperty(notes = "注册时间-开始")
@@ -58,6 +61,27 @@ public class MemberAdminQueryDto implements Serializable{
     @ApiModelProperty(notes = "有没消费")
     private Short isbuy;
 
+    @ApiModelProperty(notes = "注册来源标识")
+    private String registersourcelabel;
+
+    @ApiModelProperty(notes = "注册类型标识")
+    private String registertypelabel;
+
+    @ApiModelProperty(notes = "注册渠道标识")
+    private String registerchannellabel;
+
+    @ApiModelProperty(notes = "标签名称")
+    private String labelname;
+
+
+
+    public String getWaysalesman() {
+        return waysalesman;
+    }
+
+    public void setWaysalesman(String waysalesman) {
+        this.waysalesman = waysalesman;
+    }
 
     public Short getIsbuy() {
         return isbuy;
@@ -153,5 +177,37 @@ public class MemberAdminQueryDto implements Serializable{
 
     public void setCompanyType(short companyType) {
         this.companyType = companyType;
+    }
+
+    public String getRegistersourcelabel() {
+        return registersourcelabel;
+    }
+
+    public void setRegistersourcelabel(String registersourcelabel) {
+        this.registersourcelabel = registersourcelabel == null ? null : registersourcelabel.trim();
+    }
+
+    public String getRegistertypelabel() {
+        return registertypelabel;
+    }
+
+    public void setRegistertypelabel(String registertypelabel) {
+        this.registertypelabel = registertypelabel == null ? null : registertypelabel.trim();
+    }
+
+    public String getRegisterchannellabel() {
+        return registerchannellabel;
+    }
+
+    public void setRegisterchannellabel(String registerchannellabel) {
+        this.registerchannellabel = registerchannellabel == null ? null : registerchannellabel.trim();
+    }
+
+    public String getLabelname() {
+        return labelname;
+    }
+
+    public void setLabelname(String labelname) {
+        this.labelname = labelname == null ? null : labelname.trim();
     }
 }

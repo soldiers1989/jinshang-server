@@ -185,7 +185,7 @@ public class ProductSearchProvider {
         SQL sql = new SQL(){{
             SELECT_DISTINCT("p.level1","p.level2","p.level3","p.brand");
             FROM("productinfo p");
-            WHERE("producttype='"+AppConstant.OTHER_PRO_TYPE+"'");
+            WHERE("producttype='"+AppConstant.OTHER_PRO_TYPE+"' and pdstate=4 ");
 
             if(type>0){
                 WHERE("p.type="+type);
@@ -395,7 +395,7 @@ public class ProductSearchProvider {
             SELECT(keys);
             FROM("productinfo p");
             LEFT_OUTER_JOIN("productattr attr on attr.productid=p.id");
-            WHERE(" p.producttype='"+AppConstant.OTHER_PRO_TYPE+"' ");
+            WHERE(" p.producttype='"+AppConstant.OTHER_PRO_TYPE+"' and p.pdstate=4 ");
 
             if(type>0){
                 WHERE("p.type="+type);
@@ -597,10 +597,10 @@ public class ProductSearchProvider {
 //        }
 
         if(!StringUtils.hasText(sorttype)){
-            sql.ORDER_BY(" selfsupport desc,stand asc");
+            sql.ORDER_BY(" stand asc");
         }else{
             sql.ORDER_BY(sorttype);
-            sql.ORDER_BY(" selfsupport desc");
+           // sql.ORDER_BY(" selfsupport desc");
         }
 
        // System.out.println(sql.toString());

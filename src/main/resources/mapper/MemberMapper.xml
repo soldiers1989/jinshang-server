@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="project.jinshang.mod_member.MemberMapper" >
-
     <resultMap id="BaseResultMap" type="project.jinshang.mod_member.bean.Member" >
         <id column="id" property="id" jdbcType="BIGINT" />
         <result column="username" property="username" jdbcType="VARCHAR" />
@@ -65,8 +64,14 @@
         <result column="services" property="services" jdbcType="BIT" />
         <result column="isbuy" property="isbuy" jdbcType="SMALLINT" />
         <result column="inviterid" property="inviterid" jdbcType="BIGINT" />
+        <result column="inviterid2" property="inviterid2" jdbcType="BIGINT" />
+        <result column="registesource" property="registesource" jdbcType="SMALLINT" />
+        <result column="registersourcelabel" property="registersourcelabel" jdbcType="VARCHAR" />
+        <result column="registertypelabel" property="registertypelabel" jdbcType="VARCHAR" />
+        <result column="registerchannellabel" property="registerchannellabel" jdbcType="VARCHAR" />
+        <result column="labelname" property="labelname" jdbcType="VARCHAR" />
+        <result column="waysalesmansetdate" property="waysalesmansetdate" jdbcType="TIMESTAMP" />
     </resultMap>
-
     <sql id="Example_Where_Clause" >
         <where >
             <foreach collection="oredCriteria" item="criteria" separator="or" >
@@ -96,7 +101,6 @@
             </foreach>
         </where>
     </sql>
-
     <sql id="Update_By_Example_Where_Clause" >
         <where >
             <foreach collection="example.oredCriteria" item="criteria" separator="or" >
@@ -126,18 +130,17 @@
             </foreach>
         </where>
     </sql>
-
     <sql id="Base_Column_List" >
-        id, username, password, passwordsalt, mobile, email, postcode, nick, realname, address, 
-        disabled, createdate, lastlogindate, photo, type, paypassword, paypasswordsalt, company, 
-        reviewed, gradleid, deliveryregionid, deliveryaddress, integrals, balance, alipay, 
-        wxpay, way, waysalesman, invitecode, clerkname, labelid, parentid, parentname, menu, 
-        flag, remark, qq, sex, faxes, telephone, hobby, favicon, sellerbanlance, sellerfreezebanlance, 
-        creditlimit, usedlimit, availablelimit, membersettingstate, billmoney, eva1, eva2, 
-        eva3, sellergroupid, availableintegral, province, city, citysmall, creditstate, goodsbanlance, 
-        services, isbuy, inviterid
+        id, username, password, passwordsalt, mobile, email, postcode, nick, realname, address,
+        disabled, createdate, lastlogindate, photo, type, paypassword, paypasswordsalt, company,
+        reviewed, gradleid, deliveryregionid, deliveryaddress, integrals, balance, alipay,
+        wxpay, way, waysalesman, invitecode, clerkname, labelid, parentid, parentname, menu,
+        flag, remark, qq, sex, faxes, telephone, hobby, favicon, sellerbanlance, sellerfreezebanlance,
+        creditlimit, usedlimit, availablelimit, membersettingstate, billmoney, eva1, eva2,
+        eva3, sellergroupid, availableintegral, province, city, citysmall, creditstate, goodsbanlance,
+        services, isbuy, inviterid, inviterid2, registesource, registersourcelabel, registertypelabel,
+        registerchannellabel, labelname, waysalesmansetdate
     </sql>
-
     <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_member.bean.MemberExample" >
         select
         <if test="distinct" >
@@ -153,71 +156,72 @@
             order by ${orderByClause}
         </if>
     </select>
-
     <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-        select 
+        select
         <include refid="Base_Column_List" />
         from public.member
         where id = #{id,jdbcType=BIGINT}
     </select>
-
     <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
         delete from public.member
         where id = #{id,jdbcType=BIGINT}
     </delete>
-
     <delete id="deleteByExample" parameterType="project.jinshang.mod_member.bean.MemberExample" >
         delete from public.member
         <if test="_parameter != null" >
             <include refid="Example_Where_Clause" />
         </if>
     </delete>
-
     <insert id="insert" parameterType="project.jinshang.mod_member.bean.Member" >
-        insert into public.member (id, username, password, 
-            passwordsalt, mobile, email, 
-            postcode, nick, realname, 
-            address, disabled, createdate, 
-            lastlogindate, photo, type, 
-            paypassword, paypasswordsalt, company, 
-            reviewed, gradleid, deliveryregionid, 
-            deliveryaddress, integrals, balance, 
-            alipay, wxpay, way, 
-            waysalesman, invitecode, clerkname, 
-            labelid, parentid, parentname, 
-            menu, flag, remark, qq, 
-            sex, faxes, telephone, 
-            hobby, favicon, sellerbanlance, 
-            sellerfreezebanlance, creditlimit, usedlimit, 
-            availablelimit, membersettingstate, 
-            billmoney, eva1, eva2, 
-            eva3, sellergroupid, availableintegral, 
-            province, city, citysmall, 
-            creditstate, goodsbanlance, services, 
-            isbuy, inviterid)
-        values (#{id,jdbcType=BIGINT}, #{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, 
-            #{passwordsalt,jdbcType=VARCHAR}, #{mobile,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, 
-            #{postcode,jdbcType=VARCHAR}, #{nick,jdbcType=VARCHAR}, #{realname,jdbcType=VARCHAR}, 
-            #{address,jdbcType=VARCHAR}, #{disabled,jdbcType=BIT}, #{createdate,jdbcType=TIMESTAMP}, 
-            #{lastlogindate,jdbcType=TIMESTAMP}, #{photo,jdbcType=VARCHAR}, #{type,jdbcType=SMALLINT}, 
-            #{paypassword,jdbcType=VARCHAR}, #{paypasswordsalt,jdbcType=VARCHAR}, #{company,jdbcType=BIT}, 
-            #{reviewed,jdbcType=BIT}, #{gradleid,jdbcType=BIGINT}, #{deliveryregionid,jdbcType=VARCHAR}, 
-            #{deliveryaddress,jdbcType=VARCHAR}, #{integrals,jdbcType=NUMERIC}, #{balance,jdbcType=NUMERIC}, 
-            #{alipay,jdbcType=VARCHAR}, #{wxpay,jdbcType=VARCHAR}, #{way,jdbcType=VARCHAR}, 
-            #{waysalesman,jdbcType=VARCHAR}, #{invitecode,jdbcType=VARCHAR}, #{clerkname,jdbcType=VARCHAR}, 
-            #{labelid,jdbcType=VARCHAR}, #{parentid,jdbcType=BIGINT}, #{parentname,jdbcType=VARCHAR}, 
-            #{menu,jdbcType=ARRAY}, #{flag,jdbcType=BIT}, #{remark,jdbcType=VARCHAR}, #{qq,jdbcType=VARCHAR}, 
-            #{sex,jdbcType=VARCHAR}, #{faxes,jdbcType=VARCHAR}, #{telephone,jdbcType=VARCHAR}, 
-            #{hobby,jdbcType=VARCHAR}, #{favicon,jdbcType=VARCHAR}, #{sellerbanlance,jdbcType=NUMERIC}, 
-            #{sellerfreezebanlance,jdbcType=NUMERIC}, #{creditlimit,jdbcType=NUMERIC}, #{usedlimit,jdbcType=NUMERIC}, 
-            #{availablelimit,jdbcType=NUMERIC}, #{membersettingstate,jdbcType=SMALLINT}, 
-            #{billmoney,jdbcType=NUMERIC}, #{eva1,jdbcType=NUMERIC}, #{eva2,jdbcType=NUMERIC}, 
-            #{eva3,jdbcType=NUMERIC}, #{sellergroupid,jdbcType=BIGINT}, #{availableintegral,jdbcType=NUMERIC}, 
-            #{province,jdbcType=VARCHAR}, #{city,jdbcType=VARCHAR}, #{citysmall,jdbcType=VARCHAR}, 
-            #{creditstate,jdbcType=SMALLINT}, #{goodsbanlance,jdbcType=NUMERIC}, #{services,jdbcType=BIT}, 
-            #{isbuy,jdbcType=SMALLINT}, #{inviterid,jdbcType=BIGINT})
+        insert into public.member (id, username, password,
+            passwordsalt, mobile, email,
+            postcode, nick, realname,
+            address, disabled, createdate,
+            lastlogindate, photo, type,
+            paypassword, paypasswordsalt, company,
+            reviewed, gradleid, deliveryregionid,
+            deliveryaddress, integrals, balance,
+            alipay, wxpay, way,
+            waysalesman, invitecode, clerkname,
+            labelid, parentid, parentname,
+            menu, flag, remark, qq,
+            sex, faxes, telephone,
+            hobby, favicon, sellerbanlance,
+            sellerfreezebanlance, creditlimit, usedlimit,
+            availablelimit, membersettingstate,
+            billmoney, eva1, eva2,
+            eva3, sellergroupid, availableintegral,
+            province, city, citysmall,
+            creditstate, goodsbanlance, services,
+            isbuy, inviterid, inviterid2,
+            registesource, registersourcelabel,
+            registertypelabel, registerchannellabel,
+            labelname, waysalesmansetdate)
+        values (#{id,jdbcType=BIGINT}, #{username,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR},
+            #{passwordsalt,jdbcType=VARCHAR}, #{mobile,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR},
+            #{postcode,jdbcType=VARCHAR}, #{nick,jdbcType=VARCHAR}, #{realname,jdbcType=VARCHAR},
+            #{address,jdbcType=VARCHAR}, #{disabled,jdbcType=BIT}, #{createdate,jdbcType=TIMESTAMP},
+            #{lastlogindate,jdbcType=TIMESTAMP}, #{photo,jdbcType=VARCHAR}, #{type,jdbcType=SMALLINT},
+            #{paypassword,jdbcType=VARCHAR}, #{paypasswordsalt,jdbcType=VARCHAR}, #{company,jdbcType=BIT},
+            #{reviewed,jdbcType=BIT}, #{gradleid,jdbcType=BIGINT}, #{deliveryregionid,jdbcType=VARCHAR},
+            #{deliveryaddress,jdbcType=VARCHAR}, #{integrals,jdbcType=NUMERIC}, #{balance,jdbcType=NUMERIC},
+            #{alipay,jdbcType=VARCHAR}, #{wxpay,jdbcType=VARCHAR}, #{way,jdbcType=VARCHAR},
+            #{waysalesman,jdbcType=VARCHAR}, #{invitecode,jdbcType=VARCHAR}, #{clerkname,jdbcType=VARCHAR},
+            #{labelid,jdbcType=VARCHAR}, #{parentid,jdbcType=BIGINT}, #{parentname,jdbcType=VARCHAR},
+            #{menu,jdbcType=ARRAY}, #{flag,jdbcType=BIT}, #{remark,jdbcType=VARCHAR}, #{qq,jdbcType=VARCHAR},
+            #{sex,jdbcType=VARCHAR}, #{faxes,jdbcType=VARCHAR}, #{telephone,jdbcType=VARCHAR},
+            #{hobby,jdbcType=VARCHAR}, #{favicon,jdbcType=VARCHAR}, #{sellerbanlance,jdbcType=NUMERIC},
+            #{sellerfreezebanlance,jdbcType=NUMERIC}, #{creditlimit,jdbcType=NUMERIC}, #{usedlimit,jdbcType=NUMERIC},
+            #{availablelimit,jdbcType=NUMERIC}, #{membersettingstate,jdbcType=SMALLINT},
+            #{billmoney,jdbcType=NUMERIC}, #{eva1,jdbcType=NUMERIC}, #{eva2,jdbcType=NUMERIC},
+            #{eva3,jdbcType=NUMERIC}, #{sellergroupid,jdbcType=BIGINT}, #{availableintegral,jdbcType=NUMERIC},
+            #{province,jdbcType=VARCHAR}, #{city,jdbcType=VARCHAR}, #{citysmall,jdbcType=VARCHAR},
+            #{creditstate,jdbcType=SMALLINT}, #{goodsbanlance,jdbcType=NUMERIC}, #{services,jdbcType=BIT},
+            #{isbuy,jdbcType=SMALLINT}, #{inviterid,jdbcType=BIGINT}, #{inviterid2,jdbcType=BIGINT},
+            #{registesource,jdbcType=SMALLINT}, #{registersourcelabel,jdbcType=VARCHAR},
+            #{registertypelabel,jdbcType=VARCHAR}, #{registerchannellabel,jdbcType=VARCHAR},
+            #{labelname,jdbcType=VARCHAR}, #{waysalesmansetdate,jdbcType=TIMESTAMP})
     </insert>
-
     <insert id="insertSelective" parameterType="project.jinshang.mod_member.bean.Member" >
         insert into public.member
         <trim prefix="(" suffix=")" suffixOverrides="," >
@@ -407,6 +411,27 @@
             <if test="inviterid != null" >
                 inviterid,
             </if>
+            <if test="inviterid2 != null" >
+                inviterid2,
+            </if>
+            <if test="registesource != null" >
+                registesource,
+            </if>
+            <if test="registersourcelabel != null" >
+                registersourcelabel,
+            </if>
+            <if test="registertypelabel != null" >
+                registertypelabel,
+            </if>
+            <if test="registerchannellabel != null" >
+                registerchannellabel,
+            </if>
+            <if test="labelname != null" >
+                labelname,
+            </if>
+            <if test="waysalesmansetdate != null" >
+                waysalesmansetdate,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides="," >
             <if test="id != null" >
@@ -509,7 +534,7 @@
                 #{parentname,jdbcType=VARCHAR},
             </if>
             <if test="menu != null" >
-                #{menu,jdbcType=ARRAY,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+                #{menu,jdbcType=ARRAY},
             </if>
             <if test="flag != null" >
                 #{flag,jdbcType=BIT},
@@ -595,16 +620,35 @@
             <if test="inviterid != null" >
                 #{inviterid,jdbcType=BIGINT},
             </if>
+            <if test="inviterid2 != null" >
+                #{inviterid2,jdbcType=BIGINT},
+            </if>
+            <if test="registesource != null" >
+                #{registesource,jdbcType=SMALLINT},
+            </if>
+            <if test="registersourcelabel != null" >
+                #{registersourcelabel,jdbcType=VARCHAR},
+            </if>
+            <if test="registertypelabel != null" >
+                #{registertypelabel,jdbcType=VARCHAR},
+            </if>
+            <if test="registerchannellabel != null" >
+                #{registerchannellabel,jdbcType=VARCHAR},
+            </if>
+            <if test="labelname != null" >
+                #{labelname,jdbcType=VARCHAR},
+            </if>
+            <if test="waysalesmansetdate != null" >
+                #{waysalesmansetdate,jdbcType=TIMESTAMP},
+            </if>
         </trim>
     </insert>
-
     <select id="countByExample" parameterType="project.jinshang.mod_member.bean.MemberExample" resultType="java.lang.Integer" >
         select count(*) from public.member
         <if test="_parameter != null" >
             <include refid="Example_Where_Clause" />
         </if>
     </select>
-
     <update id="updateByExampleSelective" parameterType="map" >
         update public.member
         <set >
@@ -794,12 +838,32 @@
             <if test="record.inviterid != null" >
                 inviterid = #{record.inviterid,jdbcType=BIGINT},
             </if>
+            <if test="record.inviterid2 != null" >
+                inviterid2 = #{record.inviterid2,jdbcType=BIGINT},
+            </if>
+            <if test="record.registesource != null" >
+                registesource = #{record.registesource,jdbcType=SMALLINT},
+            </if>
+            <if test="record.registersourcelabel != null" >
+                registersourcelabel = #{record.registersourcelabel,jdbcType=VARCHAR},
+            </if>
+            <if test="record.registertypelabel != null" >
+                registertypelabel = #{record.registertypelabel,jdbcType=VARCHAR},
+            </if>
+            <if test="record.registerchannellabel != null" >
+                registerchannellabel = #{record.registerchannellabel,jdbcType=VARCHAR},
+            </if>
+            <if test="record.labelname != null" >
+                labelname = #{record.labelname,jdbcType=VARCHAR},
+            </if>
+            <if test="record.waysalesmansetdate != null" >
+                waysalesmansetdate = #{record.waysalesmansetdate,jdbcType=TIMESTAMP},
+            </if>
         </set>
         <if test="_parameter != null" >
             <include refid="Update_By_Example_Where_Clause" />
         </if>
     </update>
-
     <update id="updateByExample" parameterType="map" >
         update public.member
         set id = #{record.id,jdbcType=BIGINT},
@@ -863,7 +927,14 @@
             goodsbanlance = #{record.goodsbanlance,jdbcType=NUMERIC},
             services = #{record.services,jdbcType=BIT},
             isbuy = #{record.isbuy,jdbcType=SMALLINT},
-            inviterid = #{record.inviterid,jdbcType=BIGINT}
+            inviterid = #{record.inviterid,jdbcType=BIGINT},
+            inviterid2 = #{record.inviterid2,jdbcType=BIGINT},
+            registesource = #{record.registesource,jdbcType=SMALLINT},
+            registersourcelabel = #{record.registersourcelabel,jdbcType=VARCHAR},
+            registertypelabel = #{record.registertypelabel,jdbcType=VARCHAR},
+            registerchannellabel = #{record.registerchannellabel,jdbcType=VARCHAR},
+            labelname = #{record.labelname,jdbcType=VARCHAR},
+            waysalesmansetdate = #{record.waysalesmansetdate,jdbcType=TIMESTAMP}
         <if test="_parameter != null" >
             <include refid="Update_By_Example_Where_Clause" />
         </if>
@@ -969,7 +1040,7 @@
                 parentname = #{parentname,jdbcType=VARCHAR},
             </if>
             <if test="menu != null" >
-                menu = #{menu,jdbcType=ARRAY,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
+                menu = #{menu,jdbcType=ARRAY},
             </if>
             <if test="flag != null" >
                 flag = #{flag,jdbcType=BIT},
@@ -1055,10 +1126,30 @@
             <if test="inviterid != null" >
                 inviterid = #{inviterid,jdbcType=BIGINT},
             </if>
+            <if test="inviterid2 != null" >
+                inviterid2 = #{inviterid2,jdbcType=BIGINT},
+            </if>
+            <if test="registesource != null" >
+                registesource = #{registesource,jdbcType=SMALLINT},
+            </if>
+            <if test="registersourcelabel != null" >
+                registersourcelabel = #{registersourcelabel,jdbcType=VARCHAR},
+            </if>
+            <if test="registertypelabel != null" >
+                registertypelabel = #{registertypelabel,jdbcType=VARCHAR},
+            </if>
+            <if test="registerchannellabel != null" >
+                registerchannellabel = #{registerchannellabel,jdbcType=VARCHAR},
+            </if>
+            <if test="labelname != null" >
+                labelname = #{labelname,jdbcType=VARCHAR},
+            </if>
+            <if test="waysalesmansetdate != null" >
+                waysalesmansetdate = #{waysalesmansetdate,jdbcType=TIMESTAMP},
+            </if>
         </set>
         where id = #{id,jdbcType=BIGINT}
     </update>
-
     <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_member.bean.Member" >
         update public.member
         set username = #{username,jdbcType=VARCHAR},
@@ -1121,7 +1212,14 @@
             goodsbanlance = #{goodsbanlance,jdbcType=NUMERIC},
             services = #{services,jdbcType=BIT},
             isbuy = #{isbuy,jdbcType=SMALLINT},
-            inviterid = #{inviterid,jdbcType=BIGINT}
+            inviterid = #{inviterid,jdbcType=BIGINT},
+            inviterid2 = #{inviterid2,jdbcType=BIGINT},
+            registesource = #{registesource,jdbcType=SMALLINT},
+            registersourcelabel = #{registersourcelabel,jdbcType=VARCHAR},
+            registertypelabel = #{registertypelabel,jdbcType=VARCHAR},
+            registerchannellabel = #{registerchannellabel,jdbcType=VARCHAR},
+            labelname = #{labelname,jdbcType=VARCHAR},
+            waysalesmansetdate = #{waysalesmansetdate,jdbcType=TIMESTAMP}
         where id = #{id,jdbcType=BIGINT}
     </update>
 </mapper>

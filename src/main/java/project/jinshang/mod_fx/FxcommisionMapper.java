@@ -62,7 +62,7 @@ public interface FxcommisionMapper {
             "<if test=\"fxcommision.progressnum != null  \">and f.progressnum = #{fxcommision.progressnum} </if>" +
             "</where> order by f.id desc " +
             "</script>")
-    List<Map<String,Object>> selectObject(@Param("startime")Date startime, @Param("endtime") Date endtime, @Param("fxcommision") Fxcommision fxcommision,@Param("cmemberid")long cmemberid );
+    List<Map<String,Object>> selectObject(@Param("startime") Date startime, @Param("endtime") Date endtime, @Param("fxcommision") Fxcommision fxcommision, @Param("cmemberid") long cmemberid);
 
 
     @Select("<script>select f.*,m1.username buyname  ,m2.username salename,m3.username returnname " +
@@ -79,7 +79,7 @@ public interface FxcommisionMapper {
             "<if test=\"fxcommision.progressnum != null  \">and f.progressnum = #{fxcommision.progressnum} </if>" +
             "</where> order by f.id desc " +
             "</script>")
-    List<Map<String,Object>> selectObject1(@Param("startime")Date startime, @Param("endtime") Date endtime, @Param("fxcommision") Fxcommision fxcommision,@Param("member")Member member );
+    List<Map<String,Object>> selectObject1(@Param("startime") Date startime, @Param("endtime") Date endtime, @Param("fxcommision") Fxcommision fxcommision, @Param("member") Member member);
 
     @Select("select f.id,f.orderid,f.orderno,f.ordercreatetime,f.buyerinspectiontime,f.progressnum,f.commisionprice,f.cmemberid,f.memberid,f.saleid,f.type  from fx_commision f  where progressNum in(1,2)")
     List<Fxcommision> getFxcommisionList();

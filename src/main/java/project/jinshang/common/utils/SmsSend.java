@@ -35,7 +35,7 @@ public class SmsSend {
         // 发送短信
         content = new String(content.getBytes("utf-8"),"utf-8");
         int nRet = OpenApi.sendOnce(mobile, content, cgid, 0, null);
-        System.out.println(nRet);
+
         return nRet == 1;
 
     }

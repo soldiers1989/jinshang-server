@@ -37,7 +37,8 @@
     <result column="agreementfile" property="agreementfile" jdbcType="VARCHAR" />
     <result column="applymoney" property="applymoney" jdbcType="NUMERIC" />
     <result column="cancelreason" property="cancelreason" jdbcType="VARCHAR" />
-    <result column="reviewnotes" property="reviewnotes" jdbcType="VARCHAR" />
+    <result column="reviewnotes" property="reviewnotes" jdbcType="ARRAY"
+            typeHandler="project.jinshang.typeHandler.ArrayTypeHandler"/>
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -160,7 +161,7 @@
       #{createtime,jdbcType=TIMESTAMP}, #{expectarrivaltime,jdbcType=TIMESTAMP}, #{acceptdays,jdbcType=INTEGER}, 
       #{entering,jdbcType=VARCHAR}, #{enteringid,jdbcType=BIGINT}, #{agreementno,jdbcType=VARCHAR}, 
       #{signtime,jdbcType=TIMESTAMP}, #{signaddr,jdbcType=VARCHAR}, #{agreementfile,jdbcType=VARCHAR}, 
-      #{applymoney,jdbcType=NUMERIC}, #{cancelreason,jdbcType=VARCHAR}, #{reviewnotes,jdbcType=VARCHAR}
+      #{applymoney,jdbcType=NUMERIC}, #{cancelreason,jdbcType=VARCHAR}, #{reviewnotes,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler}
       )
   </insert>
   <insert id="insertSelective" parameterType="project.jinshang.mod_credit.bean.CreditApplyRecord" >
@@ -382,7 +383,7 @@
         #{cancelreason,jdbcType=VARCHAR},
       </if>
       <if test="reviewnotes != null" >
-        #{reviewnotes,jdbcType=VARCHAR},
+        #{reviewnotes,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
       </if>
     </trim>
   </insert>
@@ -501,7 +502,7 @@
         cancelreason = #{record.cancelreason,jdbcType=VARCHAR},
       </if>
       <if test="record.reviewnotes != null" >
-        reviewnotes = #{record.reviewnotes,jdbcType=VARCHAR},
+        reviewnotes = #{record.reviewnotes,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
       </if>
     </set>
     <if test="_parameter != null" >
@@ -545,7 +546,7 @@
       agreementfile = #{record.agreementfile,jdbcType=VARCHAR},
       applymoney = #{record.applymoney,jdbcType=NUMERIC},
       cancelreason = #{record.cancelreason,jdbcType=VARCHAR},
-      reviewnotes = #{record.reviewnotes,jdbcType=VARCHAR}
+      reviewnotes = #{record.reviewnotes,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -656,7 +657,7 @@
         cancelreason = #{cancelreason,jdbcType=VARCHAR},
       </if>
       <if test="reviewnotes != null" >
-        reviewnotes = #{reviewnotes,jdbcType=VARCHAR},
+        reviewnotes = #{reviewnotes,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler},
       </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
@@ -697,7 +698,7 @@
       agreementfile = #{agreementfile,jdbcType=VARCHAR},
       applymoney = #{applymoney,jdbcType=NUMERIC},
       cancelreason = #{cancelreason,jdbcType=VARCHAR},
-      reviewnotes = #{reviewnotes,jdbcType=VARCHAR}
+      reviewnotes = #{reviewnotes,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

@@ -133,6 +133,9 @@ public class ProductInfo {
     @ApiModelProperty(notes = "类型 0-紧固件 1-工业品 2-生活类")
     private Short type;
 
+    @ApiModelProperty(notes = "运费模板合集  包邮 -1")
+    private Long shippingtemplatesgroup;
+
 
     /******************************EXTEND********************************************/
     @ApiModelProperty(notes = "productStore")
@@ -620,5 +623,13 @@ public class ProductInfo {
 
     public void setType(Short type) {
         this.type = type;
+    }
+
+    public Long getShippingtemplatesgroup() {
+        return shippingtemplatesgroup;
+    }
+
+    public void setShippingtemplatesgroup(Long shippingtemplatesgroup) {
+        this.shippingtemplatesgroup = shippingtemplatesgroup;
     }
 }

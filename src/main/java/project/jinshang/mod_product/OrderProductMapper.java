@@ -1,12 +1,11 @@
 package project.jinshang.mod_product;
 
-import org.apache.ibatis.annotations.InsertProvider;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.*;
 import project.jinshang.mod_product.bean.OrderProduct;
 import project.jinshang.mod_product.bean.OrderProductExample;
+import project.jinshang.mod_product.bean.OrderProductModel;
 import project.jinshang.mod_product.bean.ProductEvaModel;
+import project.jinshang.mod_product.provider.OrderProductProvider;
 import project.jinshang.mod_sale_rank.bean.SaleRankModel;
 
 import java.math.BigDecimal;
@@ -64,26 +63,11 @@ public interface OrderProductMapper {
     @Select("select * from orderproduct where orderno = #{orderno}")
     List<OrderProduct> getByOrderNo(@Param("orderno") String orderno);
 
+    @UpdateProvider(type = OrderProductProvider.class,method = "updateOrderProductForModifyProductnum")
+    int updateOrderProductForModifyProductnum(OrderProductModel orderProduct);
 
 
 
-    public class OrderProductProvider {
-        public String insertAll(Map map) {
-            List<OrderProduct> list = (List<OrderProduct>) map.get("list");
-            StringBuilder sb = new StringBuilder();
-            sb.append("INSERT INTO orderproduct ");
-            sb.append("(orderno,pdid,pdno,pdname,pddesc,price,unit,num,storename,storeid,mailornot,ismailornot,standard,mark,brand,material,gradeno,classify,freight,orderid,actualpayment,pdpic,pic,sellerid,producttype,protype,attrjson,deliverytime,allpay,partpay,yupay,classifyid,limitid) ");
-            sb.append("VALUES ");
-            MessageFormat mf = new MessageFormat("(#'{'list[{0}].orderno},#'{'list[{0}].pdid},#'{'list[{0}].pdno},#'{'list[{0}].pdname},#'{'list[{0}].pddesc},#'{'list[{0}].price},#'{'list[{0}].unit},#'{'list[{0}].num},#'{'list[{0}].storename},#'{'list[{0}].storeid},#'{'list[{0}].mailornot},#'{'list[{0}].ismailornot},#'{'list[{0}].standard},#'{'list[{0}].mark},#'{'list[{0}].brand},#'{'list[{0}].material},#'{'list[{0}].gradeno},#'{'list[{0}].classify},#'{'list[{0}].freight},#'{'list[{0}].orderid},#'{'list[{0}].actualpayment},#'{'list[{0}].pdpic},#'{'list[{0}].pic},#'{'list[{0}].sellerid},#'{'list[{0}].producttype},#'{'list[{0}].protype},#'{'list[{0}].attrjson},#'{'list[{0}].deliverytime},#'{'list[{0}].allpay},#'{'list[{0}].partpay},#'{'list[{0}].yupay},#'{'list[{0}].classifyid},#'{'list[{0}].limitid})");
-            for (int i = 0; i < list.size(); i++) {
-                sb.append(mf.format(new Object[]{i}));
-                if (i < list.size() - 1) {
-                    sb.append(",");
-                }
-            }
-            return sb.toString();
-        }
-    }
 
     /**
      * 根据订单id数组查询订单商品
@@ -147,105 +131,17 @@ public interface OrderProductMapper {
     @Select("select * from orderproduct where orderno = #{orderno} and backstate = 0 ")
     List<OrderProduct> getByOrderNoAndBackStatus(@Param("orderno") String orderno);
 
-/*    @SelectProvider(type = OrderProductMapper.OrdersProvider.class, method = "queryOrderByParam")
-    @Results({
-            @Result(id=true,column="id",property="id"),
-            @Result(column="pdname",property="pdname"),
-            @Result(column="price",property="price"),
-            @Result(column="unit",property="unit"),
-            @Result(column="num",property="num"),
-            @Result(column="brand",property="brand"),
-            @Result(column="mark",property="mark"),
-            @Result(column="standard",property="standard"),
-            @Result(column="pddesc",property="pddesc"),
-            @Result(column="evaluatestate",property="evaluatestate")
-    })
-    public List<OrderProduct> selectByOrderNo(String orderno);
 
 
-    public class OrdersProvider {
-
-        private final String TBL_ORDER_PRODUCT = "orderproduct op";
-
-        public String queryOrderByParam(String orderno) {
-            SQL sql = new SQL().SELECT("op.id,op.pdname,op.price,op.unit,op.num,op.brand,op.mark,op.standard,op.pddesc,op.evaluatestate").FROM(TBL_ORDER_PRODUCT);
-            sql.WHERE("op.orderno=#{orderno}");
-*//*            //商品名称
-            String pdName = param.getPdName();
-            if (StringUtils.hasText(pdName)) {
-                pdName = "%"+pdName+"%";
-                param.setPdName(pdName);
-                sql.WHERE("op.pdname LIKE #{pdName}");
-            }
-            //品牌
-            String brand = param.getBrand();
-            if (StringUtils.hasText(brand)) {
-                brand = "%"+brand+"%";
-                param.setPdName(brand);
-                sql.WHERE("op.brand LIKE #{brand}");
-            }
-            //印记
-            String mark = param.getMark();
-            if (StringUtils.hasText(mark)) {
-                mark = "%"+mark+"%";
-                param.setPdName(mark);
-                sql.WHERE("op.mark LIKE #{mark}");
-            }
-            //规格
-            String stand = param.getStand();
-            if(StringUtils.hasText(stand)){
-                stand = "%"+stand+"%";
-                param.setPdName(stand);
-                sql.WHERE("op.standard LIKE #{stand}");
-            }
-            //评价状态
-            short evaState = param.getEvaState();
-            if(evaState!=-1){
-                sql.WHERE("op.evaluatestate=#{evaState}");
-            }*//*
-            return sql.toString();
-        }
-    }*/
-
-/*    public static void main(String[] args) {
-        OrderProduct orderProduct = new OrderProduct();
-        List<OrderProduct> list = new ArrayList<OrderProduct>();
-
-        orderProduct.setOrderid(1l);
-        orderProduct.setPdid(2l);
-        orderProduct.setOrderno("111111111");
-        orderProduct.setPddesc("aaaaaaaaa");
-        orderProduct.setPdname("aaaaaaaa");
-        orderProduct.setPrice(new BigDecimal(22));
-        orderProduct.setOrdernum(12);
-        orderProduct.setOrderid(2l);
-        orderProduct.setStorename("bb");
-
-        OrderProduct orderProduct2 = new OrderProduct();
-
-
-        orderProduct2.setOrderid(1l);
-        orderProduct2.setPdid(2l);
-        orderProduct2.setOrderno("111111111");
-        orderProduct2.setPddesc("aaaaaaaaa");
-        orderProduct2.setPdname("aaaaaaaa");
-        orderProduct2.setPrice(new BigDecimal(22));
-        orderProduct2.setOrdernum(12);
-        orderProduct2.setOrderid(2l);
-        orderProduct2.setStorename("bb");
-        list.add(orderProduct);
-        list.add(orderProduct2);
-
-        Map<String,List<OrderProduct>> map = new HashMap<String,List<OrderProduct>>();
-
-        map.put("list",list);
-
-        OrderProductProvider orderProductProvider = new OrderProductProvider();
-        String sql = orderProductProvider.insertAll(map);
-
-        System.out.println(sql);
-    }*/
 
     @Select("select * from orderproduct where orderno = #{orderno}")
     List<OrderProduct> getRepurchaseList(@Param("orderno") String orderno);
+
+    @Select("<script>select orderproduct  " +
+            " from orderproduct o " +
+            "<where> 1=1 " +
+            "<if test=\"orderProduct.deliveryid != null \">and o.deliveryid = #{orderProduct.deliveryid} </if>" +
+            "</where> order by o.id desc" +
+            "</script>")
+    List<Map<String,Object>> selectByObject(@Param("orderProduct") OrderProduct orderProduct);
 }

@@ -1,5 +1,6 @@
 package project.jinshang.mod_member;
 
+import com.github.binarywang.wxpay.config.WxPayConfig;
 import com.google.code.kaptcha.Constants;
 import io.swagger.annotations.*;
 import mizuki.project.core.restserver.config.BasicRet;
@@ -12,9 +13,7 @@ import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.constant.SmsType;
 import project.jinshang.common.constant.ThirdPartLoginType;
-import project.jinshang.common.utils.Base64Utils;
-import project.jinshang.common.utils.CommonUtils;
-import project.jinshang.common.utils.ErrorMes;
+import project.jinshang.common.utils.*;
 import project.jinshang.mod_common.bean.SmsLog;
 import project.jinshang.mod_common.service.MobileService;
 import project.jinshang.mod_member.bean.*;
@@ -26,6 +25,8 @@ import project.jinshang.mod_product.service.OrdersService;
 import javax.servlet.http.HttpSession;
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * create : wyh
@@ -56,6 +57,8 @@ public class ThirdPartLoginAction {
 
     @Autowired
     private MobileService mobileService;
+
+
 
 
 
@@ -366,6 +369,9 @@ public class ThirdPartLoginAction {
             @ApiImplicitParam(name = "invitecode", value = "邀请码", required = false, paramType = "query"),
             @ApiImplicitParam(name = "clerkname", value = "业务员", required = false, paramType = "query"),
             @ApiImplicitParam(name = "mobileCode", value = "手机验证码", required = true, paramType = "query"),
+            @ApiImplicitParam(name = "registersourcelabel", value = "注册来源", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "registertypelabel", value = "注册类型", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "registerchannellabel", value = "注册渠道", required = false, paramType = "query", dataType = "string"),
     })
     public MemberRet registerMember( @RequestParam(required = true) String openid,
                                      @RequestParam(required = true) String type,
@@ -409,14 +415,53 @@ public class ThirdPartLoginAction {
         model.addAttribute(AppConstant.MEMBER_SESSION_NAME, member);
 
         memberRet.setMessage("注册成功");
+
         return (MemberRet) memberRet.setResult(BasicRet.SUCCESS);
     }
 
 
+    /**
+     *微信端通过微信code换取用户的基本信息
+     * @author xiazy
+     * @date  2018/6/15 14:03
+     * @param code
+     * @param type
+     * @param model
+     * @param session
+     * @return void
+     */
+    @RequestMapping(value  = "getUserInfoByCode",method = RequestMethod.POST)
+    public WxUserInfoRet getUserInfoByCode(@RequestParam(required = true) String code,String type, Model model,HttpSession session) {
+        WxUserInfoRet wxUserInfoRet=new WxUserInfoRet();
+        WxAccessToken wxAccessToken = thirdPartLoginService.getWxAccssToken(code,type);
+        if(wxAccessToken == null || wxAccessToken.getAccess_token() == null ||wxAccessToken.getAccess_token().equals("")){
+            wxUserInfoRet.setResult(BasicRet.ERR);
+            wxUserInfoRet.setMessage("获取登录token失败，请稍后再试");
+            return  wxUserInfoRet;
+        }
+        WeixinInfo weixinInfo=thirdPartLoginService.getWeixinInfo(wxAccessToken.getOpenid(),wxAccessToken.getAccess_token());
+        wxUserInfoRet.setData(weixinInfo);
+        wxUserInfoRet.setMessage("获取用户信息成功");
+        wxUserInfoRet.setResult(BasicRet.SUCCESS);
+        return wxUserInfoRet;
+    }
 
 
-
-
+    @RequestMapping(value = "getSignature",method = RequestMethod.POST)
+    public SignRet getSignature(@RequestParam(required = true) String url,Model model,HttpSession session){
+        SignRet signRet=new SignRet();
+        signRet.setMessage("获取签名成功");
+        signRet.setResult(BasicRet.SUCCESS);
+        JsapiTicket jsapiTicket=thirdPartLoginService.getJsApiTicket();
+        Map map=SignUtil.sign(jsapiTicket.getTicket(),url);
+        signRet.setJsapi_ticket(map.get("jsapi_ticket").toString());
+        signRet.setNonceStr(map.get("nonceStr").toString());
+        signRet.setSignature(map.get("signature").toString());
+        signRet.setTimestamp(map.get("timestamp").toString());
+        signRet.setUrl(map.get("url").toString());
+        signRet.setAppId(wxLoginConfig.getWapAppId());
+        return signRet;
+    }
 
     private  class  ThirdPartLoginRet extends  BasicRet{
         private class ThirdPartLoginData {
@@ -480,6 +525,20 @@ public class ThirdPartLoginAction {
     }
 
 
+
+    private class WxUserInfoRet extends BasicRet{
+        private WeixinInfo data=new WeixinInfo();
+
+        public WeixinInfo getData() {
+            return data;
+        }
+
+        public void setData(WeixinInfo data) {
+            this.data = data;
+        }
+    }
+
+
     @ApiModel(description = "返回错误对象")
     private class MemberRet extends BasicRet {
         @ApiModelProperty(notes = "注册出错后名称与错误的对应关系")
@@ -487,6 +546,64 @@ public class ThirdPartLoginAction {
 
         public ErrorMes getErrs() {
             return errs;
+        }
+    }
+
+
+    private class SignRet extends BasicRet{
+        private String url;
+        private String jsapi_ticket;
+        private String nonceStr;
+        private String timestamp;
+        private String signature;
+        private String appId;
+
+        public String getUrl() {
+            return url;
+        }
+
+        public void setUrl(String url) {
+            this.url = url;
+        }
+
+        public String getJsapi_ticket() {
+            return jsapi_ticket;
+        }
+
+        public void setJsapi_ticket(String jsapi_ticket) {
+            this.jsapi_ticket = jsapi_ticket;
+        }
+
+        public String getNonceStr() {
+            return nonceStr;
+        }
+
+        public void setNonceStr(String nonceStr) {
+            this.nonceStr = nonceStr;
+        }
+
+        public String getTimestamp() {
+            return timestamp;
+        }
+
+        public void setTimestamp(String timestamp) {
+            this.timestamp = timestamp;
+        }
+
+        public String getSignature() {
+            return signature;
+        }
+
+        public void setSignature(String signature) {
+            this.signature = signature;
+        }
+
+        public String getAppId() {
+            return appId;
+        }
+
+        public void setAppId(String appId) {
+            this.appId = appId;
         }
     }
 

@@ -35,4 +35,8 @@ public class AppConstant {
 
     public static  final  String MOCK_MOBILE = "13800000000";
     public static  final  String MOCK_VERIFY_CODE="1234";
+
+
+    public static final String APP_RUN_ENV_PRO = "pro";
+
 }

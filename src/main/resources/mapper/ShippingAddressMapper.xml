@@ -108,7 +108,7 @@
       <include refid="Example_Where_Clause" />
     </if>
   </delete>
-  <insert id="insert" parameterType="project.jinshang.mod_shippingaddress.bean.ShippingAddress" >
+  <insert id="insert" parameterType="project.jinshang.mod_shippingaddress.bean.ShippingAddress" useGeneratedKeys="true" keyProperty="id" >
     insert into shippingaddress ( memberid, shipto,
       regionid, province, city, 
       citysmall, address, zipcode, 

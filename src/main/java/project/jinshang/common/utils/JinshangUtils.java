@@ -1,9 +1,5 @@
 package project.jinshang.common.utils;
 
-import io.swagger.models.auth.In;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.web.client.RestTemplate;
 import project.jinshang.common.bean.Packing;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.Quantity;
@@ -11,7 +7,6 @@ import project.jinshang.common.constant.Quantity;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -36,6 +31,7 @@ public class JinshangUtils {
         fastenerTopCateNameList.add("开口销");
         fastenerTopCateNameList.add("膨胀系列");
         fastenerTopCateNameList.add("其他螺丝");
+        fastenerTopCateNameList.add("铆接类");
     }
 
     public  static  String getCateType(String topName){
@@ -72,7 +68,8 @@ public class JinshangUtils {
         for(int i=basePackingList.size()-1;i>=0;i--){
             Packing packing =  basePackingList.get(i);
 
-            if(basePacking.getNum().compareTo(packing.getNum()) >0 && i !=0){
+
+            if(basePacking.getNum().compareTo(packing.getNum()) >0 && i !=0 && packing.getNum().compareTo(Quantity.BIG_DECIMAL_0)>0){
 
                 BigDecimal[] bigDecimals = basePacking.getNum().divideAndRemainder(packing.getNum());
 
@@ -83,6 +80,7 @@ public class JinshangUtils {
                     basePacking.setNum(bigDecimals[1]);
                 }
             }
+
 
             if(i==0 && basePacking.getNum().compareTo(new BigDecimal(0))>0){
                 String minNumStr =  decimalFormat.format(basePacking.getNum());
@@ -137,7 +135,7 @@ public class JinshangUtils {
      */
     public static List<Packing> toCovertPacking(String packages){
 
-
+        packages = packages.replaceAll("丨","|");
 
         String[] aaArray = packages.split("\\|");
         List<Packing> list = new ArrayList<>();
@@ -597,9 +595,9 @@ public class JinshangUtils {
     public  static String fastenSortType(Integer sorttype){
        String type = "";
        if(sorttype == 0){
-           type = " stand asc ";
+           type = "stand asc";
        }else if(sorttype == 1){
-           type =  " stand desc ";
+           type =  "stand desc";
        }
        return  type;
    }

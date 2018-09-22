@@ -38,4 +38,10 @@ public class OrderProductLogService {
         return  orderProductLogMapper.getProductinfoByOrderproductids(orderproductids);
     }
 
+
+    public List<OrderProductLog> getAllColumnByOrderproductids(List<Long> orderproductids){
+        if(orderproductids == null || orderproductids.size()==0) return  new ArrayList<>();
+        return  orderProductLogMapper.getAllColumnByOrderproductids(orderproductids);
+    }
+
 }

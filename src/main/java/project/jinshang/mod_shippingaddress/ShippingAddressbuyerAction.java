@@ -5,6 +5,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import mizuki.project.core.restserver.config.BasicMapDataRet;
 import mizuki.project.core.restserver.config.BasicRet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,7 +24,9 @@ import project.jinshang.mod_shippingaddress.bean.ShippingAddressExample;
 import project.jinshang.mod_shippingaddress.service.ShippingAddressService;
 
 import javax.persistence.Id;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 @RestController
@@ -49,17 +52,17 @@ public class ShippingAddressbuyerAction {
         @ApiImplicitParam(name = "isdefault",value = "是否默认使用该地址{0:不是,1:是}",required = true,paramType = "query",dataType = "int"),
 })
         public BasicRet addBuyerShippingAddress(ShippingAddress shippingAddress,Model model) {
-            BasicRet basicRet = new BasicRet();
-            Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
+    BasicMapDataRet basicMapDataRet = new BasicMapDataRet();
+    Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
 
 
             ShippingAddressExample example =  new ShippingAddressExample();
             ShippingAddressExample.Criteria criteria = example.createCriteria();
             criteria.andMemberidEqualTo(member.getId()).andTypeEqualTo(Quantity.STATE_2);
             int count =  shippingAddressService.countByExample(example);
-            /*if(count>=10){
+            if(count>=10){
                 return  new BasicRet(BasicRet.ERR,"最多可添加10条");
-            }*/
+            }
 
             if(shippingAddress.getIsdefault() == Quantity.STATE_1){  //如果设置为默认，首先全部取消默认
                 shippingAddressService.upateAllToNotDefault(member.getId(),Quantity.STATE_2);
@@ -72,11 +75,14 @@ public class ShippingAddressbuyerAction {
 
             shippingAddress.setMemberid(member.getId());
             shippingAddress.setType(Quantity.STATE_2);
-            shippingAddressService.addShippingAddress(shippingAddress);
+    Long id = shippingAddressService.addShippingAddress(shippingAddress);
 
-            basicRet.setResult(BasicRet.SUCCESS);
-            basicRet.setMessage("添加成功");
-            return basicRet;
+    basicMapDataRet.setResult(BasicRet.SUCCESS);
+    Map<String, Object> map = new HashMap<>();
+    map.put("id",id);
+    basicMapDataRet.setData(map);
+    basicMapDataRet.setMessage("添加成功");
+            return basicMapDataRet;
         }
 
 

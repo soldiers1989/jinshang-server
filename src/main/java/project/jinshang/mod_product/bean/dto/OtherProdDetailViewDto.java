@@ -127,7 +127,9 @@ public class OtherProdDetailViewDto {
     private String storename;
 
 
-    private  long freightmode;
+    //private  long freightmode;
+
+    private Long shippingtemplatesgroup;
 
     private  String username;
 
@@ -140,7 +142,7 @@ public class OtherProdDetailViewDto {
 
 
     @ApiModelProperty(notes = "仓库单位")
-    private String prodstoreunit;;
+    private String prodstoreunit;
 
     @ApiModelProperty(notes = "基本单位与库存单位转化比率")
     private BigDecimal unitrate;
@@ -157,7 +159,31 @@ public class OtherProdDetailViewDto {
 
     private Short type;
 
+    private  BigDecimal minplus;
 
+    @ApiModelProperty(notes = "商品价格")
+    private BigDecimal prodprice;
+
+    @ApiModelProperty(notes = "商品库存")
+    private BigDecimal pdstorenum;
+
+    private String companyname;
+
+    public String getCompanyname() {
+        return companyname;
+    }
+
+    public void setCompanyname(String companyname) {
+        this.companyname = companyname;
+    }
+
+    public BigDecimal getMinplus() {
+        return minplus;
+    }
+
+    public void setMinplus(BigDecimal minplus) {
+        this.minplus = minplus;
+    }
 
     public Long getId() {
         return id;
@@ -547,12 +573,21 @@ public class OtherProdDetailViewDto {
         this.stepwiseprice = stepwiseprice;
     }
 
-    public long getFreightmode() {
-        return freightmode;
+//    public long getFreightmode() {
+//        return freightmode;
+//    }
+//
+//    public void setFreightmode(long freightmode) {
+//        this.freightmode = freightmode;
+//    }
+
+
+    public Long getShippingtemplatesgroup() {
+        return shippingtemplatesgroup;
     }
 
-    public void setFreightmode(long freightmode) {
-        this.freightmode = freightmode;
+    public void setShippingtemplatesgroup(Long shippingtemplatesgroup) {
+        this.shippingtemplatesgroup = shippingtemplatesgroup;
     }
 
     public BigDecimal getMarketprice() {
@@ -629,5 +664,21 @@ public class OtherProdDetailViewDto {
 
     public void setType(Short type) {
         this.type = type;
+    }
+
+    public BigDecimal getProdprice() {
+        return prodprice;
+    }
+
+    public void setProdprice(BigDecimal prodprice) {
+        this.prodprice = prodprice;
+    }
+
+    public BigDecimal getPdstorenum() {
+        return pdstorenum;
+    }
+
+    public void setPdstorenum(BigDecimal pdstorenum) {
+        this.pdstorenum = pdstorenum;
     }
 }

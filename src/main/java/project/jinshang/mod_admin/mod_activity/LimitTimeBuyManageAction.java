@@ -40,6 +40,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static java.util.regex.Pattern.*;
 
 /**
  * create : wyh
@@ -146,7 +150,33 @@ public class LimitTimeBuyManageAction {
         return  null;
     }
 
-
+    @PostMapping("/editLimitTimeProd")
+    @ApiOperation("编辑限时购产品")
+    public  BasicRet  editLimitTimeProd(@RequestParam(required = true) Long  id,@RequestParam(required = true) Integer sort){
+        BasicRet basicRet=new BasicRet();
+        basicRet.setMessage("编辑成功");
+        basicRet.setResult(BasicRet.SUCCESS);
+        LimitTimeProd limitTimeProd1 = limitTimeProdService.getById(id);
+        if(limitTimeProd1 == null){
+            basicRet.setResult(BasicRet.ERR);
+            basicRet.setMessage("活动不存在");
+            return  basicRet;
+        }
+        Pattern pattern= compile("^[1-9]+[0-9]*$");
+        Matcher matcher=pattern.matcher(String.valueOf(sort));
+        LimitTimeProd limitTimeProd=new LimitTimeProd();
+        limitTimeProd.setId(id);
+        if (matcher.matches()){
+            limitTimeProd.setSort(sort);
+            limitTimeProdService.updateByPrimaryKeySelective(limitTimeProd);
+        }else if (sort==null){
+            limitTimeProdService.updateBySort(id, sort);
+        }else {
+            basicRet.setMessage("排序字段的值不争取");
+            basicRet.setResult(BasicRet.ERR);
+        }
+        return basicRet;
+    }
 
 
     @PostMapping("/limitTimeDetail")

@@ -1,21 +1,27 @@
 package project.jinshang.mod_product;
 
-import com.github.pagehelper.PageInfo;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import mizuki.project.core.restserver.config.BasicRet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import project.jinshang.common.bean.AdminLogOperator;
 import project.jinshang.common.constant.AdminAuthorityConst;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.Quantity;
+import project.jinshang.mod_member.bean.Admin;
 import project.jinshang.mod_product.bean.Categories;
 import project.jinshang.mod_product.bean.ProductInfoExample;
-import project.jinshang.mod_product.service.CategoriesRunnable;
+import project.jinshang.mod_product.service.AdminOperateLogService;
 import project.jinshang.mod_product.service.CategoriesService;
 import project.jinshang.mod_product.service.ProductInfoService;
 
+import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 
 /**
@@ -34,6 +40,11 @@ public class CategoriesAdminAction {
 
     @Autowired
     private ProductInfoService productInfoService;
+
+    @Autowired
+    private AdminOperateLogService adminOperateLogService;
+
+    AdminLogOperator adminLogOperator = new AdminLogOperator();
 
     @RequestMapping(value = "/get",method = RequestMethod.POST)
     @ApiOperation(value = "获取分类详细信息，包括价格利率信息")
@@ -87,12 +98,12 @@ public class CategoriesAdminAction {
     public BasicRet add(@RequestParam(required = true) String name,
                         @RequestParam(defaultValue ="0",required = true) long parentid,
                         @RequestParam(required = true,defaultValue = "0") int sort,
-                         String title, String keywords,
-                         String description,
+                        String title, String keywords,
+                        String description,
                         String img,
                         @RequestParam(required = true,defaultValue = "0") BigDecimal brokeragerate,
                         @RequestParam(required = true,defaultValue = "0") BigDecimal servicesrate,
-                        @RequestParam(required = true) String catetype){
+                        @RequestParam(required = true) String catetype, Model model, HttpServletRequest request){
         BasicRet basicRet = new BasicRet();
 
 
@@ -146,14 +157,11 @@ public class CategoriesAdminAction {
         categories.setCatetype(catetype);
 
         categoriesService.addCategory(categories);
-        //进行商品新增的同步
-//        CategoriesRunnable categoriesRunnable=new CategoriesRunnable(categoriesService,categories,Quantity.STATE_0);
-//        Thread thread=new Thread(categoriesRunnable);
-//        thread.start();
 
         basicRet.setMessage("添加成功");
         basicRet.setResult(BasicRet.SUCCESS);
-
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        adminLogOperator.saveAdminLog(admin,"新增分类:"+name,(short)1,"categories",request,adminOperateLogService);
         return  basicRet;
     }
 
@@ -179,7 +187,8 @@ public class CategoriesAdminAction {
                             String description,
                             String img, @RequestParam(required = true,defaultValue = "0") BigDecimal brokeragerate,
                             @RequestParam(required = true,defaultValue = "0") BigDecimal servicesrate,
-                            @RequestParam(required = true) String catetype){
+                            @RequestParam(required = true) String catetype,
+                            Model model, HttpServletRequest request){
 
         BasicRet basicRet = new BasicRet();
 
@@ -241,13 +250,10 @@ public class CategoriesAdminAction {
 
         categoriesService.updateByPrimaryKey(categories);
 
-        //进行商品修改的同步
-//        CategoriesRunnable categoriesRunnable=new CategoriesRunnable(categoriesService,categories,Quantity.STATE_1);
-//        Thread thread=new Thread(categoriesRunnable);
-//        thread.start();
-
         basicRet.setResult(BasicRet.SUCCESS);
         basicRet.setMessage("修改成功");
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        adminLogOperator.saveAdminLog(admin,"修改分类:"+name,(short)3,"categories",request,adminOperateLogService);
         return  basicRet;
     }
 
@@ -256,7 +262,7 @@ public class CategoriesAdminAction {
     @RequestMapping(value =  "/delete",method = RequestMethod.POST)
     @ApiOperation(value = "删除分类")
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.CLASSIFICATIONMANAGEMENT + "')")
-    public  BasicRet delete(@RequestParam(required = true) long id){
+    public  BasicRet delete(@RequestParam(required = true) long id,Model model,HttpServletRequest request){
         BasicRet basicRet = new BasicRet();
 
         int sonCount =  categoriesService.hasSonCategoryCount(id);
@@ -295,18 +301,12 @@ public class CategoriesAdminAction {
         }
 
 
-
+        Categories categories = categoriesService.getById(id);
         categoriesService.delete(id);
-
-        //进行商品删除的同步
-//        Categories categories=new Categories();
-//        categories.setId(id);
-//        CategoriesRunnable categoriesRunnable=new CategoriesRunnable(categoriesService,categories,Quantity.STATE_2);
-//        Thread thread=new Thread(categoriesRunnable);
-//        thread.start();
-
         basicRet.setResult(BasicRet.ERR);
         basicRet.setMessage("删除成功");
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        adminLogOperator.saveAdminLog(admin,"删除分类:"+categories.getName(),(short)2,"categories",request,adminOperateLogService);
         return  basicRet;
 
     }

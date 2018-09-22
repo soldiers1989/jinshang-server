@@ -39,7 +39,11 @@ public interface ShippingTemplatesMapper {
     ShippingTemplates getFullTemplatesById(long id);
 
 
-    @Select("select * from ShippingTemplates where memberid=#{memberid}  and temname=#{name} limit 1")
+    @Select("select * from shippingTemplates where memberid=#{memberid}  and temname=#{name} limit 1")
     ShippingTemplates getByNameAndMemberid(@Param("name") String name,@Param("memberid") long memberid);
+
+
+    @Select("select * from shippingTemplates where shopgroupid=#{shopgroupid} limit 1")
+    ShippingTemplates getByShopgroupid(@Param("shopgroupid")long shopgroupid);
 
 }

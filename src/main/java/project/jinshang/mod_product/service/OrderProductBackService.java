@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import project.jinshang.mod_product.OrderProductBackMapper;
 import project.jinshang.mod_product.bean.OrderProductBack;
+import project.jinshang.mod_product.bean.OrderProductBackExample;
 
 import java.util.List;
 
@@ -25,6 +26,11 @@ public class OrderProductBackService {
      */
     public List<OrderProductBack> getByOrderNo(String orderno ){
         return  orderProductBackMapper.getByOrderNo(orderno);
+    }
+
+
+    public int updateByExampleSelective(OrderProductBack record, OrderProductBackExample example){
+        return orderProductBackMapper.updateByExampleSelective(record,  example);
     }
 
 

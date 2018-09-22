@@ -56,6 +56,7 @@
             <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <maxFileSize>10MB</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>5</maxHistory>
         </rollingPolicy>
         <!-- 追加方式记录日志 -->
         <append>true</append>
@@ -86,6 +87,7 @@
             <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <maxFileSize>50MB</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>5</maxHistory>
         </rollingPolicy>
         <!-- 追加方式记录日志 -->
         <append>true</append>
@@ -116,6 +118,7 @@
             <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <maxFileSize>50MB</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>5</maxHistory>
         </rollingPolicy>
         <!-- 追加方式记录日志 -->
         <append>true</append>

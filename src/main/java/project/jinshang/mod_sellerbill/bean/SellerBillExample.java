@@ -1055,6 +1055,186 @@ public class SellerBillExample {
             addCriterion("totalbrokepay not between", value1, value2, "totalbrokepay");
             return (Criteria) this;
         }
+
+        public Criteria andTypeIsNull() {
+            addCriterion("type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeIsNotNull() {
+            addCriterion("type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeEqualTo(Short value) {
+            addCriterion("type =", value, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeNotEqualTo(Short value) {
+            addCriterion("type <>", value, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeGreaterThan(Short value) {
+            addCriterion("type >", value, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeGreaterThanOrEqualTo(Short value) {
+            addCriterion("type >=", value, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeLessThan(Short value) {
+            addCriterion("type <", value, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeLessThanOrEqualTo(Short value) {
+            addCriterion("type <=", value, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeIn(List<Short> values) {
+            addCriterion("type in", values, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeNotIn(List<Short> values) {
+            addCriterion("type not in", values, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeBetween(Short value1, Short value2) {
+            addCriterion("type between", value1, value2, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeNotBetween(Short value1, Short value2) {
+            addCriterion("type not between", value1, value2, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andBreaknumIsNull() {
+            addCriterion("breaknum is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andBreaknumIsNotNull() {
+            addCriterion("breaknum is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andBreaknumEqualTo(Integer value) {
+            addCriterion("breaknum =", value, "breaknum");
+            return (Criteria) this;
+        }
+
+        public Criteria andBreaknumNotEqualTo(Integer value) {
+            addCriterion("breaknum <>", value, "breaknum");
+            return (Criteria) this;
+        }
+
+        public Criteria andBreaknumGreaterThan(Integer value) {
+            addCriterion("breaknum >", value, "breaknum");
+            return (Criteria) this;
+        }
+
+        public Criteria andBreaknumGreaterThanOrEqualTo(Integer value) {
+            addCriterion("breaknum >=", value, "breaknum");
+            return (Criteria) this;
+        }
+
+        public Criteria andBreaknumLessThan(Integer value) {
+            addCriterion("breaknum <", value, "breaknum");
+            return (Criteria) this;
+        }
+
+        public Criteria andBreaknumLessThanOrEqualTo(Integer value) {
+            addCriterion("breaknum <=", value, "breaknum");
+            return (Criteria) this;
+        }
+
+        public Criteria andBreaknumIn(List<Integer> values) {
+            addCriterion("breaknum in", values, "breaknum");
+            return (Criteria) this;
+        }
+
+        public Criteria andBreaknumNotIn(List<Integer> values) {
+            addCriterion("breaknum not in", values, "breaknum");
+            return (Criteria) this;
+        }
+
+        public Criteria andBreaknumBetween(Integer value1, Integer value2) {
+            addCriterion("breaknum between", value1, value2, "breaknum");
+            return (Criteria) this;
+        }
+
+        public Criteria andBreaknumNotBetween(Integer value1, Integer value2) {
+            addCriterion("breaknum not between", value1, value2, "breaknum");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalbreakIsNull() {
+            addCriterion("totalbreak is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalbreakIsNotNull() {
+            addCriterion("totalbreak is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalbreakEqualTo(BigDecimal value) {
+            addCriterion("totalbreak =", value, "totalbreak");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalbreakNotEqualTo(BigDecimal value) {
+            addCriterion("totalbreak <>", value, "totalbreak");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalbreakGreaterThan(BigDecimal value) {
+            addCriterion("totalbreak >", value, "totalbreak");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalbreakGreaterThanOrEqualTo(BigDecimal value) {
+            addCriterion("totalbreak >=", value, "totalbreak");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalbreakLessThan(BigDecimal value) {
+            addCriterion("totalbreak <", value, "totalbreak");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalbreakLessThanOrEqualTo(BigDecimal value) {
+            addCriterion("totalbreak <=", value, "totalbreak");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalbreakIn(List<BigDecimal> values) {
+            addCriterion("totalbreak in", values, "totalbreak");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalbreakNotIn(List<BigDecimal> values) {
+            addCriterion("totalbreak not in", values, "totalbreak");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalbreakBetween(BigDecimal value1, BigDecimal value2) {
+            addCriterion("totalbreak between", value1, value2, "totalbreak");
+            return (Criteria) this;
+        }
+
+        public Criteria andTotalbreakNotBetween(BigDecimal value1, BigDecimal value2) {
+            addCriterion("totalbreak not between", value1, value2, "totalbreak");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {
@@ -1064,6 +1244,13 @@ public class SellerBillExample {
         }
     }
 
+    /**
+     * null
+     * 
+     * @author wcyong
+     * 
+     * @date 2018-08-29
+     */
     public static class Criterion {
         private String condition;
 

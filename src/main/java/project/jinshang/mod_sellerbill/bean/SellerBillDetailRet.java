@@ -9,6 +9,7 @@ public  class  SellerBillDetailRet extends BasicRet {
         private  SellerBill sellerBill;
         private List<SellerBillOrderView> sellerBillOrderViewList;
 
+
         public SellerBill getSellerBill() {
             return sellerBill;
         }

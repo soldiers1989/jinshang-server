@@ -20,6 +20,26 @@ public class ProductQueryParam {
 
     private Long sellerId;
 
+    private String productno;
+
+    private String brand;
+
+    private String mark;
+
+    private long materialid;
+
+    private long cardnumid;
+
+
+    public String getProductno() {
+        return productno;
+    }
+
+    public void setProductno(String productno) {
+        this.productno = productno;
+    }
+
+
     public Long getSellerId() {
         return sellerId;
     }
@@ -90,5 +110,37 @@ public class ProductQueryParam {
 
     public void setLevel(Long level) {
         this.level = level;
+    }
+
+    public String getBrand() {
+        return brand;
+    }
+
+    public void setBrand(String brand) {
+        this.brand = brand;
+    }
+
+    public String getMark() {
+        return mark;
+    }
+
+    public void setMark(String mark) {
+        this.mark = mark;
+    }
+
+    public long getMaterialid() {
+        return materialid;
+    }
+
+    public void setMaterialid(long materialid) {
+        this.materialid = materialid;
+    }
+
+    public long getCardnumid() {
+        return cardnumid;
+    }
+
+    public void setCardnumid(long cardnumid) {
+        this.cardnumid = cardnumid;
     }
 }

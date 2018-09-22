@@ -10,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import project.jinshang.common.bean.MemberLogOperator;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.constant.SellerAuthorityConst;
@@ -26,8 +27,11 @@ import project.jinshang.mod_member.service.MemberGradeService;
 import project.jinshang.mod_member.service.MemberRateSettingService;
 import project.jinshang.mod_member.service.MemberService;
 import project.jinshang.mod_product.bean.Categories;
+import project.jinshang.mod_product.bean.MemberOperateLog;
 import project.jinshang.mod_product.service.CategoriesService;
+import project.jinshang.mod_product.service.MemberOperateLogService;
 
+import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -44,21 +48,18 @@ public class MemberRateSettingSellerAction {
 
     @Autowired
     private SellerCompanyInfoService sellerCompanyInfoService;
-
     @Autowired
     private CategoriesService categoriesService;
-
     @Autowired
     private MemberRateSettingService memberRateSettingService;
-
-
     @Autowired
     private MemberGradeService memberGradeService;
-
-
-
     @Autowired
     private MemberService memberService;
+    @Autowired
+    private MemberLogOperator memberLogOperator;
+    @Autowired
+    private MemberOperateLogService memberOperateLogService;
 
 
 
@@ -181,7 +182,7 @@ public class MemberRateSettingSellerAction {
     @PreAuthorize("hasAuthority('"+ SellerAuthorityConst.PRICESETTING+"') || hasAuthority('"+ SellerAuthorityConst.ALL+"')")
     public  BasicRet setting(@RequestParam(required = true) long levelid,
                              @RequestParam(required = true) long membergradeid,
-                             @RequestParam(required = true)BigDecimal rate,Model model){
+                             @RequestParam(required = true)BigDecimal rate,Model model,HttpServletRequest request){
         BasicRet basicRet = new BasicRet();
 
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
@@ -213,10 +214,7 @@ public class MemberRateSettingSellerAction {
             memberRateSettingService.add(setting);
         }
 
-
-
-
-
+        memberLogOperator.saveMemberLog(member,null,"更新"+categories.getName()+"的减价率","",request,memberOperateLogService);
 
         basicRet.setResult(BasicRet.SUCCESS);
         basicRet.setMessage("设置成功");
@@ -247,7 +245,7 @@ public class MemberRateSettingSellerAction {
             @ApiImplicitParam(value = "状态 1=开启 0=关闭",name ="state",paramType = "query",dataType = "int")
     })
     @PreAuthorize("hasAuthority('"+ SellerAuthorityConst.PRICESETTING+"') || hasAuthority('"+ SellerAuthorityConst.ALL+"')")
-    public  BasicRet setState(@RequestParam(required = true) short state,Model model){
+    public  BasicRet setState(@RequestParam(required = true) short state, Model model, HttpServletRequest request){
         BasicRet basicRet = new BasicRet();
 
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
@@ -265,6 +263,8 @@ public class MemberRateSettingSellerAction {
         member.setMembersettingstate(state);
         model.asMap().put(AppConstant.MEMBER_SESSION_NAME,member);
 
+        String opt = state == Quantity.STATE_1 ? "开启" : "关闭";
+        memberLogOperator.saveMemberLog(member,null,opt+ "减价设置","",request,memberOperateLogService);
 
         basicRet.setResult(BasicRet.SUCCESS);
         basicRet.setMessage("修改成功");

@@ -54,6 +54,9 @@ public class SellerAuthorityConst {
     //物流工具:
     public  final  static  String  LOGISTICS="logistics";
 
+    //卖家运费模板合集
+    public  final  static  String SEND_WAY_COLLECTIONS="sendWayCollections";
+
     //发货设置 :
     public  final  static  String  DELIVERY="delivery";
     //订单管理 :

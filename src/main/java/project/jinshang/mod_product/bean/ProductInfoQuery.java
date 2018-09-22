@@ -6,6 +6,7 @@ import project.jinshang.common.bean.Packing;
 import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 public class ProductInfoQuery {
     private Long id;
@@ -141,8 +142,27 @@ public class ProductInfoQuery {
     @ApiModelProperty(notes = "productStore")
     private  ProductStore productStore;
 
+    private int pageNo;
 
     private List prices;
+
+    private Map<String,List> standMap;
+
+    public int getPageNo() {
+        return pageNo;
+    }
+
+    public void setPageNo(int pageNo) {
+        this.pageNo = pageNo;
+    }
+
+    public Map<String,List> getStandMap() {
+        return standMap;
+    }
+
+    public void setStandMap(Map<String,List> standMap) {
+        this.standMap = standMap;
+    }
 
     public List getPrices() {
         return prices;

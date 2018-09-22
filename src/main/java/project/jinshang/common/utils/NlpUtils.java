@@ -52,12 +52,17 @@ public class NlpUtils {
         }
         List<String> keys = seq_hanlp(origin);
         // 加上同义词
-        List<Synonym> synonyms = synonymMapper.searchForQuery(StringUtil.join(keys," | "));
-        if(synonyms.size()>0){
-            synonyms.forEach(synonym -> {
-                keys.addAll(synonym.getWords());
-            });
+        try {
+            List<Synonym>  synonyms = synonymMapper.searchForQuery(StringUtil.join(keys, " | "));
+            if (synonyms.size() > 0) {
+                synonyms.forEach(synonym -> {
+                    keys.addAll(synonym.getWords());
+                });
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
         return tranlatePGVector(keys);
     }
 
@@ -93,6 +98,9 @@ public class NlpUtils {
         return ret;
     }
 
+
+
+
     private  String combine(String... strs){
         if(strs.length==0) return "";
         if(strs.length==1) return strs[0];
@@ -107,9 +115,13 @@ public class NlpUtils {
      * translate for tsvector
      */
     private  String tranlatePGVector(Collection list){
-        if(list.size()==0) return "";
-        StringBuilder stringBuilder = new StringBuilder();
-        list.forEach(c->stringBuilder.append(c).append(" "));
+        final StringBuilder stringBuilder = new StringBuilder();
+        try {
+            if(list.size()==0) return "";
+            list.forEach(c->stringBuilder.append(c).append(" "));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return stringBuilder.deleteCharAt(stringBuilder.length()-1).toString().toLowerCase();
     }
     /**
@@ -118,7 +130,7 @@ public class NlpUtils {
     private  String tranlatePGQuery(Collection list){
         if(list.size()==0) return "";
         StringBuilder stringBuilder = new StringBuilder();
-        list.forEach(c->stringBuilder.append(c).append("|"));
+        list.forEach(c->stringBuilder.append(c).append("&"));
         return stringBuilder.deleteCharAt(stringBuilder.length()-1).toString().toLowerCase();
     }
 

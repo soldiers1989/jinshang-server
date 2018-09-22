@@ -67,7 +67,7 @@ public class ProductImportModel{
     @ApiModelProperty(notes = "仓库名称")
     private String storeName;
 
-    @ApiModelProperty(notes = "运费方式")
+    @ApiModelProperty(notes = "运费集合名称")
     private String deliveryType;
 
     @ApiModelProperty(notes = "商品标签")

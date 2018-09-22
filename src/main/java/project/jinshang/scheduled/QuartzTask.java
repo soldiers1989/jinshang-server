@@ -11,7 +11,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.exception.CashException;
+import project.jinshang.common.exception.MyException;
 import project.jinshang.common.utils.JinShangSms;
+import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_activity.bean.LimitTimeProd;
 import project.jinshang.mod_activity.bean.LimitTimeStore;
 import project.jinshang.mod_activity.service.LimitTimeProdService;
@@ -30,6 +32,7 @@ import project.jinshang.mod_pay.bean.Refund;
 import project.jinshang.mod_pay.mod_alipay.AlipayService;
 import project.jinshang.mod_pay.mod_wxpay.MyWxPayService;
 import project.jinshang.mod_pay.service.TradeService;
+import project.jinshang.mod_product.OperateLogMapper;
 import project.jinshang.mod_product.bean.*;
 import project.jinshang.mod_product.service.*;
 import project.jinshang.mod_wms_middleware.WMSService;
@@ -99,10 +102,15 @@ public class QuartzTask {
     @Autowired
     private ProductStoreService productStoreService;
 
+    @Autowired
+    private OperateLogMapper operateLogMapper;
+    @Autowired
+    private CompatibleFreightOrdersService compatibleFreightOrdersService;
+
     /**
      * 自动关闭超时未付款订单
      */
-    @Scheduled(cron = "0 0/3 * * * ?")
+    @Scheduled(cron = "0 0/10 * * * ?")
     public void updateNotPayOrdersForFinish(){
         System.out.println("更新超时付款订单状态为已关闭");
         TransactionSetting transactionSetting = transactionSettingService.getTransactionSetting();
@@ -110,8 +118,13 @@ public class QuartzTask {
         BigDecimal unpaidtimeout = transactionSetting.getUnpaidtimeout();
         int unpaidtimeoutHour = unpaidtimeout.intValue();
 
+
+
+
         List<Orders> orders = orderTaskMapper.getOuttimeNotPayOrders(unpaidtimeoutHour+" hour");
         for (Orders order : orders) {
+
+
             if (order.getCreatetime() != null) {
                 Orders updateOrder = new Orders();
                 updateOrder.setId(order.getId());
@@ -130,64 +143,9 @@ public class QuartzTask {
 
 
 
-    /**
-     * 冻结金额到货款自动确认
-     * 之前应杰写的在最下面
-     */
-    /*
-   // @Scheduled(cron = "0 0/3 * * * ?")
-    public void autoFreezeToGoodsBanlance() throws CashException {
-        System.out.println("自动执行冻结金额到货款---开始");
-        Date date=new Date();
-
-        TransactionSetting transactionSetting = transactionSettingService.getTransactionSetting();
-
-        BigDecimal numday = transactionSetting.getFreezetotogoodspay();
-        String intervalday = "'"+numday+" day'";
-
-        //测试
-//        BigDecimal numday = new BigDecimal(2);
-//        String intervalday = "'"+numday+" min'";
-
-        List<Orders> ordersList = ordersService.getSellerSettleOrdersList(intervalday,date);
-
-        //更新冻结金额，货款金额和可开票金额
-        for(Orders  orders:ordersList){
-            Long sellerId = orders.getSaleid();
-            Member seller = memberService.getMemberById(sellerId);
-            BigDecimal differpay = orders.getFrozepay();
-
-            memberService.updateSellerMemberBalanceInDb(seller.getId(),new BigDecimal(0),differpay.multiply(new BigDecimal(-1)),differpay,differpay);
-            Member member = memberService.getMemberById(seller.getId());
-            if(member.getSellerfreezebanlance().compareTo(Quantity.BIG_DECIMAL_0) <0 ){
-                logger.error("冻结金额到货款自动确认 "+seller.getUsername()+"冻结金额不足");
-                throw new CashException(seller.getUsername()+"冻结金额不足");
-            }
-
-            //将订单标记为结算状态
-            Orders updateOrders = new Orders();
-            updateOrders.setId(orders.getId());
-            updateOrders.setPaymentmethod(Quantity.STATE_1);
-            ordersService.updateSingleOrder(updateOrders);
-        }
-
-        //以下代码没有什么实际作用（先暂时保留，后期看卖家已结算字段是否有使用，没有使用的话拿掉该字段）
-        List<SalerCapital> salerCapitals = ordersService.getSalerCapitalList(intervalday,date);
-        //更新资金明细设为已结算
-        for(SalerCapital salerCapital : salerCapitals){
-            SalerCapital updateSalerCapital = new SalerCapital();
-            updateSalerCapital.setId(salerCapital.getId());
-            updateSalerCapital.setSettlement(Quantity.STATE_1);
-            ordersService.updateSalerCapital(updateSalerCapital);
-        }
-
-        System.out.println("自动执行冻结金额到货款---结束");
-
-    }
-    */
 
 
-     @Scheduled(cron = "0 0/3 * * * ?")
+    @Scheduled(cron = "0 0/3 * * * ?")
     public void autoFreezeToGoodsBanlance() throws CashException {
         System.out.println("自动执行冻结金额到货款---开始");
         //Date date=new Date();
@@ -200,7 +158,6 @@ public class QuartzTask {
             Member seller = memberService.getMemberById(sellerId);
             BigDecimal differpay = orders.getFrozepay();
 
-
             memberService.updateSellerMemberBalanceInDb(seller.getId(),new BigDecimal(0),differpay.multiply(new BigDecimal(-1)),differpay.subtract(orders.getBrokepay()),differpay);
             Member member = memberService.getMemberById(seller.getId());
             if(member.getSellerfreezebanlance().compareTo(Quantity.BIG_DECIMAL_0) <0 ){
@@ -208,11 +165,6 @@ public class QuartzTask {
                 throw new CashException(seller.getUsername()+"冻结金额不足");
             }
 
-            //将订单标记为已结算状态
-//            Orders updateOrders = new Orders();
-//            updateOrders.setId(orders.getId());
-//            updateOrders.setPaymentmethod(Quantity.STATE_1);
-//            ordersService.updateSingleOrder(updateOrders);
             //将订单标记为已结算状态
             if(orderTaskMapper.settleOrders(orders.getId()) != 1){
                 throw  new CashException(orders.getOrderno()+"订单状态不正确,无法结算");
@@ -244,6 +196,7 @@ public class QuartzTask {
      * 买家订单自动确认收货
       */
     @Scheduled(cron = "0 0 0/2 * * ?")
+//    @Scheduled(cron = "0 0/2 * * * ?")
    public void  autoDeliveryGoods(){
        System.out.println("买家订单自动确认收货---开始");
 
@@ -254,10 +207,23 @@ public class QuartzTask {
        String intervalday = "'"+confirmreceipttimeout+" day'";
 
        //测试使用
-       //confirmreceipttimeout = new BigDecimal(2);
-       //String intervalday = "'"+confirmreceipttimeout+" min'";
+//       confirmreceipttimeout = new BigDecimal(2);
+//       String intervalday = "'"+confirmreceipttimeout+" min'";
 
-       orderTaskMapper.updateTimeOutNotReviceOrdersToRevice(intervalday);
+        List<Orders> list = orderTaskMapper.selectTimeOutNotReviceOrdersToRevice(intervalday);
+        for(Orders orders : list){
+            if(orderTaskMapper.updateTimeOutNotReviceOrdersToRevice(orders.getId())>0) {
+                OperateLog operateLog = new OperateLog();
+                operateLog.setOrderid(orders.getId());
+                operateLog.setOrderno(orders.getOrderno());
+                operateLog.setOptype(Quantity.STATE_0);
+                operateLog.setContent("系统自动确认订单收货");
+                operateLog.setOpname("system");
+                operateLog.setOptime(new Date());
+                operateLog.setOpid((long) 0);
+                operateLogMapper.insertSelective(operateLog);
+            }
+        }
 
        System.out.println("买家订单自动确认收货---结束");
    }
@@ -266,8 +232,9 @@ public class QuartzTask {
     /**
      * 买家订单自动确认验货
      */
-    @Scheduled(cron = "0 0 0/3 * * ?")
-    public void  autoConfirmGoods() throws CashException {
+    @Scheduled(cron = "0 0/3 * * * ?")
+//    @Scheduled(cron = "0 0/1 * * * ?")
+    public void  autoConfirmGoods() throws CashException,MyException {
         try {
             System.out.println("买家订单自动确认验货---开始");
 
@@ -281,185 +248,44 @@ public class QuartzTask {
 //        inspectionperiod = new BigDecimal(2);
 //        String intervalday = "'"+inspectionperiod+" min'";
 
-
             List<Orders> ordersList = orderTaskMapper.getTimeOutNotConfirmOrders(intervalday);
 
             for(Orders orders : ordersList){
-
                 Member member = memberService.getMemberById(orders.getMemberid());
 
                 //计算订单金额和佣金，并充值到余额和开票金额
                 List<OrderProduct> list = ordersService.getOrderProductByOrderNo(orders.getOrderno());
-                //判断是否有退货商品
-                //实际支付的总额
-                BigDecimal sellerpay = BigDecimal.valueOf(0);
-
-                //运费
-                BigDecimal frigthpay = BigDecimal.valueOf(0);
-
-                //总的佣金
-                BigDecimal totalBroke = BigDecimal.valueOf(0);
-
-                //服务费
-                BigDecimal totalServerPay = BigDecimal.valueOf(0);
-
-                //获取紧固件积分规则
-                IntegralSet integralSet1 = integralService.getIntegralSetByType(Quantity.STATE_0);
-                //获取其它积分规则
-                IntegralSet integralSet2 = integralService.getIntegralSetByType(Quantity.STATE_1);
-                //销量统计
-                Map<Long, BigDecimal> pdsaleNumMap = new HashMap<>();
-                for (OrderProduct orderProduct : list) {
-                    //退货状态0=正常1=退货中2=退货验收3=退货完成4=异议中
-                    if (orderProduct.getBackstate() == Quantity.STATE_1 || orderProduct.getBackstate() == Quantity.STATE_2 || orderProduct.getBackstate() == Quantity.STATE_4) {
-                        continue;
-                    }
-
-                    if (orderProduct.getBackstate() == Quantity.STATE_0) {
-
-                        BigDecimal saleNum = pdsaleNumMap.get(orderProduct.getPdid());
-
-                        if (saleNum == null) {
-                            pdsaleNumMap.put(orderProduct.getPdid(), orderProduct.getNum());
-                        } else {
-                            pdsaleNumMap.put(orderProduct.getPdid(), orderProduct.getNum().add(saleNum));
-                        }
-
-                        //计算佣金
-                        Long classifyid = orderProduct.getClassifyid();
-                        BigDecimal rate = BigDecimal.valueOf(0);
-
-                        //商家分类
-                        SellerCategory sellerCategory = ordersService.getSellerCategory(classifyid, orderProduct.getSellerid());
-                        if (sellerCategory != null) {
-                            if (sellerCategory.getBrokeragerate().compareTo(new BigDecimal(-1)) == 0) {
-                                SellerCategory sellerCategory1 = ordersService.getSellerCategory(sellerCategory.getParentid(), orderProduct.getSellerid());
-                                if (sellerCategory1 != null) {
-                                    if (sellerCategory1.getBrokeragerate().compareTo(new BigDecimal(-1)) == 0) {
-                                        SellerCategory sellerCategory2 = ordersService.getSellerCategory(sellerCategory1.getParentid(), orderProduct.getSellerid());
-                                        if (sellerCategory2 != null) {
-                                            rate = sellerCategory2.getBrokeragerate();
-                                        }
-                                    } else {
-                                        rate = sellerCategory1.getBrokeragerate();
-                                    }
-                                }
-                            } else {
-                                rate = sellerCategory.getBrokeragerate();
-                            }
-                        }
-
-                        Categories categories = ordersService.getCategories(classifyid);
-                        if (categories != null) {
-                            //佣金比率
-                            BigDecimal brolerRate =rate.multiply(BigDecimal.valueOf(0.01));
-                            if(brolerRate.compareTo(BigDecimal.valueOf(0))<0){
-                                brolerRate = getBrokerRate(classifyid).multiply(BigDecimal.valueOf(0.01));
-                            }
-
-                            //服务费比率 用的是category中设置的
-                            BigDecimal serverRate = getServerRate(classifyid).multiply(BigDecimal.valueOf(0.01));
-
-                            //商品单位佣金=销售单价*商品佣金比例
-                            BigDecimal singlebrokepay = orderProduct.getPrice().multiply(brolerRate);
-
-                            //商品佣金=商品单位佣金*商品数量
-                            //BigDecimal broker = (orderProduct.getActualpayment().subtract(orderProduct.getFreight())).multiply(brolerRate);
-                            BigDecimal broker = singlebrokepay.multiply(orderProduct.getNum());
-
-                            OrderProduct updateOrderProduct = new OrderProduct();
-                            updateOrderProduct.setId(orderProduct.getId());
-                            updateOrderProduct.setSinglebrokepay(singlebrokepay);
-                            updateOrderProduct.setBrokepay(broker);
-                            ordersService.updateOrderProduct(updateOrderProduct);
 
 
-                            BigDecimal servepay = (orderProduct.getActualpayment().subtract(orderProduct.getFreight())).multiply(serverRate);
-                            totalBroke = totalBroke.add(broker);
-                            totalServerPay = totalServerPay.add(servepay);
-                        }
-
-                        sellerpay = sellerpay.add(orderProduct.getActualpayment());
-                        frigthpay = frigthpay.add(orderProduct.getFreight());
-                    }
-                }
-                //保存销量
-                for (Long pdid : pdsaleNumMap.keySet()) {
-                    ProductInfo info = ordersService.getProductInfoByPrimeKey(pdid);
-                    if (info != null) {
-                        BigDecimal salenum = pdsaleNumMap.get(pdid);
-                        info.setSalesnum(info.getSalesnum() + salenum.longValue());
-                        ordersService.saveProductInfo(info);
-                    }
+                //兼容老数据， 如果订单中orderfright 为空 并且 frighttemplate 为空 说明 为老订单
+                boolean isNewOrder = false;
+                if((orders.getOrderfright() != null && orders.getOrderfright()>0) && StringUtils.hasText(orders.getFrighttemplate()) ){
+                    isNewOrder = true;
                 }
 
-                BigDecimal scope = BigDecimal.valueOf(0);
-                //紧固件
-                if (list.get(0).getProducttype() == Quantity.STATE_1) {
-                    scope = integralSet1.getScope();
-                } else {
-                    scope = integralSet2.getScope();
-                }
-
-                BigDecimal allPdPay = sellerpay.subtract(frigthpay);
-
-
-                BigDecimal integralValue = Quantity.BIG_DECIMAL_0;
-
-                if(scope.compareTo(Quantity.BIG_DECIMAL_0) >0){
-                    integralValue = allPdPay.divideToIntegralValue(scope);
-                }
-
-                if(integralValue.compareTo(Quantity.BIG_DECIMAL_0)>0 && member != null) {
-                    IntegralRecord integralRecord = new IntegralRecord();
-                    integralRecord.setMemberid(member.getId());
-                    integralRecord.setMembername(member.getUsername());
-                    integralRecord.setOrderid(orders.getId());
-                    integralRecord.setScope(integralValue);
-                    integralRecord.setType(Quantity.STATE_0);
-                    integralRecord.setCreatetime(new Date());
-                    integralRecord.setRemark("订单积分");
-                    integralService.saveIntegralRecord(integralRecord);
-
-                    memberService.updateIntegralInDb(member.getId(),integralValue,integralValue);
-                }
-
-                if(orders.getBillingtype() == Quantity.STATE_1){  //提交订单时选择开票  将billingrecord表中的state 字段由-1更改为0（待开票状态）
-                    //并且要查询该订单中是否有退款的，如果有开票金额减去退款金额
-
-                    //查询是否有退货或退款的，如果有退货开票金额要减去退货的钱
-                    List<OrderProductBack> orderProductBackList =  orderProductBackService.getByOrderNo(orders.getOrderno());
-                    BigDecimal subApply =  new BigDecimal(0);
-                    for(OrderProductBack opb : orderProductBackList){
-                        subApply =  subApply.add(opb.getBackmoney());
-                    }
-
-                    billingRecordService.updateForwordBillingState(orders.getId().toString(),orders.getMemberid(),subApply.multiply(new BigDecimal(-1)));
+                if(isNewOrder){  //分单、运费上线后的新订单
+                    compatibleFreightOrdersService.clNewFinshOrders(orders,list,member);
+                }else{
+                    compatibleFreightOrdersService.clOldFinshOrders(orders,list,member);
                 }
 
 
-                Member seller = memberService.getMemberById(orders.getSaleid());
-                //BigDecimal frozepay = sellerpay.subtract(totalBroke).setScale(2,BigDecimal.ROUND_HALF_UP);\
-                BigDecimal frozepay = sellerpay.setScale(2,BigDecimal.ROUND_HALF_UP);
-                if (seller != null) {
-                    //增加卖家冻结金额
-                    memberService.updateSellerMemberBalanceInDb(seller.getId(),Quantity.BIG_DECIMAL_0,frozepay);
-                }
+                OperateLog operateLog = new OperateLog();
+                operateLog.setOrderid(orders.getId());
+                operateLog.setOrderno(orders.getOrderno());
+                operateLog.setOptype(Quantity.STATE_0);
+                operateLog.setContent("系统自动确认订单验货");
+                operateLog.setOpname("system");
+                operateLog.setOptime(new Date());
+                operateLog.setOpid((long) 0);
+                operateLogMapper.insertSelective(operateLog);
 
-                orders.setBrokepay(totalBroke);
-                orders.setFrozepay(frozepay);
-                orders.setServerpay(totalServerPay);
 
-                int count = ordersService.updateOrdersConfirmgoods(orders);
-                if(count != 1){
-                    throw new CashException("买家订单自动确认验货出现错误，可能出现并发更新问题，所有操作已回撤，订单id:"+orders.getId());
-                }
-
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+//                try {
+//                    Thread.sleep(100);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
             }
 
             System.out.println("买家订单自动确认验货---结束");
@@ -786,6 +612,61 @@ public class QuartzTask {
     */
 
 
+    /**
+     * 冻结金额到货款自动确认
+     * 之前应杰写的在最下面
+     */
+    /*
+   // @Scheduled(cron = "0 0/3 * * * ?")
+    public void autoFreezeToGoodsBanlance() throws CashException {
+        System.out.println("自动执行冻结金额到货款---开始");
+        Date date=new Date();
+
+        TransactionSetting transactionSetting = transactionSettingService.getTransactionSetting();
+
+        BigDecimal numday = transactionSetting.getFreezetotogoodspay();
+        String intervalday = "'"+numday+" day'";
+
+        //测试
+//        BigDecimal numday = new BigDecimal(2);
+//        String intervalday = "'"+numday+" min'";
+
+        List<Orders> ordersList = ordersService.getSellerSettleOrdersList(intervalday,date);
+
+        //更新冻结金额，货款金额和可开票金额
+        for(Orders  orders:ordersList){
+            Long sellerId = orders.getSaleid();
+            Member seller = memberService.getMemberById(sellerId);
+            BigDecimal differpay = orders.getFrozepay();
+
+            memberService.updateSellerMemberBalanceInDb(seller.getId(),new BigDecimal(0),differpay.multiply(new BigDecimal(-1)),differpay,differpay);
+            Member member = memberService.getMemberById(seller.getId());
+            if(member.getSellerfreezebanlance().compareTo(Quantity.BIG_DECIMAL_0) <0 ){
+                logger.error("冻结金额到货款自动确认 "+seller.getUsername()+"冻结金额不足");
+                throw new CashException(seller.getUsername()+"冻结金额不足");
+            }
+
+            //将订单标记为结算状态
+            Orders updateOrders = new Orders();
+            updateOrders.setId(orders.getId());
+            updateOrders.setPaymentmethod(Quantity.STATE_1);
+            ordersService.updateSingleOrder(updateOrders);
+        }
+
+        //以下代码没有什么实际作用（先暂时保留，后期看卖家已结算字段是否有使用，没有使用的话拿掉该字段）
+        List<SalerCapital> salerCapitals = ordersService.getSalerCapitalList(intervalday,date);
+        //更新资金明细设为已结算
+        for(SalerCapital salerCapital : salerCapitals){
+            SalerCapital updateSalerCapital = new SalerCapital();
+            updateSalerCapital.setId(salerCapital.getId());
+            updateSalerCapital.setSettlement(Quantity.STATE_1);
+            ordersService.updateSalerCapital(updateSalerCapital);
+        }
+
+        System.out.println("自动执行冻结金额到货款---结束");
+
+    }
+    */
 
 
 
@@ -796,6 +677,7 @@ public class QuartzTask {
      * @param orderProductBack
      * @param orderProduct
      */
+    /*
     public void handleBackGoods(Member operator, OrderProductBack orderProductBack, OrderProduct orderProduct, Orders order) throws CashException {
 
         Member oldOperator = new Member();
@@ -1140,19 +1022,25 @@ public class QuartzTask {
     }
 
 
-
+*/
 
 
     @Scheduled(cron = "0 0/2 * * * ?")
     public void updateNotPayLimitOrdersForFinish(){
         System.out.println("更新限时购超时付款订单状态为已关闭");
 
+
+
+
         TransactionSetting transactionSetting = transactionSettingService.getTransactionSetting();
         BigDecimal timedoutofpayment = transactionSetting.getTimedoutofpayment();
 
-        List<Orders> ordersList = ordersService.getNotPayMoneyLimitOrders(2);
+        List<Orders> ordersList = ordersService.getNotPayMoneyLimitOrders(timedoutofpayment.intValue());
 
         for(Orders orders : ordersList){
+
+
+
             //找到该订单中的商品
             List<OrderProduct> orderProductList = orderProductServices.getByOrderid(orders.getId());
 
@@ -1291,34 +1179,34 @@ public class QuartzTask {
 
 
 
-    private  BigDecimal getServerRate(Long cateid){
-        Categories categories = categoriesService.getById(cateid);
-
-        if (categories == null){
-            return  Quantity.BIG_DECIMAL_0;
-        }
-
-        if(categories.getServicesrate() != null && categories.getServicesrate().compareTo(Quantity.BIG_DECIMAL_0) >=0){
-            return  categories.getServicesrate();
-        }else{
-            return  getServerRate(categories.getParentid());
-        }
-    }
-
-    private  BigDecimal getBrokerRate(Long cateid){
-        Categories categories = categoriesService.getById(cateid);
-
-        if (categories == null){
-            return  Quantity.BIG_DECIMAL_0;
-        }
-
-        if(categories.getBrokeragerate() != null && categories.getBrokeragerate().compareTo(Quantity.BIG_DECIMAL_0) >=0){
-            return  categories.getServicesrate();
-        }else{
-            return  getBrokerRate(categories.getParentid());
-        }
-
-    }
+//    private  BigDecimal getServerRate(Long cateid){
+//        Categories categories = categoriesService.getById(cateid);
+//
+//        if (categories == null){
+//            return  Quantity.BIG_DECIMAL_0;
+//        }
+//
+//        if(categories.getServicesrate() != null && categories.getServicesrate().compareTo(Quantity.BIG_DECIMAL_0) >=0){
+//            return  categories.getServicesrate();
+//        }else{
+//            return  getServerRate(categories.getParentid());
+//        }
+//    }
+//
+//    private  BigDecimal getBrokerRate(Long cateid){
+//        Categories categories = categoriesService.getById(cateid);
+//
+//        if (categories == null){
+//            return  Quantity.BIG_DECIMAL_0;
+//        }
+//
+//        if(categories.getBrokeragerate() != null && categories.getBrokeragerate().compareTo(Quantity.BIG_DECIMAL_0) >=0){
+//            return  categories.getBrokeragerate();
+//        }else{
+//            return  getBrokerRate(categories.getParentid());
+//        }
+//
+//    }
 
 
     /**

@@ -234,6 +234,8 @@ public class AdminShopAction {
             @ApiImplicitParam(name = "wxname",value = "微信姓名",required = false,paramType = "query",dataType = "string"),
             @ApiImplicitParam(name = "wxno",value = "微信帐号",required = false,paramType = "query",dataType = "string"),
             @ApiImplicitParam(name = "smsnotify",value = "短信通知 0=不通知，1=通知",required = false,paramType = "query",dataType = "int"),
+            @ApiImplicitParam(name = "isselflifting",value = "是否可以自提",required = true,paramType = "query",dataType = "bool"),
+            @ApiImplicitParam(name = "freightmode",value = "运费是否计入结算价 0-不计入，1-计入",required = true,paramType = "query",dataType = "int"),
 
             //公司名称companyname、电子邮箱email、联系人姓名linkman、法定经营范围businessscope、店铺名称shopname字段
     })
@@ -253,8 +255,7 @@ public class AdminShopAction {
                                              String bankcity,String bankcitysmall,String bankorgnumpic,String alipayname,String alipayno,String wxname,String wxno,
                                              String companyname,String email,String linkman,String businessscope,String shopname,
                                              //@RequestParam(required = true,defaultValue = "0") Short disparity
-                                             @RequestParam(defaultValue = "0") Short smsnotify
-    ) throws CashException {
+                                             @RequestParam(defaultValue = "0") Short smsnotify,@RequestParam(required = true,defaultValue = "true")boolean isselflifting,@RequestParam(defaultValue = "0") Short freightmode) throws CashException {
         BasicRet basicRet=new BasicRet();
 
         SellerCompanyInfo dbInfo = sellerCompanyInfoService.getById(id);
@@ -310,7 +311,8 @@ public class AdminShopAction {
 
         sellerCompanyInfo.setDeliverymode(deliverymode);
         sellerCompanyInfo.setSmsnotify(smsnotify);
-
+        sellerCompanyInfo.setIsselflifting(isselflifting);
+        sellerCompanyInfo.setFreightmode(freightmode);
 
 
 

@@ -18,6 +18,7 @@ import java.util.List;
  * create : wyh
  * date : 2018/1/10
  */
+
 @RestController
 @RequestMapping("/rest/common/activity")
 @Api(tags = "活动通用接口")

@@ -1,6 +1,8 @@
 package project.jinshang.mod_product.bean;
 
 import io.swagger.annotations.ApiModelProperty;
+import project.jinshang.mod_activity.bean.LimitTimeProd;
+import project.jinshang.mod_activity.bean.LimitTimeStore;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -76,6 +78,16 @@ public class ShopCar {
 
     @ApiModelProperty(notes = "活动id")
     private Long limitid;
+
+
+
+    ////================================================================
+
+    private ProductInfo productInfo;
+    private ProductStore productStore;
+    private LimitTimeProd limitTimeProd;
+    private LimitTimeStore limitTimeStore;
+
 
     public Long getLimitid() {
         return limitid;
@@ -267,5 +279,38 @@ public class ShopCar {
 
     public void setProtype(Short protype) {
         this.protype = protype;
+    }
+
+
+    public ProductInfo getProductInfo() {
+        return productInfo;
+    }
+
+    public void setProductInfo(ProductInfo productInfo) {
+        this.productInfo = productInfo;
+    }
+
+    public ProductStore getProductStore() {
+        return productStore;
+    }
+
+    public void setProductStore(ProductStore productStore) {
+        this.productStore = productStore;
+    }
+
+    public LimitTimeProd getLimitTimeProd() {
+        return limitTimeProd;
+    }
+
+    public void setLimitTimeProd(LimitTimeProd limitTimeProd) {
+        this.limitTimeProd = limitTimeProd;
+    }
+
+    public LimitTimeStore getLimitTimeStore() {
+        return limitTimeStore;
+    }
+
+    public void setLimitTimeStore(LimitTimeStore limitTimeStore) {
+        this.limitTimeStore = limitTimeStore;
     }
 }

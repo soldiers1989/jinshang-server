@@ -1,6 +1,7 @@
 package project.jinshang.mod_product.bean;
 
 import io.swagger.annotations.ApiModelProperty;
+import project.jinshang.mod_product.bean.dto.LogisticsInfoDto;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -67,6 +68,45 @@ public class MemberOrders {
 
     @ApiModelProperty(notes = "物流公司")
     private String logisticscompany;
+
+    private List<LogisticsInfoDto>  LogisticsInfoDtoList;
+
+
+    //添加卖家确认远期预售：0=卖家未确认该远期订单，1=卖家已确认接收该远期订单，2=卖家已确认不接收该远期订单
+    @ApiModelProperty(notes = "卖家确认远期预售")
+    private Short presellconfim;
+
+    //添加卖家预计备货完成时间
+    @ApiModelProperty(notes = "卖家预计备货完成时间")
+    private Date prestocktime;
+
+    //添加卖家远期订单手机号提醒
+    @ApiModelProperty(notes = "卖家远期订单手机号提醒")
+    private String forwardnoticephone;
+
+    public Short getPresellconfim() {
+        return presellconfim;
+    }
+
+    public void setPresellconfim(Short presellconfim) {
+        this.presellconfim = presellconfim;
+    }
+
+    public Date getPrestocktime() {
+        return prestocktime;
+    }
+
+    public void setPrestocktime(Date prestocktime) {
+        this.prestocktime = prestocktime;
+    }
+
+    public String getForwardnoticephone() {
+        return forwardnoticephone;
+    }
+
+    public void setForwardnoticephone(String forwardnoticephone) {
+        this.forwardnoticephone = forwardnoticephone;
+    }
 
     public Integer getDelaydays() {
         return delaydays;
@@ -266,5 +306,13 @@ public class MemberOrders {
 
     public void setTransactionnumber(String transactionnumber) {
         this.transactionnumber = transactionnumber;
+    }
+
+    public List<LogisticsInfoDto> getLogisticsInfoDtoList() {
+        return LogisticsInfoDtoList;
+    }
+
+    public void setLogisticsInfoDtoList(List<LogisticsInfoDto> logisticsInfoDtoList) {
+        LogisticsInfoDtoList = logisticsInfoDtoList;
     }
 }

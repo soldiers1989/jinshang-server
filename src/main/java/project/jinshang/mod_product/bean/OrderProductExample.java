@@ -65,6 +65,13 @@ public class OrderProductExample {
         distinct = false;
     }
 
+    /**
+     * null
+     * 
+     * @author wcyong
+     * 
+     * @date 2018-08-16
+     */
     protected abstract static class GeneratedCriteria {
         protected List<Criterion> criteria;
 
@@ -3305,6 +3312,66 @@ public class OrderProductExample {
             addCriterion("singlebrokepay not between", value1, value2, "singlebrokepay");
             return (Criteria) this;
         }
+
+        public Criteria andDeliveryidIsNull() {
+            addCriterion("deliveryid is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeliveryidIsNotNull() {
+            addCriterion("deliveryid is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeliveryidEqualTo(Long value) {
+            addCriterion("deliveryid =", value, "deliveryid");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeliveryidNotEqualTo(Long value) {
+            addCriterion("deliveryid <>", value, "deliveryid");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeliveryidGreaterThan(Long value) {
+            addCriterion("deliveryid >", value, "deliveryid");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeliveryidGreaterThanOrEqualTo(Long value) {
+            addCriterion("deliveryid >=", value, "deliveryid");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeliveryidLessThan(Long value) {
+            addCriterion("deliveryid <", value, "deliveryid");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeliveryidLessThanOrEqualTo(Long value) {
+            addCriterion("deliveryid <=", value, "deliveryid");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeliveryidIn(List<Long> values) {
+            addCriterion("deliveryid in", values, "deliveryid");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeliveryidNotIn(List<Long> values) {
+            addCriterion("deliveryid not in", values, "deliveryid");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeliveryidBetween(Long value1, Long value2) {
+            addCriterion("deliveryid between", value1, value2, "deliveryid");
+            return (Criteria) this;
+        }
+
+        public Criteria andDeliveryidNotBetween(Long value1, Long value2) {
+            addCriterion("deliveryid not between", value1, value2, "deliveryid");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {
@@ -3314,6 +3381,13 @@ public class OrderProductExample {
         }
     }
 
+    /**
+     * null
+     * 
+     * @author wcyong
+     * 
+     * @date 2018-08-16
+     */
     public static class Criterion {
         private String condition;
 

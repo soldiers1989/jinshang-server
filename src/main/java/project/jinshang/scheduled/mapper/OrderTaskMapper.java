@@ -23,12 +23,16 @@ public interface OrderTaskMapper {
 
     /**
      * 将买家超时未收货的订单更新为已收货状态
-     * @param intervalday
+     * @param id
      * @return
      */
     @Update("update  orders set orderstatus=4,buyerdeliverytime=now() where orderstatus=3 " +
-            "and sellerdeliverytime + INTERVAL ${intervalday} < now()")
-    int updateTimeOutNotReviceOrdersToRevice(@Param("intervalday") String intervalday);
+            "and id=#{id}")
+    int updateTimeOutNotReviceOrdersToRevice(@Param("id") Long id);
+
+    @Select("select id,orderno from  orders  where orderstatus=3 and sellerdeliverytime + INTERVAL ${intervalday} < now() ")
+    List<Orders> selectTimeOutNotReviceOrdersToRevice(@Param("intervalday") String intervalday);
+
 
 
     /**
@@ -36,17 +40,17 @@ public interface OrderTaskMapper {
      * @param intervalday
      * @return
      */
-//    @Select("select O.* from orders O where orderstatus=4 " +
-//            "and O.buyerdeliverytime + INTERVAL ${intervalday} < now() and O.id not in " +
-//            "(select orderid from orderproduct P where O.id=P.orderid and (P.backstate != 0 and P.backstate != 3))")
-//    List<Orders> getTimeOutNotConfirmOrders(@Param("intervalday") String intervalday);
+    @Select("select O.* from orders O where orderstatus=4 " +
+            "and O.buyerdeliverytime + INTERVAL ${intervalday} < now() and O.id not in " +
+            "(select orderid from orderproduct P where O.id=P.orderid and (P.backstate != 0 and P.backstate != 3))")
+    List<Orders> getTimeOutNotConfirmOrders(@Param("intervalday") String intervalday);
 
 
     //暂时使用，过一段时间后使用上面的代码
-    @Select("select O.* from orders O where orderstatus=4 " +
-            "and O.sellerdeliverytime + INTERVAL '25 day' < now() and O.id not in " +
-            "(select orderid from orderproduct P where O.id=P.orderid and (P.backstate != 0 and P.backstate != 3)) limit 100")
-    List<Orders> getTimeOutNotConfirmOrders(@Param("intervalday") String intervalday);
+//    @Select("select O.* from orders O where orderstatus=4 " +
+//            "and O.sellerdeliverytime + INTERVAL ${intervalday} < now() and O.id not in " +
+//            "(select orderid from orderproduct P where O.id=P.orderid and (P.backstate != 0 and P.backstate != 3)) limit 300")
+//    List<Orders> getTimeOutNotConfirmOrders(@Param("intervalday") String intervalday);
 
 
 

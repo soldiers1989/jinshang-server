@@ -97,6 +97,30 @@ public class BuyerCompanyAction {
             basicRet.setMessage("之前已经升级为公司帐号了");
             return basicRet;
         }
+        InvoiceInfo invoiceInfo1 = invoiceService.selectInvoiceInfo(info.getCompanyname(),info.getTaxregistrationcertificate());
+        if(invoiceInfo1==null) {
+
+            //完善公司信息后，买家发票新增公司信息相关发票信息
+            InvoiceInfo invoiceInfo = new InvoiceInfo();
+            invoiceInfo.setDefaultbill((short) 1);
+            invoiceInfo.setMemberid(member.getId());
+            invoiceInfo.setCreatedate(new Date());
+            invoiceInfo.setUpdatedate(new Date());
+            invoiceInfo.setAvailable((short) 0);
+            invoiceInfo.setInvoiceheadup(info.getCompanyname());
+            invoiceInfo.setBankofaccounts(info.getBankname());
+            invoiceInfo.setTexno(info.getTaxregistrationcertificate());
+            invoiceInfo.setAccount(info.getBankaccount());
+            invoiceInfo.setAddress(info.getProvince() + "" + info.getCity() + "" + info.getCitysmall() + "" + info.getAddress());
+            invoiceInfo.setReceiveaddress(info.getProvince() + "" + info.getCity() + "" + info.getCitysmall() + "" + info.getAddress());
+            invoiceInfo.setLinkman(info.getBankuser());
+            invoiceInfo.setPhone(info.getMobile());
+            invoiceService.updateInvoiceInfoByMemberid(member.getId());
+        /*if(member.getCompany()){
+            invoiceService.deleteInvoiceInfoByMemberid(member.getId());
+        }*/
+            invoiceService.addInvoiceInfo(invoiceInfo);
+        }
 
         buyerCompanyService.applyForCompany(info);
         basicRet.setMessage("升级为公司帐号");
@@ -161,27 +185,31 @@ public class BuyerCompanyAction {
         buyerCompanyInfo.setUpdatedate(new Date());
         buyerCompanyService.updateByPrimaryKeySelective(buyerCompanyInfo);
 
-        //完善公司信息后，买家发票新增公司信息相关发票信息
-        InvoiceInfo invoiceInfo = new InvoiceInfo();
-        invoiceInfo.setDefaultbill((short) 1);
-        invoiceInfo.setMemberid(member.getId());
-        invoiceInfo.setCreatedate(new Date());
-        invoiceInfo.setUpdatedate(new Date());
-        invoiceInfo.setAvailable((short) 0);
-        invoiceInfo.setInvoiceheadup(buyerCompanyInfo.getCompanyname());
-        invoiceInfo.setBankofaccounts(buyerCompanyInfo.getBankname());
-        invoiceInfo.setTexno(buyerCompanyInfo.getTaxregistrationcertificate());
-        invoiceInfo.setAccount(buyerCompanyInfo.getBankaccount());
-        invoiceInfo.setAddress(buyerCompanyInfo.getProvince()+""+buyerCompanyInfo.getCity()+""+buyerCompanyInfo.getCitysmall()+""+buyerCompanyInfo.getAddress());
-        invoiceInfo.setReceiveaddress(buyerCompanyInfo.getProvince()+""+buyerCompanyInfo.getCity()+""+buyerCompanyInfo.getCitysmall()+""+buyerCompanyInfo.getAddress());
-        invoiceInfo.setLinkman(buyerCompanyInfo.getBankuser());
-        invoiceInfo.setPhone(mobile);
-        invoiceService.updateInvoiceInfoByMemberid(member.getId());
+        InvoiceInfo invoiceInfo1 = invoiceService.selectInvoiceInfo(buyerCompanyInfo.getCompanyname(),buyerCompanyInfo.getTaxregistrationcertificate());
+        if(invoiceInfo1==null) {
+
+            //完善公司信息后，买家发票新增公司信息相关发票信息
+            InvoiceInfo invoiceInfo = new InvoiceInfo();
+            invoiceInfo.setDefaultbill((short) 1);
+            invoiceInfo.setMemberid(member.getId());
+            invoiceInfo.setCreatedate(new Date());
+            invoiceInfo.setUpdatedate(new Date());
+            invoiceInfo.setAvailable((short) 0);
+            invoiceInfo.setInvoiceheadup(buyerCompanyInfo.getCompanyname());
+            invoiceInfo.setBankofaccounts(buyerCompanyInfo.getBankname());
+            invoiceInfo.setTexno(buyerCompanyInfo.getTaxregistrationcertificate());
+            invoiceInfo.setAccount(buyerCompanyInfo.getBankaccount());
+            invoiceInfo.setAddress(buyerCompanyInfo.getProvince() + "" + buyerCompanyInfo.getCity() + "" + buyerCompanyInfo.getCitysmall() + "" + buyerCompanyInfo.getAddress());
+            invoiceInfo.setReceiveaddress(buyerCompanyInfo.getProvince() + "" + buyerCompanyInfo.getCity() + "" + buyerCompanyInfo.getCitysmall() + "" + buyerCompanyInfo.getAddress());
+            invoiceInfo.setLinkman(buyerCompanyInfo.getBankuser());
+            invoiceInfo.setPhone(mobile);
+            invoiceService.updateInvoiceInfoByMemberid(member.getId());
+
         /*if(member.getCompany()){
             invoiceService.deleteInvoiceInfoByMemberid(member.getId());
         }*/
-        invoiceService.addInvoiceInfo(invoiceInfo);
-
+            invoiceService.addInvoiceInfo(invoiceInfo);
+        }
         basicRet.setMessage("修改成功");
         basicRet.setResult(BasicRet.SUCCESS);
 

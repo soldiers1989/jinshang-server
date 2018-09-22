@@ -6,6 +6,8 @@ import java.util.Map;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.SelectProvider;
+import org.apache.ibatis.annotations.Update;
+import project.jinshang.mod_admin.mod_shopgroup.bean.dto.ShopGroupAndStoreView;
 import project.jinshang.mod_admin.mod_store.bean.StoreManageQueryDto;
 import project.jinshang.mod_admin.mod_store.provider.StoreManageProvider;
 import project.jinshang.mod_company.bean.Store;
@@ -49,5 +51,13 @@ public interface StoreMapper {
 
     @SelectProvider(type = StoreManageProvider.class,method = "searchManageList")
     List<Map<String,Object>> searchManageList(StoreManageQueryDto queryDto);
+
+    @SelectProvider(type=StoreManageProvider.class,method ="getByShopGroupIdAndName")
+    List<ShopGroupAndStoreView> getByShopGroupIdAndName(@Param("dto")Store dto);
+
+
+    @Update("update store set shopgroupid=0 where shopgroupid=#{shopgroupid} ")
+    int resertStoreShopGroup(@Param("shopgroupid")Long shopGroupId);
+
 
 }

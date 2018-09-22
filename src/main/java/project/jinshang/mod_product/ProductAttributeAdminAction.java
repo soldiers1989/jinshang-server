@@ -6,19 +6,26 @@ import com.google.gson.reflect.TypeToken;
 import io.swagger.annotations.*;
 import mizuki.project.core.restserver.config.BasicRet;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import project.jinshang.common.bean.AdminLogOperator;
 import project.jinshang.common.bean.PageRet;
 import project.jinshang.common.constant.AdminAuthorityConst;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.utils.CommonUtils;
+import project.jinshang.common.utils.StringUtils;
+import project.jinshang.mod_member.bean.Admin;
 import project.jinshang.mod_product.bean.*;
 import project.jinshang.mod_product.service.*;
 
+import javax.servlet.http.HttpServletRequest;
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * create : wyh
@@ -34,27 +41,21 @@ public class ProductAttributeAdminAction {
 
     @Autowired
     private MaterialService materialService;
-
     @Autowired
     private CardNumService cardNumService;
-
-
     @Autowired
     private ProductNameService productNameService;
-
     @Autowired
     private AttributetblService attributetblService;
-
     @Autowired
     private AttvalueService attvalueService;
-
-
     @Autowired
     private  CategoriesService categoriesService;
-
-
     @Autowired
     private  ProductInfoService productInfoService;
+    @Autowired
+    private AdminOperateLogService adminOperateLogService;
+    AdminLogOperator adminLogOperator=new AdminLogOperator();
 
 
     @PostMapping("/attr/add")
@@ -66,11 +67,13 @@ public class ProductAttributeAdminAction {
             @ApiImplicitParam(name = "connector",value = "连接符",required = false,dataType = "string",paramType = "query",defaultValue = "*"),
             @ApiImplicitParam(name = "remark",value = "备注",required = false,dataType = "string",paramType = "query"),
     })
+    @PreAuthorize("hasAuthority('" + AdminAuthorityConst.PRODUCTATTRIBUTE + "')")
     public  BasicRet addAttr(@RequestParam(required = true) long productnameid,
                              @RequestParam(required = true) String name,
                              @RequestParam(required = false,defaultValue = "0") int sort,
                              @RequestParam(required = false,defaultValue = "*") String connector,
-                             @RequestParam(required = false,defaultValue = "") String remark){
+                             @RequestParam(required = false,defaultValue = "") String remark,
+                             Model model,HttpServletRequest request){
         BasicRet basicRet =  new BasicRet();
 
         ProductName productName = productNameService.getById(productnameid);
@@ -98,6 +101,8 @@ public class ProductAttributeAdminAction {
         attributetblService.add(attributetbl);
         basicRet.setResult(BasicRet.SUCCESS);
         basicRet.setMessage("添加成功");
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        adminLogOperator.saveAdminLog(admin,"品名:"+productName.getName()+"新增属性:"+name,(short)1,"attributetbl",request,adminOperateLogService);
         return  basicRet;
     }
 
@@ -125,12 +130,16 @@ public class ProductAttributeAdminAction {
             @ApiImplicitParam(name = "paramvalue",value = "属性值",required = true,dataType = "string",paramType = "query"),
             @ApiImplicitParam(name = "sort",value = "排序",required = true,dataType = "int",paramType = "query"),
             @ApiImplicitParam(name = "mark",value = "备注",required = false,dataType = "int",paramType = "query"),
+            @ApiImplicitParam(name = "productName",value = "品名",required = true,dataType = "string",paramType = "query"),
+            @ApiImplicitParam(name = "attrname",value = "属性名",required = true,dataType = "string",paramType = "query"),
     })
+    @PreAuthorize("hasAuthority('" + AdminAuthorityConst.PRODUCTATTRIBUTE + "')")
     public BasicRet updateAttrvalue(
                                  @RequestParam(required = true) long id,
                                  @RequestParam(required = true) String paramvalue,
                                  @RequestParam(required = true) int sort,
-                                 @RequestParam(required = false,defaultValue = "")String mark){
+                                 @RequestParam(required = false,defaultValue = "")String mark,
+                                 Model model,HttpServletRequest request,String productName,String attrname){
         BasicRet basicRet = new BasicRet();
 
         Attvalue dbAttvalue = attvalueService.getByAttidAndValue(id,paramvalue);
@@ -151,30 +160,71 @@ public class ProductAttributeAdminAction {
         attvalue.setSort(sort);
         attvalue.setMark(mark);
 
-        attvalueService.updateById(attvalue);
+        Attributetbl attributetbl = attributetblService.selectByPrimaryKey(attvalue.getAttid());
+        if(attributetbl.getName().equalsIgnoreCase("公称直径") || attributetbl.getName().equalsIgnoreCase("长度")){
+            this.checkValue(attvalue,attributetbl.getName());
+        }else  if(attributetbl.getName().equalsIgnoreCase("牙距")){
+            attvalue.setParamvalue(convertValue(attvalue.getParamvalue()));
+        }else  if(attributetbl.getName().equalsIgnoreCase("厚度")) {
+            attvalue.setParamvalue(convertValue(attvalue.getParamvalue()));
+        }
 
+
+        attvalueService.updateById(attvalue);
 
         basicRet.setMessage("修改成功");
         basicRet.setResult(BasicRet.SUCCESS);
-
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        adminLogOperator.saveAdminLog(admin,"品名:"+productName+"的属性:"+attrname+"修改属性值:"+paramvalue,(short)3,"attvalue",request,adminOperateLogService);
         return basicRet;
     }
 
+
+
+    /**
+     * 处理属性数据
+     * @param
+     */
+    private void checkValue(Attvalue attvalue,String attributeName){
+        String attv = attvalue.getParamvalue();
+        if(attributeName.equals("公称直径")) {
+            if (attvalue.getParamvalue().startsWith("#")) {
+                attv = attv.substring(1, attv.length()) + "#";
+                attvalue.setParamvalue(attv);
+            }else if(attv.endsWith("\"") || attv.endsWith("″")){
+                attv = attv.substring(0, attv.length()-1);
+                attvalue.setParamvalue(attv);
+            }else if(attv.startsWith("φ") || attv.startsWith("∮")){
+                attv = "Ф"+attv.substring(1, attv.length());
+                attvalue.setParamvalue(attv);
+            }
+        }else if(attributeName.equals("长度")){
+            if(attv.endsWith("\"") || attv.endsWith("″")) {
+                attv = attv.substring(0, attv.length() - 1);
+                attvalue.setParamvalue(attv);
+            }
+        }
+    }
 
 
     @RequestMapping(value = "/attrvalue/del",method = RequestMethod.POST)
     @ApiOperation("删除属性值")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "id",value = "属性值id",required = true,dataType = "int",paramType = "query"),
+            @ApiImplicitParam(name = "productName",value = "品名",required = true,dataType = "string",paramType = "query"),
+            @ApiImplicitParam(name = "attrname",value = "属性名",required = true,dataType = "string",paramType = "query"),
     })
-    public BasicRet delAttrvalue(@RequestParam(required = true) long id){
+    @PreAuthorize("hasAuthority('" + AdminAuthorityConst.PRODUCTATTRIBUTE + "')")
+    public BasicRet delAttrvalue(@RequestParam(required = true) long id,
+                                 Model model,HttpServletRequest request,String productName,String attrname){
         BasicRet basicRet = new BasicRet();
-
+        Attvalue attvalue = attvalueService.getById(id);
         attvalueService.delById(id);
 
         basicRet.setMessage("删除成功");
         basicRet.setResult(BasicRet.SUCCESS);
-
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        adminLogOperator.saveAdminLog(admin,"品名:"+productName+"的属性:"+attrname+"删除属性值:"+attvalue.getParamvalue(),(short)2,"attvalue",request,adminOperateLogService);
         return basicRet;
     }
 
@@ -189,11 +239,15 @@ public class ProductAttributeAdminAction {
             @ApiImplicitParam(name = "paramvalue",value = "属性值",required = true,dataType = "string",paramType = "query"),
             @ApiImplicitParam(name = "sort",value = "排序",required = true,dataType = "int",paramType = "query"),
             @ApiImplicitParam(name = "mark",value = "备注",required = false,dataType = "int",paramType = "query"),
+            @ApiImplicitParam(name = "productName",value = "品名",required = true,dataType = "string",paramType = "query"),
+            @ApiImplicitParam(name = "attrname",value = "属性名",required = true,dataType = "string",paramType = "query"),
     })
+    @PreAuthorize("hasAuthority('" + AdminAuthorityConst.PRODUCTATTRIBUTE + "')")
     public BasicRet addAttrvalue(@RequestParam(required = true) long attid,
                                  @RequestParam(required = true) String paramvalue,
                                  @RequestParam(required = true) int sort,
-                                 @RequestParam(required = false,defaultValue = "")String mark){
+                                 @RequestParam(required = false,defaultValue = "")String mark,
+                                 Model model,HttpServletRequest request,String productName,String attrname){
         BasicRet basicRet = new BasicRet();
 
         Attvalue attvalue = attvalueService.getByAttidAndValue(attid,paramvalue);
@@ -209,13 +263,50 @@ public class ProductAttributeAdminAction {
         attvalue.setSort(sort);
         attvalue.setMark(mark);
 
+
+        Attributetbl attributetbl = attributetblService.selectByPrimaryKey(attvalue.getAttid());
+        if(attributetbl.getName().equalsIgnoreCase("公称直径") || attributetbl.getName().equalsIgnoreCase("长度")){
+            this.checkValue(attvalue,attributetbl.getName());
+        }else  if(attributetbl.getName().equalsIgnoreCase("牙距")){
+            attvalue.setParamvalue(this.convertValue(attvalue.getParamvalue()));
+        }else  if(attributetbl.getName().equalsIgnoreCase("厚度")){
+            attvalue.setParamvalue(this.convertValue(attvalue.getParamvalue()));
+        }
+
+
         attvalueService.add(attvalue);
 
 
         basicRet.setMessage("添加成功");
         basicRet.setResult(BasicRet.SUCCESS);
-
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        adminLogOperator.saveAdminLog(admin,"品名:"+productName+"的属性:"+attrname+"新增属性值:"+paramvalue,(short)1,"attvalue",request,adminOperateLogService);
         return basicRet;
+    }
+
+
+    public static String convertValue(String value) {
+        if(StringUtils.isNumeric(value)){
+            //牙距值小于 10 的整数（不包含 10），自动为其小数点后补一位 0；
+            if(Double.parseDouble(value) < 10 && StringUtils.isInteger(value)){
+                return value+".0";
+            }else if(Double.parseDouble(value) >=10){
+                return BigDecimal.valueOf(Double.parseDouble(value))
+                        .stripTrailingZeros().toPlainString();
+            }else{
+                Pattern pattern = Pattern.compile("(\\d+)\\.(0+)$");
+                Matcher matcher = pattern.matcher(value);
+                if(matcher.find()){
+                    //System.out.println(St);
+                    return BigDecimal.valueOf(Double.parseDouble(value))
+                            .stripTrailingZeros().toPlainString()+".0";
+                }else{
+                    return BigDecimal.valueOf(Double.parseDouble(value))
+                            .stripTrailingZeros().toPlainString();
+                }
+            }
+        }
+        return value;
     }
 
 
@@ -337,13 +428,6 @@ public class ProductAttributeAdminAction {
     }
 
 
-
-
-
-
-
-
-
     @RequestMapping(value = "/productname/listByCatid",method = RequestMethod.POST)
     @ApiOperation("按照分类查询品名")
     public  ProductNameListRet listProductNameByCatid(long catid){
@@ -356,16 +440,13 @@ public class ProductAttributeAdminAction {
 
 
 
-
-
-
     @RequestMapping(value = "/productname/del",method = RequestMethod.POST)
     @ApiOperation("删除品名")
     @ApiImplicitParams({
             @ApiImplicitParam(value = "品名id",name = "id",dataType = "int",paramType = "query",required = true)
     })
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.IDENTITYMANAGEMENT + "')")
-    public  BasicRet delProductName(@RequestParam(required = true) long id){
+    public  BasicRet delProductName(@RequestParam(required = true) long id,Model model,HttpServletRequest request){
         BasicRet basicRet = new BasicRet();
 
         ProductInfoExample example =new ProductInfoExample();
@@ -377,11 +458,13 @@ public class ProductAttributeAdminAction {
             basicRet.setResult(BasicRet.ERR);
             return  basicRet;
         }
-
+        ProductName productName = productNameService.getById(id);
         productNameService.deleteById(id);
 
         basicRet.setMessage("删除成功");
         basicRet.setResult(BasicRet.SUCCESS);
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        adminLogOperator.saveAdminLog(admin,"删除品名:"+productName.getName(),(short)2,"productname",request,adminOperateLogService);
         return  basicRet;
     }
 
@@ -403,7 +486,9 @@ public class ProductAttributeAdminAction {
                                        @RequestParam(required = true) long typeid,
                                        @RequestParam(required = true) String prodno,
                                        @RequestParam(required =  true) String unit,
-                                       @RequestParam(defaultValue = "") String mark){
+                                       @RequestParam(defaultValue = "") String mark,
+                                       HttpServletRequest request,
+                                       Model model){
         BasicRet basicRet = new BasicRet();
 
         Categories categories =  categoriesService.getById(typeid);
@@ -432,12 +517,11 @@ public class ProductAttributeAdminAction {
 
         basicRet.setResult(BasicRet.SUCCESS);
         basicRet.setMessage("修改成功");
-
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        //保存管理员修改品名日志
+        adminLogOperator.saveAdminLog(admin,"修改品名:"+name,(short)3,"productname",request,adminOperateLogService);
         return  basicRet;
     }
-
-
-
 
 
     @RequestMapping(value = "/productname/add",method = RequestMethod.POST)
@@ -456,7 +540,8 @@ public class ProductAttributeAdminAction {
                                    @RequestParam(required = true) String prodno,
                                    @RequestParam(required =  true) String unit,
                                    @RequestParam(required = true) String attrJson,
-                                   @RequestParam(defaultValue = "") String mark){
+                                   @RequestParam(defaultValue = "") String mark,
+                                   Model model,HttpServletRequest request){
         BasicRet basicRet = new BasicRet();
 
         if(!CommonUtils.isGoodJson(attrJson)){
@@ -464,7 +549,6 @@ public class ProductAttributeAdminAction {
             basicRet.setResult(BasicRet.ERR);
             return  basicRet;
         }
-
 
         Categories categories =  categoriesService.getById(typeid);
         if(categories == null){
@@ -486,9 +570,7 @@ public class ProductAttributeAdminAction {
         productName.setUnit(unit);
         productName.setMark(mark);
         productName.setProdno(prodno);
-
         productNameService.add(productName);
-
 
         Gson gson = new Gson();
         List<Attributetbl> attributetblList = gson.fromJson(attrJson,new TypeToken<List<Attributetbl>>() {}.getType());
@@ -499,7 +581,8 @@ public class ProductAttributeAdminAction {
 
         basicRet.setResult(BasicRet.SUCCESS);
         basicRet.setMessage("添加成功");
-
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        adminLogOperator.saveAdminLog(admin,"新增品名:"+name,(short)1,"productname",request,adminOperateLogService);
         return  basicRet;
     }
 
@@ -519,30 +602,24 @@ public class ProductAttributeAdminAction {
             return  materialManageRet;
         }
 
-
         List<CardNum> cardNumList = cardNumService.getListByMaterialid(materialId);
-
 
         materialManageRet.material = material;
         materialManageRet.cardNumList = cardNumList;
         materialManageRet.setResult(BasicRet.SUCCESS);
         materialManageRet.setMessage("查询成功");
-
         return  materialManageRet;
     }
-
-
 
 
     @RequestMapping(value = "/cardnum/del",method = RequestMethod.POST)
     @ApiOperation(value = "删除牌号")
     @ApiImplicitParams({
             @ApiImplicitParam(value = "ID", name = "id", required = true, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(value = "材质名称", name = "materialName", required = true, paramType = "query", dataType = "string"),
     })
-    public BasicRet delCardNum(@RequestParam(required = true) long id){
+    public BasicRet delCardNum(@RequestParam(required = true) long id,Model model,HttpServletRequest request,@RequestParam(required = true)String materialName){
         BasicRet basicRet = new BasicRet();
-
-
         ProductInfoExample example =new ProductInfoExample();
         ProductInfoExample.Criteria criteria = example.createCriteria();
         criteria.andCardnumidEqualTo(id);
@@ -552,13 +629,13 @@ public class ProductAttributeAdminAction {
             basicRet.setResult(BasicRet.ERR);
             return  basicRet;
         }
-
-
-
+        CardNum cardnum = cardNumService.getById(id);
         cardNumService.delete(id);
 
         basicRet.setMessage("删除成功");
         basicRet.setResult(BasicRet.SUCCESS);
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        adminLogOperator.saveAdminLog(admin,"材质:"+materialName+"删除牌号:"+cardnum.getName(),(short)2,"cardnum",request,adminOperateLogService);
         return  basicRet;
     }
 
@@ -573,7 +650,8 @@ public class ProductAttributeAdminAction {
     })
     public BasicRet addCardNum(@RequestParam(required =  true) String name,
                                @RequestParam(required = true) long matialid,
-                               @RequestParam(required = true) int number){
+                               @RequestParam(required = true) int number,
+                               Model model,HttpServletRequest request){
         BasicRet basicRet = new BasicRet();
 
         Material material =  materialService.getById(matialid);
@@ -602,6 +680,8 @@ public class ProductAttributeAdminAction {
 
         basicRet.setMessage("添加成功");
         basicRet.setResult(BasicRet.SUCCESS);
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        adminLogOperator.saveAdminLog(admin,"材质:"+material.getName()+"新增牌号:"+name,(short)1,"cardnum",request,adminOperateLogService);
         return  basicRet;
     }
 
@@ -621,12 +701,10 @@ public class ProductAttributeAdminAction {
             return  cardNumRet;
         }
 
-
         cardNumRet.data.cardNum  =  cardNum;
         cardNumRet.setResult(BasicRet.SUCCESS);
         cardNumRet.setMessage("查询成功");
         return  cardNumRet;
-
     }
 
 
@@ -643,7 +721,8 @@ public class ProductAttributeAdminAction {
                                @RequestParam(required =  true) long id,
                                @RequestParam(required =  true) String name,
                                @RequestParam(required = true) long matialid,
-                               @RequestParam(required = true) int number){
+                               @RequestParam(required = true) int number,
+                               Model model,HttpServletRequest request){
         BasicRet basicRet = new BasicRet();
 
         Material material =  materialService.getById(matialid);
@@ -668,11 +747,12 @@ public class ProductAttributeAdminAction {
         cardNum.setMatialid(matialid);
         cardNum.setName(name);
         cardNum.setNumber(number);
-
         cardNumService.update(cardNum);
 
         basicRet.setMessage("修改成功");
         basicRet.setResult(BasicRet.SUCCESS);
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        adminLogOperator.saveAdminLog(admin,"材质:"+material.getName()+"修改牌号:"+name,(short)3,"cardnum",request,adminOperateLogService);
         return  basicRet;
     }
 
@@ -681,9 +761,8 @@ public class ProductAttributeAdminAction {
     @RequestMapping(value = "/material/del",method = RequestMethod.POST)
     @ApiOperation(value = "根据id删除材质信息")
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.MATERIALMANAGEMENT + "')")
-    public  BasicRet delMaterial(@RequestParam(required =  true)long id){
+    public  BasicRet delMaterial(@RequestParam(required =  true)long id, Model model, HttpServletRequest request){
         BasicRet basicRet = new BasicRet();
-
 
         ProductInfoExample example =new ProductInfoExample();
         ProductInfoExample.Criteria criteria = example.createCriteria();
@@ -694,11 +773,13 @@ public class ProductAttributeAdminAction {
             basicRet.setResult(BasicRet.ERR);
             return  basicRet;
         }
-
+        Material material = materialService.getById(id);
         materialService.deleteById(id);
 
         basicRet.setMessage("删除成功");
         basicRet.setResult(BasicRet.SUCCESS);
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        adminLogOperator.saveAdminLog(admin,"删除材质:"+material.getName(),(short)2,"material",request,adminOperateLogService);
         return  basicRet;
     }
 
@@ -725,7 +806,8 @@ public class ProductAttributeAdminAction {
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.MATERIALMANAGEMENT + "')")
     public BasicRet addMaterial(@RequestParam(required =  true)String name,
                                 @RequestParam(required = true) int number,
-                                @RequestParam(required = false) String img){
+                                @RequestParam(required = false) String img,
+                                Model model,HttpServletRequest request){
         BasicRet basicRet = new BasicRet();
 
         Material material = materialService.getByName(name);
@@ -739,11 +821,12 @@ public class ProductAttributeAdminAction {
         material.setName(name);
         material.setNumber(number);
         material.setImg(img);
-
         materialService.add(material);
 
         basicRet.setMessage("添加成功");
         basicRet.setResult(BasicRet.SUCCESS);
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        adminLogOperator.saveAdminLog(admin,"新增材质:"+name,(short)1,"material",request,adminOperateLogService);
         return  basicRet;
     }
 
@@ -762,7 +845,8 @@ public class ProductAttributeAdminAction {
                                 @RequestParam(required = true) long id,
                                 @RequestParam(required =  true)String name,
                                 @RequestParam(required = true) int number,
-                                @RequestParam(required = false) String img){
+                                @RequestParam(required = false) String img,
+                                Model model , HttpServletRequest request){
         BasicRet basicRet = new BasicRet();
 
 
@@ -784,6 +868,8 @@ public class ProductAttributeAdminAction {
 
         basicRet.setMessage("修改成功");
         basicRet.setResult(BasicRet.SUCCESS);
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        adminLogOperator.saveAdminLog(admin,"修改材质:"+name,(short)3,"material",request,adminOperateLogService);
         return  basicRet;
     }
 

@@ -1,28 +1,29 @@
 package project.jinshang.mod_product.service;
 
+import com.alipay.api.AlipayApiException;
+import com.github.binarywang.wxpay.exception.WxPayException;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.netflix.discovery.converters.Auto;
 import mizuki.project.core.restserver.config.BasicRet;
-import org.apache.ibatis.annotations.Param;
+import mizuki.project.core.restserver.util.JsonUtil;
+import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
-import org.springframework.ui.Model;
 import project.jinshang.common.bean.MemberLogOperator;
-import project.jinshang.common.constant.AgentDeliveryAddressConst;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.exception.CashException;
+import project.jinshang.common.exception.MyException;
 import project.jinshang.common.utils.*;
-import project.jinshang.mod_activity.bean.LimitTimeProd;
-import project.jinshang.mod_activity.bean.LimitTimeStore;
 import project.jinshang.mod_admin.mod_count.bean.OrderComplex;
 import project.jinshang.mod_admin.mod_count.bean.OrderStatisticModel;
+import project.jinshang.mod_admin.mod_excelexport.ExcepExportAction;
 import project.jinshang.mod_admin.mod_inte.IntegralRecordMapper;
 import project.jinshang.mod_admin.mod_inte.IntegralSetMapper;
 import project.jinshang.mod_admin.mod_inte.bean.IntegralRecord;
@@ -42,23 +43,23 @@ import project.jinshang.mod_common.service.SmsTemplateService;
 import project.jinshang.mod_company.SellerCompanyInfoMapper;
 import project.jinshang.mod_company.StoreMapper;
 import project.jinshang.mod_company.bean.SellerCompanyInfo;
-import project.jinshang.mod_company.bean.SellerCompanyInfoExample;
 import project.jinshang.mod_company.bean.Store;
-import project.jinshang.mod_company.service.SellerCompanyCacheService;
 import project.jinshang.mod_invoice.InvoiceInfoMapper;
 import project.jinshang.mod_invoice.bean.InvoiceInfo;
 import project.jinshang.mod_member.MemberMapper;
 import project.jinshang.mod_member.SellerCategoryMapper;
-import project.jinshang.mod_member.bean.Member;
-import project.jinshang.mod_member.bean.MemberRateSetting;
-import project.jinshang.mod_member.bean.SellerCategory;
-import project.jinshang.mod_member.bean.SellerCategoryExample;
+import project.jinshang.mod_member.bean.*;
+import project.jinshang.mod_member.service.ApiRecordService;
 import project.jinshang.mod_member.service.MemberRateSettingService;
 import project.jinshang.mod_member.service.MemberService;
 import project.jinshang.mod_pay.bean.Refund;
+import project.jinshang.mod_pay.mod_alipay.AlipayService;
+import project.jinshang.mod_pay.mod_bankpay.AbcService;
+import project.jinshang.mod_pay.mod_wxpay.MyWxPayService;
+import project.jinshang.mod_pay.service.TradeService;
 import project.jinshang.mod_product.*;
 import project.jinshang.mod_product.bean.*;
-import project.jinshang.mod_product.bean.dto.OrdersView;
+import project.jinshang.mod_product.bean.dto.OrdersLogisticsInfoDto;
 import project.jinshang.mod_shippingaddress.ShippingAddressMapper;
 import project.jinshang.mod_shippingaddress.bean.ShippingAddress;
 import project.jinshang.mod_shippingaddress.bean.ShippingAddressExample;
@@ -66,6 +67,8 @@ import project.jinshang.mod_wms_middleware.WMSService;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.SimpleDateFormat;
@@ -145,7 +148,8 @@ public class OrdersService {
 
     @Autowired
     private IntegralSetMapper integralSetMapper;
-
+    @Autowired
+    private AreaCostService areaCostService;
 
     @Autowired
     private MemberOperateLogMapper memberOperateLogMapper;
@@ -186,9 +190,45 @@ public class OrdersService {
     private MemberOperateLogService memberOperateLogService;
     @Autowired
     private MemberRateSettingService memberRateSettingService;
+    @Autowired
+    private TradeService tradeService;
+    @Autowired
+    private AlipayService alipayService;
+    @Autowired
+    private MyWxPayService wxPayService;
+    @Autowired
+    private AbcService abcService;
+
+    @Autowired
+    private OrderProductBackInfoService orderProductBackInfoService;
+
+    @Autowired
+    private LogisticsInfoService logisticsInfoService;
+
+    @Autowired
+    public ApiRecordService apiRecordService;
+
+    @Autowired
+    public ProductInfoService productInfoService;
+    @Autowired
+    public AdminOperateLogMapper adminOperateLogMapper;
     //远期全款打折率
     private static final BigDecimal allPayRate = new BigDecimal(0.99);
     MemberLogOperator memberLogOperator = new MemberLogOperator();
+
+    @Autowired
+    private JinShangSms jinShangSms;
+
+    @Autowired
+    private SmsTemplateService smsTemplateService;
+
+    @Autowired
+    private SmsLogMapper smsLogMapper;
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    @Value("${spring.profiles.active}")
+    private String profile;
 
     public void saveBuyerCapital(BuyerCapital buyerCapital) {
         buyerCapitalMapper.insertSelective(buyerCapital);
@@ -328,6 +368,38 @@ public class OrdersService {
         }
 
         PageInfo pageInfo = new PageInfo(memberOperateLogMapper.selectByExample(memberOperateLogExample));
+        return pageInfo;
+    }
+    /**
+     * 获取管理员操作日志
+     * @param pageNo
+     * @param pageSize
+     * @param param
+     * @return
+     */
+    public PageInfo getAdminOperateLogList(int pageNo,int pageSize,AdminQueryParam param){
+        PageHelper.startPage(pageNo,pageSize).setOrderBy("createtime desc");
+        AdminOperateLogExample adminOperateLogExample = new AdminOperateLogExample();
+        AdminOperateLogExample.Criteria criteria = adminOperateLogExample.createCriteria();
+        if(StringUtils.hasText(param.getAdminname())){
+            String adminname="%"+param.getAdminname()+"%";
+            criteria.andAdminnameLike(adminname);
+        }
+        if(param.getType()!=null&&param.getType()!=0){
+            criteria.andTypeEqualTo(param.getType());
+        }
+        if(param.getStartTime()!=null){
+            criteria.andCreatetimeGreaterThanOrEqualTo(param.getStartTime());
+        }
+        if(param.getEndTime()!=null){
+            Date endTime = param.getEndTime();
+            Calendar c = Calendar.getInstance();
+            c.setTime(endTime);
+            c.add(Calendar.DAY_OF_MONTH,1);
+            Date tomorrow = c.getTime();
+            criteria.andCreatetimeLessThanOrEqualTo(tomorrow);
+        }
+        PageInfo pageInfo = new PageInfo(adminOperateLogMapper.selectByExample(adminOperateLogExample));
         return pageInfo;
     }
 
@@ -588,6 +660,56 @@ public class OrdersService {
         ordersExample.createCriteria().andOrderstatusNotEqualTo(Quantity.STATE_5).andOrderstatusNotEqualTo(Quantity.STATE_7);
         return ordersMapper.selectByExample(ordersExample);
 
+    }
+
+    /**
+     * 将未付款的订单改变成关闭
+     *
+     * @param memberid
+     */
+    public void updateNotPayOrdersForFinish(Long memberid) {
+
+        TransactionSetting transactionSetting = transactionSettingService.getTransactionSetting();
+
+        BigDecimal unpaidtimeout = transactionSetting.getUnpaidtimeout();
+
+        int unpaidtimeoutHour = unpaidtimeout.intValue();
+
+        Calendar c = Calendar.getInstance();
+        OrdersExample ordersExample = new OrdersExample();
+        OrdersExample.Criteria criteria = ordersExample.createCriteria();
+        criteria.andOrderstatusEqualTo(Quantity.STATE_0);
+        if (memberid != null) {
+            criteria.andMemberidEqualTo(memberid);
+        }
+
+        List<Orders> list = ordersMapper.selectByExample(ordersExample);
+        List<Orders> orders = new ArrayList<>();
+        for (Orders order : list) {
+            if (order.getCreatetime() != null) {
+                c.setTime(order.getCreatetime());
+                c.add(Calendar.HOUR, unpaidtimeoutHour);
+                //c.add(Calendar.MINUTE, 5);
+                Date tomorrow = c.getTime();
+                Date today = new Date();
+
+                //关闭订单
+                if (today.compareTo(tomorrow) == 1) {
+                    Orders updateOrder = new Orders();
+                    updateOrder.setId(order.getId());
+                    updateOrder.setOrderstatus(Quantity.STATE_7);
+                    updateOrder.setReason("订单超时取消");
+                    updateSingleOrder(updateOrder);
+
+
+                    //将商品库存加回去
+                    List<OrderProduct> orderProductList = this.getOrderProductByOrderId(order.getId());
+                    for (OrderProduct orderProduct : orderProductList) {
+                        productStoreService.addStoreNumByPdidAndPdno(orderProduct.getPdid(), orderProduct.getPdno(), orderProduct.getNum());
+                    }
+                }
+            }
+        }
     }
 
 
@@ -1097,6 +1219,9 @@ public class OrdersService {
         orderProductBackMapper.updateByPrimaryKeySelective(orderProductBack);
     }
 
+
+
+
     /**
      * 根据ids数组计算总金额
      *
@@ -1253,6 +1378,14 @@ public class OrdersService {
         return orderProductMapper.updateByPrimaryKeySelective(orderProduct);
     }
 
+
+
+    public int updateOrderProductForModifyProductnum(OrderProductModel orderProduct){
+        return orderProductMapper.updateOrderProductForModifyProductnum(orderProduct);
+    }
+
+
+
     /**
      * 根据id获取商品
      *
@@ -1271,6 +1404,9 @@ public class OrdersService {
 
         return orderProductServices.getOrderProductByOrderId(orderid);
     }
+
+
+
 
     public List<OrderProduct> getOrderProductByOrderId(long orderid, Long pdid, String pdno) {
 //        OrderProductExample orderProductExample = new OrderProductExample();
@@ -1343,7 +1479,11 @@ public class OrdersService {
             criteria.andEvaluatestateEqualTo(param.getEvaState());
         }
         if (param.getBackstate() != null) {
-            criteria.andBackstateEqualTo(param.getBackstate());
+            if(param.getBackstate() == Quantity.STATE_1) {
+                criteria.andBackstateIn(Arrays.asList(new Short[]{Quantity.STATE_1,Quantity.STATE_5}));
+            }else {
+                criteria.andBackstateEqualTo(param.getBackstate());
+            }
         }
         if (StringUtils.hasText(param.getBrand())) {
             String brand = "%" + param.getBrand() + "%";
@@ -1397,6 +1537,15 @@ public class OrdersService {
         PageInfo info = new PageInfo(ordersMapper.getMemberOrdersList(param));
         return info;
     }
+
+
+
+    public PageInfo getMemberOrdersListForUser(OrderQueryParam param) {
+        PageHelper.startPage(param.getPageNo(), param.getPageSize()).setOrderBy("id desc");
+        PageInfo info = new PageInfo(ordersMapper.getMemberOrdersListForUser(param));
+        return info;
+    }
+
 
     /**
      * 商家待发货列表导出Excel
@@ -1498,7 +1647,7 @@ public class OrdersService {
                     map.put("订单总价", order.getTotalprice());
                     map.put("交易状态", orderStatus.get(order.getOrderstatus().toString()));
                     map.put("佣金", order.getBrokepay());
-                    map.put("结算价", order.getTotalprice().subtract(order.getBrokepay()).doubleValue());
+                    map.put("结算价", op.getPrice().subtract(op.getSinglebrokepay()).multiply(op.getNum()).setScale(2,BigDecimal.ROUND_HALF_UP));
                     memberOrderses.add(map);
                 }
             }
@@ -1519,6 +1668,79 @@ public class OrdersService {
         List<Map<String, Object>> list = ordersMapper.getExcelOrders(param);
 
         List<Map<String, Object>> list2 = new ArrayList<Map<String, Object>>();
+try {
+    for (Map<String, Object> map : list) {
+        Map<String, Object> maptemp = new HashMap<String, Object>();
+        maptemp.put("订单号", map.get("orderno"));
+        maptemp.put("下单时间", map.get("createtime"));
+        maptemp.put("合同号", map.get("code"));
+        maptemp.put("交易号", map.get("transactionnumber"));
+
+        String buyercompanyname = (String) map.get("buyercompanyname");
+        if (!StringUtils.hasText(buyercompanyname)) {
+            buyercompanyname = (String) map.get("buyerrealname");
+        }
+        if (!StringUtils.hasText(buyercompanyname)) {
+            buyercompanyname = (String) map.get("membername");
+        }
+
+        maptemp.put("买家", buyercompanyname);
+        maptemp.put("卖家", map.get("membercompany"));
+        maptemp.put("订单类型", map.get("ordertype"));
+        maptemp.put("订单来源", map.get("inonline"));
+        maptemp.put("商品名称", map.get("pdname") + "/" + map.get("level3"));
+        maptemp.put("规格", map.get("attrjson"));
+        maptemp.put("商品分类", map.get("level1") + " " + map.get("level2") + " " + map.get("level3"));
+        maptemp.put("材质", map.get("material"));
+        maptemp.put("牌号", map.get("gradeno"));
+        maptemp.put("品牌", map.get("brand"));
+        maptemp.put("印记", map.get("mark"));
+        maptemp.put("表面处理", map.get("surfacetreatment"));
+        maptemp.put("包装方式", map.get("packagetype"));
+        maptemp.put("单位", map.get("unit"));
+        maptemp.put("单价", map.get("price"));
+        maptemp.put("订购量", map.get("num").toString());
+        maptemp.put("货款金额", map.get("actualpayment"));
+
+        maptemp.put("开票抬头", map.get("invoiceheadup"));
+        maptemp.put("税号", map.get("texno"));
+        maptemp.put("开户行", map.get("bankofaccounts"));
+        maptemp.put("开户账号", map.get("account"));
+        maptemp.put("开票地址", map.get("address"));
+        maptemp.put("电话", map.get("phone"));
+        maptemp.put("是否开票", map.get("brstate"));
+        maptemp.put("订单状态", map.get("orderstatus"));
+        maptemp.put("项目", map.get("odtype"));
+        maptemp.put("收件人", map.get("shipto"));
+        maptemp.put("收货地址", map.get("receivingaddress"));
+        maptemp.put("付款方式", map.get("paytype"));
+        maptemp.put("物流公司", map.get("logisticscompany"));
+        maptemp.put("快递单号", map.get("couriernumber"));
+        maptemp.put("业务员", map.get("clerkname"));
+        maptemp.put("第三方支付单号", map.get("transactionid"));
+        maptemp.put("业务单号", map.get("uuid"));
+
+        list2.add(maptemp);
+    }
+}catch(Exception e){
+    ExcepExportAction eea = new ExcepExportAction();
+    eea.map.remove("orders");
+}
+        return list2;
+    }
+
+    /**
+     * 导出商家端开票信息中的订单列表
+     *
+     * @param saleid
+     * @param orderid
+     * @return
+     */
+    public List<Map<String, Object>> getExcelSellerBillOrders(Long saleid,String orderid) {
+
+        List<Map<String, Object>> list = ordersMapper.getExcelSellerBillOrders(saleid,orderid);
+
+        List<Map<String, Object>> list2 = new ArrayList<Map<String, Object>>();
 
         for (Map<String, Object> map : list) {
             Map<String, Object> maptemp = new HashMap<String, Object>();
@@ -1526,21 +1748,10 @@ public class OrdersService {
             maptemp.put("下单时间", map.get("createtime"));
             maptemp.put("合同号", map.get("code"));
             maptemp.put("交易号", map.get("transactionnumber"));
-
-            String buyercompanyname = (String) map.get("buyercompanyname");
-            if (!StringUtils.hasText(buyercompanyname)) {
-                buyercompanyname = (String) map.get("buyerrealname");
-            }
-            if (!StringUtils.hasText(buyercompanyname)) {
-                buyercompanyname = (String) map.get("membername");
-            }
-
-            maptemp.put("买家", buyercompanyname);
-            maptemp.put("卖家", map.get("membercompany"));
             maptemp.put("订单类型", map.get("ordertype"));
             maptemp.put("订单来源", map.get("inonline"));
             maptemp.put("商品名称", map.get("pdname") + "/" + map.get("level3"));
-            maptemp.put("规格", map.get("standard"));
+            maptemp.put("规格", map.get("attrjson"));
             maptemp.put("商品分类", map.get("level1") + " " + map.get("level2") + " " + map.get("level3"));
             maptemp.put("材质", map.get("material"));
             maptemp.put("牌号", map.get("gradeno"));
@@ -1550,98 +1761,26 @@ public class OrdersService {
             maptemp.put("包装方式", map.get("packagetype"));
             maptemp.put("单位", map.get("unit"));
             maptemp.put("单价", map.get("price"));
-            maptemp.put("订购量", map.get("num").toString());
+            maptemp.put("订购量", map.get("num"));
             maptemp.put("货款金额", map.get("actualpayment"));
-
-            maptemp.put("开票抬头", map.get("invoiceheadup"));
-            maptemp.put("税号", map.get("texno"));
-            maptemp.put("开户行", map.get("bankofaccounts"));
-            maptemp.put("开户账号", map.get("account"));
-            maptemp.put("开票地址", map.get("address"));
-            maptemp.put("电话", map.get("phone"));
-            maptemp.put("是否开票", map.get("brstate"));
             maptemp.put("订单状态", map.get("orderstatus"));
-            maptemp.put("项目", map.get("odtype"));
-            maptemp.put("收件人", map.get("shipto"));
-            maptemp.put("收货地址", map.get("receivingaddress"));
             maptemp.put("付款方式", map.get("paytype"));
-            maptemp.put("物流公司", map.get("logisticscompany"));
-            maptemp.put("快递单号", map.get("couriernumber"));
-            maptemp.put("业务员", map.get("clerkname"));
-            maptemp.put("第三方支付单号", map.get("transactionid"));
-            maptemp.put("业务单号", map.get("uuid"));
 
             list2.add(maptemp);
         }
 
-  /* List<Map<String,Object>> newList = new ArrayList<Map<String,Object>>();
-        for(int i=0;i<list2.size();i++){
-            Map<String,Object> newMap = new HashMap<String,Object>();
-            String flag=list2.get(i).get("订单号").toString();
-            if(newList.size()<1){
-                newMap.put("订单号",list2.get(i).get("订单号"));
-                newMap.put("下单时间",list2.get(i).get("下单时间"));
-                newMap.put("合同号",list2.get(i).get("合同号"));
-                newMap.put("交易号",list2.get(i).get("交易号"));
-                newMap.put("买家",list2.get(i).get("买家"));
-                newMap.put("卖家",list2.get(i).get("卖家"));
-                newMap.put("订单类型",list2.get(i).get("订单类型"));
-                newMap.put("订单来源",list2.get(i).get("订单来源"));
-
-            }else if(!newList.get(i-1).get("订单号").equals(list2.get(i).get("订单号")) && !list2.get(i-1).get("订单号").equals(flag)){
-                newMap.put("订单号",list2.get(i).get("订单号"));
-                newMap.put("下单时间",list2.get(i).get("下单时间"));
-                newMap.put("合同号",list2.get(i).get("合同号"));
-                newMap.put("交易号",list2.get(i).get("交易号"));
-                newMap.put("买家",list2.get(i).get("买家"));
-                newMap.put("卖家",list2.get(i).get("卖家"));
-                newMap.put("订单类型",list2.get(i).get("订单类型"));
-                newMap.put("订单来源",list2.get(i).get("订单来源"));
-            }else if(list2.get(i).get("订单号").equals(flag)){
-                newMap.put("订单号","");
-                newMap.put("下单时间","");
-                newMap.put("合同号","");
-                newMap.put("交易号","");
-                newMap.put("买家","");
-                newMap.put("卖家","");
-                newMap.put("订单类型","");
-                newMap.put("订单来源","");
-
-            }
-            newMap.put("商品名称",list2.get(i).get("商品名称"));
-            newMap.put("规格",list2.get(i).get("规格"));
-            newMap.put("材质",list2.get(i).get("材质"));
-            newMap.put("牌号",list2.get(i).get("牌号"));
-            newMap.put("品牌",list2.get(i).get("品牌"));
-            newMap.put("印记",list2.get(i).get("印记"));
-            newMap.put("表面处理",list2.get(i).get("表面处理"));
-            newMap.put("包装方式",list2.get(i).get("包装方式"));
-            newMap.put("单位",list2.get(i).get("单位"));
-            newMap.put("单价",list2.get(i).get("单价"));
-            newMap.put("订购量",list2.get(i).get("订购量"));
-            newMap.put("货款金额",list2.get(i).get("货款金额"));
-            newMap.put("开票抬头",list2.get(i).get("开票抬头"));
-            newMap.put("税号",list2.get(i).get("税号"));
-            newMap.put("开户行",list2.get(i).get("开户行"));
-            newMap.put("开户账号",list2.get(i).get("开户账号"));
-            newMap.put("开票地址",list2.get(i).get("开票地址"));
-            newMap.put("电话",list2.get(i).get("电话"));
-            newMap.put("是否开票",list2.get(i).get("是否开票"));
-            newMap.put("订单状态",list2.get(i).get("订单状态"));
-            newMap.put("项目",list2.get(i).get("项目"));
-            newMap.put("收件人",list2.get(i).get("收件人"));
-            newMap.put("收货地址",list2.get(i).get("收货地址"));
-            newMap.put("付款方式",list2.get(i).get("付款方式"));
-            newMap.put("物流公司",list2.get(i).get("物流公司"));
-            newMap.put("快递单号",list2.get(i).get("快递单号"));
-            newMap.put("业务员",list2.get(i).get("业务员"));
-            newMap.put("第三方支付单号",list2.get(i).get("第三方支付单号"));
-            newMap.put("业务单号",list2.get(i).get("业务单号"));
-
-            newList.add(newMap);
-        }*/
-
         return list2;
+    }
+
+
+    /**
+     * 后台获取订单列表总记录数
+     *
+     * @param param
+     * @return
+     */
+    public Long getOrdersCount(OrderQueryParam param){
+        return ordersMapper.getOrdersCount(param);
     }
 
     /**
@@ -1652,13 +1791,186 @@ public class OrdersService {
      */
     public PageInfo getAllMemberOrdersList(OrderQueryParam param) {
         PageHelper.startPage(param.getPageNo(), param.getPageSize());
-        if(param.getStand()!=null){
-            param.setStand(param.getStand().toUpperCase());
-        }
+
         PageInfo info = new PageInfo(ordersMapper.getAllMemberOrdersList(param));
         return info;
     }
 
+    /**
+     * 后台获取订单统计列表
+     *
+     * @param param
+     * @return
+     */
+    public PageInfo getAllMemberOrdersCountList(OrderQueryParam param) {
+        PageHelper.startPage(param.getPageNo(), param.getPageSize());
+        List<Map<String,Object>>list = ordersMapper.getAllMemberOrdersCountList(param);
+        /*List<Map<String,Object>>list1 = new ArrayList<>();
+        for(Map<String,Object> map:list){
+            Map<String,Object> newMap = new HashMap<>();
+            if(map.get("companyname")!=null && !"".equals(map.get("companyname"))){
+                newMap.put("buyername",map.get("companyname"));
+            }else if(map.get("realname")!=null && !"".equals(map.get("realname"))){
+                newMap.put("buyername",map.get("realname"));
+            }else if(map.get("username")!=null && !"".equals(map.get("username"))){
+                newMap.put("buyername",map.get("username"));
+            }else{
+                newMap.put("buyername","");
+            }
+            newMap.put("memberid",map.get("memberid"));
+            newMap.put("num",map.get("num"));
+            list1.add(newMap);
+        }*/
+        PageInfo info = new PageInfo(list);
+        return info;
+    }
+
+    /**
+     * 后台获取订单统计详情
+     *
+     * @param param
+     * @return
+     */
+    public PageInfo getAllMemberOrderCountDetail(OrderQueryParam param) {
+        PageHelper.startPage(param.getPageNo(), param.getPageSize());
+        List<Map<String,Object>>list = ordersMapper.getAllMemberOrderCountDetail(param);
+        List allData = new ArrayList<>();
+        List<String> keyList1 = new ArrayList<>();
+
+        Map<String,String> orderstatus = new HashMap<>();
+        orderstatus.put("0","待付款");
+        orderstatus.put("1","待发货");
+        orderstatus.put("3","待收货");
+        orderstatus.put("4","待验货");
+        orderstatus.put("5","已完成");
+        orderstatus.put("7","已关闭");
+        orderstatus.put("8","备货中");
+        orderstatus.put("9","备货完成");
+        orderstatus.put("10","部分发货");
+
+        for(Map<String,Object> map:list){
+            String tempKey = ""+map.get("shipto")+","+map.get("province")+map.get("city")+map.get("area")+map.get("receivingaddress");
+            if(!tempKey.equals("null,") && !tempKey.equals(",null")) {
+                keyList1.add(tempKey);
+            }else{keyList1.add("无,无");}
+        }
+        keyList1 = productInfoService.removeDuplicate(keyList1);
+        for(int i=0;i<keyList1.size();i++){
+            Map<String,Object> allMap = new HashMap<>();
+            allMap.put("shipto", keyList1.get(i).split(",")[0]);
+            allMap.put("address", keyList1.get(i).split(",")[1]);
+
+            List<Map<String, String>> ordersList = new ArrayList<>();
+            for(Map<String,Object> map:list){
+                String tempKey = ""+map.get("shipto")+","+map.get("province")+map.get("city")+map.get("area")+map.get("receivingaddress");
+                if(tempKey.equals("null,") || tempKey.equals(",null")) {
+                    tempKey="无,无";
+                }
+                if(tempKey.equals(keyList1.get(i))) {
+                    Map<String, String> ordersMap = new HashMap<>();
+                    ordersMap.put("id",map.get("id")+"");
+                    ordersMap.put("orderno",map.get("orderno")+"");
+                    if(map.get("buyercompanyname")!=null && !"".equals(map.get("buyercompanyname"))){
+                        ordersMap.put("buyer",map.get("buyercompanyname").toString());
+                    }else if(map.get("buyerrealname")!=null && !"".equals(map.get("buyerrealname"))){
+                        ordersMap.put("buyer",map.get("buyerrealname").toString());
+                    }else if(map.get("buyerusername")!=null && !"".equals(map.get("buyerusername"))){
+                        ordersMap.put("buyer",map.get("buyerusername").toString());
+                    }
+                    if(map.get("sellercompanyname")!=null && !"".equals(map.get("sellercompanyname"))){
+                        ordersMap.put("seller",map.get("sellercompanyname").toString());
+                    }else if(map.get("sellerrealname")!=null && !"".equals(map.get("sellerrealname"))){
+                        ordersMap.put("seller",map.get("sellerrealname").toString());
+                    }else if(map.get("sellerusername")!=null && !"".equals(map.get("sellerusername"))){
+                        ordersMap.put("seller",map.get("sellerusername").toString());
+                    }
+                    ordersMap.put("phone",map.get("phone")+"");
+                    ordersMap.put("createtime",map.get("createtime")+"");
+                    ordersMap.put("orderstatus",orderstatus.get(map.get("orderstatus")+""));
+                    int type = productInfoMapper.getProductInfoCountByOrderno(map.get("orderno")+"");
+                    ordersMap.put("num",type+"");
+                    ordersList.add(ordersMap);
+                }
+            }
+            allMap.put("orders",ordersList);
+
+            allData.add(allMap);
+        }
+
+        PageInfo info = new PageInfo(allData);
+        return info;
+    }
+
+    /**
+     * 后台打印订单统计详情
+     *
+     * @param orderids
+     * @return
+     */
+    public PageInfo getAllMemberOrderCountPrint(Long[] orderids) {
+        List<Map<String,Object>>list = ordersMapper.getAllMemberOrderCountPrint(orderids);
+        List allData = new ArrayList<>();
+        List<String> keyList1 = new ArrayList<>();
+
+        Map<String,String> orderstatus = new HashMap<>();
+        orderstatus.put("0","待付款");
+        orderstatus.put("1","待发货");
+        orderstatus.put("3","待收货");
+        orderstatus.put("4","待验货");
+        orderstatus.put("5","已完成");
+        orderstatus.put("7","已关闭");
+        orderstatus.put("8","备货中");
+        orderstatus.put("9","备货完成");
+        orderstatus.put("10","部分发货");
+        for(Map<String,Object> map:list){
+            String tempKey = ""+map.get("shipto")+","+map.get("province")+map.get("city")+map.get("area")+map.get("receivingaddress");
+            if(!tempKey.equals("null,") && !tempKey.equals(",null")) {
+                keyList1.add(tempKey);
+            }else{keyList1.add("无,无");}
+        }
+        keyList1 = productInfoService.removeDuplicate(keyList1);
+        for(int i=0;i<keyList1.size();i++){
+            Map<String,Object> allMap = new HashMap<>();
+            allMap.put("shipto", keyList1.get(i).split(",")[0]);allMap.put("address", keyList1.get(i).split(",")[1]);
+            List<Map<String, String>> ordersList = new ArrayList<>();
+            for(Map<String,Object> map:list){
+                String tempKey = ""+map.get("shipto")+","+map.get("province")+map.get("city")+map.get("area")+map.get("receivingaddress");
+                if(tempKey.equals("null,") || tempKey.equals(",null")) {
+                    tempKey="无,无";
+                }
+                if(tempKey.equals(keyList1.get(i))) {
+                    Map<String, String> ordersMap = new HashMap<>();
+                    ordersMap.put("id",map.get("id")+"");
+                    ordersMap.put("orderno",map.get("orderno")+"");
+                    if(map.get("buyercompanyname")!=null && !"".equals(map.get("buyercompanyname"))){
+                        ordersMap.put("buyer",map.get("buyercompanyname").toString());
+                    }else if(map.get("buyerrealname")!=null && !"".equals(map.get("buyerrealname"))){
+                        ordersMap.put("buyer",map.get("buyerrealname").toString());
+                    }else if(map.get("buyerusername")!=null && !"".equals(map.get("buyerusername"))){
+                        ordersMap.put("buyer",map.get("buyerusername").toString());
+                    }
+                    if(map.get("sellercompanyname")!=null && !"".equals(map.get("sellercompanyname"))){
+                        ordersMap.put("seller",map.get("sellercompanyname").toString());
+                    }else if(map.get("sellerrealname")!=null && !"".equals(map.get("sellerrealname"))){
+                        ordersMap.put("seller",map.get("sellerrealname").toString());
+                    }else if(map.get("sellerusername")!=null && !"".equals(map.get("sellerusername"))){
+                        ordersMap.put("seller",map.get("sellerusername").toString());
+                    }
+                    ordersMap.put("phone",map.get("phone")+"");
+                    ordersMap.put("createtime",map.get("createtime")+"");
+                    ordersMap.put("orderstatus",orderstatus.get(map.get("orderstatus")+""));
+                    int type = productInfoMapper.getProductInfoCountByOrderno(map.get("orderno")+"");
+                    ordersMap.put("num",type+"");
+                    ordersList.add(ordersMap);
+                }
+            }
+            allMap.put("orders",ordersList);
+            allData.add(allMap);
+        }
+
+        PageInfo info = new PageInfo(allData);
+        return info;
+    }
 
     /**
      * 统计获取订单列表
@@ -1907,6 +2219,15 @@ public class OrdersService {
     }
 
     /**
+     * 批量插入卖家资金表 同时插入billtoserver
+     *
+     * @param list
+     */
+    public void insertSallerCapitalNew(List<SalerCapital> list) {
+        salerCapitalMapper.insertAllNew(list);
+    }
+
+    /**
      * 获取订单
      *
      * @param id
@@ -1962,12 +2283,12 @@ public class OrdersService {
      * @return
      */
     public BigDecimal getCurrentOrdersSumPay() {
-        BigDecimal sumPay = new BigDecimal(0);
-        List<Orders> list = ordersMapper.getCurrentOrdersSumPay();
-        for (Orders od : list) {
-            sumPay = sumPay.add(od.getActualpayment());
-        }
-        return sumPay;
+//        BigDecimal sumPay = new BigDecimal(0);
+//        List<Orders> list = ordersMapper.getCurrentOrdersSumPay();
+//        for (Orders od : list) {
+//            sumPay = sumPay.add(od.getActualpayment());
+//        }
+        return ordersMapper.getCurrentOrdersSumPay();
     }
 
     /**
@@ -1980,12 +2301,12 @@ public class OrdersService {
     }
 
     /**
-     * 获取销售总金额
+     * 获取订单总运费
      *
      * @return
      */
-    public BigDecimal getOrderSellSum(OrderQueryParam param) {
-        return ordersMapper.getOrderSellSum(param);
+    public BigDecimal getOrderFreight(OrderQueryParam param) {
+        return ordersMapper.getOrderFreight(param);
     }
 
     /**
@@ -2004,6 +2325,13 @@ public class OrdersService {
      */
     public BigDecimal getOrdersTotalDeliveryNum(OrderQueryParam param) {
         return ordersMapper.getOrdersTotalDeliveryNum(param);
+    }
+
+    /**
+     * 获取当日卖家违约订单数
+     */
+    public BigDecimal getSellerBreachOrders(){
+        return ordersMapper.getSellerBreachOrders();
     }
 
     /**
@@ -2464,18 +2792,42 @@ public class OrdersService {
     /**
      * 发货
      */
-    public int sendOutProduct(Orders orders, String logisticscompany, String couriernumber) {
-        if (!StringUtils.isEmpty(logisticscompany)) {
-            orders.setLogisticscompany(logisticscompany);
-        }
-        if (!StringUtils.isEmpty(couriernumber)) {
-            orders.setCouriernumber(couriernumber);
-        }
-        orders.setDeliveryno(GenerateNo.getInvoiceNo());
-        orders.setOrderstatus(Quantity.STATE_3);
+    public int sendOutProduct(Orders orders, String logisticscompany, String couriernumber) throws MyException {
 
-        orders.setSellerdeliverytime(new Date());
-        return ordersMapper.updateByPrimaryKeySelective(orders);
+        try {
+            //根据订单号 查询物流信息
+            LogisticsInfo newlogisticsInfo = new LogisticsInfo();
+            newlogisticsInfo.setOrderid(orders.getId());
+            newlogisticsInfo.setOrderno(orders.getOrderno());
+            if (!StringUtils.isEmpty(logisticscompany)) {
+                //orders.setLogisticscompany(logisticscompany);
+                newlogisticsInfo.setLogisticscompany(logisticscompany);
+            }
+            if (!StringUtils.isEmpty(couriernumber)) {
+                // orders.setCouriernumber(couriernumber);
+                newlogisticsInfo.setCouriernumber(couriernumber);
+            }
+            //orders.setDeliveryno(GenerateNo.getInvoiceNo());
+            newlogisticsInfo.setDeliveryno(GenerateNo.getInvoiceNo());
+            orders.setOrderstatus(Quantity.STATE_3);
+
+            //orders.setSellerdeliverytime(new Date());
+            newlogisticsInfo.setTime(new Date());
+            logisticsInfoService.insertLogisticsInfo(newlogisticsInfo);
+            //回写deliveryid
+            List<OrderProduct> list = orderProductServices.getByOrderNo(orders.getOrderno());
+            if (list != null && list.size() > 0) {
+                for (OrderProduct orderProduct : list) {
+                    OrderProduct newOrderProduct = new OrderProduct();
+                    newOrderProduct.setId(orderProduct.getId());
+                    newOrderProduct.setDeliveryid(newlogisticsInfo.getId());
+                    orderProductServices.updateByPrimaryKeySelective(newOrderProduct);
+                }
+            }
+            return ordersMapper.updateByPrimaryKeySelective(orders);
+        }catch (Exception e){
+            throw new MyException("发货出差",e);
+        }
     }
 
 
@@ -2552,10 +2904,14 @@ public class OrdersService {
             if (StringUtils.hasText(productBackModel.getBackexplain())) {
                 orderProductBack.setBackexplain(productBackModel.getBackexplain());
             }
+            if (StringUtils.hasText(productBackModel.getReturnbackreason())) {
+                orderProductBack.setReturnbackreason(productBackModel.getReturnbackreason());
+            }
         }
 
         return orderProductBack;
     }
+
 
 
     /**
@@ -2568,6 +2924,7 @@ public class OrdersService {
      * @param pdnum
      * @return
      */
+    /*
     public BigDecimal countSinglePdFight(ProductInfo productInfo, ProductStore productStore, String uprovince, String ucity, BigDecimal pdnum) {
 
         BigDecimal weight = productStore.getWeight();
@@ -2586,7 +2943,7 @@ public class OrdersService {
             //商品总重量
             BigDecimal totalweight = weight.multiply(pdnum);
             //匹配地区运费
-            AreaCost areaCost = this.getAreaCost(freightmode);
+            List<AreaCost> areaCostList = areaCostService.getAreaCostByTemid(freightmode);
 
             if (uprovince == null || ucity == null) {
                 if (shippingTemplates != null) {
@@ -2594,27 +2951,54 @@ public class OrdersService {
                     return getTotalCost(defaultfreight, defaultcost, perkilogramadded, perkilogramcost, totalweight);
                 }
             } else {
-                //如果有地区运费模板，就用地区运费模板，否则用默认运费模板
-                if (areaCost != null) {
-                    String province = areaCost.getProvince();
-                    String city = areaCost.getCity();
-                    //判断省市是否匹配
-                    if (province.contains(uprovince) && city.contains(ucity)) {
-                        BigDecimal udefaultfreight = areaCost.getDefaultfreight();
-                        //默认运费
-                        BigDecimal udefaultcost = areaCost.getDefaultcost();
-                        //每增加公斤
-                        BigDecimal uperkilogramadded = areaCost.getPerkilogramadded();
-                        //每增加运费
-                        BigDecimal uperkilogramcost = areaCost.getPerkilogramcost();
-                        //计算地区运费
-                        return getTotalCost(udefaultfreight, udefaultcost, uperkilogramadded, uperkilogramcost, totalweight);
+                    if (areaCostList != null && areaCostList.size()>0) {
+                        AreaCost areaCost = null;
+                        for (AreaCost areaCost1 : areaCostList) {
+                            {
+                                String[] provinceArr =  areaCost1.getProvince().split(",");
+                                List<String> provinceList = new ArrayList<>();
+                                if(provinceArr != null){
+                                    for(String p : provinceArr){
+                                        provinceList.add(p.trim());
+                                    }
+                                }
 
-                    } else {
-                        //计算默认运费
-                        return getTotalCost(defaultfreight, defaultcost, perkilogramadded, perkilogramcost, totalweight);
-                    }
+                                String[] cityArr = areaCost1.getCity().split(",");
+                                List<String> cityList = new ArrayList<>();
+                                if(cityArr != null && cityArr.length>0){
+                                    for(String c : cityArr){
+                                        cityList.add(c.trim());
+                                    }
+                                }
 
+                                if((provinceList.contains(uprovince) || provinceList.contains(uprovince.replace("省",""))) &&
+                                        (cityList.contains(ucity) || cityList.contains(ucity.replace("市","")))){
+                                    areaCost = areaCost1;
+                                    break;
+                                }
+                            }
+                        }
+
+                        //如果有地区运费模板，就用地区运费模板，否则用默认运费模板
+                        if (areaCost != null) {
+                            String province = areaCost.getProvince();
+                            String city = areaCost.getCity();
+                            //判断省市是否匹配
+                            if (province.contains(uprovince) && city.contains(ucity)) {
+                                BigDecimal udefaultfreight = areaCost.getDefaultfreight();
+                                //默认运费
+                                BigDecimal udefaultcost = areaCost.getDefaultcost();
+                                //每增加公斤
+                                BigDecimal uperkilogramadded = areaCost.getPerkilogramadded();
+                                //每增加运费
+                                BigDecimal uperkilogramcost = areaCost.getPerkilogramcost();
+                                //计算地区运费
+                                return getTotalCost(udefaultfreight, udefaultcost, uperkilogramadded, uperkilogramcost, totalweight);
+                            } else {
+                                //计算默认运费
+                                return getTotalCost(defaultfreight, defaultcost, perkilogramadded, perkilogramcost, totalweight);
+                            }
+                        }
                 } else {
                     //计算默认运费
                     return getTotalCost(defaultfreight, defaultcost, perkilogramadded, perkilogramcost, totalweight);
@@ -2625,7 +3009,7 @@ public class OrdersService {
         }
         return BigDecimal.valueOf(0);
     }
-
+*/
 
     /**
      * 计算运费
@@ -2637,6 +3021,7 @@ public class OrdersService {
      * @param totalweight      商品总重量
      * @return 每个商品的运费
      */
+    /*
     private BigDecimal getTotalCost(BigDecimal defaultfreight, BigDecimal defaultcost, BigDecimal perkilogramadded, BigDecimal perkilogramcost, BigDecimal totalweight) {
 
         BigDecimal totalCost = BigDecimal.valueOf(0);
@@ -2665,7 +3050,7 @@ public class OrdersService {
         }
         return totalCost;
     }
-
+*/
 
     /**
      * 分页查询卖家已完成需要向平台开票的订单
@@ -2706,24 +3091,15 @@ public class OrdersService {
     }
 
 
-    @Autowired
-    private JinShangSms jinShangSms;
 
-    @Autowired
-    private SmsTemplateService smsTemplateService;
-
-    @Autowired
-    private SmsLogMapper smsLogMapper;
-
-    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     /**
      * 买家下单后短信通知卖家
      *
      * @param list
      */
-    @Profile({"pro"})
     public void smsNotifySellerToOrders(List<Orders> list) {
+        if(!profile.equals(AppConstant.APP_RUN_ENV_PRO)) return;
         SmsTemplate smsTemplate = smsTemplateService.getBySendCode("NotifySellerToOrders");
         if (smsTemplate == null) {
             logger.error("NotifySellerToOrders短信模板不存在");
@@ -2731,7 +3107,7 @@ public class OrdersService {
         }
 
         list.forEach(orders -> {
-            cachedThreadPool.execute(() -> {
+            //cachedThreadPool.execute(() -> {
                 Member member = memberService.getMemberById(orders.getSaleid());
 
                 SellerCompanyInfo sellerCompanyInfo = sellerCompanyInfoMapper.getSellerCompanyByMemberid(member.getId());
@@ -2757,13 +3133,14 @@ public class OrdersService {
 
                     smsLogMapper.insert(smsLog);
                 }
-            });
+            //});
         });
     }
 
 
-    @Profile({"pro"})
+
     public void smsNotifySellerToBackOrders(List<Orders> list) {
+        if(!profile.equals(AppConstant.APP_RUN_ENV_PRO)) return;
         SmsTemplate smsTemplate = smsTemplateService.getBySendCode("NotifySellerToBackOrders");
         if (smsTemplate == null) {
             logger.error("NotifySellerToBackOrders短信模板不存在");
@@ -2791,6 +3168,494 @@ public class OrdersService {
                     String content = smsTemplate.getContent();
                     smsLog.setDescription(content.replaceAll("\\$\\{orderno\\}", orders.getOrderno()));
 
+                    if (jinShangSms.send(mobile, smsTemplate.getTemplatecode(), map)) {
+                        smsLog.setStates(Quantity.STATE_1);
+                    } else {
+                        smsLog.setStates(Quantity.STATE_2);
+                    }
+
+                    smsLogMapper.insert(smsLog);
+                }
+            });
+        });
+    }
+
+    /**
+     * 买家取消订单后短信通知卖家
+     *
+     * @param list
+     */
+    public void smsNotifySellerToCancelOrders(List<Orders> list) {
+        if(!profile.equals(AppConstant.APP_RUN_ENV_PRO)) return;
+        SmsTemplate smsTemplate = smsTemplateService.getBySendCode("NotifySellerToCancelOrders");
+        if (smsTemplate == null) {
+            logger.error("NotifySellerToCancelOrders短信模板不存在");
+            return;
+        }
+
+        list.forEach(orders -> {
+            cachedThreadPool.execute(() -> {
+                Member member = memberService.getMemberById(orders.getSaleid());
+
+                SellerCompanyInfo sellerCompanyInfo = sellerCompanyInfoMapper.getSellerCompanyByMemberid(member.getId());
+                String mobile = member.getMobile();
+                // mobile = "18663868251";
+                if (sellerCompanyInfo.getSmsnotify() == Quantity.STATE_1 && StringUtils.hasText(mobile)) {
+
+                    Map<String, String> map = new HashMap<>();
+                    map.put("orderno", orders.getOrderno());
+                    SmsLog smsLog = new SmsLog();
+                    smsLog.setCreatedate(new Date());
+                    smsLog.setMobile(mobile);
+                    smsLog.setType("买家取消订单通知");
+                    smsLog.setMemberid(member.getId());
+                    String content = smsTemplate.getContent();
+                    smsLog.setDescription(content.replaceAll("\\$\\{orderno\\}", orders.getOrderno()));
+
+                    if (jinShangSms.send(mobile, smsTemplate.getTemplatecode(), map)) {
+                        smsLog.setStates(Quantity.STATE_1);
+                    } else {
+                        smsLog.setStates(Quantity.STATE_2);
+                    }
+
+                    smsLogMapper.insert(smsLog);
+                }
+            });
+        });
+    }
+
+    /**
+     * 备货期限临近时平台短信提醒商家
+     *
+     * @param list
+     */
+    public void smsNotifySellerToFutureOrders(List<Orders> list) {
+        if(!profile.equals(AppConstant.APP_RUN_ENV_PRO)) return;
+        SmsTemplate smsTemplate = smsTemplateService.getBySendCode("NotifySellerToFutureOrders");
+        if (smsTemplate == null) {
+            logger.error("NotifySellerToFutureOrders短信模板不存在");
+            return;
+        }
+
+        list.forEach(futureOrders -> {
+            cachedThreadPool.execute(() -> {
+                Member member = memberService.getMemberById(futureOrders.getSaleid());
+
+                SellerCompanyInfo sellerCompanyInfo = sellerCompanyInfoMapper.getSellerCompanyByMemberid(member.getId());
+                String mobile = member.getMobile();
+                // mobile = "18663868251";
+                if (sellerCompanyInfo.getSmsnotify() == Quantity.STATE_1 && StringUtils.hasText(mobile)) {
+
+                    Map<String, String> map = new HashMap<>();
+                    map.put("orderno", futureOrders.getOrderno());
+                    SmsLog smsLog = new SmsLog();
+                    smsLog.setCreatedate(new Date());
+                    smsLog.setMobile(mobile);
+                    smsLog.setType("远期订单备货提醒通知");
+                    smsLog.setMemberid(member.getId());
+                    String content = smsTemplate.getContent();
+                    smsLog.setDescription(content.replaceAll("\\$\\{orderno\\}", futureOrders.getOrderno()));
+
+                    if (jinShangSms.send(mobile, smsTemplate.getTemplatecode(), map)) {
+                        smsLog.setStates(Quantity.STATE_1);
+                    } else {
+                        smsLog.setStates(Quantity.STATE_2);
+                    }
+
+                    smsLogMapper.insert(smsLog);
+                }
+            });
+        });
+    }
+
+    /**
+     * 商家备货完成短信提醒买家支付尾款
+     *
+     * @param list
+     */
+    public void smsNotifyBuyerPayBalanceToFutureOrders(List<Orders> list) {
+        if(!profile.equals(AppConstant.APP_RUN_ENV_PRO)) return;
+        SmsTemplate smsTemplate = smsTemplateService.getBySendCode("NotifyBuyerPayBalanceToFutureOrders");
+        if (smsTemplate == null) {
+            logger.error("NotifyBuyerPayBalanceToFutureOrders短信模板不存在");
+            return;
+        }
+
+        list.forEach(futureOrders -> {
+            cachedThreadPool.execute(() -> {
+                Member member = memberService.getMemberById(futureOrders.getSaleid());
+
+                SellerCompanyInfo sellerCompanyInfo = sellerCompanyInfoMapper.getSellerCompanyByMemberid(member.getId());
+                String mobile = member.getMobile();
+                // mobile = "18663868251";
+                if (sellerCompanyInfo.getSmsnotify() == Quantity.STATE_1 && StringUtils.hasText(mobile)) {
+
+                    Map<String, String> map = new HashMap<>();
+                    map.put("orderno", futureOrders.getOrderno());
+                    SmsLog smsLog = new SmsLog();
+                    smsLog.setCreatedate(new Date());
+                    smsLog.setMobile(mobile);
+                    smsLog.setType("远期订单提醒买家支付尾款通知");
+                    smsLog.setMemberid(member.getId());
+                    String content = smsTemplate.getContent();
+                    smsLog.setDescription(content.replaceAll("\\$\\{orderno\\}", futureOrders.getOrderno()));
+
+                    if (jinShangSms.send(mobile, smsTemplate.getTemplatecode(), map)) {
+                        smsLog.setStates(Quantity.STATE_1);
+                    } else {
+                        smsLog.setStates(Quantity.STATE_2);
+                    }
+
+                    smsLogMapper.insert(smsLog);
+                }
+            });
+        });
+    }
+
+
+    /**
+     *向中间件管理平台post数据
+     * @author xiazy
+     * @date  2018/6/5 15:03
+     * @param url
+     * @param params
+     * @return void
+     */
+    public void sendToMiddleManage(String url, Map<String, String> params) {
+        cachedThreadPool.execute(()->{
+            try {
+                Map<String,Object> ret=HttpClientUtils.post(url,params);
+                String returnjson=JsonUtil.toJson(ret.get("data"));
+                String type=params.get("type");
+                ApiRecord apiRecord=new ApiRecord();
+                apiRecord.setAppid(params.get("appid"));
+                apiRecord.setAppurl(url);
+                apiRecord.setApicode(type);
+//                apiRecord.setContent(JsonUtil.toJson(params).toString().replace("",""));
+                apiRecord.setContent(JsonUtil.toJson(params).toString());
+                apiRecord.setReturnjson(returnjson);
+                apiRecord.setCreatetime(new Date());
+                apiRecordService.insertSelective(apiRecord);
+                if(type.equals(DockType.JS006.getType())){
+//                    String storenumjson=ret.get("storenumjson").toString();
+                    Map<String,Object> map1=JsonUtil.toMap(returnjson);
+                    String storenumjson=map1.get("storenumjson").toString();
+                    long storeid=Long.parseLong(map1.get("store").toString());
+                    Type listType = new TypeToken<LinkedList<StockDetail>>(){}.getType();
+                    ProductStore productStore=new ProductStore();
+                    Gson gson = new Gson();
+                    LinkedList<StockDetail> stockDetails = gson.fromJson(storenumjson, listType);
+                    for (Iterator iterator = stockDetails.iterator(); iterator.hasNext();) {
+                        StockDetail stockDetail = (StockDetail) iterator.next();
+                        productStore=productStoreService.getByStoreidAndPdNo(storeid,stockDetail.getPdno());
+                        if(StringUtils.hasText(stockDetail.getUnit())&&StringUtils.hasText(productStore.getStoreunit())&&stockDetail.getUnit().equals(productStore.getStoreunit())){
+                            productStoreService.updateNumByStoreidAndPdno(storeid,stockDetail.getPdno(),new BigDecimal(stockDetail.getStorenum()));
+                        }
+                    }
+
+                }
+            } catch (Exception e) {
+                logger.error(e.getMessage(),e);
+            }
+        });
+    }
+
+    /**
+     * 卖家发货 给买家发短信--选择物流时
+     *
+     * @param list
+     */
+    public void smsNotifyBuyerLogisticsDeliveryToOrders(List<Orders> list) {
+        if(!profile.equals(AppConstant.APP_RUN_ENV_PRO)) return;
+        SmsTemplate smsTemplate = smsTemplateService.getBySendCode("NotifyBuyerLogisticsDeliveryToOrders");
+        if (smsTemplate == null) {
+            logger.error("NotifyBuyerLogisticsDeliveryToOrders短信模板不存在");
+            return;
+        }
+        list.forEach(orders -> {
+                Member member = memberService.getMemberById(orders.getMemberid());
+                //SellerCompanyInfo sellerCompanyInfo = sellerCompanyInfoMapper.getSellerCompanyByMemberid(orders.getSaleid());
+                //根据orderno查询物流信息
+                LogisticsInfo logisticsInfo = logisticsInfoService.selectLogisticsInfoByOrderNo(orders.getOrderno());
+                String mobile = member.getMobile();
+                // mobile = "18663868251";
+                if (StringUtils.hasText(mobile)) {
+                    Map<String, String> map = new HashMap<>();
+                    map.put("orderno", orders.getOrderno());
+                    map.put("transportmsg",logisticsInfo.getCouriernumber());
+                    SmsLog smsLog = new SmsLog();
+                    smsLog.setCreatedate(new Date());
+                    smsLog.setMobile(mobile);
+                    smsLog.setType("卖家发货订单通知");
+                    smsLog.setMemberid(member.getId());
+                    String content = smsTemplate.getContent();
+                    String tempcontent = content.replaceAll("\\$\\{orderno\\}", orders.getOrderno());
+                    String tempcontent1 = tempcontent.replaceAll("\\$\\{transportmsg\\}", logisticsInfo.getCouriernumber());
+                    smsLog.setDescription(tempcontent1);
+
+                    if (jinShangSms.send(mobile, smsTemplate.getTemplatecode(), map)) {
+                        smsLog.setStates(Quantity.STATE_1);
+                    } else {
+                        smsLog.setStates(Quantity.STATE_2);
+                    }
+
+                    smsLogMapper.insert(smsLog);
+                }
+        });
+    }
+
+
+
+    /**
+     * 卖家发货 给买家发短信--选择无需物流时
+     *
+     * @param list
+     */
+    public void smsNotifySellerDeliveryAndSelfDeliveryToOrders(List<Orders> list) {
+        if(!profile.equals(AppConstant.APP_RUN_ENV_PRO)) return;
+        SmsTemplate smsTemplate = smsTemplateService.getBySendCode("NotifySellerDeliveryAndSelfDeliveryToOrders");
+        if (smsTemplate == null) {
+            logger.error("NotifySellerDeliveryAndSelfDeliveryToOrders短信模板不存在");
+            return;
+        }
+
+        list.forEach(orders -> {
+            cachedThreadPool.execute(() -> {
+                Member member = memberService.getMemberById(orders.getMemberid());
+
+                String mobile = member.getMobile();
+                // mobile = "18663868251";
+                if (StringUtils.hasText(mobile)) {
+
+                    Map<String, String> map = new HashMap<>();
+                    map.put("orderno", orders.getOrderno());
+                    SmsLog smsLog = new SmsLog();
+                    smsLog.setCreatedate(new Date());
+                    smsLog.setMobile(mobile);
+                    smsLog.setType("卖家发货订单通知");
+                    smsLog.setMemberid(member.getId());
+                    String content = smsTemplate.getContent();
+                    smsLog.setDescription(content.replaceAll("\\$\\{orderno\\}", orders.getOrderno()));
+
+                    if (jinShangSms.send(mobile, smsTemplate.getTemplatecode(), map)) {
+                        smsLog.setStates(Quantity.STATE_1);
+                    } else {
+                        smsLog.setStates(Quantity.STATE_2);
+                    }
+
+                    smsLogMapper.insert(smsLog);
+                }
+            });
+        });
+    }
+
+
+
+    /**
+     * 卖家发货 给买家发短信--选择其它
+     *
+     * @param list
+     */
+    public void smsNotifySellerDeliveryToOrders(List<Orders> list) {
+        if(!profile.equals(AppConstant.APP_RUN_ENV_PRO)) return;
+        SmsTemplate smsTemplate = smsTemplateService.getBySendCode("NotifySellerDeliveryToOrders");
+        if (smsTemplate == null) {
+            logger.error("NotifySellerDeliveryToOrders短信模板不存在");
+            return;
+        }
+
+        list.forEach(orders -> {
+                Member member = memberService.getMemberById(orders.getMemberid());
+                String mobile = member.getMobile();
+                //SellerCompanyInfo sellerCompanyInfo = sellerCompanyInfoMapper.getSellerCompanyByMemberid(orders.getSaleid());
+                //根据orderno查询物流信息
+                LogisticsInfo logisticsInfo = logisticsInfoService.selectLogisticsInfoByOrderNo(orders.getOrderno());
+                // mobile = "18663868251";
+                if (StringUtils.hasText(mobile)) {
+                    Map<String, String> map = new HashMap<>();
+                    map.put("orderno", orders.getOrderno());
+                    map.put("transportno",logisticsInfo.getCouriernumber());
+                    map.put("company",logisticsInfo.getLogisticscompany());
+                    SmsLog smsLog = new SmsLog();
+                    smsLog.setCreatedate(new Date());
+                    smsLog.setMobile(mobile);
+                    smsLog.setType("卖家发货订单通知");
+                    smsLog.setMemberid(member.getId());
+                    String content = smsTemplate.getContent();
+
+                    String tempcontent = content.replaceAll("\\$\\{orderno\\}", orders.getOrderno());
+                    String tempcontent1 = tempcontent.replaceAll("\\$\\{transportno\\}", logisticsInfo.getCouriernumber());
+                    String tempcontent2 = tempcontent1.replaceAll("\\$\\{company\\}", logisticsInfo.getLogisticscompany());
+
+                    smsLog.setDescription(tempcontent2);
+                    if (jinShangSms.send(mobile, smsTemplate.getTemplatecode(), map)) {
+                        smsLog.setStates(Quantity.STATE_1);
+                    } else {
+                        smsLog.setStates(Quantity.STATE_2);
+                    }
+
+                    smsLogMapper.insert(smsLog);
+                }
+        });
+    }
+
+
+    /**
+     * 卖家部分发货时 给买家发送短信
+     *
+     * @param list
+     */
+    public void smsNotifySellerDeliverySplitToOrders(List<Orders> list) {
+        if(!profile.equals(AppConstant.APP_RUN_ENV_PRO)) return;
+        SmsTemplate smsTemplate = smsTemplateService.getBySendCode("NotifySellerDeliverySplitToOrders");
+        if (smsTemplate == null) {
+            logger.error("NotifySellerDeliverySplitToOrders短信模板不存在");
+            return;
+        }
+
+        list.forEach(orders -> {
+            cachedThreadPool.execute(() -> {
+                Member member = memberService.getMemberById(orders.getMemberid());
+                String mobile = member.getMobile();
+                //SellerCompanyInfo sellerCompanyInfo = sellerCompanyInfoMapper.getSellerCompanyByMemberid(orders.getSaleid());
+                // mobile = "18663868251";
+                if (StringUtils.hasText(mobile)) {
+                    Map<String, String> map = new HashMap<>();
+                    map.put("orderno", orders.getOrderno());
+                    SmsLog smsLog = new SmsLog();
+                    smsLog.setCreatedate(new Date());
+                    smsLog.setMobile(mobile);
+                    smsLog.setType("卖家部分发货订单通知");
+                    smsLog.setMemberid(member.getId());
+                    String content = smsTemplate.getContent();
+
+                    String tempcontent = content.replaceAll("\\$\\{orderno\\}", orders.getOrderno());
+
+                    smsLog.setDescription(tempcontent);
+                    if (jinShangSms.send(mobile, smsTemplate.getTemplatecode(), map)) {
+                        smsLog.setStates(Quantity.STATE_1);
+                    } else {
+                        smsLog.setStates(Quantity.STATE_2);
+                    }
+
+                    smsLogMapper.insert(smsLog);
+                }
+            });
+        });
+    }
+
+    /**
+     * 管理后台修改商品数量 短信通知买家
+     * @param list
+     */
+    public void smsNotifyAdminProductNum(List<Orders> list) {
+        if(!profile.equals(AppConstant.APP_RUN_ENV_PRO)) return;
+        SmsTemplate smsTemplate = smsTemplateService.getBySendCode("NotifyAdminProductNum");
+        if (smsTemplate == null) {
+            logger.error("NotifyAdminProductNum短信模板不存在");
+            return;
+        }
+        list.forEach(orders -> {
+            cachedThreadPool.execute(() -> {
+                Member member = memberService.getMemberById(orders.getMemberid());
+                String mobile = member.getMobile();
+                //SellerCompanyInfo sellerCompanyInfo = sellerCompanyInfoMapper.getSellerCompanyByMemberid(orders.getSaleid());
+                // mobile = "18663868251";
+                if (StringUtils.hasText(mobile)) {
+                    Map<String, String> map = new HashMap<>();
+                    map.put("orderno", orders.getOrderno());
+                    SmsLog smsLog = new SmsLog();
+                    smsLog.setCreatedate(new Date());
+                    smsLog.setMobile(mobile);
+                    smsLog.setType("管理后台修改商品数量通知");
+                    smsLog.setMemberid(member.getId());
+                    String content = smsTemplate.getContent();
+
+                    String tempcontent = content.replaceAll("\\$\\{orderno\\}", orders.getOrderno());
+                    smsLog.setDescription(tempcontent);
+                    if (jinShangSms.send(mobile, smsTemplate.getTemplatecode(), map)) {
+                        smsLog.setStates(Quantity.STATE_1);
+                    } else {
+                        smsLog.setStates(Quantity.STATE_2);
+                    }
+
+                    smsLogMapper.insert(smsLog);
+                }
+            });
+        });
+    }
+
+
+    /**
+     * 卖家端修改商品数量 短信通知买家
+     * @param list
+     */
+    public void smsNotifySellerProductNum(List<Orders> list) {
+        if(!profile.equals(AppConstant.APP_RUN_ENV_PRO)) return;
+        SmsTemplate smsTemplate = smsTemplateService.getBySendCode("NotifySellerProductNum");
+        if (smsTemplate == null) {
+            logger.error("NotifySellerProductNum短信模板不存在");
+            return;
+        }
+        list.forEach(orders -> {
+            cachedThreadPool.execute(() -> {
+                Member member = memberService.getMemberById(orders.getMemberid());
+                String mobile = member.getMobile();
+                //SellerCompanyInfo sellerCompanyInfo = sellerCompanyInfoMapper.getSellerCompanyByMemberid(orders.getSaleid());
+                // mobile = "18663868251";
+                if (StringUtils.hasText(mobile)) {
+                    Map<String, String> map = new HashMap<>();
+                    map.put("orderno", orders.getOrderno());
+                    SmsLog smsLog = new SmsLog();
+                    smsLog.setCreatedate(new Date());
+                    smsLog.setMobile(mobile);
+                    smsLog.setType("卖家端修改商品数量通知");
+                    smsLog.setMemberid(member.getId());
+                    String content = smsTemplate.getContent();
+
+                    String tempcontent = content.replaceAll("\\$\\{orderno\\}", orders.getOrderno());
+                    smsLog.setDescription(tempcontent);
+                    if (jinShangSms.send(mobile, smsTemplate.getTemplatecode(), map)) {
+                        smsLog.setStates(Quantity.STATE_1);
+                    } else {
+                        smsLog.setStates(Quantity.STATE_2);
+                    }
+
+                    smsLogMapper.insert(smsLog);
+                }
+            });
+        });
+    }
+
+    /**
+     * 卖家取消订单 短信提醒买家
+     * @param list
+     */
+    public void smsNotifySellerCancelOrder(List<Orders> list) {
+        if(!profile.equals(AppConstant.APP_RUN_ENV_PRO)) return;
+        SmsTemplate smsTemplate = smsTemplateService.getBySendCode("NotifySellerCancelOrder");
+        if (smsTemplate == null) {
+            logger.error("NotifySellerCancelOrder短信模板不存在");
+            return;
+        }
+        list.forEach(orders -> {
+            cachedThreadPool.execute(() -> {
+                Member member = memberService.getMemberById(orders.getMemberid());
+                String mobile = member.getMobile();
+                //SellerCompanyInfo sellerCompanyInfo = sellerCompanyInfoMapper.getSellerCompanyByMemberid(orders.getSaleid());
+                // mobile = "18663868251";
+                if (StringUtils.hasText(mobile)) {
+                    Map<String, String> map = new HashMap<>();
+                    map.put("orderno", orders.getOrderno());
+                    SmsLog smsLog = new SmsLog();
+                    smsLog.setCreatedate(new Date());
+                    smsLog.setMobile(mobile);
+                    smsLog.setType("订单被修改商品数量通知");
+                    smsLog.setMemberid(member.getId());
+                    String content = smsTemplate.getContent();
+
+                    String tempcontent = content.replaceAll("\\$\\{orderno\\}", orders.getOrderno());
+                    smsLog.setDescription(tempcontent);
                     if (jinShangSms.send(mobile, smsTemplate.getTemplatecode(), map)) {
                         smsLog.setStates(Quantity.STATE_1);
                     } else {
@@ -2844,13 +3709,15 @@ public class OrdersService {
 
                 BigDecimal servepay = (orderProduct.getActualpayment().subtract(orderProduct.getFreight())).multiply(serverRate);
                 totalBroke = totalBroke.add(broker);
-                totalServerPay = totalServerPay.add(servepay);
+                if(orders.getReceivingaddress().indexOf("党湾镇")==-1) {
+                    totalServerPay = totalServerPay.add(servepay);
+                }
             }
 
             Orders orders1 = new Orders();
             orders1.setId(orders.getId());
-            orders1.setBrokepay(totalBroke);
-            orders1.setServerpay(totalServerPay);
+            orders1.setBrokepay(totalBroke.setScale(2,BigDecimal.ROUND_HALF_UP));
+            orders1.setServerpay(totalServerPay.setScale(2,BigDecimal.ROUND_HALF_UP));
             this.updateSingleOrder(orders1);
         });
     }
@@ -3092,7 +3959,7 @@ public class OrdersService {
         return retmap;
     }
 
-    private boolean checkBuyNum(BigDecimal buynum, BigDecimal minplus) {
+    public boolean checkBuyNum(BigDecimal buynum, BigDecimal minplus) {
         try {
             BigDecimal a = buynum.divide(minplus);
 
@@ -3108,7 +3975,905 @@ public class OrdersService {
         }
     }
 
-    private BigDecimal updatePriceByNum(BigDecimal num, ProductStore productStore, @NotNull String diliverTime, long sellerid, long levelid, long gradeid) {
+
+
+
+    /**
+     *订单下达主动
+     * @author xiazy
+     * @date  2018/6/5 10:50
+     * @param orderIds 订单id
+     * @return void
+     */
+    public BasicRet initiativeOrderIssue(String orderIds){
+        BasicRet basicRet=new BasicRet();
+        basicRet.setResult(BasicRet.SUCCESS);
+        basicRet.setMessage("订单下达成功");
+        List<Orders> ordersList=this.getWMSOrdersByInIds(orderIds);
+        for (Orders order :ordersList) {
+            Long sellerId=order.getSaleid();
+            Map<String,Object> retmap=verification(sellerId);
+            if (((BasicRet)retmap.get("basicRet")).getResult()!=1){
+                return (BasicRet)retmap.get("basicRet");
+            }
+            SellerCompanyInfo sellerCompanyInfo= (SellerCompanyInfo) retmap.get("sellerCompanyInfo");
+            String appId=sellerCompanyInfo.getAppid();
+            String appSecret=sellerCompanyInfo.getAppsecret();
+            String appUrl=sellerCompanyInfo.getAppurl();
+            Long timestamp=System.currentTimeMillis();
+            String notify= MD5Tools.MD5(appId+appSecret+timestamp);
+            List<OrderProduct> orderProductList=this.getOrderProductByOrderId(order.getId());
+            List<SaleDetail> saleDetailList=new ArrayList<>();
+            Js001 js001=new Js001();
+            js001.setAppid(appId);
+            js001.setNotify(notify);
+            js001.setType(DockType.JS001.getType());
+            js001.setOrderno(order.getOrderno());
+            js001.setShipto(order.getShipto());
+            js001.setReceivingaddress(order.getReceivingaddress());
+            js001.setPhone(order.getPhone());
+            //备用参数json暂时为空
+//            js001.setExtendjson(new ExtendParam());
+            js001.setExtendjson(null);
+            js001.setTimestamp(String.valueOf(timestamp));
+            orderProductList.parallelStream().forEach(orderProduct ->{
+                SaleDetail saleDetail=new SaleDetail();
+                saleDetail.setPdno(orderProduct.getPdno());
+                saleDetail.setBuynum(orderProduct.getNum());
+                saleDetail.setValuationnum(orderProduct.getNum());
+                saleDetail.setPrice(orderProduct.getPrice());
+                saleDetailList.add(saleDetail);
+            });
+            js001.setSalesjson(JsonUtil.toJson(saleDetailList));
+            String jsonParam=JsonUtil.toJson(js001);
+            sendToMiddleManage(appUrl,JsonUtil.toMap(jsonParam));
+        }
+        return basicRet;
+    }
+
+    /**
+     *订单取消主动
+     * @author xiazy
+     * @date  2018/6/4 17:48
+     * @param orderId 订单编码
+     * @return void
+     */
+    public BasicRet initiativeOrderCancel(Long orderId){
+        BasicRet basicRet=new BasicRet();
+        basicRet.setResult(BasicRet.SUCCESS);
+        basicRet.setMessage("订单取消成功");
+        Orders order=this.getWMSOrdersByInIds(String.valueOf(orderId)).get(0);
+        Long sellerId=order.getSaleid();
+        Map<String,Object> retmap=verification(sellerId);
+        if (((BasicRet)retmap.get("basicRet")).getResult()!=1){
+            return (BasicRet)retmap.get("basicRet");
+        }
+        SellerCompanyInfo sellerCompanyInfo= (SellerCompanyInfo) retmap.get("sellerCompanyInfo");
+        String appId=sellerCompanyInfo.getAppid();
+        String appSecret=sellerCompanyInfo.getAppsecret();
+        String appUrl=sellerCompanyInfo.getAppurl();
+        Long timestamp=System.currentTimeMillis();
+        String notify=MD5Tools.MD5(appId+appSecret+timestamp);
+        Js003 js003=new Js003();
+        js003.setAppid(appId);
+        js003.setNotify(notify);
+        js003.setType(DockType.JS003.getType());
+        js003.setOrderno(order.getOrderno());
+        js003.setCanceltype(DockType.QX001.getType());
+        //备用参数json暂时为空
+//        js003.setExtendjson(new ExtendParam());
+        js003.setExtendjson(null);
+        js003.setTimestamp(String.valueOf(timestamp));
+        String jsonParam=JsonUtil.toJson(js003);
+        sendToMiddleManage(appUrl,JsonUtil.toMap(jsonParam));
+        return basicRet;
+    }
+    /**
+     * 买家在卖家未确认该远期订单时取消订单
+     */
+    public void cancelOrdersBuyer(String orderno, Member member, HttpServletRequest request) throws CashException, WxPayException, AlipayApiException, InvocationTargetException, IllegalAccessException {
+        Orders orders = ordersMapper.getOrdersByOrderNo(orderno);
+        List<OrderProduct> orderProducts = orders.getOrderProducts();
+//        Short productType = orderProducts.get(0).getProducttype();
+//        TransactionSetting transactionSetting = transactionSettingService.getTransactionSetting();
+        Long id = orders.getId();
+
+        //BasicRet basicRet = new BasicRet();
+//        Member seller = memberService.getMemberById(orders.getSaleid());
+//        Member oldSeller = new Member();
+//        BeanUtils.copyProperties(oldSeller,seller);
+//
+        Member buyer = memberService.getMemberById(orders.getMemberid());
+        Member oldBuyer = new Member();
+        BeanUtils.copyProperties(oldBuyer,buyer);
+
+        //买家获取到退款违约金金额
+        //BigDecimal buyerPenaltyPay = Quantity.BIG_DECIMAL_0;
+
+        //退款金额
+        BigDecimal backPay = orders.getActualpayment();
+
+
+        if (orders != null) {
+            if (this.canCancelOrdersSeller(orders)) {
+
+                Date tranTime = new Date();
+                List<BuyerCapital> buyerCapitals = new ArrayList<BuyerCapital>();
+                List<SalerCapital> salerCapitals = new ArrayList<SalerCapital>();
+                //买家退款资金明细
+                BuyerCapital buyerCapital1 = null;
+                //买家违约资金明细
+                //BuyerCapital buyerCapital2 = null;
+                //卖家退款资金明细
+                SalerCapital salerCapital1 = null;
+
+
+                //远期全款
+                if (orders.getOrdertype() == Quantity.STATE_1) {
+                    //判断退回到余额还是授信
+                    BuyerCapital buyerCapital = this.getBuyerCapitalByNoType(orders.getOrderno(), Quantity.STATE_9);
+                    if (buyerCapital != null) {
+                        //退回到余额
+                        if (buyerCapital.getPaytype() == Quantity.STATE_3) {
+                            buyer.setBalance(buyer.getBalance().add(backPay).setScale(2,BigDecimal.ROUND_HALF_UP));
+                            //buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_3);
+                            buyerCapital1.setOrderno(orders.getOrderno());
+                            buyerCapital1.setTradeno(orders.getTransactionnumber());
+                            buyerCapital1.setCapitaltype(Quantity.STATE_2);
+                            buyerCapital1.setCapital(backPay);
+                            buyerCapital1.setPaytype(Quantity.STATE_3);
+                            buyerCapital1.setMemberid(orders.getMemberid());
+                            buyerCapital1.setTradetime(tranTime);
+                            //salerCapital1 = createSalerBackPay(orders, backPay, tranTime);
+                            salerCapital1.setMemberid(orders.getSaleid());
+                            salerCapital1.setTradeno(orders.getTransactionnumber());
+                            salerCapital1.setOrderno(orders.getOrderno());
+                            salerCapital1.setTradetime(tranTime);
+                            salerCapital1.setRefundamount(backPay);
+                            salerCapital1.setCapitaltype(Quantity.STATE_3);
+                            buyerCapitals.add(buyerCapital1);
+                            salerCapitals.add(salerCapital1);
+                        }
+
+
+                        //退回到授信
+                        if (buyerCapital.getPaytype() == Quantity.STATE_4) {
+                            buyer.setBalance(buyer.getBalance().setScale(2,BigDecimal.ROUND_HALF_UP));
+                            buyer.setAvailablelimit(buyer.getAvailablelimit().add(backPay));
+                            buyer.setUsedlimit(buyer.getUsedlimit().subtract(backPay));
+                            //buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_4);
+                            buyerCapital1.setOrderno(orders.getOrderno());
+                            buyerCapital1.setTradeno(orders.getTransactionnumber());
+                            buyerCapital1.setCapitaltype(Quantity.STATE_2);
+                            buyerCapital1.setCapital(backPay);
+                            buyerCapital1.setPaytype(Quantity.STATE_4);
+                            buyerCapital1.setMemberid(orders.getMemberid());
+                            buyerCapital1.setTradetime(tranTime);
+                            //salerCapital1 = createSalerBackPay(orders, backPay, tranTime);
+                            salerCapital1.setMemberid(orders.getSaleid());
+                            salerCapital1.setTradeno(orders.getTransactionnumber());
+                            salerCapital1.setOrderno(orders.getOrderno());
+                            salerCapital1.setTradetime(tranTime);
+                            salerCapital1.setRefundamount(backPay);
+                            salerCapital1.setCapitaltype(Quantity.STATE_3);
+                            buyerCapitals.add(buyerCapital1);
+                            salerCapitals.add(salerCapital1);
+                        }
+
+                        //退回到支付宝或微信或银行卡
+                        if(buyerCapital.getPaytype()==Quantity.STATE_0||
+                           buyerCapital.getPaytype()==Quantity.STATE_1 ||
+                           buyerCapital.getPaytype()== Quantity.STATE_2){
+
+                            buyer.setBalance(buyer.getBalance().setScale(2,BigDecimal.ROUND_HALF_UP));
+
+                            String uuid = orders.getUuid();
+                            if(uuid!=null){
+                                Refund refund = new Refund();
+                                refund.setOutTradeNo(uuid);
+                                refund.setChannel(tradeService.getPayChannel(orders.getPaytype()));
+                                refund.setRefundAmount((backPay.multiply(new BigDecimal(100))).longValue());
+                                refund.setRefundReason("订单退款");
+                                BigDecimal totalAmout = tradeService.getTotalAmout(uuid);
+                                refund.setTotalAmount((totalAmout.multiply(new BigDecimal(100))).longValue());
+                                boolean result = tradeService.backMoney(refund);
+
+                                if(result){
+                                    if(orders.getPaytype()==Quantity.STATE_0){
+                                        //buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_0);
+                                        buyerCapital1.setOrderno(orders.getOrderno());
+                                        buyerCapital1.setTradeno(orders.getTransactionnumber());
+                                        buyerCapital1.setCapitaltype(Quantity.STATE_2);
+                                        buyerCapital1.setCapital(backPay);
+                                        buyerCapital1.setPaytype(Quantity.STATE_0);
+                                        buyerCapital1.setMemberid(orders.getMemberid());
+                                        buyerCapital1.setTradetime(tranTime);
+                                    }else if(orders.getPaytype()==Quantity.STATE_1) {
+                                        //buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_1);
+                                        buyerCapital1.setOrderno(orders.getOrderno());
+                                        buyerCapital1.setTradeno(orders.getTransactionnumber());
+                                        buyerCapital1.setCapitaltype(Quantity.STATE_2);
+                                        buyerCapital1.setCapital(backPay);
+                                        buyerCapital1.setPaytype(Quantity.STATE_1);
+                                        buyerCapital1.setMemberid(orders.getMemberid());
+                                        buyerCapital1.setTradetime(tranTime);
+                                    }else if(orders.getPaytype() == Quantity.STATE_2){
+                                        //buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_2);
+                                        buyerCapital1.setOrderno(orders.getOrderno());
+                                        buyerCapital1.setTradeno(orders.getTransactionnumber());
+                                        buyerCapital1.setCapitaltype(Quantity.STATE_2);
+                                        buyerCapital1.setCapital(backPay);
+                                        buyerCapital1.setPaytype(Quantity.STATE_2);
+                                        buyerCapital1.setMemberid(orders.getMemberid());
+                                        buyerCapital1.setTradetime(tranTime);
+                                    }
+                                    //salerCapital1 = createSalerBackPay(orders, backPay, tranTime);
+                                    salerCapital1.setMemberid(orders.getSaleid());
+                                    salerCapital1.setTradeno(orders.getTransactionnumber());
+                                    salerCapital1.setOrderno(orders.getOrderno());
+                                    salerCapital1.setTradetime(tranTime);
+                                    salerCapital1.setRefundamount(backPay);
+                                    salerCapital1.setCapitaltype(Quantity.STATE_3);
+                                    buyerCapitals.add(buyerCapital1);
+                                    salerCapitals.add(salerCapital1);
+                                } else {
+                                    throw new RuntimeException("退款失败");
+                                }
+
+                            }
+                        }
+                    } else {
+                        throw new CashException("买家订单付款明细未查询到，请联系网站客服");
+                    }
+                }
+
+
+                //远期定金
+                if (orders.getOrdertype() == Quantity.STATE_2) {
+                    backPay = orders.getDeposit().add(orders.getFreight());
+                    //判断退回到余额还是授信
+                    BuyerCapital depositBuyerCapital = this.getBuyerCapitalByNoType(orders.getOrderno(), Quantity.STATE_7);
+                    if (depositBuyerCapital != null) {
+                        //退回到余额
+                        if (depositBuyerCapital.getPaytype() == Quantity.STATE_3) {
+                            buyer.setBalance(buyer.getBalance().add(backPay));
+                            //buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_3);
+                            buyerCapital1.setOrderno(orders.getOrderno());
+                            buyerCapital1.setTradeno(orders.getTransactionnumber());
+                            buyerCapital1.setCapitaltype(Quantity.STATE_2);
+                            buyerCapital1.setCapital(backPay);
+                            buyerCapital1.setPaytype(Quantity.STATE_3);
+                            buyerCapital1.setMemberid(orders.getMemberid());
+                            buyerCapital1.setTradetime(tranTime);
+                            //salerCapital1 = createSalerBackPay(orders, backPay, tranTime);
+                            salerCapital1.setMemberid(orders.getSaleid());
+                            salerCapital1.setTradeno(orders.getTransactionnumber());
+                            salerCapital1.setOrderno(orders.getOrderno());
+                            salerCapital1.setTradetime(tranTime);
+                            salerCapital1.setRefundamount(backPay);
+                            salerCapital1.setCapitaltype(Quantity.STATE_3);
+                            buyerCapitals.add(buyerCapital1);
+                            salerCapitals.add(salerCapital1);
+                        }
+                        //退回到授信
+                        if (depositBuyerCapital.getPaytype() == Quantity.STATE_4) {
+                            buyer.setBalance(buyer.getBalance());
+                            //buyerCapital2 = createBuyerBackPay(orders, penaltyPay.multiply(forwardsalesmargin), tranTime, Quantity.STATE_3);
+                            buyer.setAvailablelimit(buyer.getAvailablelimit().add(backPay));
+                            buyer.setUsedlimit(buyer.getUsedlimit().subtract(backPay));
+                            //buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_4);
+                            buyerCapital1.setOrderno(orders.getOrderno());
+                            buyerCapital1.setTradeno(orders.getTransactionnumber());
+                            buyerCapital1.setCapitaltype(Quantity.STATE_2);
+                            buyerCapital1.setCapital(backPay);
+                            buyerCapital1.setPaytype(Quantity.STATE_4);
+                            buyerCapital1.setMemberid(orders.getMemberid());
+                            buyerCapital1.setTradetime(tranTime);
+                            //salerCapital1 = createSalerBackPay(orders, backPay, tranTime);
+                            salerCapital1.setMemberid(orders.getSaleid());
+                            salerCapital1.setTradeno(orders.getTransactionnumber());
+                            salerCapital1.setOrderno(orders.getOrderno());
+                            salerCapital1.setTradetime(tranTime);
+                            salerCapital1.setRefundamount(backPay);
+                            salerCapital1.setCapitaltype(Quantity.STATE_3);
+                            buyerCapitals.add(buyerCapital1);
+                            salerCapitals.add(salerCapital1);
+                            //buyerCapitals.add(buyerCapital2);
+                            buyerCapitals.add(buyerCapital1);
+                            salerCapitals.add(salerCapital1);
+                        }
+                        //退回到支付宝或微信或银行卡
+                        if(depositBuyerCapital.getPaytype()==Quantity.STATE_0||depositBuyerCapital.getPaytype()==Quantity.STATE_1){
+                            String uuid = orders.getUuid();
+                            buyer.setBalance(buyer.getBalance());
+                            //buyerCapital2 = createBuyerBackPay(orders, penaltyPay.multiply(forwardsalesmargin), tranTime, Quantity.STATE_3);
+                            if(uuid!=null){
+                                Refund refund = new Refund();
+                                refund.setOutTradeNo(uuid);
+                                if(orders.getPaytype()==Quantity.STATE_0){
+                                    refund.setChannel("alipay");
+                                }else if (orders.getPaytype() == Quantity.STATE_1){
+                                    refund.setChannel("wxpay");
+                                }else if (orders.getPaytype() == Quantity.STATE_3){
+                                    refund.setChannel("bank");
+                                }
+                                refund.setRefundAmount((backPay.multiply(new BigDecimal(100))).longValue());
+                                refund.setRefundReason("订单定金退款");
+                                List<Orders> ordersList = this.getOrdersByUUID(uuid);
+                                BigDecimal totalAmout = new BigDecimal(0);
+                                for(Orders od : ordersList){
+                                    totalAmout = totalAmout.add(od.getActualpayment());
+                                }
+                                refund.setTotalAmount((totalAmout.multiply(new BigDecimal(100))).longValue());
+                                boolean result = false;
+                                try {
+                                    if("alipay".equals(refund.getChannel())){
+                                        result = alipayService.refund(refund);
+                                    }else if("wxpay".equals(refund.getChannel())){
+                                        result = wxPayService.refund(refund);
+                                    }else if ("bank".equals(refund.getChannel())){
+                                        result = abcService.refund(refund);
+                                    }
+                                }catch (Exception e){
+                                    throw  e;
+                                }
+                                if(result){
+                                    if(orders.getPaytype()==Quantity.STATE_0){
+                                        //buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_0);
+                                        buyerCapital1.setOrderno(orders.getOrderno());
+                                        buyerCapital1.setTradeno(orders.getTransactionnumber());
+                                        buyerCapital1.setCapitaltype(Quantity.STATE_2);
+                                        buyerCapital1.setCapital(backPay);
+                                        buyerCapital1.setPaytype(Quantity.STATE_0);
+                                        buyerCapital1.setMemberid(orders.getMemberid());
+                                        buyerCapital1.setTradetime(tranTime);
+                                    }else if (orders.getPaytype() == Quantity.STATE_1){
+                                        //buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_1);
+                                        buyerCapital1.setOrderno(orders.getOrderno());
+                                        buyerCapital1.setTradeno(orders.getTransactionnumber());
+                                        buyerCapital1.setCapitaltype(Quantity.STATE_2);
+                                        buyerCapital1.setCapital(backPay);
+                                        buyerCapital1.setPaytype(Quantity.STATE_1);
+                                        buyerCapital1.setMemberid(orders.getMemberid());
+                                        buyerCapital1.setTradetime(tranTime);
+                                    }else if(orders.getPaytype() == Quantity.STATE_2)
+                                    //salerCapital1 = createSalerBackPay(orders, backPay, tranTime);
+                                    buyerCapital1.setOrderno(orders.getOrderno());
+                                    buyerCapital1.setTradeno(orders.getTransactionnumber());
+                                    buyerCapital1.setCapitaltype(Quantity.STATE_2);
+                                    buyerCapital1.setCapital(backPay);
+                                    buyerCapital1.setPaytype(Quantity.STATE_2);
+                                    buyerCapital1.setMemberid(orders.getMemberid());
+                                    buyerCapital1.setTradetime(tranTime);
+                                    //buyerCapitals.add(buyerCapital2);
+                                    //buyerCapitals.add(buyerCapital1);
+                                    //salerCapitals.add(salerCapital1);
+                                }
+                                salerCapital1.setMemberid(orders.getSaleid());
+                                salerCapital1.setTradeno(orders.getTransactionnumber());
+                                salerCapital1.setOrderno(orders.getOrderno());
+                                salerCapital1.setTradetime(tranTime);
+                                salerCapital1.setRefundamount(backPay);
+                                salerCapital1.setCapitaltype(Quantity.STATE_3);
+                                buyerCapitals.add(buyerCapital1);
+                                salerCapitals.add(salerCapital1);
+
+                            }else {
+                                throw new RuntimeException("退款失败");
+                            }
+                        }
+                    }
+
+                }
+                //保存用户余额和授信
+                this.saveMember(buyer,oldBuyer);
+//                this.saveMember(seller,oldSeller);
+                this.insertBuyerCapital(buyerCapitals);
+                this.insertSallerCapital(salerCapitals);
+            }
+        }
+        //订单关闭
+        orders.setOrderstatus(Quantity.STATE_7);
+        this.updateSingleOrder(orders);
+        //删除开票申请记录
+        this.deleteBillRecord(orders.getOrderno());
+
+        // syn wms
+        wmsService.cancelOrders(orders, WMSService.CANCEL_ORDER_TYPE);
+        this.updateReason(orders,"买家取消订单");
+
+        //保存操作日志
+        OperateLog operateLog = new OperateLog();
+        operateLog.setContent("取消订单");
+        operateLog.setOpid(member.getId());
+        operateLog.setOpname(member.getUsername());
+        operateLog.setOptime(new Date());
+        operateLog.setOptype(Quantity.STATE_0);
+        operateLog.setOrderid(orders.getId());
+        operateLog.setOrderno(orders.getOrderno());
+        this.saveOperatelog(operateLog);
+
+
+        //保存用户日志
+        memberLogOperator.saveMemberLog(member, null, "订单id：" + id + "取消", "/rest/seller/orders/cancelOrders",request, memberOperateLogService);
+    }
+
+    /**
+     *退货(主动)
+     * @author xiazy
+     * @date  2018/6/5 16:31
+     * @param backId 退货单id
+     * @return mizuki.project.core.restserver.config.BasicRet
+     */
+    public  BasicRet initiativeOrderReturn(Long backId){
+        BasicRet basicRet=new BasicRet();
+        basicRet.setResult(BasicRet.SUCCESS);
+        basicRet.setMessage("退货成功");
+        OrderProductBack orderProductBack =this.getOrderProductBackById(backId);
+        Long sellerId=orderProductBack.getSellerid();
+        Map<String,Object> retmap=verification(sellerId);
+        if (((BasicRet)retmap.get("basicRet")).getResult()!=1){
+            return (BasicRet)retmap.get("basicRet");
+        }
+        SellerCompanyInfo sellerCompanyInfo= (SellerCompanyInfo) retmap.get("sellerCompanyInfo");
+        String appId=sellerCompanyInfo.getAppid();
+        String appSecret=sellerCompanyInfo.getAppsecret();
+        String appUrl=sellerCompanyInfo.getAppurl();
+        Long timestamp=System.currentTimeMillis();
+        String notify=MD5Tools.MD5(appId+appSecret+timestamp);
+        Js004 js004=new Js004();
+        js004.setAppid(appId);
+        js004.setNotify(notify);
+        js004.setType(DockType.JS004.getType());
+        js004.setOrderno(orderProductBack.getOrderno());
+        js004.setBackno(orderProductBack.getBackno());
+        js004.setContact(orderProductBack.getContact());
+        js004.setBackaddress(orderProductBack.getBackaddress());
+        js004.setContactphone(orderProductBack.getContactphone());
+        BackDetail backDetail=new BackDetail();
+        backDetail.setPdno(orderProductBack.getPdno());
+        backDetail.setBacknum(orderProductBack.getPdnum());
+        backDetail.setValuationnum(orderProductBack.getPdnum());
+        OrderProduct orderProduct=orderProductMapper.selectByPrimaryKey(orderProductBack.getOrderpdid());
+        backDetail.setPrice(orderProduct.getPrice());
+        backDetail.setBackreason(orderProductBack.getReturnbackreason());
+        backDetail.setExtendjson(new ExtendParam());
+        backDetail.setTimestamp(orderProductBack.getCreatetime().getTime());
+        js004.setBackjson(JsonUtil.toJson(backDetail));
+        //备用参数json暂时为空
+//        js004.setExtendjson(new ExtendParam());
+        js004.setExtendjson(null);
+        js004.setTimestamp(String.valueOf(timestamp));
+        String jsonParam=JsonUtil.toJson(js004);
+        sendToMiddleManage(appUrl,JsonUtil.toMap(jsonParam));
+        return basicRet;
+    }
+
+    /**
+     *进行卖家对接的参数的有效性校验
+     * @author xiazy
+     * @date  2018/6/5 15:27
+     * @param sellerId 卖家的id
+     * @return mizuki.project.core.restserver.config.BasicRet
+     */
+    public Map<String,Object> verification(Long sellerId){
+        BasicRet basicRet=new BasicRet();
+        Map<String,Object> retMap=new HashMap<>();
+        basicRet.setResult(BasicRet.SUCCESS);
+        basicRet.setMessage("卖家对接参数检验通过");
+        SellerCompanyInfo sellerCompanyInfo = sellerCompanyInfoMapper.getSellerCompanyByMemberid(sellerId);
+        String appUrl=sellerCompanyInfo.getAppurl();
+        String appId=sellerCompanyInfo.getAppid();
+        String appSecret=sellerCompanyInfo.getAppsecret();
+        if(!StringUtils.hasText(appUrl)){
+            basicRet.setResult(BasicRet.ERR);
+            basicRet.setMessage("商家未配置对应的中间件管理平台的对接地址");
+            retMap.put("basicRet",basicRet);
+            return retMap;
+        }
+        if (!StringUtils.hasText(appId)){
+            basicRet.setResult(BasicRet.ERR);
+            basicRet.setMessage("商家尚未获取对应的中间件管理平台的对接id");
+            retMap.put("basicRet",basicRet);
+            return retMap;
+        }
+        if (!StringUtils.hasText(appSecret)){
+            basicRet.setResult(BasicRet.ERR);
+            basicRet.setMessage("商家尚未获取对应的中间件管理平台的对接密钥");
+            retMap.put("basicRet",basicRet);
+            return retMap;
+        }
+        if (!sellerCompanyInfo.getDisable()){
+            basicRet.setResult(BasicRet.ERR);
+            basicRet.setMessage("商家配置的对接连接处于不可用状态.");
+            retMap.put("basicRet",basicRet);
+            return retMap;
+        }
+        retMap.put("basicRet",basicRet);
+        retMap.put("sellerCompanyInfo",sellerCompanyInfo);
+        return retMap;
+    }
+
+
+
+
+
+    /**
+     * 商家确认不接收远期订单时买家资金原路返回
+     */
+    public void notConfirmFutureOrders(String orderno, Member member, HttpServletRequest request) throws CashException, AlipayApiException, WxPayException, InvocationTargetException, IllegalAccessException {
+        Orders orders = ordersMapper.getOrdersByOrderNo(orderno);
+        Long id = orders.getId();
+        Member oldMember = new Member();
+        BeanUtils.copyProperties(oldMember,member);
+
+//        Member seller = memberService.getMemberById(orders.getSaleid());
+//        Member oldSeller = new Member();
+//        BeanUtils.copyProperties(seller, oldSeller);
+
+        if (orders != null) {
+            Date tranTime = new Date();
+            List<BuyerCapital> buyerCapitals = new ArrayList<BuyerCapital>();
+            List<SalerCapital> salerCapitals = new ArrayList<SalerCapital>();
+            //买家退款资金明细
+            BuyerCapital buyerCapital1 = null;
+
+            //卖家退款资金明细
+            SalerCapital salerCapital1 = null;
+
+            //退款金额
+            BigDecimal backPay = BigDecimal.valueOf(0).setScale(2);
+
+            //远期全款
+            if (orders.getOrdertype() == Quantity.STATE_1) {
+                //未发货，运费退回
+                backPay = backPay.add(orders.getFreight()).setScale(2, BigDecimal.ROUND_HALF_UP);
+
+                //判断退回到余额还是授信
+                BuyerCapital buyerCapital = this.getBuyerCapitalByNoType(orders.getOrderno(), Quantity.STATE_9);
+                if (buyerCapital != null) {
+                    //退回到余额
+                    if (buyerCapital.getPaytype() == Quantity.STATE_3) {
+                        member.setBalance(member.getBalance().add(backPay));
+                        //buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_3);
+                        buyerCapital1=new BuyerCapital();
+                        buyerCapital1.setOrderno(orders.getOrderno());
+                        buyerCapital1.setTradeno(orders.getTransactionnumber());
+                        buyerCapital1.setCapitaltype(Quantity.STATE_2);
+                        buyerCapital1.setCapital(backPay);
+                        buyerCapital1.setPaytype(Quantity.STATE_3);
+                        buyerCapital1.setMemberid(orders.getMemberid());
+                        buyerCapital1.setTradetime(tranTime);
+                        //salerCapital1 = createSalerBackPay(orders, orders.getActualpayment(), tranTime);
+                        salerCapital1=new SalerCapital();
+                        salerCapital1.setMemberid(orders.getSaleid());
+                        salerCapital1.setTradeno(orders.getTransactionnumber());
+                        salerCapital1.setOrderno(orders.getOrderno());
+                        salerCapital1.setTradetime(tranTime);
+                        salerCapital1.setRefundamount(backPay);
+                        salerCapital1.setCapitaltype(Quantity.STATE_3);
+                        buyerCapitals.add(buyerCapital1);
+                        salerCapitals.add(salerCapital1);
+                    }
+                    //退回到授信
+                    if (buyerCapital.getPaytype() == Quantity.STATE_4) {
+                        member.setAvailablelimit(member.getAvailablelimit().add(backPay));
+                        member.setUsedlimit(member.getUsedlimit().subtract(backPay));
+                        //buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_4);
+                        buyerCapital1=new BuyerCapital();
+                        buyerCapital1.setOrderno(orders.getOrderno());
+                        buyerCapital1.setTradeno(orders.getTransactionnumber());
+                        buyerCapital1.setCapitaltype(Quantity.STATE_2);
+                        buyerCapital1.setCapital(backPay);
+                        buyerCapital1.setPaytype(Quantity.STATE_4);
+                        buyerCapital1.setMemberid(orders.getMemberid());
+                        buyerCapital1.setTradetime(tranTime);
+                        //salerCapital1 = createSalerBackPay(orders, orders.getActualpayment(), tranTime);
+                        salerCapital1=new SalerCapital();
+                        salerCapital1.setMemberid(orders.getSaleid());
+                        salerCapital1.setTradeno(orders.getTransactionnumber());
+                        salerCapital1.setOrderno(orders.getOrderno());
+                        salerCapital1.setTradetime(tranTime);
+                        salerCapital1.setRefundamount(backPay);
+                        salerCapital1.setCapitaltype(Quantity.STATE_3);
+                        buyerCapitals.add(buyerCapital1);
+                        salerCapitals.add(salerCapital1);
+                    }
+                    //退回到支付宝或微信或银行卡
+                    if (buyerCapital.getPaytype() == Quantity.STATE_0 ||
+                        buyerCapital.getPaytype() == Quantity.STATE_1 ||
+                        buyerCapital.getPaytype() == Quantity.STATE_2) {
+                        String uuid = orders.getUuid();
+                        if (uuid != null) {
+                            Refund refund = new Refund();
+                            refund.setOutTradeNo(uuid);
+                            if (orders.getPaytype() == Quantity.STATE_0) {
+                                refund.setChannel("alipay");
+                            } else if (orders.getPaytype() == Quantity.STATE_1) {
+                                refund.setChannel("wxpay");
+                            } else if (orders.getPaytype() == Quantity.STATE_2) {
+                                refund.setChannel("bank");
+                            }
+                            refund.setRefundAmount((backPay.multiply(new BigDecimal(100))).longValue());
+                            refund.setRefundReason("订单退款");
+//                                List<Orders> ordersList = ordersService.getOrdersByUUID(uuid);
+//                                BigDecimal totalAmout = BigDecimal.valueOf(0);
+//                                for (Orders od : ordersList) {
+//                                    totalAmout = totalAmout.add(od.getActualpayment());
+//                                }
+                            BigDecimal totalAmout = tradeService.getTotalAmout(uuid);
+                            refund.setTotalAmount((totalAmout.multiply(new BigDecimal(100))).longValue());
+                            boolean result = tradeService.backMoney(refund);
+                            if (result) {
+                                if (orders.getPaytype() == Quantity.STATE_0) {
+//                                    buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_0);
+                                    buyerCapital1.setOrderno(orders.getOrderno());
+                                    buyerCapital1.setTradeno(orders.getTransactionnumber());
+                                    buyerCapital1.setCapitaltype(Quantity.STATE_2);
+                                    buyerCapital1.setCapital(backPay);
+                                    buyerCapital1.setPaytype(Quantity.STATE_0);
+                                    buyerCapital1.setMemberid(orders.getMemberid());
+                                    buyerCapital1.setTradetime(tranTime);
+                                } else if (orders.getPaytype() == Quantity.STATE_1) {
+//                                    buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_1);
+                                    buyerCapital1.setOrderno(orders.getOrderno());
+                                    buyerCapital1.setTradeno(orders.getTransactionnumber());
+                                    buyerCapital1.setCapitaltype(Quantity.STATE_2);
+                                    buyerCapital1.setCapital(backPay);
+                                    buyerCapital1.setPaytype(Quantity.STATE_1);
+                                    buyerCapital1.setMemberid(orders.getMemberid());
+                                    buyerCapital1.setTradetime(tranTime);
+                                } else if (orders.getPaytype() == Quantity.STATE_2) {
+//                                    buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_2);
+                                    buyerCapital1.setOrderno(orders.getOrderno());
+                                    buyerCapital1.setTradeno(orders.getTransactionnumber());
+                                    buyerCapital1.setCapitaltype(Quantity.STATE_2);
+                                    buyerCapital1.setCapital(backPay);
+                                    buyerCapital1.setPaytype(Quantity.STATE_2);
+                                    buyerCapital1.setMemberid(orders.getMemberid());
+                                    buyerCapital1.setTradetime(tranTime);
+                                }
+//                                salerCapital1 = createSalerBackPay(orders, orders.getTotalprice(), tranTime);
+                                salerCapital1.setMemberid(orders.getSaleid());
+                                salerCapital1.setTradeno(orders.getTransactionnumber());
+                                salerCapital1.setOrderno(orders.getOrderno());
+                                salerCapital1.setTradetime(tranTime);
+                                salerCapital1.setRefundamount(backPay);
+                                salerCapital1.setCapitaltype(Quantity.STATE_3);
+                                buyerCapitals.add(buyerCapital1);
+                                salerCapitals.add(salerCapital1);
+                            } else {
+                                throw new RuntimeException("退款失败");
+                            }
+
+                        }
+                    }
+                } else {
+                    throw new CashException("买家订单付款明细未查询到，请联系网站客服");
+                }
+
+            }
+
+            //远期定金
+            if (orders.getOrdertype() == Quantity.STATE_3 && orders.getOrderstatus() == Quantity.STATE_8) {
+
+                //订单金额
+                BigDecimal orderPay = orders.getActualpayment().subtract(orders.getFreight());
+
+                //定金金额
+                BigDecimal partPay = orders.getDeposit();
+                //远期余款货款金额
+                //BigDecimal yuPay = orders.getBalance();
+
+
+                BigDecimal backMoney1 = Quantity.BIG_DECIMAL_0;
+                //BigDecimal backMoney2 = Quantity.BIG_DECIMAL_0;
+
+
+                //定金支付明细
+                BuyerCapital depositBuyerCapital = this.getBuyerCapitalByNoType(orders.getOrderno(), Quantity.STATE_7);
+
+                backPay = orders.getActualpayment();
+
+                if (depositBuyerCapital != null) {
+
+                    //退回到余额
+                    if (depositBuyerCapital.getPaytype() == Quantity.STATE_3) {
+                        member.setBalance(member.getBalance().add(backPay));
+                        //buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_3);
+                        buyerCapital1.setOrderno(orders.getOrderno());
+                        buyerCapital1.setTradeno(orders.getTransactionnumber());
+                        buyerCapital1.setCapitaltype(Quantity.STATE_2);
+                        buyerCapital1.setCapital(backPay);
+                        buyerCapital1.setPaytype(Quantity.STATE_3);
+                        buyerCapital1.setMemberid(orders.getMemberid());
+                        buyerCapital1.setTradetime(tranTime);
+                        //salerCapital1 = createSalerBackPay(orders, orders.getActualpayment(), tranTime);
+                        salerCapital1.setMemberid(orders.getSaleid());
+                        salerCapital1.setTradeno(orders.getTransactionnumber());
+                        salerCapital1.setOrderno(orders.getOrderno());
+                        salerCapital1.setTradetime(tranTime);
+                        salerCapital1.setRefundamount(backPay);
+                        salerCapital1.setCapitaltype(Quantity.STATE_3);
+                        buyerCapitals.add(buyerCapital1);
+                        salerCapitals.add(salerCapital1);
+
+                    }
+                    //退回到授信
+                    if (depositBuyerCapital.getPaytype() == Quantity.STATE_4) {
+                        member.setAvailablelimit(member.getAvailablelimit().add(backPay));
+                        member.setUsedlimit(member.getUsedlimit().subtract(backPay));
+                        //buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_4);
+                        buyerCapital1.setOrderno(orders.getOrderno());
+                        buyerCapital1.setTradeno(orders.getTransactionnumber());
+                        buyerCapital1.setCapitaltype(Quantity.STATE_2);
+                        buyerCapital1.setCapital(backPay);
+                        buyerCapital1.setPaytype(Quantity.STATE_4);
+                        buyerCapital1.setMemberid(orders.getMemberid());
+                        buyerCapital1.setTradetime(tranTime);
+                        //salerCapital1 = createSalerBackPay(orders, orders.getActualpayment(), tranTime);
+                        salerCapital1.setMemberid(orders.getSaleid());
+                        salerCapital1.setTradeno(orders.getTransactionnumber());
+                        salerCapital1.setOrderno(orders.getOrderno());
+                        salerCapital1.setTradetime(tranTime);
+                        salerCapital1.setRefundamount(backPay);
+                        salerCapital1.setCapitaltype(Quantity.STATE_3);
+                        buyerCapitals.add(buyerCapital1);
+                        salerCapitals.add(salerCapital1);
+
+                    }
+                    //退回到支付宝或微信
+                    if (depositBuyerCapital.getPaytype() == Quantity.STATE_0 ||
+                        depositBuyerCapital.getPaytype() == Quantity.STATE_1 ||
+                        depositBuyerCapital.getPaytype() == Quantity.STATE_2) {
+                        String uuid = orders.getUuid();
+                        if (uuid != null /*&& yuuuid != null*/) {
+                            //定金
+                            Refund refund1 = new Refund();
+                            //余款
+                            //Refund refund2 = new Refund();
+                            refund1.setOutTradeNo(uuid);
+                            //refund2.setOutTradeNo(yuuuid);
+                            if (orders.getPaytype() == Quantity.STATE_0) {
+                                refund1.setChannel("alipay");
+                                //refund2.setChannel("alipay");
+                            } else if (orders.getPaytype() == Quantity.STATE_1) {
+                                refund1.setChannel("wxpay");
+                                //refund2.setChannel("wxpay");
+                            } else if (orders.getPaytype() == Quantity.STATE_3) {
+                                refund1.setChannel("bank");
+                                //refund2.setChannel("bank");
+                            }
+                            refund1.setRefundAmount((backMoney1.multiply(new BigDecimal(100))).longValue());
+                            //refund2.setRefundAmount((backMoney2.multiply(new BigDecimal(100))).longValue());
+
+                            refund1.setRefundReason("订单定金退款");
+                            //refund2.setRefundReason("订单余款退款");
+                            List<Orders> ordersList = this.getOrdersByUUID(uuid);
+                            BigDecimal totalPartPay = BigDecimal.valueOf(0);
+                            //BigDecimal totalYuPay = BigDecimal.valueOf(0);
+                            for (Orders od : ordersList) {
+                                totalPartPay = totalPartPay.add(od.getDeposit());
+                                //totalYuPay = totalYuPay.add(od.getBalance());
+                            }
+                            refund1.setTotalAmount((totalPartPay.multiply(new BigDecimal(100))).longValue());
+                            //refund2.setTotalAmount((totalYuPay.multiply(new BigDecimal(100))).longValue());
+
+                            boolean result1 = false;
+                            //boolean result2 = false;
+                            try {
+                                if ("alipay".equals(refund1.getChannel())) {
+                                    result1 = alipayService.refund(refund1);
+                                    //result2 = alipayService.refund(refund2);
+                                } else if ("wxpay".equals(refund1.getChannel())) {
+                                    result1 = wxPayService.refund(refund1);
+                                    //result2 = wxPayService.refund(refund2);
+                                } else if ("bank".equals(refund1.getChannel())) {
+                                    result1 = abcService.refund(refund1);
+                                    //result2 = abcService.refund(refund2);
+                                }
+                            } catch (Exception e) {
+                                throw e;
+                            }
+                            if (result1 /*&& result2*/) {
+                                if (orders.getPaytype() == Quantity.STATE_0) {
+                                    //buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_0);
+                                    buyerCapital1.setOrderno(orders.getOrderno());
+                                    buyerCapital1.setTradeno(orders.getTransactionnumber());
+                                    buyerCapital1.setCapitaltype(Quantity.STATE_2);
+                                    buyerCapital1.setCapital(backPay);
+                                    buyerCapital1.setPaytype(Quantity.STATE_0);
+                                    buyerCapital1.setMemberid(orders.getMemberid());
+                                    buyerCapital1.setTradetime(tranTime);
+                                } else if (orders.getPaytype() == Quantity.STATE_1) {
+                                    //buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_1);
+                                    buyerCapital1.setOrderno(orders.getOrderno());
+                                    buyerCapital1.setTradeno(orders.getTransactionnumber());
+                                    buyerCapital1.setCapitaltype(Quantity.STATE_2);
+                                    buyerCapital1.setCapital(backPay);
+                                    buyerCapital1.setPaytype(Quantity.STATE_1);
+                                    buyerCapital1.setMemberid(orders.getMemberid());
+                                    buyerCapital1.setTradetime(tranTime);
+                                } else if (orders.getPaytype() == Quantity.STATE_2) {
+                                    //buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_2);
+                                    buyerCapital1.setOrderno(orders.getOrderno());
+                                    buyerCapital1.setTradeno(orders.getTransactionnumber());
+                                    buyerCapital1.setCapitaltype(Quantity.STATE_2);
+                                    buyerCapital1.setCapital(backPay);
+                                    buyerCapital1.setPaytype(Quantity.STATE_2);
+                                    buyerCapital1.setMemberid(orders.getMemberid());
+                                    buyerCapital1.setTradetime(tranTime);
+                                }
+                                //salerCapital1 = createSalerBackPay(orders, orders.getActualpayment(), tranTime);
+                                salerCapital1.setMemberid(orders.getSaleid());
+                                salerCapital1.setTradeno(orders.getTransactionnumber());
+                                salerCapital1.setOrderno(orders.getOrderno());
+                                salerCapital1.setTradetime(tranTime);
+                                salerCapital1.setRefundamount(backPay);
+                                salerCapital1.setCapitaltype(Quantity.STATE_3);
+                                buyerCapitals.add(buyerCapital1);
+                                salerCapitals.add(salerCapital1);
+
+                            } else {
+                                throw new RuntimeException("退款失败");
+                            }
+
+                        }
+                    }
+                }
+            }
+
+            //保存用户余额和授信
+            this.saveMember(member, oldMember);
+//            this.saveMember(seller, oldSeller);
+
+            if (buyerCapitals.size() > 0) {
+                this.insertBuyerCapital(buyerCapitals);
+            }
+
+            this.insertSallerCapital(salerCapitals);
+        } else {
+//        basicRet.setResult(BasicRet.ERR);
+//        basicRet.setMessage("没有此订单");
+//        return basicRet;
+        }
+
+        //订单关闭
+        orders.setOrderstatus(Quantity.STATE_7);
+        this.updateSingleOrder(orders);
+        //删除开票申请记录
+        this.deleteBillRecord(orders.getOrderno());
+
+
+        // syn wms
+        wmsService.cancelOrders(orders, WMSService.CANCEL_ORDER_TYPE);
+        this.updateReason(orders, "卖家取消订单");
+
+        //保存操作日志
+        OperateLog operateLog = new OperateLog();
+        operateLog.setContent("取消订单");
+        operateLog.setOpid(member.getId());
+        operateLog.setOpname(member.getUsername());
+        operateLog.setOptime(new Date());
+        operateLog.setOptype(Quantity.STATE_0);
+        operateLog.setOrderid(orders.getId());
+        operateLog.setOrderno(orders.getOrderno());
+        this.saveOperatelog(operateLog);
+        //保存用户日志
+        memberLogOperator.saveMemberLog(member, null, "订单id：" + id + "取消", "/rest/seller/orders/cancelOrders", request, memberOperateLogService);
+    }
+
+
+
+    /**
+     * 计算价格
+     *
+     * @param num
+     * @param productStore
+     * @param diliverTime
+     * @return
+     */
+    public BigDecimal updatePriceByNum(BigDecimal num, ProductStore productStore, @NotNull String diliverTime, long sellerid, long levelid, long gradeid) {
 
         //计算阶梯价格
         BigDecimal basicPrice = new BigDecimal(0);
@@ -3147,7 +4912,7 @@ public class OrdersService {
                     lastPercent = percent;
                     maxstart = start;
                 }
-                if ((num.compareTo(start) == 1) && (num.compareTo(end) == -1 || num.compareTo(end) == 0)) {
+                if ((num.compareTo(start) == 1 || num.compareTo(start) == 0) && (num.compareTo(end) == -1 )) {
                     saleprice = basicPrice.multiply(percent.multiply(new BigDecimal(0.01)));
                     flag = true;
                     break;
@@ -3180,6 +4945,15 @@ public class OrdersService {
     }
 
     /**
+     * 根据用户id获取用户所有订单 且为已支付 即orderstatus不等于0
+     * @param memberid
+     * @return
+     */
+    public List<Orders> findOrdersByuseridAndOrderStatus(Long memberid) {
+        return ordersMapper.findOrdersByuseridAndOrderStatus(memberid);
+    }
+
+    /**
      * 根据对象修改订单
      *
      * @param orders
@@ -3189,8 +4963,83 @@ public class OrdersService {
         return ordersMapper.updateByPrimaryKeySelective(orders);
     }
 
+    /**
+     * 根据用户id修改业务员
+     * @param clerkname
+     * @param clerknamephone
+     * @param memberid
+     * @return
+     */
+    public int updateOrdersClerknameBymemberid(String clerkname,String clerknamephone,Long memberid) {
+        return ordersMapper.updateOrdersClerknameBymemberid(clerkname,clerknamephone,memberid);
+    }
+
+    /**
+     * 根据用户id修改介绍人
+     * @param introducer
+     * @param memberid
+     * @return
+     */
+    public int updateOrdersWaysalesmanBymemberid(String introducer,Long memberid) {
+        return ordersMapper.updateOrdersWaysalesmanBymemberid(introducer,memberid);
+    }
+
 
     public List<Orders> selectByExample(OrdersExample example){
         return  ordersMapper.selectByExample(example);
+    }
+
+    /**
+     * 取第三方支付的总金额，该方法在paylogs表上线后会自动弃用，之后可以删除该方法
+     * @param uuid
+     * @return
+     */
+    public  BigDecimal getSumActualpaymentByUUID(String uuid){
+        return  ordersMapper.getSumActualpaymentByUUID(uuid);
+    }
+
+    public SellerCompanyInfo getSellerCompanyInfoByMemberId(long memberid){
+        return sellerCompanyInfoMapper.getSellerCompanyByMemberid(memberid);
+    }
+
+    /**
+     * 该方法用处：在删除管理员时，需要将订单表中客服人员字段为该管理员的置空
+     * @param ids
+     */
+    public void updateOrdersByIds(StringBuffer ids){
+        ordersMapper.updateOrdersByIds(ids);
+    }
+
+    /**
+     * 查询出所有订单信息
+     * @return
+     */
+    public List<Orders> getAllOrders() {
+        return  ordersMapper.getAllOrders();
+    }
+
+    public List<Orders> getByOrderNo(String orderno) {
+        return ordersMapper.getByOrderNo(orderno);
+    }
+
+
+    /**
+     * 物流迁移后 新的获取发货记录
+     *
+     * @param param
+     * @return
+     */
+    public PageInfo getDeliveryNewRecord(OrderQueryParam param) {
+        PageHelper.startPage(param.getPageNo(), param.getPageSize());
+
+        if (param.getEndTime() != null) {
+            Calendar c = Calendar.getInstance();
+            c.setTime(param.getEndTime());
+            c.add(Calendar.DAY_OF_MONTH, 1);// 今天+1天
+            Date tomorrow = c.getTime();
+            param.setEndTime(tomorrow);
+        }
+        List<OrdersLogisticsInfoDto> list = ordersMapper.getDeliveryNewRecord(param);
+        return  new PageInfo(list);
     }
 }

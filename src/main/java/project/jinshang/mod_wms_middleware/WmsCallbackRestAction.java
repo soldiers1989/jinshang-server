@@ -6,6 +6,10 @@ import io.swagger.annotations.*;
 import mizuki.project.core.restserver.config.BasicRet;
 import mizuki.project.core.restserver.config.exception.RestMainException;
 import org.apache.commons.lang3.ArrayUtils;
+import org.postgresql.ds.common.PGObjectFactory;
+import org.postgresql.util.PGobject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +20,7 @@ import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.exception.CashException;
 import project.jinshang.common.utils.GsonUtils;
 import project.jinshang.common.utils.JinshangUtils;
+import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_activity.bean.LimitTimeProd;
 import project.jinshang.mod_activity.bean.LimitTimeStore;
 import project.jinshang.mod_admin.mod_transet.bean.TransactionSetting;
@@ -32,20 +37,28 @@ import project.jinshang.mod_pay.mod_alipay.AlipayService;
 import project.jinshang.mod_pay.mod_bankpay.AbcService;
 import project.jinshang.mod_pay.mod_wxpay.MyWxPayService;
 import project.jinshang.mod_product.BillingRecordMapper;
+import project.jinshang.mod_product.OrderProductMapper;
+import project.jinshang.mod_product.ProductInfoMapper;
 import project.jinshang.mod_product.bean.*;
 import project.jinshang.mod_product.service.*;
 import project.jinshang.mod_wms_middleware.bean.GoodsStock;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/rest/callback/wms")
 @Api(tags = "wms中间件回调模块")
 @Transactional(rollbackFor = Exception.class)
 public class WmsCallbackRestAction {
+    private ExecutorService fixedThreadPool = Executors.newFixedThreadPool(10);
+
     @Autowired
     private ShopCarService shopCarService;
 
@@ -79,6 +92,20 @@ public class WmsCallbackRestAction {
 
     @Autowired
     BuyerCompanyInfoMapper buyerCompanyInfoMapper;
+
+    @Autowired
+    private ProductSearchService productSearchService;
+
+    @Autowired
+    private OrderProductMapper orderProductMapper;
+
+    @Autowired
+    private ProductInfoMapper productInfoMapper;
+
+    @Autowired
+    private OrderProductLogService orderProductLogService;
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     MemberLogOperator memberLogOperator = new MemberLogOperator();
 
@@ -131,7 +158,10 @@ public class WmsCallbackRestAction {
 //                }
             } else if ("JYCK".equals(moduleCode)) {
                 Orders orders = wmsService.selectOrdersByOrderNo(orderNo);
-                if (orders.getOrderstatus() == 0 || orders.getOrderstatus() == 5
+                if(orders.getOrderstatus() == 10){
+                    return new BasicRet(BasicRet.ERR, "此订单为分批发货的，不做处理");
+                }
+                if (orders.getOrderstatus() == 0 || orders.getOrderstatus() == 3 || orders.getOrderstatus() == 5
                         || orders.getOrderstatus() == 7) {
                     return new BasicRet(BasicRet.ERR, "order状态不对");
                 }
@@ -328,6 +358,44 @@ public class WmsCallbackRestAction {
 
 
 
+//    @RequestMapping(value = "/productStore/updateStorenum/list", method = RequestMethod.POST)
+//    @ApiOperation(value = "同步库存")
+//    @ApiImplicitParam(name = "goodsStockList", value = "商品库存列表", required = true, paramType = "query", dataType = "string")
+//    public BasicRet updateProductStoreNumList(String goodsStockList) {
+//        BasicRet basicRet = new BasicRet();
+//        List<GoodsStock> goodsStocks = new Gson().fromJson(goodsStockList, new TypeToken<List<GoodsStock>>() {
+//        }.getType());
+//
+//        if(goodsStocks != null && goodsStocks.size()>100){
+//            return new BasicRet(BasicRet.ERR,"一次最多批量提交100条库存数据");
+//        }
+//
+//        List<GoodsStock> errorGoodsStocks = new ArrayList<>();
+//        for (GoodsStock goodsStock : goodsStocks) {
+//            int c;
+//            if ("01".equals(goodsStock.getWarehouseCode())) {
+//                double num = Double.valueOf(goodsStock.getUqty());
+//                num = num / 1000;
+//                c = productStoreService.updateNumByStoreidAndPdno(goodsStock.getSku(), new BigDecimal(String.valueOf(num)));
+//            } else {
+//                c = productStoreService.updateNumByStoreidAndPdno(goodsStock.getSku(), new BigDecimal(goodsStock.getUqty()));
+//            }
+//            if (c <= 0) {
+//                errorGoodsStocks.add(goodsStock);
+//            }
+//        }
+//        if (errorGoodsStocks.isEmpty()) {
+//            basicRet.setResult(BasicRet.SUCCESS);
+//            basicRet.setMessage("成功");
+//        } else {
+//            basicRet.setResult(BasicRet.ERR);
+//            basicRet.setMessage(new Gson().toJson(errorGoodsStocks));
+//        }
+//        return basicRet;
+//    }
+
+
+
     @RequestMapping(value = "/productStore/updateStorenum/list", method = RequestMethod.POST)
     @ApiOperation(value = "同步库存")
     @ApiImplicitParam(name = "goodsStockList", value = "商品库存列表", required = true, paramType = "query", dataType = "string")
@@ -335,20 +403,112 @@ public class WmsCallbackRestAction {
         BasicRet basicRet = new BasicRet();
         List<GoodsStock> goodsStocks = new Gson().fromJson(goodsStockList, new TypeToken<List<GoodsStock>>() {
         }.getType());
+
+        if(goodsStocks != null && goodsStocks.size()>100){
+            return new BasicRet(BasicRet.ERR,"一次最多批量提交100条库存数据");
+        }
+
+
         List<GoodsStock> errorGoodsStocks = new ArrayList<>();
+
+        List<GoodsStock> searchUpdateList = new ArrayList<>();
+
         for (GoodsStock goodsStock : goodsStocks) {
-            int c;
-            if ("01".equals(goodsStock.getWarehouseCode())) {
-                double num = Double.valueOf(goodsStock.getUqty());
-                num = num / 1000;
-                c = productStoreService.updateNumByStoreidAndPdno(goodsStock.getSku(), new BigDecimal(String.valueOf(num)));
-            } else {
-                c = productStoreService.updateNumByStoreidAndPdno(goodsStock.getSku(), new BigDecimal(goodsStock.getUqty()));
+            if(goodsStock.getMemberid() == null || goodsStock.getStoreid() == null){
+               errorGoodsStocks.add(goodsStock);
+               continue;
             }
-            if (c <= 0) {
+
+            int c;
+            BigDecimal num = new BigDecimal(goodsStock.getQty());
+//            if ("01".equals(goodsStock.getWarehouseCode())) {
+//                num = num.divide(new BigDecimal(1000)).setScale(2);
+//               // c = productStoreService.updateNumByStoreidAndPdno(goodsStock.getSku(), new BigDecimal(String.valueOf(num)));
+//            }
+            c = productStoreService.updateNumByMemberidStoreidAndPdno(goodsStock.getMemberid(),goodsStock.getStoreid(),goodsStock.getSku(),num);
+            if (c<1) {
                 errorGoodsStocks.add(goodsStock);
+            }else{
+//                //修改索引
+//                //logger.error("修改库存");
+//                List<Map<String, Object>> maps = productSearchService.searchByStoreidAndPdno(goodsStock.getStoreid(), goodsStock.getSku());
+//                List<Map<String,Object>> list = new ArrayList<>();
+//                for(Map map : maps){
+//                    List<Map<String,Object>> stores = (List<Map<String, Object>>) map.get("stores");
+//                    for(Map<String,Object> store : stores){
+//                        if(goodsStock.getStoreid().toString().equals(store.get("storeid").toString()) && goodsStock.getSku().equals(store.get("pdno").toString())){
+//                            store.put("pdstorenum",num);
+//                            logger.error("修改库存：storeid"+goodsStock.getStoreid()+"---pdno:"+goodsStock.getSku());
+//                        }
+//                    }
+//                   list.add(map);
+//                }
+//                productSearchService.bulkUpdateIndex(list);
+
+
+                searchUpdateList.add(goodsStock);
             }
         }
+
+
+        if(!searchUpdateList.isEmpty()){
+            for(GoodsStock goodsStock : searchUpdateList){
+                fixedThreadPool.execute(()->{
+                    BigDecimal num = new BigDecimal(goodsStock.getQty());
+                    List<Map<String, Object>> maps = productSearchService.searchByStoreidAndPdno(goodsStock.getStoreid(), goodsStock.getSku());
+                    if(maps == null || maps.isEmpty()) return;
+                    List<Map<String,Object>> list = new ArrayList<>();
+                    for(Map map : maps){
+                        List<Map<String,Object>> stores = (List<Map<String, Object>>) map.get("stores");
+                        for(Map<String,Object> store : stores){
+                            if(goodsStock.getStoreid().toString().equals(store.get("storeid").toString()) && goodsStock.getSku().equals(store.get("pdno").toString())){
+                                store.put("pdstorenum",num.doubleValue());
+                                logger.error("更新搜索引擎库存："+Thread.currentThread().getName()+"----storeid"+goodsStock.getStoreid()+"---pdno:"+goodsStock.getSku()+"===库存："+goodsStock.getQty());
+                            }
+                        }
+                       list.add(map);
+                    }
+                    try {
+                        productSearchService.bulkUpdateIndex(list);
+                    } catch (IOException e) {
+                        logger.error("搜索引擎更新库存失败",e);
+                    }
+                });
+
+//                try {
+//                    fixedThreadPool.shutdown();
+//                    fixedThreadPool.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+            }
+
+
+//            cachedThreadPool.execute(()->{
+//                for(GoodsStock goodsStock : searchUpdateList){
+//                    BigDecimal num = new BigDecimal(goodsStock.getQty());
+//                    List<Map<String, Object>> maps = productSearchService.searchByStoreidAndPdno(goodsStock.getStoreid(), goodsStock.getSku());
+//                    List<Map<String,Object>> list = new ArrayList<>();
+//                    for(Map map : maps){
+//                        List<Map<String,Object>> stores = (List<Map<String, Object>>) map.get("stores");
+//                        for(Map<String,Object> store : stores){
+//                            if(goodsStock.getStoreid().toString().equals(store.get("storeid").toString()) && goodsStock.getSku().equals(store.get("pdno").toString())){
+//                                store.put("pdstorenum",num);
+//                                logger.error("更新搜索引擎库存："+Thread.currentThread().getName()+"----storeid"+goodsStock.getStoreid()+"---pdno:"+goodsStock.getSku()+"===库存："+goodsStock.getQty());
+//                            }
+//                        }
+//                       list.add(map);
+//                    }
+//                    try {
+//                        productSearchService.bulkUpdateIndex(list);
+//                    } catch (IOException e) {
+//                        logger.error("搜索引擎更新库存失败",e);
+//                    }
+//                }
+//            });
+        }
+
+
         if (errorGoodsStocks.isEmpty()) {
             basicRet.setResult(BasicRet.SUCCESS);
             basicRet.setMessage("成功");
@@ -358,6 +518,8 @@ public class WmsCallbackRestAction {
         }
         return basicRet;
     }
+
+
 
 
     @PostMapping("/getProdStoreInfo")
@@ -969,15 +1131,34 @@ public class WmsCallbackRestAction {
 //
 //        return  list;
 //    }
+
+
     @RequestMapping(value = "/getMemberOrder",method = RequestMethod.POST)
-    public List<Orders> getMemberOrder(@RequestParam("saleid") long saleid,@RequestParam("orderid") long orderid){
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "startTime", value = "起始时间", required = false, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "endTime", value = "结束时间", required = false, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "saleid", value = "商家id", required = true, paramType = "query", dataType = "long"),
+            @ApiImplicitParam(name = "orderid", value = "起始订单id", required = true, paramType = "query", dataType = "long"),
+
+    })
+    public List<Orders> getMemberOrder (
+            @RequestParam(required = false) Date startTime,
+            @RequestParam(required = false) Date endTime,
+            @RequestParam(required = true) long saleid,
+            @RequestParam(required = true) long orderid){
         OrdersExample example = new OrdersExample();
+        example.setOrderByClause(" id asc ");
         OrdersExample.Criteria criteria = example.createCriteria();
-    //        criteria.andMemberidEqualTo(memberid);
+        if(startTime != null) {
+            criteria.andCreatetimeGreaterThanOrEqualTo(startTime);
+            criteria.andCreatetimeLessThanOrEqualTo(endTime);
+        }else{
+            criteria.andIdGreaterThan(orderid);
+        }
         criteria.andSaleidEqualTo(saleid);
-        criteria.andIdGreaterThan(orderid);
         criteria.andOrderstatusIn(Arrays.asList(new Short[]{3, 4, 5}));
         List<Orders> list = ordersService.selectByExample(example);
+//        List<Orders> lists = new ArrayList<>();
         list.forEach(orders -> {
             BuyerCompanyInfoExample example1 = new BuyerCompanyInfoExample();
             example1.createCriteria().andMemberidEqualTo(orders.getMemberid());
@@ -1002,8 +1183,47 @@ public class WmsCallbackRestAction {
                     orders.setInvoiceName(buyerCompanyInfos.get(0).getCompanyname());
                 }
             }
-            orders.setOrderProducts(ordersService.getOrderProductByOrderId(orders.getId()));
+
+//            List<OrderProduct> orderProducts = orderProductMapper.listOrderProductByOrderId(orders.getId());
+//            for(OrderProduct op : orderProducts){
+//                ProductInfo productInfo1 = productInfoMapper.selectByPrimaryKey(op.getPdid());
+//                op.setProductsno(productInfo1.getProductsno());
+//                op.setProductTypeName(productInfo1.getLevel1());
+//            }
+
+            List<OrderProduct> orderProductList = ordersService.getOrderProductByOrderId(orders.getId());
+            List<Long> orderproductIds = new ArrayList<>();
+            orderProductList.forEach(orderProduct -> orderproductIds.add(orderProduct.getId()));
+            List<OrderProductLog> logList = orderProductLogService.getAllColumnByOrderproductids(orderproductIds);
+            for(OrderProduct orderProduct : orderProductList){
+                for(OrderProductLog log : logList){
+                    if(orderProduct.getId().equals(log.getOrderproductid())){
+                        Map extend = new HashMap();
+                        if(log.getProductinfojson() != null && log.getProductinfojson() instanceof PGobject) {
+                            PGobject pGobject = (PGobject) log.getProductinfojson();
+                            Map<String,Object> map  = GsonUtils.toMap(pGobject.getValue());
+                            extend.put("surfacetreatment",map.get("surfacetreatment"));
+                            orderProduct.setProductsno(StringUtils.nvl(map.get("productsno")));
+                            orderProduct.setProductTypeName(StringUtils.nvl(map.get("level1")));
+                        }
+
+                        if(log.getProductstorejson() != null && log.getProductstorejson() instanceof PGobject){
+                            PGobject pGobject = (PGobject) log.getProductstorejson();
+                            Map<String,Object> map = GsonUtils.toMap(pGobject.getValue());
+                            extend.put("startnum",map.get("startnum"));
+                            extend.put("weight",map.get("weight"));
+                        }
+                        orderProduct.setExtend(extend);
+                    }
+                }
+            }
+
+
+            orders.setOrderProducts(orderProductList);
+//            orders.setOrderProducts(orderProducts);
+//            lists.add(orders);
         });
         return  list;
     }
+
 }

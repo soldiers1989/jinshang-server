@@ -12,8 +12,10 @@ public class BillCreate {
 
     private String billno;
 
+    @ApiModelProperty(notes = "应缴授信金额")
     private BigDecimal money;
 
+    @ApiModelProperty(notes = "已缴金额")
     private BigDecimal amountpaid;
 
     private Date createtime;

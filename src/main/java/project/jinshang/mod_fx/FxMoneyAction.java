@@ -16,8 +16,8 @@ import project.jinshang.mod_fx.service.FxMoneyService;
 import project.jinshang.mod_member.bean.Member;
 
 @RestController
-@RequestMapping(value = {"/rest/fxmoney"})
-@Api(tags = "佣金余额管理", description = "佣金余额管理接口")
+@RequestMapping(value = {"/rest/buyer/fxmoney"})
+@Api(tags = "买家佣金余额管理", description = "佣金余额管理接口")
 @SessionAttributes(AppConstant.MEMBER_SESSION_NAME)
 public class FxMoneyAction {
 

@@ -3304,6 +3304,126 @@ public class SellerCompanyInfoExample {
             addCriterion("disable not between", value1, value2, "disable");
             return (Criteria) this;
         }
+
+        public Criteria andIsselfliftingIsNull() {
+            addCriterion("isselflifting is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsselfliftingIsNotNull() {
+            addCriterion("isselflifting is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsselfliftingEqualTo(Boolean value) {
+            addCriterion("isselflifting =", value, "isselflifting");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsselfliftingNotEqualTo(Boolean value) {
+            addCriterion("isselflifting <>", value, "isselflifting");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsselfliftingGreaterThan(Boolean value) {
+            addCriterion("isselflifting >", value, "isselflifting");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsselfliftingGreaterThanOrEqualTo(Boolean value) {
+            addCriterion("isselflifting >=", value, "isselflifting");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsselfliftingLessThan(Boolean value) {
+            addCriterion("isselflifting <", value, "isselflifting");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsselfliftingLessThanOrEqualTo(Boolean value) {
+            addCriterion("isselflifting <=", value, "isselflifting");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsselfliftingIn(List<Boolean> values) {
+            addCriterion("isselflifting in", values, "isselflifting");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsselfliftingNotIn(List<Boolean> values) {
+            addCriterion("isselflifting not in", values, "isselflifting");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsselfliftingBetween(Boolean value1, Boolean value2) {
+            addCriterion("isselflifting between", value1, value2, "isselflifting");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsselfliftingNotBetween(Boolean value1, Boolean value2) {
+            addCriterion("isselflifting not between", value1, value2, "isselflifting");
+            return (Criteria) this;
+        }
+
+        public Criteria andFreightmodeIsNull() {
+            addCriterion("freightmode is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFreightmodeIsNotNull() {
+            addCriterion("freightmode is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFreightmodeEqualTo(Short value) {
+            addCriterion("freightmode =", value, "freightmode");
+            return (Criteria) this;
+        }
+
+        public Criteria andFreightmodeNotEqualTo(Short value) {
+            addCriterion("freightmode <>", value, "freightmode");
+            return (Criteria) this;
+        }
+
+        public Criteria andFreightmodeGreaterThan(Short value) {
+            addCriterion("freightmode >", value, "freightmode");
+            return (Criteria) this;
+        }
+
+        public Criteria andFreightmodeGreaterThanOrEqualTo(Short value) {
+            addCriterion("freightmode >=", value, "freightmode");
+            return (Criteria) this;
+        }
+
+        public Criteria andFreightmodeLessThan(Short value) {
+            addCriterion("freightmode <", value, "freightmode");
+            return (Criteria) this;
+        }
+
+        public Criteria andFreightmodeLessThanOrEqualTo(Short value) {
+            addCriterion("freightmode <=", value, "freightmode");
+            return (Criteria) this;
+        }
+
+        public Criteria andFreightmodeIn(List<Short> values) {
+            addCriterion("freightmode in", values, "freightmode");
+            return (Criteria) this;
+        }
+
+        public Criteria andFreightmodeNotIn(List<Short> values) {
+            addCriterion("freightmode not in", values, "freightmode");
+            return (Criteria) this;
+        }
+
+        public Criteria andFreightmodeBetween(Short value1, Short value2) {
+            addCriterion("freightmode between", value1, value2, "freightmode");
+            return (Criteria) this;
+        }
+
+        public Criteria andFreightmodeNotBetween(Short value1, Short value2) {
+            addCriterion("freightmode not between", value1, value2, "freightmode");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

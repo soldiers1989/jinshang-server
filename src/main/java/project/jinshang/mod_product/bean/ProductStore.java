@@ -72,9 +72,12 @@ public class ProductStore {
     @ApiModelProperty(notes = "最少加购量")
     private BigDecimal minplus;
 
+    @ApiModelProperty(notes = "折扣比例")
+    private BigDecimal discountratio;
 
 
-//********************EXTEND**************************************************//
+
+    //********************EXTEND**************************************************//
     @ApiModelProperty(notes = "是否存在库存")
     private  short haveStorenum;
 
@@ -277,5 +280,13 @@ public class ProductStore {
 
     public void setMinplus(BigDecimal minplus) {
         this.minplus = minplus;
+    }
+
+    public BigDecimal getDiscountratio() {
+        return discountratio;
+    }
+
+    public void setDiscountratio(BigDecimal discountratio) {
+        this.discountratio = discountratio;
     }
 }

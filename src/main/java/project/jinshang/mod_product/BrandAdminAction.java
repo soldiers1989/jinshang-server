@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import project.jinshang.common.bean.Page;
+import project.jinshang.common.bean.AdminLogOperator;
 import project.jinshang.common.constant.AdminAuthorityConst;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.mod_common.bean.BasicExtRet;
@@ -18,10 +18,12 @@ import project.jinshang.mod_member.bean.Admin;
 import project.jinshang.mod_product.bean.Brand;
 import project.jinshang.mod_product.bean.Categories;
 import project.jinshang.mod_product.bean.ProductInfoExample;
+import project.jinshang.mod_product.service.AdminOperateLogService;
 import project.jinshang.mod_product.service.BrandService;
 import project.jinshang.mod_product.service.CategoriesService;
 import project.jinshang.mod_product.service.ProductInfoService;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 
 /**
@@ -42,6 +44,10 @@ public class BrandAdminAction {
 
     @Autowired
     private ProductInfoService productInfoService;
+    @Autowired
+    private AdminOperateLogService adminOperateLogService;
+
+    AdminLogOperator adminLogOperator = new AdminLogOperator();
 
     @RequestMapping(value = "/add",method = RequestMethod.POST)
     @ApiOperation(value = "添加品牌")
@@ -53,7 +59,7 @@ public class BrandAdminAction {
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.BRANDMANAGEMENT + "')")
     public BasicRet add(@RequestParam(required = true) String name,
                         @RequestParam(required = true) Long categoryid,
-                        @RequestParam(required = false,defaultValue = "") String pic, Model model) {
+                        @RequestParam(required = false,defaultValue = "") String pic, Model model, HttpServletRequest request) {
 
         BasicRet basicRet = new BasicRet();
 
@@ -103,6 +109,7 @@ public class BrandAdminAction {
 
         basicRet.setResult(BasicRet.SUCCESS);
         basicRet.setMessage("添加成功");
+        adminLogOperator.saveAdminLog(admin,"新增品牌:"+name,(short)1,"brand",request,adminOperateLogService);
         return basicRet;
     }
 
@@ -120,7 +127,7 @@ public class BrandAdminAction {
     public BasicRet update(@RequestParam(required = true) Long id,
                         @RequestParam(required = true) String name,
                         @RequestParam(required = true) Long categoryid,
-                        @RequestParam(required = false,defaultValue = "") String pic, Model model) {
+                        @RequestParam(required = false,defaultValue = "") String pic, Model model,HttpServletRequest request) {
 
         BasicRet basicRet = new BasicRet();
 
@@ -168,6 +175,7 @@ public class BrandAdminAction {
 
         basicRet.setResult(BasicRet.SUCCESS);
         basicRet.setMessage("修改成功");
+        adminLogOperator.saveAdminLog(admin,"修改品牌:"+name,(short)3,"brand",request,adminOperateLogService);
         return basicRet;
     }
 
@@ -176,7 +184,7 @@ public class BrandAdminAction {
     @RequestMapping(value = "/delete",method = RequestMethod.POST)
     @ApiOperation(value = "删除品牌")
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.BRANDMANAGEMENT + "')")
-    public BasicRet delete(@RequestParam(required = true) Long id) {
+    public BasicRet delete(@RequestParam(required = true) Long id,Model model,HttpServletRequest request) {
         BasicRet basicRet = new BasicRet();
 
         ProductInfoExample example =new ProductInfoExample();
@@ -188,10 +196,12 @@ public class BrandAdminAction {
             basicRet.setResult(BasicRet.ERR);
             return  basicRet;
         }
-
+        Brand brand = brandService.getById(id);
         brandService.deleteById(id);
         basicRet.setResult(BasicRet.SUCCESS);
         basicRet.setMessage("删除成功");
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        adminLogOperator.saveAdminLog(admin,"删除品牌:"+brand.getName(),(short)2,"brand",request,adminOperateLogService);
         return basicRet;
     }
 
@@ -234,7 +244,7 @@ public class BrandAdminAction {
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.BRANDMANAGEMENT + "')")
     public BasicRet checkValidate(@RequestParam(required = true) Long id,
                            @RequestParam(required = true) short auditstate,
-                           @RequestParam(required = false,defaultValue = "")String reason, Model model) {
+                           @RequestParam(required = false,defaultValue = "")String reason, Model model,HttpServletRequest request) {
 
         BasicRet basicRet = new BasicRet();
 
@@ -256,6 +266,7 @@ public class BrandAdminAction {
 
         basicRet.setResult(BasicRet.SUCCESS);
         basicRet.setMessage("审核成功");
+        adminLogOperator.saveAdminLog(admin,auditstate==1?"审核通过品牌:":"拒绝品牌:"+brand.getName()+" 新增",(short)1,"brand",request,adminOperateLogService);
         return basicRet;
     }
 }

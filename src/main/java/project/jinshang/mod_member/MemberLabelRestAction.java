@@ -52,10 +52,11 @@ public class MemberLabelRestAction {
     @RequestMapping(value = "/addLable",method = RequestMethod.POST)
     @ApiOperation(value = "会员标签添加")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "labelname",value = "标签名",required = true,paramType = "query",dataType = "string")
+            @ApiImplicitParam(name = "labelname",value = "标签名",required = true,paramType = "query",dataType = "string"),
+            @ApiImplicitParam(name = "remarks",value = "备注",required = true,paramType = "query",dataType = "string")
     })
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.LABELMANAGEMENT + "')")
-    public BasicRet addLable(@RequestParam(required = true) String labelname, Model model, HttpServletRequest request){
+    public BasicRet addLable(@RequestParam(required = true) String labelname,@RequestParam(required = true) String remarks, Model model, HttpServletRequest request){
         BasicRet basicRet=new BasicRet();
 
         Admin admin= (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
@@ -70,6 +71,7 @@ public class MemberLabelRestAction {
 
         MemberLabel label = new MemberLabel();
         label.setLabelname(labelname);
+        label.setRemarks(remarks);
         memberLabelService.addLable(label);
 
 
@@ -119,11 +121,12 @@ public class MemberLabelRestAction {
     @ApiOperation("修改标签")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "id",value = "标签ID",required = true,dataType = "int",paramType = "query"),
-            @ApiImplicitParam(name = "labelname",value = "标签名",required = true,dataType = "string",paramType = "query")
+            @ApiImplicitParam(name = "labelname",value = "标签名",required = true,dataType = "string",paramType = "query"),
+            @ApiImplicitParam(name = "remarks",value = "备注",required = true,dataType = "string",paramType = "query")
     })
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.LABELMANAGEMENT + "')")
     public  BasicRet updateLable(@RequestParam(required = true) long id ,
-            @RequestParam(required = true) String labelname,Model model,HttpServletRequest request){
+            @RequestParam(required = true) String labelname,@RequestParam(required = true) String remarks,Model model,HttpServletRequest request){
         BasicRet basicRet=new BasicRet();
 
         Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
@@ -137,6 +140,7 @@ public class MemberLabelRestAction {
         MemberLabel updateLabel = new MemberLabel();
         updateLabel.setId(id);
         updateLabel.setLabelname(labelname);
+        updateLabel.setRemarks(remarks);
 
         memberLabelService.updateLable(updateLabel);
 
@@ -153,10 +157,11 @@ public class MemberLabelRestAction {
     @RequestMapping(value = "/listAllLable",method = RequestMethod.POST)
     @ApiOperation("列出所有标签列表")
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.LABELMANAGEMENT + "')")
-    public LableListRet listLable(@RequestParam(required = false,defaultValue = "") String labelname){
+    public LableListRet listLable(@RequestParam(required = false,defaultValue = "") String labelname,@RequestParam(required = false,defaultValue = "") String remarks){
         LableListRet lableListRet =  new LableListRet();
         MemberLabelQueryDto queryDto = new MemberLabelQueryDto();
         queryDto.setLabelname(labelname);
+        queryDto.setRemarks(remarks);
 
         List<MemberLabelViewDto> list = memberLabelService.getLabelList(queryDto);
 
@@ -172,6 +177,28 @@ public class MemberLabelRestAction {
         return  lableListRet;
     }
 
+
+    @RequestMapping(value = "/listAllLable1",method = RequestMethod.POST)
+    @ApiOperation("列出所有标签列表")
+    public LableListRet listLable1(@RequestParam(required = false,defaultValue = "") String labelname,@RequestParam(required = false,defaultValue = "") String remarks){
+        LableListRet lableListRet =  new LableListRet();
+        MemberLabelQueryDto queryDto = new MemberLabelQueryDto();
+        queryDto.setLabelname(labelname);
+        queryDto.setRemarks(remarks);
+
+        List<MemberLabelViewDto> list = memberLabelService.getLabelList(queryDto);
+
+        if(list.size()>0){
+            for(MemberLabelViewDto dto : list){
+                dto.setCount(memberLabelService.getMemberLabelCount(dto.getId()));
+            }
+        }
+
+        lableListRet.list = list;
+
+        lableListRet.setResult(BasicRet.SUCCESS);
+        return  lableListRet;
+    }
 
     private  class  LableListRet extends  BasicRet{
        private   List<MemberLabelViewDto> list;

@@ -1,5 +1,7 @@
 package project.jinshang.mod_sellerbill.bean;
 
+import io.swagger.annotations.ApiModelProperty;
+
 import java.math.BigDecimal;
 import java.util.Date;
 
@@ -33,6 +35,15 @@ public class SellerBill {
     private BigDecimal totalorders;
 
     private BigDecimal totalbrokepay;
+
+    @ApiModelProperty(notes = "1= 订单发票   2=违约金发票")
+    private Short type;
+
+    @ApiModelProperty(notes = "违约金数量")
+    private Integer breaknum;
+
+    @ApiModelProperty(notes = "违约金总金额")
+    private BigDecimal totalbreak;
 
     public Long getId() {
         return id;
@@ -152,5 +163,29 @@ public class SellerBill {
 
     public void setTotalbrokepay(BigDecimal totalbrokepay) {
         this.totalbrokepay = totalbrokepay;
+    }
+
+    public Short getType() {
+        return type;
+    }
+
+    public void setType(Short type) {
+        this.type = type;
+    }
+
+    public Integer getBreaknum() {
+        return breaknum;
+    }
+
+    public void setBreaknum(Integer breaknum) {
+        this.breaknum = breaknum;
+    }
+
+    public BigDecimal getTotalbreak() {
+        return totalbreak;
+    }
+
+    public void setTotalbreak(BigDecimal totalbreak) {
+        this.totalbreak = totalbreak;
     }
 }

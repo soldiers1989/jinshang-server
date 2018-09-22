@@ -54,6 +54,35 @@ public class OtherProductQueryDto {
     //是否远期
     private short futurePrice;
 
+    private String stand;
+
+    private String cardnum;
+
+    private String material;
+
+    public String getMaterial() {
+        return material;
+    }
+
+    public void setMaterial(String material) {
+        this.material = material;
+    }
+
+    public String getCardnum() {
+        return cardnum;
+    }
+
+    public void setCardnum(String cardnum) {
+        this.cardnum = cardnum;
+    }
+
+    public String getStand() {
+        return stand;
+    }
+
+    public void setStand(String stand) {
+        this.stand = stand;
+    }
 
     public String getPdno() {
         return pdno;

@@ -15,10 +15,13 @@ public class WxLoginConfig {
     private  String appId;
     private  String appSecret;
     private  String accsstokenUrl;
+    private  String globalAccsstokenUrl;
     private  String wxinfoUrl;
 
     private  String wapAppId;
     private  String wapAppSecret;
+
+    private  String jsapiTicketUrl;
 
 
     public String getAppId() {
@@ -67,5 +70,21 @@ public class WxLoginConfig {
 
     public void setWapAppSecret(String wapAppSecret) {
         this.wapAppSecret = wapAppSecret;
+    }
+
+    public String getGlobalAccsstokenUrl() {
+        return globalAccsstokenUrl;
+    }
+
+    public void setGlobalAccsstokenUrl(String globalAccsstokenUrl) {
+        this.globalAccsstokenUrl = globalAccsstokenUrl;
+    }
+
+    public String getJsapiTicketUrl() {
+        return jsapiTicketUrl;
+    }
+
+    public void setJsapiTicketUrl(String jsapiTicketUrl) {
+        this.jsapiTicketUrl = jsapiTicketUrl;
     }
 }

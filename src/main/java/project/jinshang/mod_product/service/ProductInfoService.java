@@ -93,6 +93,57 @@ public class ProductInfoService {
         return pageInfo;
     }
 
+    /**
+     * 多规格筛选
+     * @param productInfo
+     * @return
+     */
+    public List MultiSpecification(ProductInfoQuery productInfo){
+
+        List<Map<String, Object>> list = productInfoMapper.MultiSpecification(productInfo);
+        List<String> key = new ArrayList<String>();
+        for(Map<String,Object> m:list){
+            key.add(m.get("level3").toString());
+        }
+        key = removeDuplicate(key);
+
+        List allData = new ArrayList();
+        List listData = new ArrayList();
+        for(int i=0;i<key.size();i++){
+            Map<String,List> map = new HashMap<String,List>();
+            List keys = new ArrayList();
+            List value= new ArrayList();
+            for(int j=0;j<list.size();j++){
+                if(key.get(i).equals(list.get(j).get("level3").toString())){
+                    if(list.get(j).get("stand")!=null) {
+                        String stand = list.get(j).get("stand").toString().replace(" ","").split("\\*")[0];
+                        value.add(stand);
+                    }
+                }
+            }
+            keys.add(key.get(i));
+            value = removeDuplicate(value);
+            map.put("name",keys);
+            map.put("value",value);
+
+            listData.add(map);
+        }
+        allData.add(listData);
+
+        return allData;
+    }
+
+    //list去重
+    public  List removeDuplicate(List list){
+        for  ( int  i  =   0 ; i  <  list.size()  -   1 ; i ++ )  {
+            for  ( int  j  =  list.size()  -   1 ; j  >  i; j -- )  {
+                if  (list.get(j).equals(list.get(i)))  {
+                    list.remove(j);
+                }
+            }
+        }
+        return list;
+    }
 
     /**
      * 根据条件搜索产品信息(紧固件) 后台Excel导出
@@ -135,7 +186,7 @@ public class ProductInfoService {
             resMap.put("仓库地址",map.get("storeaddress"));
 
             String temname = "包邮";
-            if((long)map.get("freightmode") != -1){
+            if(map.get("freightmode")!=null && !"".equals(map.get("freightmode")) &&(long)map.get("freightmode") != -1){
                 temname =  (String) map.get("temname");
             }
             resMap.put("运费方式",temname);
@@ -172,7 +223,14 @@ public class ProductInfoService {
         return  data;
     }
 
-
+    /**
+     * 根据条件搜索产品信息总记录数
+     * @param productInfo
+     * @return
+     */
+    public Long getProductInfoCount(ProductInfoQuery productInfo) {
+        return productInfoMapper.getProductInfoCount(productInfo);
+    }
 
 
     /**
@@ -197,12 +255,12 @@ public class ProductInfoService {
 //        }
 
 
-      return  list;
+        return  list;
     }
 
 
 
-
+//
 
 
     public void updateById(ProductInfo productInfo) {
@@ -348,12 +406,16 @@ public class ProductInfoService {
 
         if (productStore.getStoreid() <= 0
                 || !StringUtils.hasText(productStore.getStorename())
-        ) {
+                ) {
             errorMes.addError("storeid", "请选择仓库");
         }
 
-        if (productStore.getFreightmode() == null || productStore.getFreightmode() < -1) {
-            errorMes.addError("freightmode", "运费模版选择不正确");
+//        if (productStore.getFreightmode() == null || productStore.getFreightmode() < -1) {
+//            errorMes.addError("freightmode", "运费模版选择不正确");
+//        }
+
+        if (productStore.getDiscountratio() == null) {
+            errorMes.addError("Discountratio", "请填写折扣比例");
         }
 
 
@@ -380,8 +442,8 @@ public class ProductInfoService {
 
 
     public List<Map<String,Object>> getFloorProducts(String pdno, String username,
-                                       String brand, String productname,
-                                       String stand,String store){
+                                                     String brand, String productname,
+                                                     String stand,String store){
         return  productInfoMapper.getFloorProducts(pdno,username,brand,productname,stand,store);
     }
 
@@ -417,4 +479,7 @@ public class ProductInfoService {
     }
 
 
+    public List<ProductInfo> getProductInfoByProductId(long productid) {
+        return productInfoMapper.getProductInfoByProductId(productid);
+    }
 }

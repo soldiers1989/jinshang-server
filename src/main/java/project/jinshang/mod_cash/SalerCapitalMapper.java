@@ -119,7 +119,7 @@ public interface SalerCapitalMapper {
 
 
 
-    @Select("<script>select M.id,M.username,M.realname,C.companyname,M.sellerbanlance,M.sellerfreezebanlance,G.gradename,C.shopname" +
+    @Select("<script>select M.id,M.username,M.realname,C.companyname,M.sellerbanlance,M.sellerfreezebanlance,M.goodsbanlance,G.gradename,C.shopname" +
 //            ",(select sum(ordercapital)" +
 //            " from salercapital where capitaltype=1 and rechargestate=1 and memberid=M.id ) as totalcapital" +
             " from member M join  sellercompanyinfo C on M.id=C.memberid left join shopgrade G on C.shopgradeid=G.id where 1=1" +
@@ -149,5 +149,31 @@ public interface SalerCapitalMapper {
      */
     @InsertProvider(type = SalerCapitalProvider.class, method = "insertAll")
     void insertAll(List<SalerCapital> list);
+
+    /**
+     * 批量插入 同时插入billtoserver
+     * @param list
+     */
+    @InsertProvider(type = SalerCapitalProvider.class, method = "insertAllNew")
+    void insertAllNew(List<SalerCapital> list);
+
+    /**
+     *
+     * @param salerid
+     * @return
+     */
+ /*   @Select("select id,orderno,membername,frozepay,brokepay,buyerinspectiontime as overtime from orders where saleid=#{saleid} " +
+            "and orderstatus=5 and billtoserver=0 order by buyerinspectiontime asc ")*/
+    @Select("select sc.id,sc.memberid,sc.tradeno,sc.orderno,sc.tradetime,sc.penalty,sc.buyerid,billtoserver from salercapital sc where sc.type = 2 ")
+    List<Map<String,Object>> getWaitPenaltyOpenBillList(Long salerid);
+
+    @Select("<script>select sc.* from salercapital sc  where sc.id in <foreach collection=\"ids\" item=\"item\" index=\"index\" \n" +
+            "open=\"(\" separator=\",\" close=\")\">#{item}</foreach></script>")
+    List<SalerCapital> getSalerCapitalByIds(@Param("ids")Long[] ids);
+
+
+    @Select("<script>select sc.id,sc.memberid,sc.tradeno,sc.orderno,sc.tradetime,sc.ordercapital,sc.bail,sc.penalty,sc.capitaltype,sc.rechargeperform,sc.rechargeperform,sc.brokerage,sc.buyerid,sc.billtoserver,o.paytype  from salercapital sc left join orders o on sc.orderno = o.orderno where  sc.billtoserver = 0 and sc.capitaltype = 6 and sc.id in <foreach collection=\"ids\" item=\"item\" index=\"index\" \n" +
+            "open=\"(\" separator=\",\" close=\")\">#{item}</foreach> </script>")
+    List<Map<String,Object>> getExcelSellerBillid(@Param("sellerid") Long sellerid,@Param("ids") Long[] ids);
 
 }

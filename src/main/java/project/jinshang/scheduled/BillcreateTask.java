@@ -51,7 +51,7 @@ public class BillcreateTask {
 
 //    @Scheduled(cron="*/10 * * * * *")
 
-    //@Scheduled(cron="0 17 10 * * ?") //每天3点执行
+    //@Scheduled(cron="0 51 17 * * ?") //每天3点执行
     @Scheduled(cron="0 0 3 28 * ?")  //每月28号3:00生成账单
     public  void  genetateCreditBill(){
         String todays =  DateUtils.format(new Date(),"yyyy-MM-dd");
@@ -63,9 +63,10 @@ public class BillcreateTask {
 
         List<Member> memberLists = memberService.selectByExample(memberExample);
 
+        /*
         //上线前打开
         Calendar calendar = Calendar.getInstance();
-        calendar.set(Calendar.DAY_OF_MONTH,27);
+        calendar.set(Calendar.DAY_OF_MONTH,28);
         Date buyerinspectiontimeEndDate = calendar.getTime();
         calendar.add(Calendar.MONTH,-1);
         Date buyerinspectiontimeStartDate =  calendar.getTime();
@@ -77,8 +78,22 @@ public class BillcreateTask {
 //        Date buyerinspectiontimeStartDate =  calendar.getTime();
 
 
+        String buyerinspectiontimeStart = DateUtils.format(buyerinspectiontimeStartDate,"yyyy-MM-dd")+" 23:59:59";
+        String buyerinspectiontimeEnd =  DateUtils.format(buyerinspectiontimeEndDate,"yyyy-MM-dd")+" 00:00:00";
+*/
+
+
+        //上线前打开
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.DAY_OF_MONTH,27);
+        Date buyerinspectiontimeEndDate = calendar.getTime();
+        calendar.add(Calendar.MONTH,-1);
+        calendar.add(Calendar.DATE,1);
+        Date buyerinspectiontimeStartDate =  calendar.getTime();
+
         String buyerinspectiontimeStart = DateUtils.format(buyerinspectiontimeStartDate,"yyyy-MM-dd")+" 00:00:00";
-        String buyerinspectiontimeEnd =  DateUtils.format(buyerinspectiontimeEndDate,"yyyy-MM-dd")+" 23:59:59";
+        String buyerinspectiontimeEnd =  DateUtils.format(buyerinspectiontimeEndDate,"yyyy-MM-dd")+" 23:59:59.999";
+
 
 
         for(Member member : memberLists){

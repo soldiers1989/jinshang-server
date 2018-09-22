@@ -30,6 +30,14 @@ public class GenerateNo {
 
     private static String settlementNo;//结算账单号（授信）
 
+    private static String yhqNo;//优惠券编号
+
+    private static String yNo;//优惠券配置编号
+
+    private static String yhqlbNo;//优惠券礼包编号
+
+    private static String yhqFFNo;//优惠券分发编号
+
     private static final String format= "yyyyMMddHHmmss";
 
     private static final String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ" ;
@@ -206,6 +214,46 @@ public class GenerateNo {
         // 4 代表长度为4
         // d 代表参数为正数型
         return machineId + String.format("%015d", hashCodeV);
+    }
+
+    /**
+     * 优惠券编号
+     * @return
+     */
+    public static String getYhqNo(){
+        yhqNo = simpleDateFormat.format(new Date());
+        yhqNo = "YHQ"+yhqNo+(int)((Math.random()*9+1)*1000);
+        return yhqNo;
+    }
+
+    /**
+     * 优惠券配置编号
+     * @return
+     */
+    public static String getYNo(){
+        yNo = simpleDateFormat.format(new Date());
+        yNo = "Y"+yNo+(int)((Math.random()*9+1)*1000);
+        return yNo;
+    }
+
+    /**
+     * 优惠券礼包编号
+     * @return
+     */
+    public static String getYhqlbNo(){
+        yhqlbNo = simpleDateFormat.format(new Date());
+        yhqlbNo = "LB"+yhqlbNo+(int)((Math.random()*9+1)*1000);
+        return yhqlbNo;
+    }
+
+    /**
+     * 优惠券分发编号
+     * @return
+     */
+    public static String getYhqFFNo(){
+        yhqFFNo = simpleDateFormat.format(new Date());
+        yhqFFNo = "FF"+yhqFFNo+(int)((Math.random()*9+1)*1000);
+        return yhqFFNo;
     }
 
 }

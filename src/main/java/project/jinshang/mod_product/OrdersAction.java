@@ -9,10 +9,12 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import mizuki.project.core.restserver.config.BasicMapDataRet;
 import mizuki.project.core.restserver.config.BasicRet;
 import mizuki.project.core.restserver.util.JsonUtil;
 import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
+import org.apache.commons.collections.map.HashedMap;
+import org.elasticsearch.monitor.os.OsStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -22,11 +24,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import project.jinshang.common.bean.MemberLogOperator;
 import project.jinshang.common.bean.PageRet;
-import project.jinshang.common.constant.AgentDeliveryAddressConst;
-import project.jinshang.common.constant.AppConstant;
-import project.jinshang.common.constant.Quantity;
-import project.jinshang.common.constant.TradeConstant;
+import project.jinshang.common.constant.*;
 import project.jinshang.common.exception.CashException;
+import project.jinshang.common.exception.MyException;
 import project.jinshang.common.utils.*;
 import project.jinshang.mod_activity.bean.LimitTimeProd;
 import project.jinshang.mod_activity.bean.LimitTimeStore;
@@ -36,13 +36,16 @@ import project.jinshang.mod_admin.mod_commondata.service.CommonDataValueService;
 import project.jinshang.mod_admin.mod_inte.bean.IntegralRecord;
 import project.jinshang.mod_admin.mod_inte.bean.IntegralSet;
 import project.jinshang.mod_admin.mod_inte.service.IntegralService;
+import project.jinshang.mod_admin.mod_returnreason.ReturnReasonAction;
+import project.jinshang.mod_admin.mod_returnreason.bean.ReturnReason;
+import project.jinshang.mod_admin.mod_returnreason.service.ReturnReasonService;
 import project.jinshang.mod_admin.mod_transet.bean.TransactionSetting;
 import project.jinshang.mod_admin.mod_transet.service.TransactionSettingService;
 import project.jinshang.mod_cash.bean.BuyerCapital;
 import project.jinshang.mod_cash.bean.SalerCapital;
 import project.jinshang.mod_common.bean.BasicExtRet;
-import project.jinshang.mod_company.bean.AgentDeliveryAddress;
 import project.jinshang.mod_company.bean.SellerCompanyInfo;
+import project.jinshang.mod_company.bean.Store;
 import project.jinshang.mod_company.service.SellerCompanyInfoService;
 import project.jinshang.mod_invoice.bean.InvoiceInfo;
 import project.jinshang.mod_member.bean.*;
@@ -54,18 +57,19 @@ import project.jinshang.mod_pay.bean.Refund;
 import project.jinshang.mod_pay.mod_alipay.AlipayService;
 import project.jinshang.mod_pay.mod_bankpay.AbcService;
 import project.jinshang.mod_pay.mod_wxpay.MyWxPayService;
+import project.jinshang.mod_pay.service.TradeService;
 import project.jinshang.mod_product.bean.*;
+import project.jinshang.mod_product.bean.dto.*;
 import project.jinshang.mod_product.service.*;
 import project.jinshang.mod_shippingaddress.bean.ShippingAddress;
 import project.jinshang.mod_shippingaddress.service.ShippingAddressService;
 import project.jinshang.mod_wms_middleware.WMSService;
 
-import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.*;
 
 /**
@@ -132,8 +136,6 @@ public class OrdersAction {
 
     @Autowired
     private OrderProductServices orderProductServices;
-
-
     @Autowired
     private LimitTimeStoreService limitTimeStoreService;
 
@@ -149,8 +151,23 @@ public class OrdersAction {
     @Autowired
     private OrderProductBackInfoService OrderProductBackInfoService;
 
+    @Autowired
+    private TradeService tradeService;
+    @Autowired
+    private OrdersSplitService ordersSplitService;
+    @Autowired
+    private ShippingTemplateGroupService shippingTemplateGroupService;
+    @Autowired
+    private ProductInfoService productInfoService;
 
+    @Autowired
+    private CompatibleFreightOrdersService compatibleFreightOrdersService;
 
+    @Autowired
+    private ReturnReasonService returnReasonService;
+
+    @Autowired
+    private LogisticsInfoService logisticsInfoService;
 
 
     MemberLogOperator memberLogOperator = new MemberLogOperator();
@@ -158,7 +175,7 @@ public class OrdersAction {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
 
-    private String lock = new String("lock");
+    //private String lock = new String("lock");
 
     //2018年6月1日14:09:57
     //添加业务员信息
@@ -188,6 +205,9 @@ public class OrdersAction {
     }
 
 
+    @Autowired
+    private FreightService freightService;
+
     /**
      * 单件商品买家提交订单
      *
@@ -212,20 +232,24 @@ public class OrdersAction {
             @ApiImplicitParam(name = "pdid", value = "商品id", required = true, paramType = "query", dataType = "long"),
             @ApiImplicitParam(name = "pdno", value = "商品编号", required = true, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "protype", value = "远期类型0=不是远期1=全款2=定金", required = true, paramType = "query", dataType = "int"),
-            @ApiImplicitParam(name = "sellerid", value = "卖家id", required = true, paramType = "query", dataType = "long"),
+            //@ApiImplicitParam(name = "sellerid", value = "卖家id", required = true, paramType = "query", dataType = "long"),
             @ApiImplicitParam(name = "unit", value = "单位", required = true, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "num", value = "数量", required = true, paramType = "query", dataType = "double"),
-            @ApiImplicitParam(name = "storeid", value = "仓库id", required = false, paramType = "query", dataType = "string"),
-            @ApiImplicitParam(name = "storename", value = "仓库名称", required = false, paramType = "query", dataType = "string"),
+            //@ApiImplicitParam(name = "storeid", value = "仓库id", required = false, paramType = "query", dataType = "string"),
+            //@ApiImplicitParam(name = "storename", value = "仓库名称", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "deliverytime", value = "发货时间", required = true, paramType = "query", dataType = "string"),
-            @ApiImplicitParam(name = "ismailornot", value = "是否自提", required = true, paramType = "query", dataType = "int"),
+            //@ApiImplicitParam(name = "ismailornot", value = "是否自提", required = true, paramType = "query", dataType = "int"),
             @ApiImplicitParam(name = "isonline", value = "订单类型0=普通订单1=线下2=限时购", required = false, paramType = "query", dataType = "int"),
             @ApiImplicitParam(name = "limitid", value = "活动id", required = false, paramType = "query", dataType = "int"),
             @ApiImplicitParam(name = "deliverybill", value = "是否需要发货单，1-需要，0-不需要", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "freightMethod", value = "发货方式", required = true, paramType = "query", dataType = "string"),
     })
-    public BasicRet submitProductToOrder(Model model, BillingRecord billingRecord, Orders orders, OrderProduct orderProduct, HttpServletRequest request) throws Exception {
+    public SubmitOrderRet submitProductToOrder(Model model, BillingRecord billingRecord, Orders orders, OrderProduct orderProduct,
+                                         @RequestParam(required = true) String freightMethod, HttpServletRequest request) throws Exception {
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
-        OrderCarRet basicRet = new OrderCarRet();
+        SubmitOrderRet basicRet = new SubmitOrderRet();
+
+        List<Long> orderids = new ArrayList<>(); //提交订单后返回给前端的订单id
 
         //判断收货地址
         if (!StringUtils.hasText(orders.getProvince()) || !StringUtils.hasText(orders.getCity()) || !StringUtils.hasText(orders.getArea()) || !StringUtils.hasText(orders.getReceivingaddress())) {
@@ -234,8 +258,23 @@ public class OrdersAction {
             return basicRet;
         }
 
-        OrderProductLog orderProductLog = new OrderProductLog();
 
+
+        if(!StringUtils.hasText(orders.getPhone())){
+            basicRet.setMessage("请填写收货人电话");
+            basicRet.setResult(BasicRet.ERR);
+            return basicRet;
+        }
+
+
+        if(!StringUtils.hasText(orders.getShipto())){
+            basicRet.setMessage("请填写收货人姓名");
+            basicRet.setResult(BasicRet.ERR);
+            return basicRet;
+        }
+
+
+        OrderProductLog orderProductLog = new OrderProductLog();
 
         if (orders.getIsonline() == null) {
             orders.setIsonline(Quantity.STATE_0);
@@ -252,16 +291,19 @@ public class OrdersAction {
 
         orderProductLog.setProductattrjson(GsonUtils.toJson(productAttrs));
 
-
         if (orders.getIsonline() == Quantity.STATE_0) {  //普通订单
             ProductInfo productInfo = ordersService.getProductInfoByPrimeKey(orderProduct.getPdid());
 
             if (productInfo == null) {
-                return new BasicRet(BasicRet.ERR, "商品不存在");
+                //return new BasicRet(BasicRet.ERR, "商品不存在");
+                 basicRet.setMessage("商品不存在").setResult(BasicRet.ERR);
+                 return basicRet;
             }
 
             if (productInfo.getPdstate() != Quantity.STATE_4) {
-                return new BasicRet(BasicRet.ERR, "商品处于下架状态");
+                //return new BasicRet(BasicRet.ERR, "商品处于下架状态");
+                basicRet.setMessage("商品处于下架状态").setResult(BasicRet.ERR);
+                return basicRet;
             }
 
             //判断买家卖家是否是同一家
@@ -271,13 +313,20 @@ public class OrdersAction {
                 return basicRet;
             }
 
-            ProductStore productStore = shopCarService.getProductStore(orderProduct.getPdid(), orderProduct.getPdno(), orderProduct.getStoreid());
+            ProductStore productStore = productStoreService.getByPdidAndPdno(orderProduct.getPdid(), orderProduct.getPdno());
             Brand brand = shopCarService.getBrandById(productInfo.getBrandid());
 
             if (productInfo != null && productStore != null && brand != null) {
 
+                orders.setSaleid(productInfo.getMemberid());
+                orders.setStoreid(productStore.getStoreid());
+                orders.setStorename(productStore.getStorename());
+
                 //商品基本属性
                 orderProduct.setPdname(productInfo.getProductname());
+                orderProduct.setSellerid(productInfo.getMemberid());
+
+                orderProduct.setStoreid(productStore.getStoreid());
 
                 orderProduct.setAttrjson(sb.toString());
                 if (StringUtils.hasText(productInfo.getBrand())) {
@@ -348,51 +397,88 @@ public class OrdersAction {
                 ordersService.updateProductStore(productStore);
 
                 //是否包邮
-                if (productStore.getFreightmode() == Quantity.STATE_) {
-                    orderProduct.setMailornot(true);
-                } else {
-                    orderProduct.setMailornot(false);
-                }
+//                if (productStore.getFreightmode() == Quantity.STATE_) {
+//                    orderProduct.setMailornot(true);
+//                } else {
+//                    orderProduct.setMailornot(false);
+//                }
 
-
-                //计算运费
-                BigDecimal figtht = ordersService.countSinglePdFight(productInfo, productStore, orders.getProvince(), orders.getCity(), convertNum);
-                orderProduct.setFreight(figtht);
                 //计算价格
                 BigDecimal salePrice = updatePriceByNum(convertNum, productStore, orderProduct.getDeliverytime(), productInfo.getMemberid(), productInfo.getLevel3id(), member.getGradleid());
                 orderProduct.setPrice(salePrice);
 
                 //订单总价
                 BigDecimal totalPrice = BigDecimal.valueOf(0);
-                BigDecimal appPap = salePrice.multiply(convertNum);
+                BigDecimal appPap = salePrice.multiply(convertNum).setScale(2,BigDecimal.ROUND_HALF_UP);
+
+
                 //商品总价
+
+                //计算运费
+                BigDecimal figtht = Quantity.BIG_DECIMAL_0;
+                BigDecimal totalweight = productStore.getWeight().multiply(convertNum);
+                //BigDecimal figtht = freightService.getFreight(productStore.getFreightmode(),totalweight,orders.getProvince(),orders.getCity());
+                Long shippinggroup = productInfo.getShippingtemplatesgroup();
+                if(shippinggroup == -1){
+                    figtht = Quantity.BIG_DECIMAL_0;
+                    orders.setOrderfright(Quantity.STATE_1); //包邮
+                }else{
+                    ShippingTemplateGroup shippingTemplateGroup = shippingTemplateGroupService.getShippingTemplateGroup(productInfo.getShippingtemplatesgroup());
+                    List<String> supportShippingMethod = shippingTemplateGroupService.getSupportList(shippingTemplateGroup);
+                    if(!supportShippingMethod.contains(freightMethod)){
+                        throw new MyException("该商品不支持你选择的发货方式");
+                    }
+
+                    Long shippingTemplateId = shippingTemplateGroupService.getTemplateid(shippingTemplateGroup,freightMethod);
+
+                    if(shippingTemplateId > 0) {
+                        if (orderProduct.getProtype() == Quantity.STATE_1) {
+                            appPap = salePrice.multiply(convertNum).multiply(TradeConstant.allPayRate).setScale(2, BigDecimal.ROUND_HALF_UP);
+                        }
+                        Map<String, Object> map = freightService.getFreight(shippingTemplateId, appPap, totalweight, orders.getProvince(), orders.getCity());
+                        figtht = (BigDecimal) map.get("freight");
+
+                        //TODO 写入orders
+                        OrderFrightDto orderFrightDto = (OrderFrightDto) map.get("orderFrightDto");
+                        orders.setFrighttemplate(GsonUtils.toJson(orderFrightDto));
+                    }
+                    orders.setOrderfright(freightService.getOrderfright(freightMethod));
+                }
+
+
 
                 if (orderProduct.getProtype() == Quantity.STATE_0) {
                     totalPrice = figtht.add(appPap);
                     orders.setOrdertype(Quantity.STATE_0);
-                    orderProduct.setActualpayment(totalPrice);
+                    orderProduct.setActualpayment(appPap);
                 }
+
+
                 //全款
                 if (orderProduct.getProtype() == Quantity.STATE_1) {
-                    BigDecimal allPay = appPap.multiply(TradeConstant.allPayRate);
+                    BigDecimal allPay = appPap;
                     orderProduct.setAllpay(allPay);
+                    orderProduct.setPrice(salePrice.multiply(TradeConstant.allPayRate));
                     totalPrice = figtht.add(allPay);
-                    orderProduct.setActualpayment(totalPrice);
-                    orders.setAllpay(allPay);
+                    orderProduct.setActualpayment(allPay);
+                    orders.setAllpay(totalPrice);
                     orders.setOrdertype(Quantity.STATE_1);
                 }
                 //定金
                 if (orderProduct.getProtype() == Quantity.STATE_2) {
-                    BigDecimal partpay = appPap.multiply(transactionSettingService.getTransactionSetting().getRemotepurchasingmargin()).multiply(new BigDecimal(0.01));
+                    BigDecimal partpay = appPap.multiply(transactionSettingService.getTransactionSetting().getRemotepurchasingmargin()).multiply(new BigDecimal(0.01)).setScale(2,BigDecimal.ROUND_HALF_UP);
                     BigDecimal yupay = appPap.subtract(partpay);
                     orderProduct.setPartpay(partpay);
                     orderProduct.setYupay(yupay);
                     totalPrice = figtht.add(appPap);
                     orderProduct.setActualpayment(totalPrice);
                     orders.setDeposit(partpay);
-                    orders.setBalance(yupay);
+                    orders.setBalance(yupay.add(figtht));
                     orders.setOrdertype(Quantity.STATE_2);
                 }
+
+                totalPrice = totalPrice.setScale(2,BigDecimal.ROUND_HALF_UP);
+
                 //订单总价
                 orders.setTotalprice(totalPrice);
                 //实付款
@@ -402,10 +488,7 @@ public class OrdersAction {
 
                 String orderNo = GenerateNo.getOrderNo();
                 orderProduct.setOrderno(orderNo);
-
-                //提交订单
-                /*String uuid = GenerateNo.getUUID();
-                orders.setUuid(uuid);*/
+                orderProduct.setSellerid(productInfo.getMemberid());
 
                 //买家id
                 orders.setMemberid(member.getId());
@@ -442,15 +525,15 @@ public class OrdersAction {
                 orders.setCode(GenerateNo.getContractNo());
 
                 //仓库id
-                orders.setStoreid(orderProduct.getStoreid());
+                orders.setStoreid(productStore.getStoreid());
                 //仓库名称
                 orders.setStorename(orderProduct.getStorename());
                 orders.setCreatetime(new Date());
+                //添加:2018年6月8日
+                orders.setWaysalesman(member.getWaysalesman());
 
-                //查询是否有业务员
                 AdminUser AdminUser = adminUserService.getAdminUserByUserid(member.getId());
                 if (AdminUser != null) {
-                    //添加业务员/业务员联系方式
                     Admin admin = adminService.getById(AdminUser.getAdminid());
                     if(admin !=null){
                         orders.setClerkname(admin.getRealname());
@@ -461,12 +544,13 @@ public class OrdersAction {
                 ordersService.insertOrders(orders);
                 orderProduct.setOrderid(orders.getId());
                 ordersService.insertOrderProduct(orderProduct);
+                orderids.add(orders.getId());
 
                 //如果选择了开票
                 if (orders.getIsbilling() != Quantity.STATE_0) {
                     if (billingRecord.getInvoiceid() != null) {
                         InvoiceInfo invoiceInfo = ordersService.getInvoiceInfo(billingRecord.getInvoiceid());
-                        if (invoiceInfo != null) {
+                        if (invoiceInfo != null&& invoiceInfo.getMemberid().equals(member.getId())) {
                             //创建开票记录
                             billingRecord.setInvoiceheadup(invoiceInfo.getInvoiceheadup());
                             billingRecord.setTexno(invoiceInfo.getTexno());
@@ -493,13 +577,17 @@ public class OrdersAction {
                             billOrder.setBillrecordid(billingRecord.getId());
                             billOrder.setOrderid(orders.getId());
                             ordersService.saveBillOrder(billOrder);
+                        }else {
+                            throw  new MyException("发票信息不存在");
                         }
+                    }else{
+                        throw  new MyException("请选择要开的发票信息");
                     }
                 }
                 ordersList.add(orders);
                 basicRet.setResult(BasicRet.SUCCESS);
                 basicRet.setMessage("提交成功");
-                basicRet.data.ordersList = ordersList;
+                basicRet.data.ids = orderids;
 
 
                 List<String> ordernoList = new ArrayList<>();
@@ -533,7 +621,17 @@ public class OrdersAction {
                 return basicRet;
             }
         } else if (orders.getIsonline() == Quantity.STATE_2) {  ////限时购
+
+            if(Arrays.asList("207,208,209,210".split(",")).contains(StringUtils.nvl(orderProduct.getLimitid()))){
+                if(!"8".equals(member.getRegistertypelabel()) || !"9".equals(member.getRegisterchannellabel())){
+//                    return new BasicRet(BasicRet.ERR,"该商品您不可购买");
+                    basicRet.setMessage("该商品您不可购买").setResult(BasicRet.ERR);
+                    return basicRet;
+                }
+            }
+
             LimitTimeProd prod = shopCarService.getLimitTimeProd(orderProduct.getPdid(), orderProduct.getLimitid());
+
             //判断活动是否开始
             Date startTime = prod.getBegintime();
             Date endTime = prod.getEndtime();
@@ -575,6 +673,8 @@ public class OrdersAction {
 
 
                 LimitTimeStore limitTimeStore = shopCarService.getLimitTimeStore(orderProduct.getLimitid(), orderProduct.getPdid(), orderProduct.getPdno());
+                ProductStore productStore = productStoreService.getByPdidAndPdno(prod.getPdid(),limitTimeStore.getPdno());
+
                 if (limitTimeStore.getStorenum().compareTo(orderProduct.getNum()) == -1) {
                     basicRet.setMessage("超过库存数量");
                     basicRet.setResult(BasicRet.ERR);
@@ -583,12 +683,6 @@ public class OrdersAction {
                 ProductInfo productInfo = ordersService.getProductInfoByPrimeKey(orderProduct.getPdid());
                 Brand brand = shopCarService.getBrandById(productInfo.getBrandid());
 
-
-                //更新库存
-                //limitTimeStore.setStorenum(limitTimeStore.getStorenum().subtract(orderProduct.getNum()));
-                //limitTimeStore.setSalesnum(limitTimeStore.getSalesnum().add(orderProduct.getNum()));
-                //shopCarService.updateLimitTimeStore(limitTimeStore);
-                //替换上面的代码块
                 limitTimeStoreService.updateLimitStoreNum(limitTimeStore.getId(), orderProduct.getNum().multiply(new BigDecimal(-1)), orderProduct.getNum());
 
                 LimitTimeStore newLimitStore = limitTimeStoreService.selectByPrimaryKey(limitTimeStore.getId());
@@ -596,9 +690,12 @@ public class OrdersAction {
                     throw new Exception("库存不足");
                 }
 
-                //
-                //prod.setSalestotalnum(prod.getSalestotalnum().add(orderProduct.getNum()));
-                //shopCarService.updateLimitTimeProd(prod);
+
+                orders.setSaleid(productInfo.getMemberid());
+                orders.setStoreid(productStore.getStoreid());
+                orders.setStorename(productStore.getStorename());
+
+
                 //更新总的销量
                 limitTimeProdService.updateSalestotalnumInDB(prod.getId(), orderProduct.getNum());
 
@@ -668,7 +765,7 @@ public class OrdersAction {
                 if (orderProduct.getProtype() == Quantity.STATE_0) {
                     totalPrice = figtht.add(appPap);
                     orders.setOrdertype(Quantity.STATE_0);
-                    orderProduct.setActualpayment(totalPrice);
+                    orderProduct.setActualpayment(appPap);
                 }
 
                 //订单总价
@@ -678,8 +775,14 @@ public class OrdersAction {
                 //订单总运费
                 orders.setFreight(figtht);
 
+
+                orders.setFrighttemplate("");
+                orders.setOrderfright(freightService.getOrderfright("包邮"));
+
+
                 String orderNo = GenerateNo.getOrderNo();
                 orderProduct.setOrderno(orderNo);
+                orderProduct.setSellerid(productInfo.getMemberid());
 
                 //提交订单
                 /*String uuid = GenerateNo.getUUID();
@@ -717,22 +820,35 @@ public class OrdersAction {
                 orders.setTransactionnumber(GenerateNo.getTransactionNo());
                 //合同编号
                 orders.setCode(GenerateNo.getContractNo());
-//                ProductStore productStore = shopCarService.getProductStore(orderProduct.getPdid(), orderProduct.getPdno(),orderProduct.getStoreid());
-                ProductStore productStore = productStoreService.getByPdidAndPdno(orderProduct.getPdid(), orderProduct.getPdno());
                 //仓库id
                 orders.setStoreid(productStore.getStoreid());
                 //仓库名称
                 orders.setStorename(productStore.getStorename());
                 orders.setCreatetime(new Date());
+
+                //添加:2018年6月8日 订单添加介绍人
+                orders.setWaysalesman(member.getWaysalesman());
+                //查询是否有业务员
+                AdminUser AdminUser = adminUserService.getAdminUserByUserid(member.getId());
+                if (AdminUser != null) {
+                    //添加业务员/业务员联系方式
+                    Admin admin = adminService.getById(AdminUser.getAdminid());
+                    if(admin !=null){
+                        orders.setClerkname(admin.getRealname());
+                        orders.setClerknamephone(admin.getMobile());
+                    }
+                }
+
                 ordersService.insertOrders(orders);
                 orderProduct.setOrderid(orders.getId());
                 ordersService.insertOrderProduct(orderProduct);
+                orderids.add(orders.getId());
 
                 //如果选择了开票
                 if (orders.getIsbilling() != Quantity.STATE_0) {
                     if (billingRecord.getInvoiceid() != null) {
                         InvoiceInfo invoiceInfo = ordersService.getInvoiceInfo(billingRecord.getInvoiceid());
-                        if (invoiceInfo != null) {
+                        if (invoiceInfo != null&& invoiceInfo.getMemberid().equals(member.getId())) {
                             //创建开票记录
                             billingRecord.setInvoiceheadup(invoiceInfo.getInvoiceheadup());
                             billingRecord.setTexno(invoiceInfo.getTexno());
@@ -758,13 +874,18 @@ public class OrdersAction {
                             billOrder.setBillrecordid(billingRecord.getId());
                             billOrder.setOrderid(orders.getId());
                             ordersService.saveBillOrder(billOrder);
+                        }else {
+                            throw  new MyException("发票信息不存在");
                         }
+                    }else{
+                        throw  new MyException("请选择要开的发票信息");
                     }
                 }
                 ordersList.add(orders);
                 basicRet.setResult(BasicRet.SUCCESS);
                 basicRet.setMessage("提交成功");
-                basicRet.data.ordersList = ordersList;
+                //basicRet.data.ordersList = ordersList;
+                basicRet.data.ids = orderids;
 
 
                 List<String> ordernoList = new ArrayList<>();
@@ -801,6 +922,9 @@ public class OrdersAction {
 
         return basicRet;
     }
+
+
+
 
     /**
      * 计算远期发货时间
@@ -882,7 +1006,7 @@ public class OrdersAction {
                     lastPercent = percent;
                     maxstart = start;
                 }
-                if ((num.compareTo(start) == 1) && (num.compareTo(end) == -1 || num.compareTo(end) == 0)) {
+                if ((num.compareTo(start) == 1 || num.compareTo(start) == 0) && (num.compareTo(end) == -1 )) {
                     saleprice = basicPrice.multiply(percent.multiply(new BigDecimal(0.01)));
                     flag = true;
                     break;
@@ -921,15 +1045,1234 @@ public class OrdersAction {
     }
 
 
+
+    @RequestMapping(value = "/oneProdGetFreight", method = RequestMethod.POST)
+    @ApiOperation(value = "从购物车中买家提交订单修改发货方式")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "商品id", required = true, paramType = "query", dataType = "long"),
+            @ApiImplicitParam(name = "pdno", value = "商品编码", required = true, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "type", value = "运费方式", required = true, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "province", value = "收货地区-省", required = true, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "city", value = "收货地区-市", required = true, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "isonline", value = "订单类型0=普通1=线下2=限时购", required = true, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "totalProdMoney", value = "订单商品总金额", required = true, paramType = "query", dataType = "double"),
+    })
+    public ShopCarFreightRet oneProdGetFreight(@RequestParam(required = true) long id,
+                                               @RequestParam(required = true) String pdno,
+                                               @RequestParam(required = true) String type,
+                                               @RequestParam(required = true) BigDecimal num,
+                                               @RequestParam(required = true) String unit,
+                                               @RequestParam(required = true) Short isonline,
+                                               @RequestParam(required = true) String province,
+                                               @RequestParam(required = true) String city,
+                                               @RequestParam(required = true) BigDecimal totalProdMoney,
+                                               Model model) throws Exception {
+
+        ShopCarFreightRet ret = new ShopCarFreightRet();
+
+        if(isonline == Quantity.STATE_2){
+            if("包邮".equals(type)){
+                ret.data.freight = Quantity.BIG_DECIMAL_0;
+                ret.setResult(BasicRet.SUCCESS);
+                return  ret;
+            }else{
+                ret.setResult(BasicRet.ERR);
+                ret.setMessage("发货方式不支持");
+                return  ret;
+            }
+        }
+
+        ProductInfo productInfo = productInfoService.getById(id);
+        if(productInfo == null){
+            ret.setMessage("商品不存在").setResult(BasicRet.ERR);
+            return  ret;
+        }
+
+        if(productInfo.getShippingtemplatesgroup() == -1){ //包邮
+            ret.data.freight = Quantity.BIG_DECIMAL_0;
+            ret.setResult(BasicRet.SUCCESS);
+            return ret;
+        }
+
+        ProductStore productStore = productStoreService.getByPdidAndPdno(id,pdno);
+        if(productStore == null){
+            ret.setMessage("库存信息不存在").setResult(BasicRet.ERR);
+            return  ret;
+        }
+
+
+        BigDecimal convertNum = num;
+        String convertUnit = unit;
+        if (AppConstant.FASTENER_PRO_TYPE.equals(productInfo.getProducttype())) {
+            Map<String, Object> map = JinshangUtils.toLowerUnit(productInfo.getPackagetype(), num, unit);
+            convertNum = (BigDecimal) map.get("num");
+            convertUnit = (String) map.get("unit");
+        }
+
+        BigDecimal totalWeight = convertNum.multiply(productStore.getWeight());
+
+
+        ShippingTemplateGroup shippingTemplateGroup = shippingTemplateGroupService.getShippingTemplateGroup(productInfo.getShippingtemplatesgroup());
+        if(!shippingTemplateGroupService.supportSend(shippingTemplateGroup,type)){
+            ret.setResult(BasicRet.ERR);
+            ret.setMessage("该订单不支持您选择的发货方式");
+            return  ret;
+        }
+
+        Long templateid = shippingTemplateGroupService.getTemplateid(shippingTemplateGroup,type);
+        if(templateid == -1){ //不用运费
+            ret.data.freight = Quantity.BIG_DECIMAL_0;
+        }else{
+            Map<String, Object> freightMap = freightService.getFreight(templateid, totalProdMoney, totalWeight, province, city);
+            BigDecimal freight = (BigDecimal) freightMap.get("freight");
+            freight = freight.setScale(2,BigDecimal.ROUND_HALF_UP);
+            ret.data.freight = freight;
+        }
+
+        ret.setResult(BasicRet.SUCCESS);
+        return  ret;
+    }
+
+
+
+
+    @RequestMapping(value = "/shopCarGetFreight", method = RequestMethod.POST)
+    @ApiOperation(value = "从购物车中买家提交订单修改发货方式")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "ids", value = "购物车ids", required = true, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "type", value = "运费方式", required = true, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "province", value = "收货地区-省", required = true, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "city", value = "收货地区-市", required = true, paramType = "query", dataType = "string"),
+    })
+    public ShopCarFreightRet shopCarGetFreight(@RequestParam(required = true) String ids,@RequestParam(required = true) String type,
+                                      @RequestParam(required = true) String province,
+                                      @RequestParam(required = true) String city,Model model) throws Exception {
+
+        ShopCarFreightRet ret = new ShopCarFreightRet();
+
+        Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
+        List<ShopCar> list = ordersService.loadSelectShopCar(ids);
+        if(list.size()==0){
+            ret.setResult(BasicRet.ERR).setMessage("无商品");
+            return ret;
+        }
+
+        //对订单分割划分订单
+        List<List<ShopCar>>  splitOrders =  ordersSplitService.splitOrders(list);
+        if(splitOrders.size() != 1){
+            ret.setResult(BasicRet.ERR).setMessage("所提交的购物车不可合并为一个订单");
+            return ret;
+        }
+
+        List<ShopCarView> retList = new ArrayList<>();
+        //转换为ShopCarProdView对象
+        for(List<ShopCar> splitOrdersCar : splitOrders){
+            ShopCarView shopCarView = new ShopCarView();
+            List<ShopCarProdView> shopCarProdViewList = new ArrayList<>();
+            for(ShopCar shopCar: splitOrdersCar) {
+                ShopCarProdView shopCarProdView = ordersSplitService.shopCarToView(shopCar);
+                shopCarProdViewList.add(shopCarProdView);
+                //
+                shopCarView.setShippingTemplateGroupId(shopCar.getProductInfo().getShippingtemplatesgroup());
+            }
+            shopCarView.setShopCarProdViewList(shopCarProdViewList);
+            retList.add(shopCarView);
+        }
+
+        //统计单个订单的总价格、总重量
+        ordersSplitService.enOrdersStep1(retList);
+
+
+        ShopCarView shopCarView = retList.get(0);
+
+        ShopCarProdView shopCarProdView = shopCarView.getShopCarProdViewList().get(0);
+
+        if (shopCarProdView.getIsonline() == Quantity.STATE_2 || shopCarView.getShippingTemplateGroupId() ==-1) { //限时购 全部包邮
+            if(!type.equals("包邮")){
+                ret.setMessage("该订单由卖家包邮，不可选其他发货方式");
+                ret.setResult(BasicRet.ERR);
+                return ret;
+            }
+
+            ret.data.freight = Quantity.BIG_DECIMAL_0;
+            ret.setResult(BasicRet.SUCCESS);
+            return ret;
+        }else{
+            ShippingTemplateGroup shippingTemplateGroup = shippingTemplateGroupService.getShippingTemplateGroup(shopCarView.getShippingTemplateGroupId());
+            if(!shippingTemplateGroupService.supportSend(shippingTemplateGroup,type)){
+                ret.setResult(BasicRet.ERR);
+                ret.setMessage("该订单不支持您选择的发货方式");
+                return  ret;
+            }
+
+
+            Long templateid = shippingTemplateGroupService.getTemplateid(shippingTemplateGroup,type);
+            if(templateid == -1){ //不用运费
+                ret.data.freight = Quantity.BIG_DECIMAL_0;
+            }else{
+                Map<String, Object> freightMap = freightService.getFreight(templateid, shopCarView.getProductTotalPrice(), shopCarView.getTotalWeight(), province, city);
+                BigDecimal freight = (BigDecimal) freightMap.get("freight");
+                freight = freight.setScale(2,BigDecimal.ROUND_HALF_UP);
+                ret.data.freight = freight;
+            }
+        }
+
+        ret.setResult(BasicRet.SUCCESS);
+        return ret;
+    }
+
+    private class ShopCarFreightRet extends BasicRet{
+        private class ShopCarFreightData{
+            private BigDecimal freight;
+
+            public BigDecimal getFreight() {
+                return freight;
+            }
+
+            public void setFreight(BigDecimal freight) {
+                this.freight = freight;
+            }
+        }
+
+        private ShopCarFreightData data = new ShopCarFreightData();
+
+        public ShopCarFreightData getData() {
+            return data;
+        }
+
+        public void setData(ShopCarFreightData data) {
+            this.data = data;
+        }
+    }
+
+
+   @RequestMapping(value = "/oneProductToOrdersPreview",method = RequestMethod.POST)
+   @ApiOperation("立即购买订单预览--一个商品提交订单")
+   @ApiImplicitParams({
+           @ApiImplicitParam(name = "pdid", value = "如果单个商品购买就传一个id", paramType = "query", dataType = "long"),
+           @ApiImplicitParam(name = "pdno", value = "如果单个商品购买就传一个pdno", paramType = "query", dataType = "string"),
+           @ApiImplicitParam(name = "uProvince", value = "收货地址省", paramType = "query", dataType = "string"),
+           @ApiImplicitParam(name = "uCity", value = "收货地址市", paramType = "query", dataType = "string"),
+           @ApiImplicitParam(name = "pdnum", value = "商品数量", paramType = "query", dataType = "double"),
+           @ApiImplicitParam(name = "pdunit", value = "商品单位", paramType = "query", dataType = "string"),
+           @ApiImplicitParam(name = "pddilivery", value = "商品发货时间", paramType = "query", dataType = "string"),
+           @ApiImplicitParam(name = "protype", value = "远期类型0=不是远期1=全款2=定金", paramType = "query", dataType = "int"),
+           @ApiImplicitParam(name = "isonline", value = "订单类型0=普通订单1=线上2=限时购", paramType = "query", dataType = "int"),
+           @ApiImplicitParam(name = "limitid", value = "活动id", paramType = "query", dataType = "int"),
+   })
+   public  BasicExtRet oneProductToOrdersPreview(Model model,  Long pdid,
+                                                     String pdno,String uProvince, String uCity, BigDecimal pdnum,
+                                                     String pdunit, String pddilivery,
+                                                     Short protype,@RequestParam(defaultValue = "0") Short isonline,Long limitid) throws Exception {
+       BasicExtRet ret = new BasicExtRet();
+       Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
+
+       Map<String, Object> map = new HashMap<String, Object>();
+       ProductInfo productInfo = shopCarService.getProductInfo(pdid);
+
+       if(!StringUtils.hasText(uProvince) && !StringUtils.hasText(uCity)){
+           ShippingAddress shippingAddress = shippingAddressService.getDefaultShippingAddress(member.getId(),Quantity.STATE_2);
+           if(shippingAddress != null){
+               uProvince = shippingAddress.getProvince();
+               uCity = shippingAddress.getCity();
+           }
+       }
+
+
+       if(productInfo == null){
+           ret.setMessage("");
+           ret.setResult(BasicRet.ERR);
+           return  ret;
+       }
+
+       ProductStore productStore = productStoreService.getByPdidAndPdno(pdid,pdno);
+       Brand brand = shopCarService.getBrandById(productInfo.getBrandid());
+       List<ProductAttr> productAttrs = productAttrService.getListByPidAndPdno(pdid,pdno);
+       StringBuffer sb = new StringBuffer();
+       for(ProductAttr attr:productAttrs){
+           sb.append(attr.getValue()).append("*");
+       }
+       if(productAttrs.size()>0){
+           sb.deleteCharAt(sb.length()-1);
+       }
+       if(isonline==Quantity.STATE_0){
+           if (productInfo != null && productStore != null) {
+
+               //包装方式
+               String packagetype = productInfo.getPackagetype();
+
+               BigDecimal converNum = pdnum;
+               String convertUnit = "";
+               if (AppConstant.FASTENER_PRO_TYPE.equals(productInfo.getProducttype())) {//紧固件转换单位为基础单位的数量
+                   converNum = (BigDecimal) (JinshangUtils.toLowerUnit(packagetype, pdnum, pdunit)).get("num");
+                   convertUnit = (String) (JinshangUtils.toLowerUnit(packagetype, pdnum, pdunit)).get("unit");
+               }
+
+               if(productStore.getMinplus() != null && productStore.getMinplus().compareTo(Quantity.BIG_DECIMAL_0)>0){
+                   if(!ordersService.checkBuyNum(converNum,productStore.getMinplus())){
+                       ret.setMessage("购买量必须是加购量的倍数");
+                       ret.setResult(BasicRet.ERR);
+                       return  ret;
+                   }
+               }
+
+               if(AppConstant.FASTENER_PRO_TYPE.equals(productInfo.getProducttype())){
+                   map.put("unit",convertUnit);
+                   map.put("packageStr",JinshangUtils.packageToString(packagetype,converNum,convertUnit));
+               }else {
+                   map.put("unit",pdunit);
+               }
+
+               map.put("storenum",productStore.getPdstorenum());
+               map.put("storename", productStore.getStorename());
+               map.put("productname", productInfo.getProductname());
+               map.put("material", productInfo.getMaterial());
+               map.put("cardnum", productInfo.getCardnum());
+               map.put("weight", productInfo.getWeight());
+               map.put("packagetype", productInfo.getPackagetype());
+               map.put("selfsupport",productInfo.getSelfsupport());
+               map.put("level3",productInfo.getLevel3());
+
+               map.put("attrjson", sb.toString());
+               if (brand != null) {
+                   if (brand.getPic() != null) {
+                       map.put("pic", brand.getPic());
+                   }
+               }
+               map.put("brand", productInfo.getBrand());
+               String[] pdpicture = (String[]) productInfo.getPdpicture();
+
+               if(pdpicture != null && pdpicture.length>0) {
+                   map.put("pdpicture", pdpicture[0]);
+               }else{
+                   map.put("pdpicture", "");
+               }
+              // map.put("freightmode", productStore.getFreightmode());
+               map.put("memberid", productInfo.getMemberid());
+               map.put("producttype", productInfo.getProducttype());
+               map.put("saleid", productInfo.getMemberid());
+               map.put("pdid", productInfo.getId());
+
+               //TODO
+               map.put("pdno", productStore.getPdno());
+               map.put("pdnumber", converNum);
+               map.put("storeid", productStore.getId());
+               map.put("delivertime", pddilivery);
+               map.put("protype", protype);
+
+               //计算价格
+               BigDecimal salePrice = ordersService.updatePriceByNum(converNum, productStore, pddilivery, productInfo.getMemberid(), productInfo.getLevel3id(), member.getGradleid());
+//                    salePrice = salePrice.setScale(2, BigDecimal.ROUND_HALF_UP);
+               map.put("price", salePrice);
+
+               BigDecimal paymoney = salePrice.multiply(converNum).setScale(2,BigDecimal.ROUND_HALF_UP);
+               //计算远期全款和定金
+               if (protype == Quantity.STATE_0) {
+                  // map.put("allpay", new BigDecimal(0));
+                   map.put("allpay", paymoney);
+                   map.put("partpay", new BigDecimal(0));
+                   map.put("yupay", new BigDecimal(0));
+               }
+               //全款
+               if (protype == Quantity.STATE_1) {
+                   map.put("price", salePrice.multiply(TradeConstant.allPayRate));
+                   paymoney = salePrice.multiply(converNum).multiply(TradeConstant.allPayRate).setScale(2,BigDecimal.ROUND_HALF_UP);
+                   map.put("allpay", paymoney);
+                   map.put("partpay", new BigDecimal(0));
+                   map.put("yupay", new BigDecimal(0));
+               }
+               //定金
+               if (protype == Quantity.STATE_2) {
+                   BigDecimal partpay = paymoney.multiply(transactionSettingService.getTransactionSetting().getRemotepurchasingmargin().multiply(new BigDecimal(0.01))).setScale(2,BigDecimal.ROUND_HALF_UP);
+                   map.put("allpay", paymoney);
+                   map.put("partpay",partpay );
+                   map.put("yupay", paymoney.subtract(partpay));
+               }
+
+
+               //商品重量
+               BigDecimal weight = productStore.getWeight();
+               BigDecimal totalweight = weight.multiply(converNum);
+
+               Long shippinggroup =  productInfo.getShippingtemplatesgroup();
+               List<String> supportShippingMethod = new ArrayList<>();
+               if(shippinggroup == -1){
+                   supportShippingMethod.add("包邮");
+                   map.put("supportShippingMethod",supportShippingMethod);
+                   map.put("defaultmethod","包邮");
+                   map.put("freight",Quantity.BIG_DECIMAL_0);
+               }else{
+                   ShippingTemplateGroup shippingTemplateGroup = shippingTemplateGroupService.getShippingTemplateGroup(shippinggroup);
+
+                   if(shippingTemplateGroup == null){
+                       ret.setMessage("运费集合不存在");
+                       ret.setResult(BasicRet.ERR);
+                       return  ret;
+                   }
+
+                   supportShippingMethod = shippingTemplateGroupService.getSupportList(shippingTemplateGroup);
+                   map.put("supportShippingMethod",supportShippingMethod);
+
+                   Map<String,Object> defaultFreightMethodMap = ordersSplitService.getDefaultFreightMethod(shippingTemplateGroup);
+                   Long shippingTemplateId = (Long) defaultFreightMethodMap.get("shippingTemplateId");
+                   map.put("defaultmethod",defaultFreightMethodMap.get("defaultmethod"));
+                   if(shippingTemplateId>0){
+                       if(StringUtils.hasText(uProvince)) {
+                           map.put("freight", freightService.getFreight(shippingTemplateId, paymoney, totalweight, uProvince, uCity).get("freight"));
+                       }else{
+                           map.put("freight",Quantity.BIG_DECIMAL_0);
+                       }
+                   }else{
+                       map.put("freight",Quantity.BIG_DECIMAL_0);
+                   }
+               }
+           }
+       }else if(isonline==Quantity.STATE_2) {//限时购
+           LimitTimeProd prod = shopCarService.getLimitTimeProd(pdid,limitid);
+
+           //判断活动是否开始
+           Date startTime = prod.getBegintime();
+           Date endTime = prod.getEndtime();
+           Date now = new Date();
+           if (prod.getState() == Quantity.STATE_4) {
+               if (startTime.compareTo(now) == 1) {
+                   ret.setResult(BasicRet.ERR);
+                   ret.setMessage("活动还未开始");
+                   return ret;
+               }
+               if (endTime.compareTo(now) == -1) {
+                   ret.setResult(BasicRet.ERR);
+                   ret.setMessage("活动已结束");
+                   return ret;
+               }
+               Long sellerId = prod.getMemberid();
+               if (sellerId == member.getId()) {
+                   ret.setMessage("不能购买自己的商品");
+                   ret.setResult(BasicRet.ERR);
+                   return ret;
+               }
+               List<ShopCar> list = shopCarService.getLimitShopCarNum(pdid, member.getId());
+               BigDecimal num = new BigDecimal(0);
+               for (ShopCar shopCar1 : list) {
+                   num = num.add(shopCar1.getPdnumber());
+               }
+               num = num.add(pdnum);
+               if (prod.getBuylimit().compareTo(num) == -1) {
+                   ret.setMessage("同一账号超过购买数量");
+                   ret.setResult(BasicRet.ERR);
+                   return ret;
+               }
+               LimitTimeStore limitTimeStore = shopCarService.getLimitTimeStore(limitid,pdid,pdno);
+               if(limitTimeStore.getStorenum().compareTo(pdnum)==-1){
+                   ret.setMessage("超过库存数量");
+                   ret.setResult(BasicRet.ERR);
+                   return ret;
+               }
+
+               map.put("storename", productStore.getStorename());
+               map.put("storenum", limitTimeStore.getStorenum());
+               map.put("productname", productInfo.getProductname());
+               map.put("material", productInfo.getMaterial());
+               map.put("cardnum", productInfo.getCardnum());
+               map.put("weight", productStore.getWeight());
+               map.put("packagetype", productInfo.getPackagetype());
+               map.put("selfsupport",productInfo.getSelfsupport());
+
+
+               map.put("price", limitTimeStore.getLimitprice());
+
+               map.put("brand", productInfo.getBrand());
+               String[] pdpicture = (String[]) productInfo.getPdpicture();
+               if(pdpicture != null && pdpicture.length>0) {
+                   map.put("pdpicture", pdpicture[0]);
+               }else{
+                   map.put("pdpicture", "");
+               }
+               //map.put("freightmode", -1);
+               map.put("memberid", productInfo.getMemberid());
+               map.put("producttype", productInfo.getProducttype());
+               map.put("saleid", productInfo.getMemberid());
+               map.put("pdid", productInfo.getId());
+               map.put("pdno", pdno);
+               map.put("storeid", productStore.getId());
+               map.put("delivertime", pddilivery);
+               map.put("protype", protype);
+               map.put("partpay", new BigDecimal(0));
+               map.put("yupay", new BigDecimal(0));
+               map.put("totalCost", new BigDecimal(0));
+               map.put("level3",productInfo.getLevel3());
+               map.put("limitid",limitid);
+               map.put("attrjson", sb.toString());
+
+               //包装方式
+               String packagetype = productInfo.getPackagetype();
+
+               BigDecimal converNum = pdnum;
+               String convertUnit = "";
+               if (AppConstant.FASTENER_PRO_TYPE.equals(productInfo.getProducttype())) {//紧固件转换单位为基础单位的数量
+                   converNum = (BigDecimal) (JinshangUtils.toLowerUnit(packagetype, pdnum, pdunit)).get("num");
+                   convertUnit = (String) (JinshangUtils.toLowerUnit(packagetype, pdnum, pdunit)).get("unit");
+               }
+
+               if(AppConstant.FASTENER_PRO_TYPE.equals(productInfo.getProducttype())){
+                   map.put("unit",convertUnit);
+                   map.put("packageStr",JinshangUtils.packageToString(packagetype,converNum,convertUnit));
+               }else {
+                   map.put("unit",pdunit);
+               }
+
+               if(AppConstant.FASTENER_PRO_TYPE.equals(productInfo.getProducttype())) {
+                   map.put("packageStr", JinshangUtils.packageToString(productInfo.getPackagetype(), pdnum, pdunit));
+               }
+
+               map.put("pdnumber", converNum);
+               map.put("allpay", limitTimeStore.getLimitprice().multiply(converNum));
+
+
+               //限时购商品全部包邮
+               List<String> supportShippingMethod = new ArrayList<>();
+               supportShippingMethod.add("包邮");
+               map.put("supportShippingMethod",supportShippingMethod);
+               map.put("defaultmethod","包邮");
+               map.put("freight",Quantity.BIG_DECIMAL_0);
+           }else {
+               ret.setMessage("商品不在活动中");
+               ret.setResult(BasicRet.ERR);
+               return ret;
+           }
+       }
+
+       ret.setResult(BasicRet.SUCCESS);
+       ret.setData(map);
+       return ret;
+   }
+
+
+
+
+    @RequestMapping(value = "/submitOrdersPreview", method = RequestMethod.POST)
+    @ApiOperation(value = "从购物车中买家提交订单-预分单")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "invoiceid", value = "发票id", required = true, paramType = "query", dataType = "long"),
+            //@ApiImplicitParam(name = "shipto", value = "收货人", required = true, paramType = "query", dataType = "string"),
+           // @ApiImplicitParam(name = "phone", value = "收货人电话", required = true, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "province", value = "省", required = true, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "city", value = "市", required = true, paramType = "query", dataType = "string"),
+            //@ApiImplicitParam(name = "area", value = "区", required = true, paramType = "query", dataType = "string"),
+            //@ApiImplicitParam(name = "receivingaddress", value = "详细地址", required = true, paramType = "query", dataType = "string"),
+            //@ApiImplicitParam(name = "isbilling", value = "是否开票0=不开票1=开票", required = true, paramType = "query", dataType = "int"),
+            //@ApiImplicitParam(name = "billingtype", value = "开票类型0=纸质1=电子", required = true, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "ids", value = "选择的购物车id数组", required = true, paramType = "query", dataType = "array"),
+            //@ApiImplicitParam(name = "deliverybill", value = "是否需要发货单，1-需要，0-不需要", required = true, paramType = "query", dataType = "int"),
+//            @ApiImplicitParam(name = "isonline", value = "订单类型0=普通订单1=线下2=限时购", required = true, paramType = "query", dataType = "int"),
+//            @ApiImplicitParam(name = "mailornotPidArray", value = "需要自提的商品id json数组字符串，如[1,2]", required = true, paramType = "query", dataType = "string"),
+    })
+    public  OrdersPrviewRet submitOrdersPrview(
+            Model model,
+            Orders orders, String ids,
+            HttpServletRequest request) throws Exception {
+
+        OrdersPrviewRet ret = new OrdersPrviewRet();
+        Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
+
+        if(!StringUtils.hasText(orders.getProvince())){
+            ShippingAddress shippingAddress = shippingAddressService.getDefaultShippingAddress(member.getId(),Quantity.STATE_2);
+            if(shippingAddress != null) {
+                orders.setProvince(shippingAddress.getProvince());
+                orders.setCity(shippingAddress.getCity());
+            }
+        }
+
+
+
+        List<ShopCar> list = ordersService.loadSelectShopCar(ids);
+        if(list.size()==0){
+            ret.setResult(BasicRet.ERR).setMessage("无商品");
+            return ret;
+        }
+
+
+        //对订单分割划分订单
+        List<List<ShopCar>>  splitOrders =  ordersSplitService.splitOrders(list);
+        List<ShopCarView> retList = new ArrayList<>();
+
+        //转换为ShopCarProdView对象
+        for(List<ShopCar> splitOrdersCar : splitOrders){
+            ShopCarView shopCarView = new ShopCarView();
+            List<ShopCarProdView> shopCarProdViewList = new ArrayList<>();
+
+            Short protype = 0; //订单类型
+
+            for(ShopCar shopCar: splitOrdersCar) {
+                ShopCarProdView shopCarProdView = ordersSplitService.shopCarToView(shopCar);
+                shopCarProdViewList.add(shopCarProdView);
+
+                shopCarView.setShippingTemplateGroupId(shopCar.getProductInfo().getShippingtemplatesgroup());
+                protype = shopCar.getProtype();  //远期类型0=不是远期1=全款2=定金
+            }
+
+            shopCarView.setShopCarProdViewList(shopCarProdViewList);
+            shopCarView.setProtype(protype);
+
+
+            retList.add(shopCarView);
+        }
+
+
+        //计算 订单商品总价、订单总重量、运费价格、订单总价格（商品+运费）、
+        ordersSplitService.enOrdersStep1(retList);
+        ordersSplitService.getOrderFreight(retList,orders.getProvince(),orders.getCity());
+
+         ret.setResult(BasicRet.SUCCESS);
+         ret.data.retList = retList;
+         return  ret;
+    }
+
+
+    private class OrdersPrviewRet extends BasicRet{
+        private class OrdersPrviewData {
+            private  List<ShopCarView> retList;
+
+            public List<ShopCarView> getRetList() {
+                return retList;
+            }
+
+            public void setRetList(List<ShopCarView> retList) {
+                this.retList = retList;
+            }
+        }
+
+        private OrdersPrviewData data = new OrdersPrviewData();
+
+        public OrdersPrviewData getData() {
+            return data;
+        }
+
+        public void setData(OrdersPrviewData data) {
+            this.data = data;
+        }
+    }
+
+
+    private class SubmitOrderRet extends BasicRet{
+        private class SubmitOrderData{
+            private List<Long> ids;
+
+            public List<Long> getIds() {
+                return ids;
+            }
+
+            public void setIds(List<Long> ids) {
+                this.ids = ids;
+            }
+        }
+
+        private SubmitOrderData data = new SubmitOrderData();
+
+        public SubmitOrderData getData() {
+            return data;
+        }
+
+        public void setData(SubmitOrderData data) {
+            this.data = data;
+        }
+    }
+
+
+    @RequestMapping(value = "/submitOrders", method = RequestMethod.POST)
+    @ApiOperation(value = "从购物车中买家提交订单")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "invoiceid", value = "发票id", required = true, paramType = "query", dataType = "long"),
+            @ApiImplicitParam(name = "shipto", value = "收货人", required = true, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "phone", value = "收货人电话", required = true, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "province", value = "省", required = true, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "city", value = "市", required = true, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "area", value = "区", required = true, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "receivingaddress", value = "详细地址", required = true, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "isbilling", value = "是否开票0=不开票1=开票", required = true, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "billingtype", value = "开票类型0=纸质1=电子", required = true, paramType = "query", dataType = "int"),
+//            @ApiImplicitParam(name = "ids", value = "选择的购物车id数组", required = true, paramType = "query", dataType = "array"),
+            @ApiImplicitParam(name = "deliverybill", value = "是否需要发货单，1-需要，0-不需要", required = true, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "freightmethod",value = "发货方式 json [{'ids':'1,2','type':'快递'}，{'ids':'3,4','type':'自提'}]",required = true,paramType = "query",dataType = "string")
+    })
+    public SubmitOrderRet submitOrders(
+            Model model, BillingRecord billingRecord,
+            Orders orders,
+           // @RequestParam(required = true) String ids,
+            @RequestParam(required = true) String freightmethod,
+            HttpServletRequest request) throws Exception {
+        SubmitOrderRet ret = new SubmitOrderRet();
+
+
+        if(!StringUtils.hasText(orders.getProvince()) || !StringUtils.hasText(orders.getCity()) || !StringUtils.hasText(orders.getReceivingaddress())){
+            ret.setMessage("请填写收货地址");
+            ret.setResult(BasicRet.ERR);
+            return ret;
+        }
+
+        if(!StringUtils.hasText(orders.getPhone())){
+            ret.setMessage("请填写收货人电话");
+            ret.setResult(BasicRet.ERR);
+            return ret;
+        }
+
+
+        if(!StringUtils.hasText(orders.getShipto())){
+            ret.setMessage("请填写收货人姓名");
+            ret.setResult(BasicRet.ERR);
+            return ret;
+        }
+
+        Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
+//        List<ShopCar> list = ordersService.loadSelectShopCar(ids);
+//        if(list.size()==0){
+//            ret.setResult(BasicRet.ERR).setMessage("无商品");
+//            return ret;
+//        }
+
+//        String[] arrayIds = ids.split(",");
+//        if(list.size() != arrayIds.length){
+//            ret.setResult(BasicRet.ERR).setMessage("提交的订单个数与数据库中查询到的个数不匹配");
+//            return ret;
+//        }
+
+        List<Long> orderIds = new ArrayList<>(); //返回给前台的订单id
+
+        List<Map> freightmethodList  = GsonUtils.toList(freightmethod,Map.class);
+
+        if(freightmethodList == null || freightmethodList.size()==0){
+            ret.setResult(BasicRet.ERR).setMessage("freightmethod解析个数为0");
+            return ret;
+        }
+
+        List<Long> longIds = new ArrayList<>();
+
+        List<List<ShopCar>> spShopCarList = new ArrayList<>();
+        List<String> freightMethodList = new ArrayList<>();
+        for(Map map : freightmethodList){
+            String shopcarids = map.get("ids").toString().replaceAll("，",",");
+            String type = map.get("type").toString();
+            freightMethodList.add(type);
+
+            List<ShopCar> list = ordersService.loadSelectShopCar(shopcarids);
+            if(list.size() ==0){
+                ret.setResult(BasicRet.ERR).setMessage(shopcarids+"购物车不存在此id");
+                return  ret;
+            }
+
+            String[] arrayIds = shopcarids.split(",");
+            for(String idStr : arrayIds){
+                longIds.add(Long.parseLong(idStr));
+            }
+
+
+            if(list.size() != arrayIds.length){
+                ret.setResult(BasicRet.ERR).setMessage("提交的订单个数与数据库中查询到的个数不匹配");
+                return ret;
+            }
+
+            List<List<ShopCar>>  splitOrders =  ordersSplitService.splitOrders(list);
+            if(splitOrders.size() != 1){
+                ret.setResult(BasicRet.ERR).setMessage(shopcarids+"不可合并为一个订单");
+                return ret;
+            }
+
+            spShopCarList.addAll(splitOrders);
+        }
+
+
+        List<ShopCarView> retList = new ArrayList<>();
+
+        //转换为ShopCarProdView对象
+        for(List<ShopCar> splitOrdersCar : spShopCarList){
+            ShopCarView shopCarView = new ShopCarView();
+            List<ShopCarProdView> shopCarProdViewList = new ArrayList<>();
+            for(ShopCar shopCar: splitOrdersCar) {
+                ShopCarProdView shopCarProdView = ordersSplitService.shopCarToView(shopCar);
+                shopCarProdView.setExtend("shopcar",shopCar);
+                shopCarProdViewList.add(shopCarProdView);
+
+                shopCarView.setShippingTemplateGroupId(shopCar.getProductInfo().getShippingtemplatesgroup());
+            }
+
+            shopCarView.setShopCarProdViewList(shopCarProdViewList);
+
+            shopCarView.setProtype(shopCarProdViewList.get(0).getProtype());
+            retList.add(shopCarView);
+        }
+
+
+        //计算 订单商品总价、订单总重量、运费价格、订单总价格（商品+运费）、
+        ordersSplitService.enOrdersStep1(retList);
+
+        for(int i=0;i<retList.size();i++){
+            ShopCarView shopCarView = retList.get(i);
+            String freightMethod = freightMethodList.get(i);
+
+            ShopCarProdView shopCarProdView = shopCarView.getShopCarProdViewList().get(0);
+            if (shopCarProdView.getIsonline() == Quantity.STATE_2 || shopCarView.getShippingTemplateGroupId() ==-1) { //限时购 全部包邮
+                if(!freightMethod.equals("包邮")){
+                    ret.setMessage("该订单由卖家包邮，不可选其他发货方式");
+                    ret.setResult(BasicRet.ERR);
+                    return ret;
+                }
+
+                shopCarView.setFreight(Quantity.BIG_DECIMAL_0);
+                shopCarView.setFrighttemplate("");
+                shopCarView.setOrderfright(freightService.getOrderfright("包邮"));
+            }else{
+                ShippingTemplateGroup shippingTemplateGroup = shippingTemplateGroupService.getShippingTemplateGroup(shopCarView.getShippingTemplateGroupId());
+                if(!shippingTemplateGroupService.supportSend(shippingTemplateGroup,freightMethod)){
+                    ret.setResult(BasicRet.ERR);
+                    ret.setMessage("该订单不支持您选择的发货方式");
+                    return  ret;
+                }
+
+                Long templateid = shippingTemplateGroupService.getTemplateid(shippingTemplateGroup,freightMethod);
+                if(templateid == -1){ // 包邮 不用运费
+                    shopCarView.setFreight(Quantity.BIG_DECIMAL_0);
+                    shopCarView.setFrighttemplate("");
+                    shopCarView.setOrderfright(freightService.getOrderfright("包邮"));
+                }else{
+                    Map<String, Object> freightMap = freightService.getFreight(templateid, shopCarView.getProductTotalPrice(), shopCarView.getTotalWeight(), orders.getProvince(), orders.getCity());
+                    BigDecimal freight = (BigDecimal) freightMap.get("freight");
+                    freight = freight.setScale(2,BigDecimal.ROUND_HALF_UP);
+                    shopCarView.setFreight(freight);
+                    shopCarView.setOrderfright(freightService.getOrderfright(freightMethod));
+                    shopCarView.setFrighttemplate(GsonUtils.toJson(freightMap.get("orderFrightDto")));
+                }
+            }
+            shopCarView.setOrderfright(freightService.getOrderfright(freightMethod));
+        }
+
+
+        //数据写入数据库
+        for(ShopCarView carView : retList){
+            List<ShopCarProdView> shopCarProdViewList = carView.getShopCarProdViewList();
+
+            for (ShopCarProdView shopCarProdView : shopCarProdViewList) {
+                ShopCar shopCar = (ShopCar) shopCarProdView.getExtend("shopcar");
+                long pdid = shopCar.getPdid();
+                String pdno = shopCar.getPdno();
+                long storeid = shopCar.getStoreid();
+                BigDecimal convertNum = shopCar.getPdnumber();
+
+                orders.setIsonline(shopCar.getIsonline());
+                if (orders.getIsonline() == Quantity.STATE_0) {
+                    //更新库存
+                    ProductStore productStore = shopCar.getProductStore();
+                    if (productStore != null) {
+                        BigDecimal storeNum = productStore.getPdstorenum();
+                        if (convertNum.compareTo(storeNum) == Quantity.STATE_1) {
+                            throw new RuntimeException("库存不足");
+                        }
+
+                        if (productStore.getMinplus() != null && productStore.getMinplus().compareTo(Quantity.BIG_DECIMAL_0) > 0) {
+                            if (!this.checkBuyNum(convertNum, productStore.getMinplus())) {
+                                throw new RuntimeException("购买量必须是加购量的倍数");
+                            }
+                        }
+
+                        //减库存操作
+                        productStore.setPdstorenum(productStore.getPdstorenum().subtract(convertNum));
+                        ordersService.updateProductStore(productStore);
+                        //发货时间
+                        String deliveryTime = shopCar.getDelivertime();
+                        int protype = shopCar.getProtype();
+                        Short producttype = shopCar.getProducttype();
+                    } else {
+                        throw new RuntimeException("没有该商品");
+                    }
+                }
+                //限时购
+                if (orders.getIsonline() == Quantity.STATE_2) {
+
+                    LimitTimeProd limitTimeProd = shopCar.getLimitTimeProd();
+
+                    //判断活动是否开始
+                    Date startTime = limitTimeProd.getBegintime();
+                    Date endTime = limitTimeProd.getEndtime();
+                    Date now = new Date();
+                    if (limitTimeProd.getState() == Quantity.STATE_4) {
+                        if (startTime.compareTo(now) == 1) {
+                            throw new Exception("活动还未开始");
+                        }
+                        if (endTime.compareTo(now) == -1) {
+                            throw new Exception("活动已结束");
+                        }
+                        Long sellerId = limitTimeProd.getMemberid();
+                        if (sellerId == member.getId()) {
+                            throw new Exception("不能购买自己的商品");
+                        }
+                    } else {
+                        throw new Exception("活动未开始");
+                    }
+
+                    LimitTimeStore limitTimeStore = shopCarService.getLimitTimeStore(shopCar.getLimitid(), shopCar.getPdid(), shopCar.getPdno());
+                    //更新库存
+                    limitTimeStoreService.updateLimitStoreNum(limitTimeStore.getId(), shopCar.getPdnumber().multiply(new BigDecimal(-1)), shopCar.getPdnumber());
+                    LimitTimeStore newLimitStore = limitTimeStoreService.selectByPrimaryKey(limitTimeStore.getId());
+                    if (newLimitStore == null || newLimitStore.getStorenum().compareTo(new BigDecimal(0)) == -1) {
+                        throw new Exception("库存不足");
+                    }
+                    limitTimeProdService.updateSalestotalnumInDB(shopCar.getLimitid(), shopCar.getPdnumber());
+
+                    //发货时间
+                    String deliveryTime = shopCar.getDelivertime();
+                    int protype = shopCar.getProtype();
+                    Short producttype = shopCar.getProducttype();
+                }
+            }
+        }
+
+
+        //保存订单
+        List<Orders> ordersList = new ArrayList<>();
+        for(ShopCarView carView : retList){
+            String orderNo = GenerateNo.getOrderNo();
+            //订单总运费
+            BigDecimal fight = carView.getFreight();
+            //订单总价（包含运费）
+            BigDecimal totalPrice = carView.getProductTotalPrice().add(carView.getFreight());
+            //订单总定金
+            BigDecimal deposit = carView.getProductPartTotalPrice();
+            //订单总余款
+            BigDecimal balance = Quantity.BIG_DECIMAL_0;
+            if(carView.getProtype() != Quantity.STATE_0 ){
+                balance = carView.getProductYuTotalPrice().add(carView.getFreight());
+            }
+
+            //订单总全款
+            BigDecimal orderAllpay = Quantity.BIG_DECIMAL_0;
+            if(carView.getShopCarProdViewList().get(0).getProtype() != 0){
+                orderAllpay = carView.getProductTotalPrice().add(carView.getFreight());
+            }
+
+            List<OrderProduct> orderProductsList = new ArrayList<>();
+            OrderProduct op = null;
+            for(ShopCarProdView shopCarProdView : carView.getShopCarProdViewList()){
+                op = new OrderProduct();
+                ShopCar shop = (ShopCar) shopCarProdView.getExtend("shopcar");
+
+                op.setOrderno(orderNo);
+                op.setPdid(shop.getPdid());
+                op.setPdno(shop.getPdno());
+                op.setAttrjson(shop.getAttrjson());
+                op.setSellerid(shop.getSaleid());
+                op.setDeliverytime(shop.getDelivertime());
+                ProductInfo productInfo = ordersService.getProductInfoByPrimeKey(shop.getPdid());
+
+                if (productInfo == null) {
+                    throw new RuntimeException("商品id为" + shop.getPdid() + "的商品不存在");
+                }
+
+                if (productInfo.getPdstate() != Quantity.STATE_4 && shop.getIsonline() ==Quantity.STATE_0) {
+                    throw new RuntimeException(productInfo.getProductname() + "的商品现在处于下架状态，不可购买");
+                }
+
+                Brand brand = shopCarService.getBrandById(productInfo.getBrandid());
+                op.setPdname(productInfo.getProductname());
+                op.setPddesc(productInfo.getPackagetype());
+                if (productInfo.getProducttype().equals("紧固件")) {
+                    op.setProducttype(Quantity.STATE_1);
+                } else {
+                    op.setProducttype(Quantity.STATE_2);
+                }
+                String[] strpic = (String[]) productInfo.getPdpicture();
+                if (strpic != null) {
+                    if (strpic.length > 0) {
+                        op.setPdpic(strpic[0]);
+                    } else {
+                        op.setPdpic("");
+                    }
+                } else {
+                    op.setPdpic("");
+                }
+
+                if (brand != null) {
+                    if (brand.getPic() != null) {
+                        op.setPic(brand.getPic());
+                    } else {
+                        op.setPic("");
+                    }
+                } else {
+                    op.setPic("");
+                }
+                op.setPrice(shop.getPrice());
+                op.setUnit(shop.getUnit());
+                op.setNum(shop.getPdnumber());
+                op.setStoreid(shop.getStoreid());
+                op.setStorename(shop.getStorename());
+                //是否包邮
+                if (shop.getFrightmode() == Quantity.STATE_) {
+                    op.setMailornot(true);
+                } else {
+                    op.setMailornot(false);
+                }
+                if (StringUtils.hasText(productInfo.getStand())) {
+                    op.setStandard(productInfo.getStand());
+                }
+                if (StringUtils.hasText(productInfo.getMark())) {
+                    op.setMark(productInfo.getMark());
+                }
+                if (StringUtils.hasText(productInfo.getBrand())) {
+                    op.setBrand(productInfo.getBrand());
+                }
+                if (StringUtils.hasText(productInfo.getMaterial())) {
+                    op.setMaterial(productInfo.getMaterial());
+                }
+
+                if (StringUtils.hasText(productInfo.getLevel3())) {
+                    op.setClassify(productInfo.getLevel3());
+                    op.setClassifyid(productInfo.getLevel3id());
+                } else if (StringUtils.hasText(productInfo.getLevel2())) {
+                    op.setClassify(productInfo.getLevel2());
+                    op.setClassifyid(productInfo.getLevel2id());
+                } else {
+                    op.setClassify(productInfo.getLevel1());
+                    op.setClassifyid(productInfo.getLevel1id());
+                }
+
+
+                if (StringUtils.hasText(productInfo.getCardnum())) {
+                    op.setGradeno(productInfo.getCardnum());
+                }
+                if (shop.getLimitid() != null) {
+                    op.setLimitid(shop.getLimitid());
+                }
+
+                //TODO 后期该字段拿掉
+                op.setIsmailornot((short) 0);
+//
+                //设置远期支付方式
+                op.setProtype(shop.getProtype());
+                op.setAllpay(shop.getAllpay());
+                op.setPartpay(shop.getPartpay());
+                op.setYupay(shop.getYupay());
+                ProductStore productStore1 = ordersService.getProductStore(shop.getPdid(), shop.getPdno(), shop.getStoreid());
+
+
+
+                //计算运费
+//                BigDecimal figtht = BigDecimal.valueOf(0);
+//                if (orders.getIsonline() == Quantity.STATE_0) {
+//                    BigDecimal weight = productStore1.getWeight();
+//                    BigDecimal totalWeight = weight.multiply(shop.getPdnumber());
+//                    //figtht = ordersService.countSinglePdFight(productInfo, productStore1, orders.getProvince(), orders.getCity(), shop.getPdnumber());
+//                    figtht = freightService.getFreight(productStore1.getFreightmode(),totalWeight,orders.getProvince(),orders.getCity());
+//                    op.setFreight(figtht);
+//                }
+//                if (orders.getIsonline() == Quantity.STATE_2) {
+//                    op.setFreight(BigDecimal.valueOf(0));
+//                }
+
+//                if (shop.getProtype() != Quantity.STATE_1) {
+//                    op.setActualpayment(figtht.add(shop.getPrice().multiply(shop.getPdnumber())));
+//                } else {
+//                    op.setActualpayment(figtht.add(shop.getAllpay()));
+//                }
+
+                op.setActualpayment(shopCarProdView.getAllpay());
+
+                orderProductsList.add(op);
+
+
+                //ordersService.insertOrderProduct(op);
+
+                List<ProductAttr> productAttrs = productAttrService.getListByPidAndPdno(productInfo.getId(), op.getPdno());
+                OrderProductLog orderProductLog = new OrderProductLog();
+                orderProductLog.setProductinfojson(GsonUtils.toJson(productInfo));
+                orderProductLog.setProductstorejson(GsonUtils.toJson(productStore1));
+                orderProductLog.setProductattrjson(GsonUtils.toJson(productAttrs));
+
+                op.getExtend().put("OrderProductLog", orderProductLog);
+            }
+
+
+            Orders order = new Orders();
+            order.setIsonline(carView.getShopCarProdViewList().get(0).getIsonline());
+            order.setProvince(orders.getProvince());
+            order.setCity(orders.getCity());
+            order.setArea(orders.getArea());
+            order.setShipto(orders.getShipto());
+            order.setPhone(orders.getPhone());
+            order.setReceivingaddress(orders.getReceivingaddress());
+            order.setIsbilling(orders.getIsbilling());
+            order.setBillingtype(orders.getBillingtype());
+            order.setDeliverybill(orders.getDeliverybill());
+            //添加:2018年6月8日 订单添加介绍人
+            order.setWaysalesman(member.getWaysalesman());
+            //查询是否有业务员
+            AdminUser AdminUser = adminUserService.getAdminUserByUserid(member.getId());
+            if (AdminUser != null) {
+                //添加业务员/业务员联系方式
+                Admin admin = adminService.getById(AdminUser.getAdminid());
+                if(admin !=null){
+                    order.setClerkname(admin.getRealname());
+                    order.setClerknamephone(admin.getMobile());
+                }
+            }
+
+            //订单总运费
+            order.setFreight(fight);
+
+            order.setOrderfright(carView.getOrderfright());
+            order.setFrighttemplate(carView.getFrighttemplate());
+
+            //订单总价
+            totalPrice = totalPrice.setScale(2, BigDecimal.ROUND_HALF_UP);
+            order.setTotalprice(totalPrice);
+            //实付款
+            order.setActualpayment(totalPrice);
+            order.setDeposit(deposit);
+            order.setBalance(balance);
+            order.setAllpay(orderAllpay);
+            //买家id
+            order.setMemberid(member.getId());
+            order.setMembername(member.getUsername());
+            Member member1 = memberService.getMemberById(op.getSellerid());
+            if (member1 != null) {
+                order.setSellername(member1.getUsername());
+            }
+            //卖家id
+            order.setSaleid(op.getSellerid());
+            // 获取公司名称
+            SellerCompanyInfo sellerCompanyInfo = sellerCompanyInfoService.getSellerCompanyByMemberid(op.getSellerid());
+            if (sellerCompanyInfo == null) {
+                throw new RuntimeException("卖家不存在");
+            }
+
+            order.setMembercompany(sellerCompanyInfo.getCompanyname());
+            order.setShopname(sellerCompanyInfo.getShopname());
+            //平台代发模式
+            if (sellerCompanyInfo.getDeliverymode() == Quantity.STATE_1) {
+                order.setDeliverytype(Quantity.STATE_1);
+            }
+
+
+            //计算远期发货时间
+            Date futuretime = getFutureTime(op);
+            if (futuretime != null) {
+                order.setFuturetime(futuretime);
+            }
+            //订单编号
+            order.setOrderno(orderNo);
+            order.setTransactionnumber(GenerateNo.getTransactionNo());
+            //合同编号
+            order.setCode(GenerateNo.getContractNo());
+            //仓库id
+            order.setStoreid(op.getStoreid());
+            //仓库名称
+            order.setStorename(op.getStorename());
+            if (op.getProtype() == Quantity.STATE_0) {
+                order.setOrdertype(Quantity.STATE_0);
+            }
+            if (op.getProtype() == Quantity.STATE_1) {
+                order.setOrdertype(Quantity.STATE_1);
+            }
+            if (op.getProtype() == Quantity.STATE_2) {
+                order.setOrdertype(Quantity.STATE_2);
+            }
+            order.setCreatetime(new Date());
+
+            //保存订单
+            ordersService.insertOrders(order);
+
+            for (OrderProduct orderProduct1 : orderProductsList) {
+                orderProduct1.setOrderid(order.getId());
+                ordersService.insertOrderProduct(orderProduct1);
+                OrderProductLog orderProductLog = (OrderProductLog) orderProduct1.getExtend().get("OrderProductLog");
+                orderProductLog.setOrderproductid(orderProduct1.getId());
+                orderProductLogService.add(orderProductLog);
+            }
+
+            ordersList.add(order);
+
+            //操作日志
+            OperateLog operateLog = new OperateLog();
+            operateLog.setContent("提交订单");
+            operateLog.setOpid(member.getId());
+            operateLog.setOpname(member.getUsername());
+            operateLog.setOptime(new Date());
+            operateLog.setOptype(Quantity.STATE_0);
+            operateLog.setOrderid(order.getId());
+            operateLog.setOrderno(order.getOrderno());
+            ordersService.saveOperatelog(operateLog);
+
+            orderIds.add(order.getId());
+        }
+
+        if (orders.getIsbilling() != Quantity.STATE_0) {
+            if (billingRecord.getInvoiceid() != null) {
+                InvoiceInfo invoiceInfo = ordersService.getInvoiceInfo(billingRecord.getInvoiceid());
+                if (invoiceInfo != null && invoiceInfo.getMemberid().equals(member.getId())) {
+                    StringBuffer sb = new StringBuffer();
+                    BigDecimal billCach = BigDecimal.valueOf(0);
+                    List<BillOrder> billOrders = new ArrayList<>();
+
+                    for (Orders orders1 : ordersList) {
+                        //创建开票记录
+                        billingRecord.setInvoiceheadup(invoiceInfo.getInvoiceheadup());
+                        billingRecord.setTexno(invoiceInfo.getTexno());
+                        billingRecord.setBankofaccounts(invoiceInfo.getBankofaccounts());
+                        billingRecord.setAccount(invoiceInfo.getAccount());
+                        billingRecord.setPhone(invoiceInfo.getPhone());
+                        billingRecord.setAddress(invoiceInfo.getAddress());
+                        billingRecord.setMemberid(member.getId());
+                        billingRecord.setMembername(member.getUsername());
+                        billingRecord.setRemark(invoiceInfo.getAvailable());
+                        billingRecord.setOrderno(orders1.getId().toString());
+                        billingRecord.setBillcash(orders1.getTotalprice());
+                        billingRecord.setBillingrecordtype(orders.getBillingtype());
+                        billingRecord.setReceiveaddress(invoiceInfo.getReceiveaddress());
+
+                        //提前创建出发票信息，等该笔订单交易成功时设置为0
+                        billingRecord.setState(Quantity.STATE_);
+                        billingRecord.setId(null);
+                        ordersService.insertBillingRecord(billingRecord);
+
+                        BillOrder billOrder = new BillOrder();
+                        billOrder.setBillrecordid(billingRecord.getId());
+                        billOrder.setOrderid(orders1.getId());
+                        ordersService.saveBillOrder(billOrder);
+                    }
+                }else {
+                    throw  new MyException("发票信息不存在");
+                }
+            }else{
+                throw  new MyException("请选择要开的发票信息");
+            }
+        }
+
+
+
+        //删除购物车
+        shopCarService.deleteAll(longIds);
+
+        List<String> ordernoList = new ArrayList<>();
+        ordersList.forEach(o -> ordernoList.add(o.getOrderno()));
+        ordersService.jisuanOrdersBreakPay(ordernoList);
+
+
+        //批量保存订单
+        //ordersService.insertAllOrders(ordersList);
+        memberLogOperator.saveMemberLog(member, null, "提交订单", "/rest/buyer/orders/submitOrders", request, memberOperateLogService);
+        ret.data.ids = orderIds;
+        ret.setResult(BasicRet.SUCCESS);
+        ret.setMessage("提交成功");
+        return ret;
+    }
+
+
+
+
+
+
+
     /**
      * 从购物车中买家提交订单
-     *
-     * @param model
-     * @param billingRecord
-     * @param orders
-     * @param ids
-     * @return
      */
+    /*
     @RequestMapping(value = "/submitOrders", method = RequestMethod.POST)
     @ApiOperation(value = "从购物车中买家提交订单")
     @ApiImplicitParams({
@@ -1200,7 +2543,10 @@ public class OrdersAction {
                     //计算运费
                     BigDecimal figtht = BigDecimal.valueOf(0);
                     if (orders.getIsonline() == Quantity.STATE_0) {
-                        figtht = ordersService.countSinglePdFight(productInfo, productStore1, orders.getProvince(), orders.getCity(), shop.getPdnumber());
+                        BigDecimal weight = productStore1.getWeight();
+                        BigDecimal totalWeight = weight.multiply(shop.getPdnumber());
+                        //figtht = ordersService.countSinglePdFight(productInfo, productStore1, orders.getProvince(), orders.getCity(), shop.getPdnumber());
+                        figtht = freightService.getFreight(productStore1.getFreightmode(),totalWeight,orders.getProvince(),orders.getCity());
                         op.setFreight(figtht);
                     }
                     if (orders.getIsonline() == Quantity.STATE_2) {
@@ -1255,6 +2601,8 @@ public class OrdersAction {
                 order.setIsbilling(orders.getIsbilling());
                 order.setBillingtype(orders.getBillingtype());
                 order.setDeliverybill(orders.getDeliverybill());
+                //添加:2018年6月8日 订单添加介绍人
+                order.setWaysalesman(member.getWaysalesman());
                 //查询是否有业务员
                 AdminUser AdminUser = adminUserService.getAdminUserByUserid(member.getId());
                 if (AdminUser != null) {
@@ -1438,6 +2786,7 @@ public class OrdersAction {
         basicRet.data.ordersList = ordersList;
         return basicRet;
     }
+*/
 
     private class OrderCarRet extends BasicRet {
         private class Data {
@@ -1448,7 +2797,14 @@ public class OrdersAction {
             private EvaPageModel evaPageModel;
             private OrderProductBack orderProductBack;
 
+            private LogisticsInfo logisticsInfo;
+
+            private BigDecimal penalty;
+
+
             private List<ShippingAddress> shippingAddresses;
+
+            List<LogisticsInfoDto> logisticsInfos;
 
             private BigDecimal bigDecimal;
 
@@ -1635,6 +2991,31 @@ public class OrdersAction {
             public void setTransactionSettings(List<TransactionSetting> transactionSettings) {
                 this.transactionSettings = transactionSettings;
             }
+
+            public List<LogisticsInfoDto> getLogisticsInfos() {
+                return logisticsInfos;
+            }
+
+            public void setLogisticsInfos(List<LogisticsInfoDto> logisticsInfos) {
+                this.logisticsInfos = logisticsInfos;
+            }
+
+            public LogisticsInfo getLogisticsInfo() {
+                return logisticsInfo;
+            }
+
+            public void setLogisticsInfo(LogisticsInfo logisticsInfo) {
+                this.logisticsInfo = logisticsInfo;
+            }
+
+            public BigDecimal getPenalty() {
+                return penalty;
+            }
+
+            public void setPenalty(BigDecimal penalty) {
+                this.penalty = penalty;
+            }
+
         }
 
         private Data data = new Data();
@@ -1679,14 +3060,273 @@ public class OrdersAction {
 
     /**
      * 买家支付接口（限余额和授信）
-     *
-     * @param model
-     * @param type
-     * @param payMoney
-     * @param paySecret
-     * @param orders
-     * @return
      */
+    @RequestMapping(value = "/payByBanlance", method = RequestMethod.POST)
+    @ApiOperation(value = "买家支付接口（限余额和授信）")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "type", value = "type传0用余额支付，传1用授信支付", required = true, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "payMoney", value = "支付总金额", required = true, paramType = "query", dataType = "double"),
+            @ApiImplicitParam(name = "paySecret", value = "支付密码", required = true, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "orders", value = "订单id：{1,2}", required = true, paramType = "query", dataType = "string"),
+    })
+    public BasicRet payByBanlance(Model model, short type, BigDecimal payMoney, String paySecret, String orders, HttpServletRequest request) throws CashException, MyException {
+
+        Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
+        member = memberService.getMemberById(member.getId());
+        BasicRet basicRet = new BasicRet();
+        paySecret = Base64Utils.decode(paySecret);
+        String ps = CommonUtils.genMd5Password(paySecret, member.getPaypasswordsalt());
+
+        if (!ps.equals(member.getPaypassword())) {
+            basicRet.setResult(BasicRet.ERR);
+            basicRet.setMessage("支付密码不正确");
+            return basicRet;
+        }
+
+        String[] orderids = orders.split(",");
+        List<Orders> ordersList = ordersService.getOrdersByInIds(orders);
+
+        if (orderids.length != ordersList.size()) {
+            basicRet.setResult(BasicRet.ERR);
+            basicRet.setMessage("订单个数不正确，请联系网站客服");
+            return basicRet;
+        }
+
+        //要支付订单总金额
+        BigDecimal sumMoney = Quantity.BIG_DECIMAL_0;
+        //
+        List<OrderProduct> updateOrderProductList = new ArrayList<>();
+        List<Orders> updateOrders = new ArrayList<>();
+
+        Date paymenttime = new Date();
+
+        for (Orders or : ordersList) {
+            Orders updateOr = new Orders();
+            updateOr.setId(or.getId());
+            updateOr.setPaymenttime(paymenttime);
+
+            if (or.getPaymentmethod() == null) {  //加一个为空判断是为了下面余款支付判断是否使用同一种支付方式
+                if (type == Quantity.STATE_0) {
+                    updateOr.setPaytype(Quantity.STATE_3);
+                } else if (type == Quantity.STATE_1) {
+                    updateOr.setPaytype(Quantity.STATE_4);
+                } else {
+                    throw new MyException("支付方式不合法");
+                }
+            }
+
+            if (or.getOrdertype() == Quantity.STATE_0) { //立即发货
+                if (or.getOrderstatus() != Quantity.STATE_0) {
+                    basicRet.setResult(BasicRet.ERR);
+                    basicRet.setMessage(or.getOrderno() + "订单已付款");
+                    return basicRet;
+                }
+                sumMoney = sumMoney.add(or.getActualpayment());
+                updateOr.setOrderstatus(Quantity.STATE_1);
+                updateOrders.add(updateOr);
+
+                List<OrderProduct> orderProductList = orderProductServices.getOrderProductByOrderId(or.getId());
+                for (OrderProduct op : orderProductList) {
+
+                    if (op.getPaystate() != Quantity.STATE_0) {
+                        throw new MyException("订单商品支付状态错误");
+                    }
+
+                    OrderProduct updateOP = new OrderProduct();
+                    updateOP.setId(op.getId());
+                    updateOP.setPaystate(Quantity.STATE_1);
+                    updateOrderProductList.add(updateOP);
+                }
+            } else if (or.getOrdertype() == Quantity.STATE_1) {  //远期全款
+                if (or.getOrderstatus() != Quantity.STATE_0) {
+                    basicRet.setResult(BasicRet.ERR);
+                    basicRet.setMessage(or.getOrderno() + "订单已付款");
+                    return basicRet;
+                }
+                sumMoney = sumMoney.add(or.getActualpayment());
+                updateOr.setOrderstatus(Quantity.STATE_8);  //付完款后进入备货状态
+                updateOrders.add(updateOr);
+
+                List<OrderProduct> orderProductList = orderProductServices.getOrderProductByOrderId(or.getId());
+                for (OrderProduct op : orderProductList) {
+                    if (op.getPaystate() != Quantity.STATE_0) {
+                        throw new MyException("订单商品支付状态错误");
+                    }
+                    OrderProduct updateOP = new OrderProduct();
+                    updateOP.setId(op.getId());
+                    updateOP.setPaystate(Quantity.STATE_1);
+                    updateOrderProductList.add(updateOP);
+                }
+            } else if (or.getOrdertype() == Quantity.STATE_2) { //远期订金
+                if (or.getOrderstatus() != Quantity.STATE_0) {
+                    basicRet.setResult(BasicRet.ERR);
+                    basicRet.setMessage(or.getOrderno() + "订单已付款");
+                    return basicRet;
+                }
+                sumMoney = sumMoney.add(or.getDeposit());
+
+                updateOr.setOrderstatus(Quantity.STATE_8);
+                updateOr.setOrdertype(Quantity.STATE_3);  //订单类型转换为远期余款
+                updateOrders.add(updateOr);
+
+                List<OrderProduct> orderProductList = orderProductServices.getOrderProductByOrderId(or.getId());
+                for (OrderProduct op : orderProductList) {
+                    if (op.getPaystate() != Quantity.STATE_0) {
+                        throw new MyException("订单商品支付状态错误");
+                    }
+                    OrderProduct updateOP = new OrderProduct();
+                    updateOP.setId(op.getId());
+                    updateOP.setPaystate(Quantity.STATE_2);
+                    updateOrderProductList.add(updateOP);
+                }
+            } else if (or.getOrdertype() == Quantity.STATE_3) {  //远期余款
+
+                if (or.getOrderstatus() != Quantity.STATE_9) {
+                    basicRet.setResult(BasicRet.ERR);
+                    basicRet.setMessage(or.getOrderno() + "订单已付款");
+                    return basicRet;
+                }
+                sumMoney = sumMoney.add(or.getBalance());
+
+                updateOr.setOrderstatus(Quantity.STATE_1);
+                updateOrders.add(updateOr);
+
+                //判断支付方式是否是同一种
+                boolean isSame = false;
+                if (or.getPaytype() == 3 && type == 0) {
+                    isSame = true;
+                } else if (or.getPaytype() == 4 && type == 1) {
+                    isSame = true;
+                }
+
+                if (!isSame) {
+                    basicRet.setResult(BasicRet.ERR);
+                    basicRet.setMessage("尾款支付方式必须与定金支付方式一致");
+                    return basicRet;
+                }
+
+                List<OrderProduct> orderProductList = orderProductServices.getOrderProductByOrderId(or.getId());
+                for (OrderProduct op : orderProductList) {
+                    if (op.getPaystate() != Quantity.STATE_2) {
+                        throw new MyException("订单商品支付状态错误");
+                    }
+                    OrderProduct updateOP = new OrderProduct();
+                    updateOP.setId(op.getId());
+                    updateOP.setPaystate(Quantity.STATE_3);
+                    updateOrderProductList.add(updateOP);
+                }
+            }
+        }
+
+
+        if (sumMoney.compareTo(payMoney) != Quantity.STATE_0) {
+            basicRet.setResult(BasicRet.ERR);
+            basicRet.setMessage("支付金额不正确");
+            return basicRet;
+        }
+
+        //余额支付
+        if (type == Quantity.STATE_0) {
+            BigDecimal banlance = member.getBalance();
+            //余额小于支付的钱
+            if (banlance.compareTo(payMoney) == Quantity.INT_) {
+                basicRet.setResult(BasicRet.ERR);
+                basicRet.setMessage("余额不足，请充值或更换支付方式");
+                return basicRet;
+            } else {
+                memberService.updateBuyerMemberBalanceInDb(member.getId(), payMoney.multiply(Quantity.BIG_DECIMAL_MINUS_1));
+                Member newMember = memberService.getMemberById(member.getId());
+                if (newMember.getBalance().compareTo(Quantity.BIG_DECIMAL_0) < 0) {
+                    throw new CashException("账户余额不足");
+                }
+
+                payMethod(ordersList, member, type);
+
+                List<Orders> ordersListWMS = ordersService.getWMSOrdersByInIds(orders);
+                for(Orders orders1 : ordersListWMS){
+                    orders1.setPaymenttime(paymenttime);
+                }
+
+                ordersService.smsNotifySellerToOrders(ordersList);
+                wmsService.synOrders(ordersListWMS);
+                basicRet.setResult(BasicRet.SUCCESS);
+                basicRet.setMessage("支付成功");
+            }
+        } else if (type == Quantity.STATE_1) { //授信支付
+            //判断可用授信金额是否足够
+            BigDecimal availablelimit = member.getAvailablelimit();
+            BigDecimal usedLimit = member.getUsedlimit();
+            if (availablelimit.compareTo(payMoney) == Quantity.INT_) {
+                basicRet.setResult(BasicRet.ERR);
+                basicRet.setMessage("余额不足，请更换支付方式");
+                return basicRet;
+            } else {
+                memberService.updateBuyerMemberCreditBalanceInDb(member.getId(), payMoney, payMoney.multiply(Quantity.BIG_DECIMAL_MINUS_1));
+                Member newMember = memberService.getMemberById(member.getId());
+                if (member.getAvailablelimit().compareTo(Quantity.BIG_DECIMAL_0) < 0) {
+                    throw new CashException("授信可用金额不足");
+                }
+
+                payMethod(ordersList, member, type);
+
+                List<Orders> ordersListWMS = ordersService.getWMSOrdersByInIds(orders);
+                for(Orders orders1 : ordersListWMS){
+                    orders1.setPaymenttime(paymenttime);
+                }
+
+                wmsService.synOrders(ordersListWMS);
+                basicRet.setResult(BasicRet.SUCCESS);
+                basicRet.setMessage("支付成功");
+            }
+        }
+
+
+        for(OrderProduct op : updateOrderProductList){
+            orderProductServices.updateByPrimaryKeySelective(op);
+        }
+
+        for(Orders od : updateOrders){
+            ordersService.updateOrders(od);
+        }
+
+        for (String id : orderids) {
+            //操作日志
+            OperateLog operateLog = new OperateLog();
+            operateLog.setContent("订单已支付");
+            operateLog.setOpid(member.getId());
+            operateLog.setOpname(member.getUsername());
+            operateLog.setOptime(new Date());
+            operateLog.setOptype(Quantity.STATE_0);
+            operateLog.setOrderid(Long.parseLong(id));
+            ordersService.saveOperatelog(operateLog);
+        }
+
+        //短信通知
+        ordersService.smsNotifySellerToOrders(ordersList);
+
+        if(member.getIsbuy() !=Quantity.STATE_2) {
+            Member upateMember = new Member();
+            upateMember.setId(member.getId());
+            upateMember.setIsbuy(Quantity.STATE_2);
+
+            //判断是否下过单 第一次下单设置标签名称为A+ size为1代表第一次下单 且为已支付的
+            List<Orders>  list  = ordersService.findOrdersByuseridAndOrderStatus(member.getId());
+            if(list.size()==1){
+                upateMember.setLabelname("A+");
+            }
+
+            memberService.updateMember(upateMember);
+        }
+
+
+        memberLogOperator.saveMemberLog(member, null, "订单支付完成", "/rest/buyer/orders/payByBanlance", request, memberOperateLogService);
+
+        return basicRet;
+    }
+
+
+
+    /*
     @RequestMapping(value = "/payByBanlance", method = RequestMethod.POST)
     @ApiOperation(value = "买家支付接口（限余额和授信）")
     @ApiImplicitParams({
@@ -1755,6 +3395,7 @@ public class OrdersAction {
         }
 
         //判断总金额是否正确
+        sumpay = sumpay.setScale(2,BigDecimal.ROUND_HALF_UP);
         if (sumpay.compareTo(payMoney) != Quantity.STATE_0) {
             basicRet.setResult(BasicRet.ERR);
             basicRet.setMessage("支付金额不正确");
@@ -1815,6 +3456,11 @@ public class OrdersAction {
                     Member upateMember = new Member();
                     upateMember.setId(member.getId());
                     upateMember.setIsbuy(Quantity.STATE_2);
+                    //判断是否下过单 第一次下单设置标签名称为A+ size为1代表第一次下单 且为已支付的
+                    List<Orders>  list  = ordersService.findOrdersByuseridAndOrderStatus(member.getId());
+                    if(list.size()==1){
+                        upateMember.setLabelname("A+");
+                    }
                     memberService.updateMember(upateMember);
 
 
@@ -1862,6 +3508,11 @@ public class OrdersAction {
 
                     ordersService.smsNotifySellerToOrders(ordersList);
 
+                    Member updateMember = new Member();
+                    updateMember.setId(member.getId());
+                    updateMember.setIsbuy(Quantity.STATE_2);
+                    memberService.updateMember(updateMember);
+
                     List<Orders> ordersListWMS = ordersService.getWMSOrdersByInIds(orders);
                     logger.info("授信支付：" + JSONArray.fromObject(ordersListWMS).toString());
                     logger.error("授信支付：" + JSONArray.fromObject(ordersListWMS).toString());
@@ -1890,6 +3541,8 @@ public class OrdersAction {
 
         return basicRet;
     }
+    */
+
 
     /**
      * 保存资金明细和修改订单状态
@@ -1897,6 +3550,77 @@ public class OrdersAction {
      * @param ordersList 订单数组（orderno:price）
      * @param member     用户
      */
+
+    private void payMethod(List<Orders> ordersList, Member member, short type) {
+        //一个订单一条资金记录
+        List<BuyerCapital> buyerCapitals = new ArrayList<BuyerCapital>();
+        List<SalerCapital> salerCapitals = new ArrayList<SalerCapital>();
+        for (Orders order : ordersList) {
+//            //余额支付
+//            if (type == Quantity.STATE_0) {
+//                order.setPaytype(Quantity.STATE_3);
+//            }
+//            //授信支付
+//            if (type == Quantity.STATE_1) {
+//                order.setPaytype(Quantity.STATE_4);
+//            }
+            String transactionNo = GenerateNo.getTransactionNo();
+            Date tranTime = new Date();
+            //创建订单资金明细
+            BuyerCapital buyerOrderCapital = createBuyerOrderCapital(order, type, member, tranTime, transactionNo);
+
+
+            SalerCapital salerCapital = createSalerOrderCapital(order, tranTime, transactionNo);
+            buyerCapitals.add(buyerOrderCapital);
+
+
+            if (salerCapital.getRefundamount() == null) {
+                salerCapital.setRefundamount(BigDecimal.valueOf(0));
+            }
+
+            salerCapitals.add(salerCapital);
+
+
+//            //立即发货
+//            if (order.getOrdertype() == Quantity.STATE_0) {
+//                if (order.getOrderstatus() == Quantity.STATE_0) {
+//                    order.setOrderstatus(Quantity.STATE_1);
+//                }
+//            }
+//            //远期全款
+//            if (order.getOrdertype() == Quantity.STATE_1) {
+//                if (order.getOrderstatus() == Quantity.STATE_0) {
+//                    order.setOrderstatus(Quantity.STATE_8);
+//                }
+//            }
+//            //定金
+//            if (order.getOrdertype() == Quantity.STATE_2) {
+//                if (order.getOrderstatus() == Quantity.STATE_0) {
+//                    order.setOrdertype(Quantity.STATE_3);
+//                    order.setOrderstatus(Quantity.STATE_8);
+//                }
+//            }
+//            //余款
+//            if (order.getOrdertype() == Quantity.STATE_3) {
+//                if (order.getOrderstatus() == Quantity.STATE_9) {
+//                    order.setOrderstatus(Quantity.STATE_1);
+//                }
+//            }
+//            order.setPaymenttime(new Date());
+//            ordersService.updateSingleOrder(order);
+        }
+        //批量保存买家卖家资金明细
+        if (buyerCapitals.size() > Quantity.STATE_0) {
+            ordersService.insertBuyerCapital(buyerCapitals);
+        }
+        if (salerCapitals.size() > Quantity.STATE_0) {
+            ordersService.insertSallerCapital(salerCapitals);
+        }
+    }
+
+
+
+    /*
     private void payMethod(List<Orders> ordersList, Member member, short type) {
         //一个订单一条资金记录
         List<BuyerCapital> buyerCapitals = new ArrayList<BuyerCapital>();
@@ -1961,6 +3685,10 @@ public class OrdersAction {
             ordersService.insertSallerCapital(salerCapitals);
         }
     }
+    */
+
+
+
 
     /**
      * 创建买家订单资金明细
@@ -1972,6 +3700,67 @@ public class OrdersAction {
      * @param tradeNo
      * @return
      */
+    private BuyerCapital createBuyerOrderCapital(Orders order, Short type, Member member, Date tranTime, String tradeNo) {
+        BuyerCapital buyerCapital = new BuyerCapital();
+        buyerCapital.setTradetime(tranTime);
+        buyerCapital.setOrderno(order.getOrderno());
+        //余额支付
+        if (type == Quantity.STATE_0) {
+            buyerCapital.setPaytype(Quantity.STATE_3);
+        }
+        //授信支付
+        if (type == Quantity.STATE_1) {
+            buyerCapital.setPaytype(Quantity.STATE_4);
+        }
+
+        buyerCapital.setMemberid(member.getId());
+        buyerCapital.setTradeno(tradeNo);
+        buyerCapital.setRechargestate(Quantity.STATE_1);
+       // List<OrderProduct> orderProducts = ordersService.getOrderProductByOrderNo(order.getOrderno());
+        BigDecimal capital = BigDecimal.valueOf(0);
+        //立即发货
+        if (order.getOrdertype() == Quantity.STATE_0) {
+            if (order.getOrderstatus() == Quantity.STATE_0) {
+                buyerCapital.setCapitaltype(Quantity.STATE_0);
+                capital = order.getActualpayment();
+                //买家订单资金明细
+                buyerCapital.setCapital(capital);
+                buyerCapital.setRemark("订单金额");
+            }
+        }
+        //远期全款
+        if (order.getOrdertype() == Quantity.STATE_1) {
+            if (order.getOrderstatus() == Quantity.STATE_0) {
+                buyerCapital.setCapitaltype(Quantity.STATE_9);
+                capital = order.getActualpayment();
+                buyerCapital.setCapital(capital);
+                buyerCapital.setRemark("订单金额-远期全款");
+            }
+        }
+        //定金
+        if (order.getOrdertype() == Quantity.STATE_2) {
+            if (order.getOrderstatus() == Quantity.STATE_0) {
+                buyerCapital.setCapitaltype(Quantity.STATE_7);
+                capital = order.getDeposit();
+                buyerCapital.setCapital(capital);
+                buyerCapital.setRemark("订单金额-远期订金");
+            }
+        }
+        //余款
+        if (order.getOrdertype() == Quantity.STATE_3) {
+            if (order.getOrderstatus() == Quantity.STATE_9) {
+                buyerCapital.setCapitaltype(Quantity.STATE_8);
+                capital = order.getBalance();
+                buyerCapital.setCapital(capital);
+                buyerCapital.setRemark("订单金额-远期余款");
+            }
+        }
+        return buyerCapital;
+    }
+
+
+
+    /*
     private BuyerCapital createBuyerOrderCapital(Orders order, Short type, Member member, Date tranTime, String tradeNo) {
 
         BuyerCapital buyerCapital = new BuyerCapital();
@@ -1985,6 +3774,7 @@ public class OrdersAction {
         if (type == Quantity.STATE_1) {
             buyerCapital.setPaytype(Quantity.STATE_4);
         }
+
         buyerCapital.setMemberid(member.getId());
         buyerCapital.setTradeno(tradeNo);
         buyerCapital.setRechargestate(Quantity.STATE_1);
@@ -2037,7 +3827,7 @@ public class OrdersAction {
         }
         return buyerCapital;
     }
-
+*/
 
     /**
      * 创建卖家订单资金
@@ -2055,15 +3845,16 @@ public class OrdersAction {
         salerCapital.setRechargestate(Quantity.STATE_1);
         salerCapital.setMemberid(order.getSaleid());
         Member seller = memberService.getMemberById(order.getSaleid());
-        List<OrderProduct> orderProducts = ordersService.getOrderProductByOrderNo(order.getOrderno());
+        //List<OrderProduct> orderProducts = ordersService.getOrderProductByOrderNo(order.getOrderno());
         BigDecimal capital = BigDecimal.valueOf(0);
         //立即发货
         if (order.getOrdertype() == Quantity.STATE_0) {
             if (order.getOrderstatus() == Quantity.STATE_0) {
                 salerCapital.setCapitaltype(Quantity.STATE_0);
-                for (OrderProduct orderProduct : orderProducts) {
-                    capital = capital.add(orderProduct.getActualpayment());
-                }
+//                for (OrderProduct orderProduct : orderProducts) {
+//                    capital = capital.add(orderProduct.getActualpayment());
+//                }
+                capital = order.getActualpayment();
                 //买家订单资金明细
                 salerCapital.setOrdercapital(capital);
                 salerCapital.setRemark("订单金额");
@@ -2073,9 +3864,10 @@ public class OrdersAction {
         if (order.getOrdertype() == Quantity.STATE_1) {
             if (order.getOrderstatus() == Quantity.STATE_0) {
                 salerCapital.setCapitaltype(Quantity.STATE_9);
-                for (OrderProduct orderProduct : orderProducts) {
-                    capital = capital.add(orderProduct.getActualpayment());
-                }
+//                for (OrderProduct orderProduct : orderProducts) {
+//                    capital = capital.add(orderProduct.getActualpayment());
+//                }
+                capital = order.getActualpayment();
                 salerCapital.setOrdercapital(capital);
                 salerCapital.setRemark("订单金额-远期全款");
             }
@@ -2084,9 +3876,11 @@ public class OrdersAction {
         if (order.getOrdertype() == Quantity.STATE_2) {
             if (order.getOrderstatus() == Quantity.STATE_0) {
                 salerCapital.setCapitaltype(Quantity.STATE_10);
-                for (OrderProduct orderProduct : orderProducts) {
-                    capital = capital.add(orderProduct.getPartpay());
-                }
+//                for (OrderProduct orderProduct : orderProducts) {
+//                    capital = capital.add(orderProduct.getPartpay());
+//                }
+                capital = order.getDeposit();
+
                 salerCapital.setOrdercapital(capital);
                 salerCapital.setRemark("订单金额-远期定金");
 
@@ -2096,9 +3890,10 @@ public class OrdersAction {
         if (order.getOrdertype() == Quantity.STATE_3) {
             if (order.getOrderstatus() == Quantity.STATE_9) {
                 salerCapital.setCapitaltype(Quantity.STATE_8);
-                for (OrderProduct orderProduct : orderProducts) {
-                    capital = capital.add(orderProduct.getYupay().add(orderProduct.getFreight()));
-                }
+//                for (OrderProduct orderProduct : orderProducts) {
+//                    capital = capital.add(orderProduct.getYupay().add(orderProduct.getFreight()));
+//                }
+                capital = order.getBalance();
                 salerCapital.setOrdercapital(capital);
                 salerCapital.setRemark("订单金额-远期余款");
             }
@@ -2126,18 +3921,20 @@ public class OrdersAction {
             @ApiImplicitParam(name = "tranNo", value = "交易号", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "startTime", value = "开始时间", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "endTime", value = "结束时间", required = false, paramType = "query", dataType = "string"),
-            @ApiImplicitParam(name = "orderState", value = "订单状态0=待付款1=待发货3=待收货4=待验货5=已完成7=已关闭8=备货中9=备货完成", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "orderState", value = "订单状态0=待付款1=待发货3=待收货4=待验货5=已完成7=已关闭8=备货中9=备货完成10部分发货", required = false, paramType = "query", dataType = "int"),
             @ApiImplicitParam(name = "evaState", value = "评价状态0=未评价1=已评价", required = false, paramType = "query", dataType = "int"),
             @ApiImplicitParam(name = "backstate", value = "退货状态0=正常1=退货中2=退货验收3=退货完成4=异议中", required = false, paramType = "query", dataType = "int"),
             @ApiImplicitParam(name = "brand", value = "品牌", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "stand", value = "规格", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "mark", value = "印记", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "sendstatus", value = "发货状态 全部订单为不传 1为待发货（查询待发货和部分发货订单）3为待收货订单(查待收货和部分发货) 10为部分发货订单(只查10部分发货)", required = false, paramType = "query", dataType = "long"),
+            @ApiImplicitParam(name = "isbilling",value = "是否需要开票 0不开票 1开票")
     })
     public PageRet getMemberOrderList(Model model, OrderQueryParam param) {
         PageRet pageRet = new PageRet();
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
         param.setMemberid(member.getId());
-        PageInfo pageInfo = ordersService.getMemberOrdersList(param);
+        PageInfo pageInfo = ordersService.getMemberOrdersListForUser(param);
         List<Orders> list = pageInfo.getList();
 
         //组装订单
@@ -2164,8 +3961,11 @@ public class OrdersAction {
             memberOrders.setFreight(orders.getFreight());
             memberOrders.setDeposit(orders.getDeposit());
             memberOrders.setBalance(orders.getBalance());
-            memberOrders.setCouriernumber(orders.getCouriernumber());
-            memberOrders.setLogisticscompany(orders.getLogisticscompany());
+           // memberOrders.setCouriernumber(orders.getCouriernumber());
+           // memberOrders.setLogisticscompany(orders.getLogisticscompany());
+            //根据订单号查询 可能会有多条的物流信息
+            List<LogisticsInfoDto> logisticsInfoDtoList = logisticsInfoService.selectByOrderNo(orders.getOrderno());
+            memberOrders.setLogisticsInfoDtoList(logisticsInfoDtoList);
             if (orders.getFuturetime() != null) {
                 memberOrders.setFuturetime(orders.getFuturetime());
             }
@@ -2210,21 +4010,43 @@ public class OrdersAction {
         if (integralRecord != null) {
             orderCarRet.data.integralRecord = integralRecord.getScope();
         }
+
+        List<OrderProduct> productList = orderProductServices.getByOrderNo(orderno);
+        orderCarRet.data.orderProducts = productList;
+        //根据订单号去logisticsinfo表查询物流
+        List<LogisticsInfoDto> logisticsInfoList = logisticsInfoService.selectByOrderNo(orderno);
+        //根据订单号去logisticsinfo表 最新的一条给前端返发货时间 用于订单详情倒计时
+        LogisticsInfo logisticsInfo = logisticsInfoService.selectLogisticsInfoByOrderNoAndTime(orderno);
+        orderCarRet.data.logisticsInfo = logisticsInfo;
         String url = "";
-        if (StringUtils.hasText(orders.getLogisticscompany()) && StringUtils.hasText(orders.getCouriernumber())) {
+        if(logisticsInfoList!=null && logisticsInfoList.size()>0) {
+            setExpressurl(logisticsInfoList);
+        }
+        //app端接口为了兼容是可以使用下面那条 只取最新的一条物流信息
+        //orderCarRet.data.expressurl = url;
+        orderCarRet.data.logisticsInfos =logisticsInfoList;
+        orderCarRet.data.orders = orders;
+        return orderCarRet;
+    }
+
+    private void setExpressurl(List<LogisticsInfoDto> logisticsInfoList) {
+        String url;
+        for (LogisticsInfoDto logisticsInfoDto:logisticsInfoList) {
             List<String> list = commonDataValueService.getcommonDataValue("物流公司");
             for (String vl : list) {
                 String[] vlStr = vl.split("-");
-                if (orders.getLogisticscompany().equals(vlStr[0])) {
-                    //物流查询
-                    url = ExpressUtils.searchkuaiDiInfo(vlStr[1], orders.getCouriernumber());
-                    break;
+                if(logisticsInfoDto != null) {
+                    if (vlStr[0].equals(logisticsInfoDto.getLogisticscompany())) {
+                        //物流查询
+                        url = ExpressUtils.searchkuaiDiInfo(vlStr[1], logisticsInfoDto.getCouriernumber());
+                        logisticsInfoDto.setExpressurl(url);
+                        break;
+                    }
+                }else{
+                    logisticsInfoDto.setExpressurl("");
                 }
             }
         }
-        orderCarRet.data.expressurl = url;
-        orderCarRet.data.orders = orders;
-        return orderCarRet;
     }
 
     /**
@@ -2379,187 +4201,18 @@ public class OrdersAction {
                 orders.setBuyerinspectiontime(new Date());
                 //计算订单金额和佣金，并充值到余额和开票金额
                 List<OrderProduct> list = ordersService.getOrderProductByOrderNo(orders.getOrderno());
-                //判断是否有退货商品
-                //实际支付的总额
-                BigDecimal sellerpay = BigDecimal.valueOf(0);
-
-                //运费
-                BigDecimal frigthpay = BigDecimal.valueOf(0);
-
-                //总的佣金
-                BigDecimal totalBroke = BigDecimal.valueOf(0);
-
-                //服务费
-                BigDecimal totalServerPay = BigDecimal.valueOf(0);
-
-                //获取紧固件积分规则
-                IntegralSet integralSet1 = integralService.getIntegralSetByType(Quantity.STATE_0);
-                //获取其它积分规则
-                IntegralSet integralSet2 = integralService.getIntegralSetByType(Quantity.STATE_1);
-                //销量统计
-                Map<Long, BigDecimal> pdsaleNumMap = new HashMap<>();
-                for (OrderProduct orderProduct : list) {
-                    //退货状态0=正常1=退货中2=退货验收3=退货完成4=异议中
-                    if (orderProduct.getBackstate() == Quantity.STATE_1 || orderProduct.getBackstate() == Quantity.STATE_2 || orderProduct.getBackstate() == Quantity.STATE_4) {
-                        basicRet.setResult(BasicRet.ERR);
-                        basicRet.setMessage("有商品还在退货中，不能结束订单");
-                        return basicRet;
-                    }
-                    if (orderProduct.getBackstate() == Quantity.STATE_0) {
-
-                        BigDecimal saleNum = pdsaleNumMap.get(orderProduct.getPdid());
-
-                        if (saleNum == null) {
-                            pdsaleNumMap.put(orderProduct.getPdid(), orderProduct.getNum());
-                        } else {
-                            pdsaleNumMap.put(orderProduct.getPdid(), orderProduct.getNum().add(saleNum));
-                        }
-
-                        //计算佣金
-                        Long classifyid = orderProduct.getClassifyid();
-                        BigDecimal rate = BigDecimal.valueOf(0);
-
-                        //商家分类
-                        SellerCategory sellerCategory = ordersService.getSellerCategory(classifyid, orderProduct.getSellerid());
-                        if (sellerCategory != null) {
-                            if (sellerCategory.getBrokeragerate().compareTo(new BigDecimal(-1)) == 0) {
-                                SellerCategory sellerCategory1 = ordersService.getSellerCategory(sellerCategory.getParentid(), orderProduct.getSellerid());
-                                if (sellerCategory1 != null) {
-                                    if (sellerCategory1.getBrokeragerate().compareTo(new BigDecimal(-1)) == 0) {
-                                        SellerCategory sellerCategory2 = ordersService.getSellerCategory(sellerCategory1.getParentid(), orderProduct.getSellerid());
-                                        if (sellerCategory2 != null) {
-                                            rate = sellerCategory2.getBrokeragerate();
-                                        }
-                                    } else {
-                                        rate = sellerCategory1.getBrokeragerate();
-                                    }
-                                }
-                            } else {
-                                rate = sellerCategory.getBrokeragerate();
-                            }
-                        }
-
-                        Categories categories = ordersService.getCategories(classifyid);
-                        if (categories != null) {
-                            //佣金比率
-                            BigDecimal brolerRate = rate.multiply(BigDecimal.valueOf(0.01));
-                            if (brolerRate.compareTo(BigDecimal.valueOf(0)) < 0) {
-                                brolerRate = categoriesService.getBrokerRate(classifyid).multiply(BigDecimal.valueOf(0.01));
-                            }
-
-                            //服务费比率 用的是category中设置的
-                            BigDecimal serverRate = categoriesService.getServerRate(classifyid).multiply(BigDecimal.valueOf(0.01));
 
 
-                            //商品单位佣金=销售单价*商品佣金比例
-                            BigDecimal singlebrokepay = orderProduct.getPrice().multiply(brolerRate);
-
-                            //商品佣金=商品单位佣金*商品数量
-                            //BigDecimal broker = (orderProduct.getActualpayment().subtract(orderProduct.getFreight())).multiply(brolerRate);
-                            BigDecimal broker = singlebrokepay.multiply(orderProduct.getNum());
-
-                            OrderProduct updateOrderProduct = new OrderProduct();
-                            updateOrderProduct.setId(orderProduct.getId());
-                            updateOrderProduct.setSinglebrokepay(singlebrokepay);
-                            updateOrderProduct.setBrokepay(broker);
-                            ordersService.updateOrderProduct(updateOrderProduct);
-
-
-                            BigDecimal servepay = (orderProduct.getActualpayment().subtract(orderProduct.getFreight())).multiply(serverRate);
-                            totalBroke = totalBroke.add(broker);
-                            totalServerPay = totalServerPay.add(servepay);
-                        }
-
-
-                        sellerpay = sellerpay.add(orderProduct.getActualpayment());
-                        frigthpay = frigthpay.add(orderProduct.getFreight());
-                    }
-                }
-                //保存销量
-                for (Long pdid : pdsaleNumMap.keySet()) {
-                    ProductInfo info = ordersService.getProductInfoByPrimeKey(pdid);
-                    if (info != null) {
-                        BigDecimal salenum = pdsaleNumMap.get(pdid);
-                        info.setSalesnum(info.getSalesnum() + salenum.longValue());
-                        ordersService.saveProductInfo(info);
-                    }
+                //兼容老数据， 如果订单中orderfright 为空 并且 frighttemplate 为空 说明 为老订单
+                boolean isNewOrder = false;
+                if((orders.getOrderfright() != null && orders.getOrderfright()>0) && StringUtils.hasText(orders.getFrighttemplate()) ){
+                    isNewOrder = true;
                 }
 
-                BigDecimal scope = BigDecimal.valueOf(0);
-                //紧固件
-                if (list.get(0).getProducttype() == Quantity.STATE_1) {
-                    scope = integralSet1.getScope();
-                } else {
-                    scope = integralSet2.getScope();
-                }
-
-                BigDecimal allPdPay = sellerpay.subtract(frigthpay);
-
-                BigDecimal integralValue = Quantity.BIG_DECIMAL_0;
-
-                if (scope.compareTo(Quantity.BIG_DECIMAL_0) > 0) {
-                    integralValue = allPdPay.divideToIntegralValue(scope);
-                }
-
-                if (integralValue.compareTo(Quantity.BIG_DECIMAL_0) > 0) {
-                    IntegralRecord integralRecord = new IntegralRecord();
-                    integralRecord.setMemberid(member.getId());
-                    integralRecord.setMembername(member.getUsername());
-                    integralRecord.setOrderid(orders.getId());
-                    integralRecord.setScope(integralValue);
-                    integralRecord.setType(Quantity.STATE_0);
-                    integralRecord.setCreatetime(new Date());
-                    integralRecord.setRemark("订单积分");
-                    integralService.saveIntegralRecord(integralRecord);
-                }
-
-                member.setIntegrals(member.getIntegrals().add(integralValue));
-                member.setAvailableintegral(member.getAvailableintegral().add(integralValue));
-                ordersService.saveMember(member, oldMember);
-
-
-                if (orders.getIsbilling() == Quantity.STATE_1) {  //提交订单时选择开票  将billingrecord表中的state 字段由-1更改为0（待开票状态）
-                    //并且要查询该订单中是否有退款的，如果有开票金额减去退款金额
-                    //查询是否有退货或退款的，如果有退货开票金额要减去退货的钱
-                    List<OrderProductBack> orderProductBackList = orderProductBackService.getByOrderNo(orderno);
-                    BigDecimal subApply = new BigDecimal(0);
-                    for (OrderProductBack opb : orderProductBackList) {
-                        if (opb.getState() == 10) {
-                            subApply = subApply.add(opb.getBackmoney());
-                        }
-                    }
-
-                    billingRecordService.updateForwordBillingState(orders.getId().toString(), orders.getMemberid(), subApply.multiply(new BigDecimal(-1)));
-                }
-
-
-                /*
-                if (member1 != null) {
-                    member1.setSellerbanlance(member1.getSellerbanlance().add(sellerpay));
-                    member1.setBillmoney(member1.getBillmoney().add(sellerpay));
-                    ordersService.saveMember(member1);
-
-                } else {
-                    basicRet.setResult(BasicRet.ERR);
-                    basicRet.setMessage("卖家不存在");
-                    return basicRet;
-                }*/
-
-                Member seller = memberService.getMemberById(orders.getSaleid());
-                //BigDecimal frozepay = sellerpay.subtract(totalBroke).setScale(2,BigDecimal.ROUND_HALF_UP);
-                BigDecimal frozepay = sellerpay.setScale(2, BigDecimal.ROUND_HALF_UP);
-                if (seller != null) {
-                    //增加卖家冻结金额
-                    memberService.updateSellerMemberBalanceInDb(seller.getId(), Quantity.BIG_DECIMAL_0, frozepay);
-                }
-                orders.setBrokepay(totalBroke);
-                orders.setFrozepay(frozepay);
-                orders.setServerpay(totalServerPay);
-
-                //订单验货完成需要更新的数据
-                int count = ordersService.updateOrdersConfirmgoods(orders);
-                if (count != 1) {
-                    throw new CashException("买家订单自动确认验货出现错误，可能出现并发更新问题，所有操作已回撤，订单id:" + orders.getId());
+                if(isNewOrder){  //分单、运费上线后的新订单
+                    compatibleFreightOrdersService.clNewFinshOrders(orders,list,member);
+                }else{
+                    compatibleFreightOrdersService.clOldFinshOrders(orders,list,member);
                 }
             }
 
@@ -2594,6 +4247,10 @@ public class OrdersAction {
         basicRet.setMessage("修改成功");
         return basicRet;
     }
+
+
+
+
 
 //    private BigDecimal fetchServerOrBrokerRate(Categories categories, String type){
 //        BigDecimal ret = BigDecimal.valueOf(0);
@@ -2717,7 +4374,7 @@ public class OrdersAction {
             @ApiImplicitParam(name = "orderpdid", value = "订单商品id", required = true, paramType = "query", dataType = "long"),
             @ApiImplicitParam(name = "backtype", value = "退货类型0=仅退款1=退货退款2=部分退货", required = true, paramType = "query", dataType = "int"),
             @ApiImplicitParam(name = "isreceivegoods", value = "是否收到货0=收到1=未收到", required = true, paramType = "query", dataType = "int"),
-            @ApiImplicitParam(name = "returnbackreason", value = "退货原因", required = true, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "returnbackreason", value = "退货原因（从returnreason表取）", required = true, paramType = "query", dataType = "String"),
             @ApiImplicitParam(name = "pic", value = "买家上传的图片", required = false, paramType = "query", dataType = "String"),
             @ApiImplicitParam(name = "backexplain", value = "退货说明", required = false, paramType = "query", dataType = "String"),
             @ApiImplicitParam(name = "pdbackNum", value = "部分退货数量", required = false, paramType = "query", dataType = "double"),
@@ -2742,6 +4399,13 @@ public class OrdersAction {
             return basicRet;
         }
 
+        //根据退货理由 查询违约金比例
+        ReturnReason returnReason = returnReasonService.selectByReturnReason(orderProductBack.getReturnbackreason());
+        if(returnReason == null){
+            basicRet.setResult(BasicRet.ERR);
+            basicRet.setMessage("没有找到退货原因");
+            return basicRet;
+        }
 
         Member member1 = memberService.getMemberById(orderProduct.getSellerid());
 
@@ -2780,14 +4444,29 @@ public class OrdersAction {
                         basicRet.setMessage("退货数量大于购买数量");
                     } else {
                         orderProduct.setNum(orderProduct.getNum().subtract(pdbackNum));
-                        orderProduct.setActualpayment(orderProduct.getNum().multiply(orderProduct.getPrice()).add(orderProduct.getFreight()));
+
                         OrderProduct orderProduct1 = new OrderProduct();
-                        if (orderProduct.getNum().compareTo(BigDecimal.valueOf(0)) == Quantity.STATE_0) {
+                        if (orderProduct.getNum().compareTo(BigDecimal.valueOf(0)) == Quantity.STATE_0) {   //全部退完了
                             ordersService.deleteOrderProduct(orderProduct.getId());
                             orderProduct1.setFreight(orderProduct.getFreight());
+                            orderProduct1.setActualpayment(orderProduct.getActualpayment());
+
+                            backMoney = orderProduct.getActualpayment().subtract(orderProduct.getFreight());
+                            //退的钱目前不减掉 违约金的
                         } else {
+                            BigDecimal oldActualpayment = orderProduct.getActualpayment();
+
+                            backMoney = pdbackNum.multiply(orderProduct.getPrice()).setScale(2,BigDecimal.ROUND_HALF_UP);
+                            //退的钱目前不减掉 违约金的
+                            if(backMoney.compareTo(orderProduct.getActualpayment().subtract(orderProduct.getFreight())) == Quantity.STATE_1){  //退款金额超了，原因：之前退的时候给四舍五入入上了
+                                backMoney = orderProduct.getActualpayment().subtract(orderProduct.getFreight());
+                            }
+
+                            orderProduct.setActualpayment(oldActualpayment.subtract(backMoney));
+
                             ordersService.updateOrderProduct(orderProduct);
                             orderProduct1.setFreight(BigDecimal.valueOf(0));
+                            orderProduct1.setActualpayment(backMoney);
                         }
 
                         orderProduct1.setAttrjson(orderProduct.getAttrjson());
@@ -2805,7 +4484,7 @@ public class OrdersAction {
                         orderProduct1.setMembername(orderProduct.getMembername());
                         orderProduct1.setBackstate(Quantity.STATE_1);
                         orderProduct1.setPic(orderProduct.getPic());
-                        orderProduct1.setActualpayment(orderProduct.getPrice().multiply(pdbackNum));
+
                         orderProduct1.setPaystate(orderProduct.getPaystate());
                         orderProduct1.setAllpay(orderProduct.getAllpay());
                         orderProduct1.setBrand(orderProduct.getBrand());
@@ -2845,10 +4524,11 @@ public class OrdersAction {
 
                         orderProductBack.setOrderpdid(orderProduct1.getId());
 
-                        backMoney = orderProduct.getPrice().multiply(pdbackNum);
+
                     }
                 } else {
                     backMoney = orderProduct.getActualpayment().subtract(orderProduct.getFreight());
+                    //退的钱目前不减掉 违约金的
                 }
             }
         }
@@ -2857,6 +4537,7 @@ public class OrdersAction {
             //是否支付
             if (orderProduct.getPaystate() == Quantity.STATE_1) {
                 backMoney = orderProduct.getAllpay();
+                //退的钱目前不减掉 违约金的
             }
         }
         //定金支付
@@ -2864,9 +4545,11 @@ public class OrdersAction {
             //定金已支付
             if (orderProduct.getPaystate() == Quantity.STATE_2) {
                 backMoney = orderProduct.getPartpay();
+                //退的钱目前不减掉 违约金的
             }
             if (orderProduct.getPaystate() == Quantity.STATE_3) {
                 backMoney = orderProduct.getYupay().add(orderProduct.getPartpay());
+                //退的钱目前不减掉 违约金的
             }
         }
         orderProductBack.setBackmoney(backMoney);
@@ -2973,6 +4656,13 @@ public class OrdersAction {
         orderCarRet.data.orderProductBack = orderProductBack;
         orderCarRet.data.selfsupport = info.getSelfsupport();
 
+        //根据退货原因 查询违约金比例
+        ReturnReason returnReason = returnReasonService.selectByReturnReason(orderProductBack.getReturnbackreason());
+        if(returnReason !=null) {
+            BigDecimal penalty = returnReason.getPenalty();
+            orderCarRet.data.penalty = penalty;
+        }
+
         String url = "";
         if (StringUtils.hasText(orderProductBack.getLogisticscompany()) && StringUtils.hasText(orderProductBack.getLogisticsno())) {
             List<String> lists = commonDataValueService.getcommonDataValue("物流公司");
@@ -3063,6 +4753,8 @@ public class OrdersAction {
             @ApiImplicitParam(name = "backtype", value = "退货类型0=仅退款1=退货退款2=部分退货", required = true, paramType = "query", dataType = "int"),
             @ApiImplicitParam(name = "pic", value = "买家上传的图片", required = false, paramType = "query", dataType = "String"),
             @ApiImplicitParam(name = "backexplain", value = "退货说明", required = false, paramType = "query", dataType = "String"),
+            @ApiImplicitParam(name = "returnbackreason", value = "退货原因", required = true, paramType = "query", dataType = "String"),
+
     })
     public BasicRet updateOrderProductBack(Model model, ProductBackModel productBackModel, HttpServletRequest request) throws CashException {
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
@@ -3126,9 +4818,27 @@ public class OrdersAction {
 
         OrderProductBack orderProductBack = ordersService.getBackgoodsOrderProductBack(productBackModel);
 
+        //查询出 退货理由和违约金比例
+        ReturnReason returnReason = returnReasonService.selectByReturnReason(productBackModel.getReturnbackreason());
+
+
+
         if (orderProductBack != null) {
+
             OrderProduct orderProduct = ordersService.getOrderProductById(orderProductBack.getOrderpdid());
             Orders orders = ordersService.getOrdersById(orderProductBack.getOrderid());
+
+            //退货理由不管有无修改都要去更新
+            orderProductBack.setReturnbackreason(productBackModel.getReturnbackreason());
+            if(productBackModel.getState()== Quantity.STATE_0) {
+                //判断如果是买家责任 修改退货申请需要重新计算退的余额和
+                if (returnReason.getResponsibility() == Quantity.STATE_1) {
+                    //商品总价
+                    BigDecimal totalprice = orderProduct.getPrice().multiply(orderProductBack.getPdnum()).setScale(2,BigDecimal.ROUND_HALF_UP);
+                    BigDecimal newBackmoney = totalprice.subtract(totalprice.multiply(returnReason.getPenalty()).multiply(new BigDecimal(0.01))).setScale(2,BigDecimal.ROUND_HALF_UP);
+                    orderProductBack.setBackmoney(newBackmoney);
+                }
+            }
 
             if (state == Quantity.STATE_5) {  //买家同意验货
                 orderProduct.setBackstate(Quantity.STATE_0);
@@ -3638,22 +5348,19 @@ public class OrdersAction {
                 //立即发货
                 if (orders.getOrdertype() == Quantity.STATE_0) {
                     //计算扣除违约金
-                    BigDecimal orderPay = orders.getTotalprice().subtract(orders.getFreight());
+                    BigDecimal orderPay = orders.getActualpayment().subtract(orders.getFreight());
                     //紧固件才扣违约金
                     if (productType == Quantity.STATE_1) {
                         //违约金
-                        penaltyPay = orderPay.multiply(getLiquidated).setScale(2, BigDecimal.ROUND_HALF_UP);
-                        System.out.println("订单金额：" + orderPay);
-                        System.out.println("扣违约金：" + penaltyPay);
+                        penaltyPay = new BigDecimal(orderPay.multiply(getLiquidated).toPlainString()).setScale(2, BigDecimal.ROUND_HALF_UP);
                         //退回的金额
-                        backPay = orderPay.subtract(penaltyPay).setScale(2, BigDecimal.ROUND_HALF_UP);
+                        backPay = new BigDecimal(orderPay.subtract(penaltyPay).toPlainString()).setScale(2, BigDecimal.ROUND_HALF_UP);
                     } else {
                         backPay = orderPay;
                     }
 
                     //未发货，运费一块退回给买家
                     backPay = backPay.add(orders.getFreight()).setScale(2, BigDecimal.ROUND_HALF_UP);
-                    System.out.println("退回金额：" + backPay);
 
                     //判断退回到余额还是授信
                     BuyerCapital buyerCapital = ordersService.getBuyerCapitalByNoType(orders.getOrderno(), Quantity.STATE_0);
@@ -3683,35 +5390,28 @@ public class OrdersAction {
                             if (uuid != null) {
                                 Refund refund = new Refund();
                                 refund.setOutTradeNo(uuid);
-                                if (orders.getPaytype() == Quantity.STATE_0) {
-                                    refund.setChannel("alipay");
-                                } else if (orders.getPaytype() == Quantity.STATE_1) {
-                                    refund.setChannel("wxpay");
-                                } else if (orders.getPaytype() == Quantity.STATE_2) {
-                                    refund.setChannel("bank");
-                                }
+//                                if (orders.getPaytype() == Quantity.STATE_0) {
+//                                    refund.setChannel("alipay");
+//                                } else if (orders.getPaytype() == Quantity.STATE_1) {
+//                                    refund.setChannel("wxpay");
+//                                } else if (orders.getPaytype() == Quantity.STATE_2) {
+//                                    refund.setChannel("bank");
+//                                }
+                                refund.setChannel(tradeService.getPayChannel(orders.getPaytype()));
                                 refund.setRefundAmount((backPay.multiply(new BigDecimal(100))).longValue());
                                 refund.setRefundReason("订单退款");
-                                List<Orders> ordersList = ordersService.getOrdersByUUID(uuid);
-                                BigDecimal totalAmout = BigDecimal.valueOf(0);
-                                for (Orders od : ordersList) {
-                                    totalAmout = totalAmout.add(od.getActualpayment());
-                                }
-                                refund.setTotalAmount((totalAmout.multiply(new BigDecimal(100))).longValue());
-                                boolean result = false;
-                                try {
-                                    if ("alipay".equals(refund.getChannel())) {
-                                        result = alipayService.refund(refund);
-                                    } else if ("wxpay".equals(refund.getChannel())) {
-                                        result = wxPayService.refund(refund);
-                                    } else if ("bank".equals(refund.getChannel())) {
-                                        result = abcService.refund(refund);
-                                    }
-                                } catch (Exception e) {
-                                    throw e;
-                                }
+//                                List<Orders> ordersList = ordersService.getOrdersByUUID(uuid);
+//                                BigDecimal totalAmout = BigDecimal.valueOf(0);
+//                                for (Orders od : ordersList) {
+//                                    totalAmout = totalAmout.add(od.getActualpayment());
+//                                }
 
-                                System.out.println("退货通道：" + refund.getChannel() + "退货结果：" + result);
+                                BigDecimal totalAmout = tradeService.getTotalAmout(uuid);
+                                refund.setTotalAmount((totalAmout.multiply(new BigDecimal(100))).longValue());
+                                boolean result = tradeService.backMoney(refund);
+
+
+
                                 if (result) {
                                     if (orders.getPaytype() == Quantity.STATE_0) {
                                         buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_0);
@@ -3724,7 +5424,7 @@ public class OrdersAction {
                                     buyerCapitals.add(buyerCapital1);
                                     salerCapitals.add(salerCapital1);
                                 } else {
-                                    throw new RuntimeException("退款失败");
+                                    throw new CashException("退款失败");
                                 }
 
                             }
@@ -3742,14 +5442,18 @@ public class OrdersAction {
                             seller.setSellerbanlance(seller.getSellerbanlance().add(sellerPenaltyPay));
 
                             //买方扣除违约金
-                            buyerCapital2 = createBuyerPenaltyPay(orders, penaltyPay, tranTime, Quantity.STATE_6, orderPay, Quantity.BUYER_CANCEL_REASON);
+                            if(penaltyPay.compareTo(Quantity.BIG_DECIMAL_0) >0) {
+                                buyerCapital2 = createBuyerPenaltyPay(orders, penaltyPay, tranTime, Quantity.STATE_6, orderPay, Quantity.BUYER_CANCEL_REASON);
+                                buyerCapitals.add(buyerCapital2);
+                            }
+
 
                             //卖方增加违约金额 = 违约金额*被违约方获取违约金占比；
                             if (sellerPenaltyPay.compareTo(Quantity.BIG_DECIMAL_0) > 0) {
                                 salerCapital2 = createSalerPenaltyPay(orders, sellerPenaltyPay, tranTime, Quantity.STATE_6, orderPay, Quantity.BUYER_CANCEL_REASON);
                                 salerCapitals.add(salerCapital2);
                             }
-                            buyerCapitals.add(buyerCapital2);
+
                         }
                     }
                 }
@@ -3796,33 +5500,15 @@ public class OrdersAction {
                             if (uuid != null) {
                                 Refund refund = new Refund();
                                 refund.setOutTradeNo(uuid);
-                                if (orders.getPaytype() == Quantity.STATE_0) {
-                                    refund.setChannel("alipay");
-                                } else if (orders.getPaytype() == Quantity.STATE_1) {
-                                    refund.setChannel("wxpay");
-                                } else if (orders.getPaytype() == Quantity.STATE_2) {
-                                    refund.setChannel("bank");
-                                }
+                                refund.setChannel(tradeService.getPayChannel(orders.getPaytype()));
+
                                 refund.setRefundAmount((backPay.multiply(new BigDecimal(100))).longValue());
                                 refund.setRefundReason("订单退款");
-                                List<Orders> ordersList = ordersService.getOrdersByUUID(uuid);
-                                BigDecimal totalAmout = BigDecimal.valueOf(0);
-                                for (Orders od : ordersList) {
-                                    totalAmout = totalAmout.add(od.getActualpayment());
-                                }
+
+                                BigDecimal totalAmout = tradeService.getTotalAmout(uuid);
                                 refund.setTotalAmount((totalAmout.multiply(new BigDecimal(100))).longValue());
-                                boolean result = false;
-                                try {
-                                    if ("alipay".equals(refund.getChannel())) {
-                                        result = alipayService.refund(refund);
-                                    } else if ("wxpay".equals(refund.getChannel())) {
-                                        result = wxPayService.refund(refund);
-                                    } else if ("bank".equals(refund.getChannel())) {
-                                        result = abcService.refund(refund);
-                                    }
-                                } catch (Exception e) {
-                                    throw e;
-                                }
+
+                                boolean result = tradeService.backMoney(refund);
                                 if (result) {
                                     if (orders.getPaytype() == Quantity.STATE_0) {
                                         buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_0);
@@ -3837,7 +5523,6 @@ public class OrdersAction {
                                 } else {
                                     throw new RuntimeException("退款失败");
                                 }
-
                             }
                         }
                         //违约金
@@ -3846,14 +5531,19 @@ public class OrdersAction {
                             seller.setSellerbanlance(seller.getSellerbanlance().add(sellerPenaltyPay));
 
                             //买方扣除违约金
-                            buyerCapital2 = createBuyerPenaltyPay(orders, penaltyPay, tranTime, Quantity.STATE_6, orderPay, Quantity.BUYER_CANCEL_REASON);
+                            if(penaltyPay.compareTo(Quantity.BIG_DECIMAL_0) >0) {
+                                buyerCapital2 = createBuyerPenaltyPay(orders, penaltyPay, tranTime, Quantity.STATE_6, orderPay, Quantity.BUYER_CANCEL_REASON);
+                                buyerCapitals.add(buyerCapital2);
+                            }
+
+
 
                             //卖方增加违约金额 = 违约金额*被违约方获取违约金占比；
                             if (sellerPenaltyPay.compareTo(Quantity.BIG_DECIMAL_0) > 0) {
                                 salerCapital2 = createSalerPenaltyPay(orders, sellerPenaltyPay, tranTime, Quantity.STATE_6, orderPay, Quantity.BUYER_CANCEL_REASON);
                                 salerCapitals.add(salerCapital2);
                             }
-                            buyerCapitals.add(buyerCapital2);
+
                         }
 
                     } else {
@@ -4095,14 +5785,16 @@ public class OrdersAction {
                             seller.setSellerbanlance(seller.getSellerbanlance().add(sellerPenaltyPay));
 
                             //买方扣除违约金
-                            buyerCapital2 = createBuyerPenaltyPay(orders, penaltyPay, tranTime, Quantity.STATE_6, orderPay, Quantity.BUYER_CANCEL_REASON);
-
+                            if(penaltyPay.compareTo(Quantity.BIG_DECIMAL_0) >0) {
+                                buyerCapital2 = createBuyerPenaltyPay(orders, penaltyPay, tranTime, Quantity.STATE_6, orderPay, Quantity.BUYER_CANCEL_REASON);
+                                buyerCapitals.add(buyerCapital2);
+                            }
                             //卖方增加违约金额 = 违约金额*被违约方获取违约金占比；
                             if (sellerPenaltyPay.compareTo(Quantity.BIG_DECIMAL_0) > 0) {
                                 salerCapital2 = createSalerPenaltyPay(orders, sellerPenaltyPay, tranTime, Quantity.STATE_6, orderPay, Quantity.BUYER_CANCEL_REASON);
                                 salerCapitals.add(salerCapital2);
                             }
-                            buyerCapitals.add(buyerCapital2);
+
                         }
                     }
                 }
@@ -4115,8 +5807,14 @@ public class OrdersAction {
                 if (buyerCapitals.size() > 0) {
                     ordersService.insertBuyerCapital(buyerCapitals);
                 }
+                if(salerCapitals.size()>0) {
+                    ordersService.insertSallerCapital(salerCapitals);
+                }
 
-                ordersService.insertSallerCapital(salerCapitals);
+                //短信通知卖家
+                List<Orders> list = new ArrayList<>();
+                list.add(orders);
+                ordersService.smsNotifySellerToCancelOrders(list);
 
             } else {
                 basicRet.setResult(BasicRet.ERR);
@@ -4763,15 +6461,29 @@ public class OrdersAction {
             if (1 == orders.getIsbilling()) {
                 orderCarRet.data.billingRecord = ordersService.getBillingRecordByOrderNo(orders.getOrderno());
             }
-            if (StringUtils.hasText(orders.getLogisticscompany()) && StringUtils.hasText(orders.getCouriernumber())) {
-                List<String> list = commonDataValueService.getcommonDataValue("物流公司");
-                for (String vl : list) {
-                    String[] vlStr = vl.split("-");
-                    if (orders.getLogisticscompany().equals(vlStr[0])) {
-                        //物流查询
-                        String url = ExpressUtils.searchkuaiDiInfo(vlStr[1], orders.getCouriernumber());
-                        orderCarRet.data.setExpressurl(url);
-                        break;
+
+            //兼容微信端 多返回一个logisticsInfos
+            //根据订单号去logisticsinfo表查询物流
+            List<LogisticsInfoDto> logisticsInfoList = logisticsInfoService.selectByOrderNo(orders.getOrderno());
+            String url = "";
+            if(logisticsInfoList!=null && logisticsInfoList.size()>0) {
+                setExpressurl(logisticsInfoList);
+            }
+            orderCarRet.data.logisticsInfos =logisticsInfoList;
+
+            //兼容app接口 一个orderno对应多条物流信息 只取最新创建的一条
+            LogisticsInfo logisticsInfo = logisticsInfoService.selectLogisticsInfoByOrderNoAndTime(orders.getOrderno());
+            if(logisticsInfo!=null) {
+                if (StringUtils.hasText(logisticsInfo.getLogisticscompany()) && StringUtils.hasText(logisticsInfo.getCouriernumber())) {
+                    List<String> list = commonDataValueService.getcommonDataValue("物流公司");
+                    for (String vl : list) {
+                        String[] vlStr = vl.split("-");
+                        if (vlStr[0].equals(logisticsInfo.getLogisticscompany())) {
+                            //物流查询
+                            url = ExpressUtils.searchkuaiDiInfo(vlStr[1], logisticsInfo.getCouriernumber());
+                            orderCarRet.data.setExpressurl(url);
+                            break;
+                        }
                     }
                 }
             }
@@ -4998,21 +6710,25 @@ public class OrdersAction {
         basicExtRet.setResult(BasicRet.SUCCESS);
         Orders orders = ordersService.getOrdersByOrderNo(orderNo);
         Map<String, String> map = new HashMap<>();
-        if (StringUtils.hasText(orders.getLogisticscompany()) && StringUtils.hasText(orders.getCouriernumber())) {
-            map.put("hasLogisticsInfo", "true");//是否有物流
-            List<String> list = commonDataValueService.getcommonDataValue("物流公司");
-            for (String vl : list) {
-                String[] vlStr = vl.split("-");
-                if (orders.getLogisticscompany().equals(vlStr[0])) {
-                    //物流查询
-                    map.put("logisiticsCompany", vlStr[1]);//物流公司名
-                    map.put("logisiticsNum", orders.getCouriernumber());//物流单号
-                    String url = ExpressUtils.searchkuaiDiInfo(vlStr[1], orders.getCouriernumber());
-                    map.put("logisticsInfoUrl", url);//物流url
-                    break;
+        //兼容app接口 一个orderno对应多条物流信息 只取最新创建的一条
+        LogisticsInfo logisticsInfo = logisticsInfoService.selectLogisticsInfoByOrderNoAndTime(orders.getOrderno());
+        if(logisticsInfo!=null) {
+            if (StringUtils.hasText(logisticsInfo.getLogisticscompany()) && StringUtils.hasText(logisticsInfo.getCouriernumber())) {
+                map.put("hasLogisticsInfo", "true");//是否有物流
+                List<String> list = commonDataValueService.getcommonDataValue("物流公司");
+                for (String vl : list) {
+                    String[] vlStr = vl.split("-");
+                    if (logisticsInfo.getLogisticscompany().equals(vlStr[0])) {
+                        //物流查询
+                        map.put("logisiticsCompany", vlStr[1]);//物流公司名
+                        map.put("logisiticsNum", logisticsInfo.getCouriernumber());//物流单号
+                        String url = ExpressUtils.searchkuaiDiInfo(vlStr[1], logisticsInfo.getCouriernumber());
+                        map.put("logisticsInfoUrl", url);//物流url
+                        break;
+                    }
                 }
             }
-        } else {
+        }else {
             map.put("hasLogisticsInfo", "false");
         }
         basicExtRet.setData(map);

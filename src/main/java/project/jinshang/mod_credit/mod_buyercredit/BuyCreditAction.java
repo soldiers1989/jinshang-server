@@ -8,8 +8,16 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import mizuki.project.core.restserver.config.BasicRet;
 import mizuki.project.core.restserver.util.JsonUtil;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +43,8 @@ import project.jinshang.mod_product.service.MemberOperateLogService;
 import project.jinshang.mod_product.service.OrdersService;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 
@@ -67,6 +77,9 @@ public class BuyCreditAction {
 
     @Autowired
     private MemberOperateLogService memberOperateLogService;
+
+    @Autowired
+    private ApplicationContext context;
 
     MemberLogOperator memberLogOperator = new MemberLogOperator();
 
@@ -427,10 +440,24 @@ public class BuyCreditAction {
     @ApiOperation(value = "授信还款")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "id", value = "账单id", required = true, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "type", value = "还款类型 0=全额还款,1=部分还款", required = true, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "money", value = "部分还款金额", required = true, paramType = "query", dataType = "int"),
     })
-    public BasicRet sendRepayMoney(int id, Model model) {
+    public BasicRet sendRepayMoney(int id,@RequestParam(required = true,defaultValue = "0") short type,BigDecimal money, Model model) {
         BasicRet basicRet = new BasicRet();
         Member memberSession = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
+
+        if(type != 0 && type != 1){
+            basicRet.setResult(BasicRet.ERR);
+            basicRet.setMessage("请选择还款类型");
+            return basicRet;
+        }
+
+        if(type == 1 && (money == null || money.compareTo(Quantity.BIG_DECIMAL_0)==-1)){
+            basicRet.setResult(BasicRet.ERR);
+            basicRet.setMessage("还款金额不合法");
+            return basicRet;
+        }
 
         Member member = memberService.getMemberById(memberSession.getId());
         //查询账单信息
@@ -453,7 +480,17 @@ public class BuyCreditAction {
             return basicRet;
         }
 
-        BigDecimal money = billCreate.getMoney().subtract(billCreate.getAmountpaid());
+        if(type == 0) { //全额还款
+            money = billCreate.getMoney().subtract(billCreate.getAmountpaid());
+        }
+
+        BigDecimal debt = billCreate.getMoney().subtract(billCreate.getAmountpaid()); //欠款
+
+        if(debt.compareTo(money) == -1){
+            basicRet.setResult(BasicRet.ERR);
+            basicRet.setMessage("该账单最多再还"+debt+"元就可以了");
+            return basicRet;
+        }
 
         if (member.getBalance().compareTo(money) == -1) {
             basicRet.setResult(BasicRet.ERR);
@@ -486,7 +523,11 @@ public class BuyCreditAction {
         //修改账单为已缴清状态
         BillCreate updateBillCreate = new BillCreate();
         updateBillCreate.setId(id);
-        updateBillCreate.setState(Quantity.STATE_1);
+
+        if(debt.compareTo(money) == 0) {
+            updateBillCreate.setState(Quantity.STATE_1);  //欠款与还款金额一致，设置为已缴清状态
+        }
+
         updateBillCreate.setAmountpaid(billCreate.getAmountpaid().add(money));
 
         //如果账单为逾期未缴状态，设置逾期未缴纳天数
@@ -655,4 +696,32 @@ public class BuyCreditAction {
         basicExtRet.setData(map);
         return basicExtRet;
     }
+
+
+        /**
+         * 合同下载
+         */
+        @RequestMapping(value = "/downloadModelContract", method = RequestMethod.GET)
+        @ApiOperation(value = "合同下载")
+        public ResponseEntity<InputStreamResource> downloadModelContract(
+                @RequestParam("fileName") String fileName
+        ) throws IOException {
+            try {
+                Resource resource = context.getResource("classpath:download/" + fileName);
+                HttpHeaders headers = new HttpHeaders();
+                headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+                fileName = new String(fileName.getBytes("utf-8"), "iso-8859-1"); //解决中文乱码问题
+                headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", fileName));
+                headers.add("Pragma", "no-cache");
+                headers.add("Expires", "0");
+                return ResponseEntity
+                        .ok()
+                        .headers(headers)
+                        .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                        .body(new InputStreamResource(resource.getInputStream()));
+            } catch (Exception e) {
+                return null;
+            }
+        }
+
 }

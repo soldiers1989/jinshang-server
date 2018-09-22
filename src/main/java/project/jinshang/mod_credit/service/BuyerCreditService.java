@@ -98,14 +98,19 @@ public class BuyerCreditService {
 //
 //       return sumout.subtract(sumin);
 
-
-
-        //正式环境
         Calendar calendar = Calendar.getInstance();
         calendar.set(Calendar.DAY_OF_MONTH,27);
         Date buyerinspectiontimeEndDate = calendar.getTime();
         calendar.add(Calendar.MONTH,-1);
+        calendar.add(Calendar.DATE,1);
         Date buyerinspectiontimeStartDate =  calendar.getTime();
+
+//        //正式环境
+//        Calendar calendar = Calendar.getInstance();
+//        calendar.set(Calendar.DAY_OF_MONTH,27);
+//        Date buyerinspectiontimeEndDate = calendar.getTime();
+//        calendar.add(Calendar.MONTH,-1);
+//        Date buyerinspectiontimeStartDate =  calendar.getTime();
 
 
         /*
@@ -117,7 +122,7 @@ public class BuyerCreditService {
         */
 
         String buyerinspectiontimeStart = DateUtils.format(buyerinspectiontimeStartDate,"yyyy-MM-dd")+" 00:00:00";
-        String buyerinspectiontimeEnd =  DateUtils.format(buyerinspectiontimeEndDate,"yyyy-MM-dd")+" 23:59:59";
+        String buyerinspectiontimeEnd =  DateUtils.format(buyerinspectiontimeEndDate,"yyyy-MM-dd")+" 23:59:59.999";
 
         Date start = DateUtils.StrToDate(buyerinspectiontimeStart);
         Date end = DateUtils.StrToDate(buyerinspectiontimeEnd);

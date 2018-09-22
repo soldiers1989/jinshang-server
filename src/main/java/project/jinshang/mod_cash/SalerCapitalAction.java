@@ -58,6 +58,7 @@ public class SalerCapitalAction {
             @ApiImplicitParam(name = "rechargeperform",value = "平台0=微信1=支付宝2=线下平台3=授信4=银行卡",defaultValue = "-1",required = false,paramType = "query",dataType = "int"),
             @ApiImplicitParam(name = "withdrawtype", value = "提现方式{1=微信2=支付宝3=银行卡}", defaultValue = "-1", required = false, paramType = "query", dataType = "int"),
             @ApiImplicitParam(name = "rechargestate", value = "状态{0=待处理1=成功2=失败3=待审核4=审核通过5=审核不通过}", defaultValue = "-1", required = false, paramType = "query", dataType = "int"),
+            @ApiImplicitParam(name = "billtoserver", value = "卖家是否已向平台开票开违约金发票 0-未开，1-已开，-1= 老数据", defaultValue = "-1", required = false, paramType = "query", dataType = "int"),
     })
     @PreAuthorize("hasAuthority('"+ SellerAuthorityConst.MYACCOUNT+"') || hasAuthority('"+ SellerAuthorityConst.ALL+"')")
     public PageRet list(SalerCapitalQueryDto  dto,
@@ -104,7 +105,12 @@ public class SalerCapitalAction {
         XSSFWorkbook workbook = null;
         String name = "卖家导出资金明细";
 
-        String[] rowTitles =  new String[]{"时间","类型","订单号","订单金额","保证金","违约金","退款","状态"};
+        String[] rowTitles = new String[]{};
+        if(dto.getCapitaltype()!=null && dto.getCapitaltype()==0) {
+            rowTitles =  new String[]{"时间","类型","订单号","交易号","订单金额","保证金","违约金","状态"};
+        }else {
+            rowTitles = new String[]{"时间", "类型", "订单号", "交易号", "订单金额", "保证金", "违约金", "退款", "状态"};
+        }
 
         try {
             workbook = ExcelGen.common(name,rowTitles,resList,null);

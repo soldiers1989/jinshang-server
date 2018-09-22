@@ -56,6 +56,16 @@ public interface BillingRecordMapper {
     @Update("update billingrecord set billcash=billcash + #{billcash} where memberid=#{memberid} and orderno=#{orderid}")
     int  updateAdminDecOrderProductnum(@Param("orderid") String orderid,@Param("memberid") Long memberid,@Param("billcash") BigDecimal billcash);
 
+    /**
+     * 根据订单id 和用户id 修改开票金额
+     * @param orderid
+     * @param memberid
+     * @param billcash
+     * @return
+     */
+    @Update("update billingrecord set billcash=#{billcash} where memberid=#{memberid} and orderno=#{orderid}")
+    int  updateBillcashByMemberAndOrderid(@Param("orderid") String orderid,@Param("memberid") Long memberid,@Param("billcash") BigDecimal billcash);
+
 
     @Select("select * from billingrecord WHERE (orderno=#{orderno} or orderno like '${orderno},%' or " +
             " orderno like '%,${orderno}' or orderno like ',%${orderno}%,') order by id desc limit 1")

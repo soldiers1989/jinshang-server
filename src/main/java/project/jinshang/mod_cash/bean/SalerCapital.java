@@ -103,6 +103,9 @@ public class SalerCapital {
     @ApiModelProperty(notes = "第三方支付交易号")
     private  String transactionid;
 
+    @ApiModelProperty(notes = "卖家是否已向平台开票开违约金发票 0-未开，1-已开，-1= 老数据")
+    private Short billtoserver;
+
 
 
     //********************EXTEND****************************************************//
@@ -435,5 +438,13 @@ public class SalerCapital {
 
     public void setTransactionid(String transactionid) {
         this.transactionid = transactionid;
+    }
+
+    public Short getBilltoserver() {
+        return billtoserver;
+    }
+
+    public void setBilltoserver(Short billtoserver) {
+        this.billtoserver = billtoserver;
     }
 }

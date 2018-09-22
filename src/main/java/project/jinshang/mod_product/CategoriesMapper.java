@@ -1,10 +1,12 @@
 package project.jinshang.mod_product;
 
+import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.UpdateProvider;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -78,4 +80,35 @@ public interface CategoriesMapper {
             "select DISTINCT cte.id,cte.*,f.ratio ,f.cid  ,f.id from cte  left join fx_categories f on cte.id = f.cid")
     List<Map<String,Object>> findCategories();
 
+    @CacheEvict(value = "CategoriesCache",allEntries=true)
+    @UpdateProvider(type=CategoriesMapper.CategoriesProvider.class,method = "updateAll")
+    void updateAll(List<Categories> list);
+
+
+    public class CategoriesProvider {
+        public String updateAll(Map map){
+            List<Categories> list = (List<Categories>) map.get("list");
+            StringBuilder sb = new StringBuilder();
+            sb.append("update categories set sort=tmp.info from (values ");
+            MessageFormat mf = new MessageFormat("(#'{'list[{0}].id},#'{'list[{0}].sort})");
+            for (int i = 0; i < list.size(); i++) {
+//                sb.append(mf.format(new Object[]{i}));
+//                if (i < list.size() - 1) {
+//                    sb.append(",");
+//                }
+                sb.append("("+list.get(i).getId()+","+list.get(i).getSort()+")");
+                if (i < list.size() - 1) {
+                    sb.append(",");
+                }
+            }
+            sb.append(" )as tmp (id,info) where categories.id=tmp.id");
+
+            System.out.println(sb.toString());
+            return sb.toString();
+        }
+    }
+
+    @Cacheable(value = "CategoriesCache",key = "'CategoriesMapper.getSort:' + #p0")
+    @Select("select coalesce(sort, 0) from categories where id=#{param1}")
+    Integer getSort(Long id);
 }

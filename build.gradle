@@ -75,9 +75,13 @@ dependencies {
     // https://mvnrepository.com/artifact/com.alibaba/druid
     compile group: 'com.alibaba', name: 'druid', version: '1.1.9'
 
-    compile('org.springframework.cloud:spring-cloud-starter-eureka')
+//    compile('org.springframework.cloud:spring-cloud-starter-eureka')
 
     compile group: 'org.elasticsearch.client', name: 'elasticsearch-rest-high-level-client', version: '6.2.4'
     compile group: 'org.elasticsearch', name: 'elasticsearch', version: '6.2.4'
+
+    // https://mvnrepository.com/artifact/javax.xml.bind/jaxb-api
+    compile group: 'javax.xml.bind', name: 'jaxb-api', version: '2.3.0'
+
 
 }

@@ -13,6 +13,17 @@ public class  ProductAttr {
 
     private String pdno;
 
+    private int sort;
+
+    public int getSort() {
+        return sort;
+    }
+
+    public ProductAttr setSort(int sort) {
+        this.sort = sort;
+        return this;
+    }
+
     public Long getId() {
         return id;
     }

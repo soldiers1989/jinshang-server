@@ -934,6 +934,186 @@ public class ShippingTemplatesExample {
             addCriterion("memberid not between", value1, value2, "memberid");
             return (Criteria) this;
         }
+
+        public Criteria andTemtypeIsNull() {
+            addCriterion("temtype is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTemtypeIsNotNull() {
+            addCriterion("temtype is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTemtypeEqualTo(Short value) {
+            addCriterion("temtype =", value, "temtype");
+            return (Criteria) this;
+        }
+
+        public Criteria andTemtypeNotEqualTo(Short value) {
+            addCriterion("temtype <>", value, "temtype");
+            return (Criteria) this;
+        }
+
+        public Criteria andTemtypeGreaterThan(Short value) {
+            addCriterion("temtype >", value, "temtype");
+            return (Criteria) this;
+        }
+
+        public Criteria andTemtypeGreaterThanOrEqualTo(Short value) {
+            addCriterion("temtype >=", value, "temtype");
+            return (Criteria) this;
+        }
+
+        public Criteria andTemtypeLessThan(Short value) {
+            addCriterion("temtype <", value, "temtype");
+            return (Criteria) this;
+        }
+
+        public Criteria andTemtypeLessThanOrEqualTo(Short value) {
+            addCriterion("temtype <=", value, "temtype");
+            return (Criteria) this;
+        }
+
+        public Criteria andTemtypeIn(List<Short> values) {
+            addCriterion("temtype in", values, "temtype");
+            return (Criteria) this;
+        }
+
+        public Criteria andTemtypeNotIn(List<Short> values) {
+            addCriterion("temtype not in", values, "temtype");
+            return (Criteria) this;
+        }
+
+        public Criteria andTemtypeBetween(Short value1, Short value2) {
+            addCriterion("temtype between", value1, value2, "temtype");
+            return (Criteria) this;
+        }
+
+        public Criteria andTemtypeNotBetween(Short value1, Short value2) {
+            addCriterion("temtype not between", value1, value2, "temtype");
+            return (Criteria) this;
+        }
+
+        public Criteria andDefaultfreepriceIsNull() {
+            addCriterion("defaultfreeprice is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDefaultfreepriceIsNotNull() {
+            addCriterion("defaultfreeprice is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDefaultfreepriceEqualTo(BigDecimal value) {
+            addCriterion("defaultfreeprice =", value, "defaultfreeprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDefaultfreepriceNotEqualTo(BigDecimal value) {
+            addCriterion("defaultfreeprice <>", value, "defaultfreeprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDefaultfreepriceGreaterThan(BigDecimal value) {
+            addCriterion("defaultfreeprice >", value, "defaultfreeprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDefaultfreepriceGreaterThanOrEqualTo(BigDecimal value) {
+            addCriterion("defaultfreeprice >=", value, "defaultfreeprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDefaultfreepriceLessThan(BigDecimal value) {
+            addCriterion("defaultfreeprice <", value, "defaultfreeprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDefaultfreepriceLessThanOrEqualTo(BigDecimal value) {
+            addCriterion("defaultfreeprice <=", value, "defaultfreeprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDefaultfreepriceIn(List<BigDecimal> values) {
+            addCriterion("defaultfreeprice in", values, "defaultfreeprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDefaultfreepriceNotIn(List<BigDecimal> values) {
+            addCriterion("defaultfreeprice not in", values, "defaultfreeprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDefaultfreepriceBetween(BigDecimal value1, BigDecimal value2) {
+            addCriterion("defaultfreeprice between", value1, value2, "defaultfreeprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDefaultfreepriceNotBetween(BigDecimal value1, BigDecimal value2) {
+            addCriterion("defaultfreeprice not between", value1, value2, "defaultfreeprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andShopgroupidIsNull() {
+            addCriterion("shopgroupid is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andShopgroupidIsNotNull() {
+            addCriterion("shopgroupid is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andShopgroupidEqualTo(Long value) {
+            addCriterion("shopgroupid =", value, "shopgroupid");
+            return (Criteria) this;
+        }
+
+        public Criteria andShopgroupidNotEqualTo(Long value) {
+            addCriterion("shopgroupid <>", value, "shopgroupid");
+            return (Criteria) this;
+        }
+
+        public Criteria andShopgroupidGreaterThan(Long value) {
+            addCriterion("shopgroupid >", value, "shopgroupid");
+            return (Criteria) this;
+        }
+
+        public Criteria andShopgroupidGreaterThanOrEqualTo(Long value) {
+            addCriterion("shopgroupid >=", value, "shopgroupid");
+            return (Criteria) this;
+        }
+
+        public Criteria andShopgroupidLessThan(Long value) {
+            addCriterion("shopgroupid <", value, "shopgroupid");
+            return (Criteria) this;
+        }
+
+        public Criteria andShopgroupidLessThanOrEqualTo(Long value) {
+            addCriterion("shopgroupid <=", value, "shopgroupid");
+            return (Criteria) this;
+        }
+
+        public Criteria andShopgroupidIn(List<Long> values) {
+            addCriterion("shopgroupid in", values, "shopgroupid");
+            return (Criteria) this;
+        }
+
+        public Criteria andShopgroupidNotIn(List<Long> values) {
+            addCriterion("shopgroupid not in", values, "shopgroupid");
+            return (Criteria) this;
+        }
+
+        public Criteria andShopgroupidBetween(Long value1, Long value2) {
+            addCriterion("shopgroupid between", value1, value2, "shopgroupid");
+            return (Criteria) this;
+        }
+
+        public Criteria andShopgroupidNotBetween(Long value1, Long value2) {
+            addCriterion("shopgroupid not between", value1, value2, "shopgroupid");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

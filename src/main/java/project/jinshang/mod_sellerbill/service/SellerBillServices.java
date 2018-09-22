@@ -10,6 +10,8 @@ import project.jinshang.mod_sellerbill.bean.SellerBill;
 import project.jinshang.mod_sellerbill.bean.SellerBillQuery;
 import project.jinshang.mod_sellerbill.mapper.SellerBillMapper;
 
+import java.util.List;
+
 @Service
 public class SellerBillServices {
 
@@ -53,5 +55,27 @@ public class SellerBillServices {
         return  new PageInfo(sellerBillMapper.getSellerBill(query));
     }
 
+    public PageInfo getSellerBillByPage1(SellerBillQuery query,int pageNo,int pageSize){
+        PageHelper.startPage(pageNo,pageSize);
 
+        if(StringUtils.hasText(query.getSellercompanyname())){
+            query.setSellercompanyname("%"+query.getSellercompanyname()+"%");
+        }
+
+        if(StringUtils.hasText(query.getOrderno())){
+            query.setOrderno("%"+query.getOrderno()+"%");
+        }
+
+        return  new PageInfo(sellerBillMapper.getSellerBill1(query));
+    }
+
+
+    /**
+     * 为了前端能解析加入另外个list
+     * @param id
+     * @return
+     */
+    public List<SellerBill> getSellerBillById(long id) {
+        return sellerBillMapper.getSellerBillById(id);
+    }
 }

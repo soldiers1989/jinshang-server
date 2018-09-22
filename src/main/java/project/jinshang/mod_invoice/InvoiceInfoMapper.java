@@ -43,6 +43,18 @@ public interface InvoiceInfoMapper {
     List<InvoiceInfo> invoiceInfoListByMemberId(@Param(value = "memberid") Long memberId);
 
     /**
+     * 获取某个用户的所有发票信息-买家中心用-带发票抬头查询
+     *
+     * @param memberId
+     * @param invoiceheadup
+     * @return
+     */
+    @Select("<script> select i.*,m.company from invoiceinfo i left join member m on i.memberid=m.id where i.memberid = #{memberid,jdbcType=BIGINT} " +
+            "<if test=\"invoiceheadup != null and invoiceheadup !=''\"> and i.invoiceheadup like '%${invoiceheadup}%' </if> order by i.id asc </script>")
+    List<InvoiceInfo> invoiceInfoListByMemberIdAndInv(@Param(value = "memberid") Long memberId,@Param("invoiceheadup") String invoiceheadup);
+
+
+     /**
      * 获取某个用户的所有发票信息-订单信息用
      *
      * @param memberId
@@ -65,5 +77,9 @@ public interface InvoiceInfoMapper {
 
     @Update("update invoiceinfo set defaultbill=0 where memberid = #{memberid,jdbcType=BIGINT} ")
     int updateInvoiceInfoByMemberid(@Param(value = "memberid") Long memberId);
+
+    @Select("select * from invoiceinfo where invoiceheadup = #{invoiceheadup} or texno = #{texno} limit 1")
+    InvoiceInfo selectInvoiceInfo(@Param("invoiceheadup") String invoiceheadup,@Param("texno") String texno);
+
 
 }

@@ -85,6 +85,7 @@ public class ExcelGen {
         sheet.addMergedRegion(new CellRangeAddress(0, 0, 0, rowTitles.length-1));
 
         row = sheet.createRow(1);
+        CellStyle styleTitle = workbook.createCellStyle();
         for(int i=0;i<rowTitles.length;i++){
             cell = row.createCell(i);
             cell.setCellStyle(styleCommon);
@@ -92,13 +93,14 @@ public class ExcelGen {
             // title的cell style
             cell = sheet.getRow(0).getCell(i);
             if(cell==null) cell = sheet.getRow(0).createCell(i);
-            CellStyle styleTitle = workbook.createCellStyle();
+            //CellStyle styleTitle = workbook.createCellStyle();
             setCommonCellStyle(styleTitle);
             styleTitle.setAlignment(HorizontalAlignment.CENTER);
             cell.setCellStyle(styleTitle);
         }
         // 数据行
         int r=2;
+        CellStyle dateStyle =null;
         for(Map<String,Object> map:data){
             row = sheet.createRow(r);
             for(int i=0;i<rowTitles.length;i++){
@@ -108,25 +110,25 @@ public class ExcelGen {
                 if(e!=null) {
                     if (e instanceof Date) {
                         cell.setCellValue((Date) e);
-                        CellStyle dateStyle = workbook.createCellStyle();
+                        dateStyle = workbook.createCellStyle();
                         setCommonCellStyle(dateStyle);
                         dateStyle.setDataFormat(workbook.createDataFormat().getFormat("yyyy/mm/dd"));
                         cell.setCellStyle(dateStyle);
                     } else if (e instanceof Double) {
                         cell.setCellValue((Double) e);
-                        CellStyle dateStyle = workbook.createCellStyle();
+                        dateStyle = workbook.createCellStyle();
                         setCommonCellStyle(dateStyle);
-                        dateStyle.setDataFormat(workbook.createDataFormat().getFormat("0.00"));
+                        dateStyle.setDataFormat(workbook.createDataFormat().getFormat("0.000"));
                         cell.setCellStyle(dateStyle);
                     } else if (e instanceof String) {
                         cell.setCellValue((String) e);
                     } else if (e instanceof Integer) {
                         cell.setCellValue((Integer) e);
                     }else if(e instanceof BigDecimal){
-                        cell.setCellValue(((BigDecimal) e).setScale(2, RoundingMode.HALF_UP).doubleValue());
-                        CellStyle dateStyle = workbook.createCellStyle();
+                        cell.setCellValue(((BigDecimal) e).setScale(3, RoundingMode.HALF_UP).doubleValue());
+                        dateStyle = workbook.createCellStyle();
                         setCommonCellStyle(dateStyle);
-                        dateStyle.setDataFormat(workbook.createDataFormat().getFormat("0.00"));
+                        dateStyle.setDataFormat(workbook.createDataFormat().getFormat("0.000"));
                         cell.setCellStyle(dateStyle);
                     }else if(e instanceof  Long){
                         cell.setCellValue((Long)e);

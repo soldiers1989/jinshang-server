@@ -24,6 +24,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.exception.CashException;
+import project.jinshang.common.exception.MyException;
 import project.jinshang.common.utils.GenerateNo;
 import project.jinshang.common.utils.GsonUtils;
 import project.jinshang.mod_pay.bean.PayLogs;
@@ -199,44 +200,53 @@ public class WxPayAction {
 
 
     @RequestMapping(value="/notify",method= {RequestMethod.POST, RequestMethod.GET})
-    public String notify2(@RequestBody String xmlData) throws CashException {
-        try {
-            //logger.error("微信回调："+xmlData);
+    public String notify2(@RequestBody String xmlData) throws CashException, MyException, WxPayException {
+        boolean b = false;
+        WxPayOrderNotifyResult result = wxService.parseOrderNotifyResult(xmlData);
+        if("SUCCESS".equals(result.getReturnCode()) && "SUCCESS".equals(result.getResultCode())) {
+            String orderNo = result.getOutTradeNo();
+            String[] orderNo_array = orderNo.split("-");
 
-            WxPayOrderNotifyResult result = wxService.parseOrderNotifyResult(xmlData);
-            if("SUCCESS".equals(result.getReturnCode()) && "SUCCESS".equals(result.getResultCode())) {
-                String orderNo = result.getOutTradeNo();
-                String[] orderNo_array = orderNo.split("-");
+            //支付金额
+            Integer total_amount = result.getTotalFee();
 
-                //支付金额
-                Integer total_amount = result.getTotalFee();
-                PayLogs payLogs = new PayLogs();
-                payLogs.setTransactionid(result.getTransactionId());
-                payLogs.setOuttradeno(orderNo);
-                payLogs.setMoney(new BigDecimal(total_amount).divide(new BigDecimal(100)).setScale(2,BigDecimal.ROUND_HALF_UP));
-                payLogs.setCreatetime(new Date());
-                payLogs.setChannel("wxpay");
-                payLogsService.insertSelective(payLogs);
-
-                boolean res = false;
-                if(orderNo_array.length==2){
-                    if(orderNo_array[0].equals("order")){
-                        res = tradeService.notify(orderNo, "wxpay",result.getTransactionId());
-                    }else if(orderNo_array[0].equals("buy")) {
-                        res = tradeService.notifyBuyerRecharge(orderNo_array[1],result.getTransactionId());
-                    }else if(orderNo_array[0].equals("sell")){
-                        res = tradeService.notifySellerRecharge(orderNo_array[1],result.getTransactionId());
-                    }
-                }
-
-                if(res) logger.info("trade success :"+orderNo);
-                // todo
-                else return returnXml(false);
+            PayLogs payLogs =  payLogsService.getByOuttradeno(orderNo);
+            if(payLogs != null){
+                logger.error("微信重复推送支付成功数据 out_trade_no："+orderNo);
+                return returnXml(true);
             }
-            return returnXml(true);
-        } catch (WxPayException e) {
-            e.printStackTrace();
-            return returnXml(false);
+
+            payLogs = new PayLogs();
+            payLogs.setTransactionid(result.getTransactionId());
+            payLogs.setOuttradeno(orderNo);
+            payLogs.setMoney(new BigDecimal(total_amount).divide(new BigDecimal(100)).setScale(2,BigDecimal.ROUND_HALF_UP));
+            payLogs.setCreatetime(new Date());
+            payLogs.setChannel("wxpay");
+            payLogsService.insertSelective(payLogs);
+
+            boolean res = false;
+            if(orderNo_array.length==2){
+                if(orderNo_array[0].equals("order")){
+                    res = tradeService.notify(orderNo, "wxpay",result.getTransactionId());
+                }else if(orderNo_array[0].equals("buy")) {
+                    res = tradeService.notifyBuyerRecharge(orderNo_array[1],result.getTransactionId());
+                }else if(orderNo_array[0].equals("sell")){
+                    res = tradeService.notifySellerRecharge(orderNo_array[1],result.getTransactionId());
+                }
+            }
+
+            if(res) {
+                b = true;
+                logger.info("trade success :" + orderNo);
+            }else{
+              b = false;
+            }
+        }
+
+        if(b){
+           return returnXml(b);
+        }else{
+            throw new MyException("trade err:");
         }
     }
 

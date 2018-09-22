@@ -21,7 +21,6 @@ public class MemberLogOperator {
      * @param request
      */
     public void saveMemberLog(Member member, Admin admin, String content, HttpServletRequest request, MemberOperateLogService memberOperateLogService){
-
         MemberOperateLog memberOperateLog = new MemberOperateLog();
         memberOperateLog.setContent(content);
         String ip = RequestIpGet.getIpAddr(request);

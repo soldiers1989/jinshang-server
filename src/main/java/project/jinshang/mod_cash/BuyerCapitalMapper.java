@@ -87,7 +87,7 @@ public interface BuyerCapitalMapper {
     @Select("<script>SELECT C.*,M.username,M.realname,B.companyname FROM buyercapital C left join member M on C.memberid=M.id left join buyercompanyinfo B on C.memberid=B.memberid " +
             "<where> 1=1" +
             "<if test=\"memberid != null and memberid !=0 \"> and C.memberid=#{memberid} </if>" +
-            "<if test=\"username != null and username !='' \"> and M.username like '%${username}%' </if>"+
+            "<if test=\"username != null and username !='' \"> and (M.username like '%${username}%' or M.realname like '%${username}%' or B.companyname like '%${username}%') </if>"+
             "<if test=\"realname != null and realname !='' \"> and M.realname =#{realname} </if>"+
             "<if test=\"companyname != null and companyname !='' \"> and B.companyname = #{companyname} </if>"+
             "<if test=\"tradetimeStart != null \"> and tradetime>= #{tradetimeStart} </if>"+
@@ -156,7 +156,8 @@ public interface BuyerCapitalMapper {
             "    from member M left JOIN buyercompanyinfo C ON M.id=C.memberid left join membergrade G on M.gradleid=G.id where M.parentid=0 " +
             "<if test=\"dto.memberid != null and dto.memberid != 0\"> and M.id=${dto.memberid} </if>" +
             "<if test=\"dto.username != null and dto.username !=''\"> and (M.username like '%${dto.username}%' or M.realname like '%${dto.username}%' or C.companyname like '%${dto.username}%')</if>" +
-            //"<if test=\"dto.companyname != null and dto.companyname !=''\"> and C.companyname like '%${dto.companyname}%' </if>" +
+            "<if test=\"dto.realname != null and dto.realname !=''\"> and M.realname like '%${dto.realname}%' </if>" +
+            "<if test=\"dto.companyname != null and dto.companyname !=''\"> and C.companyname like '%${dto.companyname}%' </if>" +
             "</script>")
     List<Map<String,Object>> advanceCapitalList(@Param("dto") AdvanceCapitalQueryDto dto);
 
@@ -176,6 +177,17 @@ public interface BuyerCapitalMapper {
      */
     @SelectProvider(type= BuyerCapitalProvider.class,method = "listForAccount")
     List<BuyerCapitalViewDto> listForAccount(@Param("dto")BuyerCapitalAccountQueryDto dto);
+
+
+    /**
+     *搜索开票抬头为给定公司名称单发票对应的订单为非该公司账号的订单
+     * @author xiazy
+     * @date  2018/6/21 10:50
+     * @param dto
+     * @return java.util.List<project.jinshang.mod_cash.bean.dto.BuyerCapitalViewDto>
+     */
+    @SelectProvider(type= BuyerCapitalProvider.class,method = "listForInvoiceAccount")
+    List<BuyerCapitalViewDto> listForInvoiceAccount(@Param("dto")BuyerCapitalAccountQueryDto dto);
 
     /**
      * 资金明细查询导出
@@ -218,7 +230,7 @@ public interface BuyerCapitalMapper {
     @Select("select sum(capital) from buyercapital where memberid=#{memberid} and capitaltype in (0,6,7,8,9) and paytype=4 " +
             " and tradetime>=#{starttime} and tradetime<=#{endtime}  ")
     BigDecimal getTotalByCredit(@Param("memberid") long memberid,
-                         @Param("starttime")Date starttime,@Param("endtime") Date endtime);
+                                @Param("starttime")Date starttime,@Param("endtime") Date endtime);
 
 
     @SelectProvider(type = BuyerCapitalProvider.class,method = "breakContractListLogs")

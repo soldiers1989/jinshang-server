@@ -2175,6 +2175,66 @@ public class SalerCapitalExample {
             addCriterion("transactionid not between", value1, value2, "transactionid");
             return (Criteria) this;
         }
+
+        public Criteria andBilltoserverIsNull() {
+            addCriterion("billtoserver is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andBilltoserverIsNotNull() {
+            addCriterion("billtoserver is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andBilltoserverEqualTo(Short value) {
+            addCriterion("billtoserver =", value, "billtoserver");
+            return (Criteria) this;
+        }
+
+        public Criteria andBilltoserverNotEqualTo(Short value) {
+            addCriterion("billtoserver <>", value, "billtoserver");
+            return (Criteria) this;
+        }
+
+        public Criteria andBilltoserverGreaterThan(Short value) {
+            addCriterion("billtoserver >", value, "billtoserver");
+            return (Criteria) this;
+        }
+
+        public Criteria andBilltoserverGreaterThanOrEqualTo(Short value) {
+            addCriterion("billtoserver >=", value, "billtoserver");
+            return (Criteria) this;
+        }
+
+        public Criteria andBilltoserverLessThan(Short value) {
+            addCriterion("billtoserver <", value, "billtoserver");
+            return (Criteria) this;
+        }
+
+        public Criteria andBilltoserverLessThanOrEqualTo(Short value) {
+            addCriterion("billtoserver <=", value, "billtoserver");
+            return (Criteria) this;
+        }
+
+        public Criteria andBilltoserverIn(List<Short> values) {
+            addCriterion("billtoserver in", values, "billtoserver");
+            return (Criteria) this;
+        }
+
+        public Criteria andBilltoserverNotIn(List<Short> values) {
+            addCriterion("billtoserver not in", values, "billtoserver");
+            return (Criteria) this;
+        }
+
+        public Criteria andBilltoserverBetween(Short value1, Short value2) {
+            addCriterion("billtoserver between", value1, value2, "billtoserver");
+            return (Criteria) this;
+        }
+
+        public Criteria andBilltoserverNotBetween(Short value1, Short value2) {
+            addCriterion("billtoserver not between", value1, value2, "billtoserver");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {
@@ -2184,6 +2244,13 @@ public class SalerCapitalExample {
         }
     }
 
+    /**
+     * null
+     * 
+     * @author wcyong
+     * 
+     * @date 2018-08-29
+     */
     public static class Criterion {
         private String condition;
 

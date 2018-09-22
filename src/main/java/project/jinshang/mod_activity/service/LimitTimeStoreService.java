@@ -67,4 +67,16 @@ public class LimitTimeStoreService {
         return  limitTimeStoreMapper.selectByPrimaryKey(id);
     }
 
+
+    public LimitTimeStore getLimitTimeStore(Long limitId,Long pdid,String pdno){
+        LimitTimeStoreExample limitTimeStoreExample = new LimitTimeStoreExample();
+        limitTimeStoreExample.createCriteria().andLimittimeidEqualTo(limitId).andPdidEqualTo(pdid).andPdnoEqualTo(pdno);
+        List<LimitTimeStore> list = limitTimeStoreMapper.selectByExample(limitTimeStoreExample);
+        if(list.size()>0){
+            return list.get(0);
+        }else {
+            return null;
+        }
+    }
+
 }

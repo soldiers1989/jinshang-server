@@ -1,9 +1,11 @@
 package project.jinshang.mod_admin.mod_cash;
 
 import com.github.pagehelper.PageInfo;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import mizuki.project.core.restserver.config.BasicRet;
-import org.apache.ibatis.annotations.Case;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -17,21 +19,20 @@ import org.springframework.web.bind.annotation.*;
 import project.jinshang.common.bean.PageRet;
 import project.jinshang.common.constant.AdminAuthorityConst;
 import project.jinshang.common.constant.AppConstant;
-import project.jinshang.common.constant.BuyerCapitalConst;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.utils.*;
 import project.jinshang.mod_admin.mod_cash.dto.AdvanceCapitalQueryDto;
 import project.jinshang.mod_admin.mod_cash.dto.AdvanceCapitalSellerQueryDto;
-import project.jinshang.mod_cash.BuyerCapitalAction;
 import project.jinshang.mod_cash.bean.BuyerCapital;
 import project.jinshang.mod_cash.bean.SalerCapital;
-import project.jinshang.mod_cash.bean.dto.*;
+import project.jinshang.mod_cash.bean.dto.BuyerCapitalAccountDto;
+import project.jinshang.mod_cash.bean.dto.BuyerCapitalAccountQueryDto;
+import project.jinshang.mod_cash.bean.dto.BuyerCapitalQueryDto;
+import project.jinshang.mod_cash.bean.dto.SalerCapitalQueryDto;
 import project.jinshang.mod_cash.service.BuyerCapitalService;
 import project.jinshang.mod_cash.service.SalerCapitalService;
 import project.jinshang.mod_member.bean.Admin;
 import project.jinshang.mod_member.bean.Member;
-import project.jinshang.mod_member.bean.MemberExample;
-import project.jinshang.mod_member.bean.dto.MemberAdminViewDto;
 import project.jinshang.mod_member.service.MemberService;
 
 import java.io.ByteArrayInputStream;
@@ -295,7 +296,7 @@ public class CashManageAction {
             @ApiImplicitParam(value = "订单号",name = "orderno",required = false,paramType = "query",dataType = "string",defaultValue = ""),
             @ApiImplicitParam(value = "卖家提现方式 0=全部 1=余额提现，2=货款提现",name = "withdrawtype",required = false,paramType = "query",dataType = "string",defaultValue = ""),
     })
-    @PreAuthorize("hasAuthority('" + AdminAuthorityConst.FINANCIALDETAILS + "')")
+    @PreAuthorize("hasAuthority('" + AdminAuthorityConst.FINANCIALDETAILS + "') || hasAuthority('" + AdminAuthorityConst.ADVANCEPAYMENTMANAGEMENT + "')")
     public  CashRet userCapitalListLogs(@RequestParam(required =  true,defaultValue = "1") short searchType,
                                         @RequestParam(required =  true,defaultValue = "1") int pageNo,
                                         @RequestParam(required =  true,defaultValue = "10") int pageSize,
@@ -489,11 +490,11 @@ public class CashManageAction {
     @ApiOperation("资金管理-买家-买家明细-列表")
     @ApiImplicitParams({
             @ApiImplicitParam(value = "用户id",name = "memberid",required = false,paramType = "query",dataType = "int"),
-           // @ApiImplicitParam(value = "会员名称",name = "realname",required = false,paramType = "query",dataType = "string"),
+           @ApiImplicitParam(value = "会员名称",name = "realname",required = false,paramType = "query",dataType = "string"),
             @ApiImplicitParam(value = "会员用户名",name = "username",required = false,paramType = "query",dataType = "string"),
-            //@ApiImpli cfcitParam(value = "公司名称",name = "companyname",required = false,paramType = "query",dataType = "string"),
+            @ApiImplicitParam(value = "公司名称",name = "companyname",required = false,paramType = "query",dataType = "string"),
     })
-    @PreAuthorize("hasAuthority('" + AdminAuthorityConst.FINANCIALDETAILS + "')")
+    @PreAuthorize("hasAuthority('" + AdminAuthorityConst.FINANCIALDETAILS + "') || hasAuthority('" + AdminAuthorityConst.ADVANCEPAYMENTMANAGEMENT + "')")
     public  CashRet BuyerUserCapitalList(
             @RequestParam(required =  true,defaultValue = "1") int pageNo,
             @RequestParam(required =  true,defaultValue = "10") int pageSize,
@@ -519,7 +520,7 @@ public class CashManageAction {
             @ApiImplicitParam(value = "商家公司名称",name = "companyname",required = false,paramType = "query",dataType = "string"),
             @ApiImplicitParam(value = "店铺名称",name = "shopname",required = false,paramType = "query",dataType = "string"),
     })
-    @PreAuthorize("hasAuthority('" + AdminAuthorityConst.FINANCIALDETAILS + "')")
+    @PreAuthorize("hasAuthority('" + AdminAuthorityConst.FINANCIALDETAILS + "') || hasAuthority('" + AdminAuthorityConst.ADVANCEPAYMENTMANAGEMENT + "')")
     public  CashRet sellerUserCapitalList(
             @RequestParam(required =  true,defaultValue = "1") int pageNo,
             @RequestParam(required =  true,defaultValue = "10") int pageSize,
@@ -909,7 +910,7 @@ public class CashManageAction {
             if(workbook!=null){
                 ByteArrayOutputStream baos=new ByteArrayOutputStream();
                 workbook.write(baos);
-                System.out.println(baos.toByteArray().length);
+//                System.out.println(baos.toByteArray().length);
                 HttpHeaders headers = new HttpHeaders();
                 headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
                 headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", new String((name+".xlsx").getBytes(),"iso-8859-1")));
@@ -949,7 +950,7 @@ public class CashManageAction {
             @ApiImplicitParam(name = "realname",value = "会员姓名",required = false,paramType = "query",dataType = "string"),
             @ApiImplicitParam(name = "mobile",value = "手机号码",required = false,paramType = "query",dataType = "string")
     })
-    @PreAuthorize("hasAuthority('" + AdminAuthorityConst.FINANCIALDETAILS + "')")
+    @PreAuthorize("hasAuthority('" + AdminAuthorityConst.CASHSTATEMENT + "')")
     public BuyerCapitalAccountRet accountList(BuyerCapitalAccountQueryDto dto,
                                                                  Model model){
         BuyerCapitalAccountRet buyerCapitalAccountRet=new BuyerCapitalAccountRet();
@@ -960,7 +961,23 @@ public class CashManageAction {
         return buyerCapitalAccountRet;
     }
 
-
+    @RequestMapping(value = "/invoiceAccountList",method = RequestMethod.POST)
+    @ApiOperation(value = "买家开票对账单查询（capitaltype:类别0=消费2=退款4=授信6=违约金10=卖家违约金）记录中的最后一条数据为对账单结算数据")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "tradetimeStart",value = "开始日期",required = false,paramType = "query",dataType = "date"),
+            @ApiImplicitParam(name = "tradetimeEnd",value = "结束日期",required = false,paramType = "query",dataType = "date"),
+            @ApiImplicitParam(name = "invoicename",value = "开票抬头",required = true,paramType = "query",dataType = "string"),
+    })
+    @PreAuthorize("hasAuthority('" + AdminAuthorityConst.CREDITCASHSTATEMENT + "')")
+    public BuyerCapitalAccountRet invoiceAccountList(BuyerCapitalAccountQueryDto dto,
+                                              Model model){
+        BuyerCapitalAccountRet buyerCapitalAccountRet=new BuyerCapitalAccountRet();
+        List<BuyerCapitalAccountDto> buyerCapitalAccountDtos=buyerCapitalService.listForInvoiceAccount(dto);
+        buyerCapitalAccountRet.setMessage("查询成功");
+        buyerCapitalAccountRet.setResult(BasicRet.SUCCESS);
+        buyerCapitalAccountRet.setList(buyerCapitalAccountDtos);
+        return buyerCapitalAccountRet;
+    }
 
 
 
@@ -976,8 +993,8 @@ public class CashManageAction {
             @ApiImplicitParam(name = "realname",value = "会员姓名",required = false,paramType = "query",dataType = "string"),
             @ApiImplicitParam(name = "mobile",value = "手机号码",required = false,paramType = "query",dataType = "string")
     })
-    @PreAuthorize("hasAuthority('" + AdminAuthorityConst.FINANCIALDETAILS + "')")
-    public ResponseEntity<InputStreamResource> ExcelExportAccountList(
+    @PreAuthorize("hasAuthority('" + AdminAuthorityConst.CASHSTATEMENT + "')")
+    public ResponseEntity<InputStreamResource> excelExportAccountList(
             @RequestParam(required = false) Date tradetimeStart,
             @RequestParam(required = false) Date tradetimeEnd,
             @RequestParam(required = false) Long memberid,
@@ -1038,7 +1055,7 @@ public class CashManageAction {
             if (workbook != null) {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 workbook.write(baos);
-                System.out.println(baos.toByteArray().length);
+                //System.out.println(baos.toByteArray().length);
                 HttpHeaders headers = new HttpHeaders();
                 headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
                 headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", new String("买家对账单.xlsx".getBytes(), "iso-8859-1")));
@@ -1063,6 +1080,70 @@ public class CashManageAction {
 
     }
 
+
+    @RequestMapping(value = "/excelExport/invoiceAccountList",method = RequestMethod.GET)
+    @ApiOperation("Excel导出-开票对账单")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "tradetimeStart",value = "开始日期",required = false,paramType = "query",dataType = "date"),
+            @ApiImplicitParam(name = "tradetimeEnd",value = "结束日期",required = false,paramType = "query",dataType = "date"),
+            @ApiImplicitParam(name = "invoicename",value = "开票抬头",required = true,paramType = "query",dataType = "string"),
+    })
+    @PreAuthorize("hasAuthority('" + AdminAuthorityConst.CREDITCASHSTATEMENT + "')")
+    public ResponseEntity<InputStreamResource> excelExportInvoiceAccountList(
+            @RequestParam(required = false) Date tradetimeStart,
+            @RequestParam(required = false) Date tradetimeEnd,
+            @RequestParam(required = false) String invoicename){
+        List<Map<String,Object>> resList = new ArrayList<>();
+        XSSFWorkbook workbook = null;
+        try {
+            String[] rowTitles = new String[]{"日期","合同编号","类别","发货金额","收款金额","其他","应收账款","开票金额","发票结余","支付方式","支付单号","备注"};
+            BuyerCapitalAccountQueryDto dto=new BuyerCapitalAccountQueryDto();
+            dto.setTradetimeStart(tradetimeStart);
+            dto.setTradetimeEnd(tradetimeEnd);
+            dto.setInvoicename(invoicename);
+            String content="";
+            if (org.apache.commons.lang3.StringUtils.isNotEmpty(invoicename)){
+                List<Map<String,Object>> memberList=memberService.findMembersByFuzzy(null,null,null,null,invoicename);
+                content= (String) memberList.get(0).get("invoiceheadup");
+            }
+            resList = buyerCapitalService.excelExportListForInvoiceAccount(dto);
+            workbook = ExcelGen.common("买家对账单明细", rowTitles, resList, null);
+            if (tradetimeStart==null&&tradetimeEnd==null&&(resList!=null&&resList.size()>0)){
+                tradetimeStart=(Date) resList.get(1).get("日期");
+                tradetimeEnd= (Date) resList.get(resList.size()-2).get("日期");
+            }
+            workbook=ExcelUtils.insertRows(workbook,"Sheet0",0,(short) 0,"日期:"+(tradetimeStart!=null?(DateUtils.format(tradetimeStart,"yyyy.MM.dd")):"")+"-"+(tradetimeEnd!=null?(DateUtils.format(DateUtils.addDays(tradetimeEnd,-1),"yyyy.MM.dd")):""));
+            workbook=ExcelUtils.insertRows(workbook,"Sheet0",0,(short) 0,"紧商科技股份有限公司");
+            workbook=ExcelUtils.insertRows(workbook,"Sheet0",0,(short) 0,"FM:紧商/财务");
+            workbook=ExcelUtils.insertRows(workbook,"Sheet0",0,(short) 0,"TO:"+content);
+            workbook=ExcelUtils.deleteRow(workbook,"Sheet0",5);
+            if (workbook != null) {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                workbook.write(baos);
+                //System.out.println(baos.toByteArray().length);
+                HttpHeaders headers = new HttpHeaders();
+                headers.add("Cache-Control", "no-cache, no-store, must-revalidate");
+                headers.add("Content-Disposition", String.format("attachment; filename=\"%s\"", new String("买家对账单.xlsx".getBytes(), "iso-8859-1")));
+                headers.add("Pragma", "no-cache");
+                headers.add("Expires", "0");
+                String contentType = "application/vnd.ms-excel";
+                return ResponseEntity.ok().headers(headers).contentType(MediaType.parseMediaType(contentType))
+                        .body(new InputStreamResource(new ByteArrayInputStream(baos.toByteArray())));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (workbook != null) {
+                try {
+                    workbook.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return null;
+
+    }
 
     @RequestMapping(value = "/advanceCapitalList/buyer",method = RequestMethod.POST)
     @ApiOperation("预付款管理-买家-预付款充值-列表")

@@ -7,6 +7,7 @@ import java.util.Map;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.SelectProvider;
+import org.apache.ibatis.annotations.Update;
 import project.jinshang.mod_admin.mod_creditapplyrecord.bean.AccountDetailQuery;
 import project.jinshang.mod_admin.mod_creditapplyrecord.provider.CreditapplyrecordProvider;
 import project.jinshang.mod_credit.bean.CreditApplyRecord;
@@ -36,15 +37,15 @@ public interface CreditApplyRecordMapper {
     int updateByPrimaryKey(CreditApplyRecord record);
 
     @SelectProvider(type = CreditapplyrecordProvider.class,method = "listForAdmin")
-    List<CreditApplyRecord> listForAdmin(Map<String,Object> map);
+    List<CreditApplyRecord> listForAdmin(Map<String, Object> map);
 
     @SelectProvider(type = CreditapplyrecordProvider.class,method = "listForAdminExcel")
-    List<CreditApplyRecord> listForAdminExcel(Map<String,Object> map);
+    List<CreditApplyRecord> listForAdminExcel(Map<String, Object> map);
 
 
 
     @SelectProvider(type = CreditapplyrecordProvider.class,method = "listCreditUser")
-    List<Map<String,Object>> listCreditUser(Map<String,Object> map);
+    List<Map<String,Object>> listCreditUser(Map<String, Object> map);
 
 
     /**
@@ -53,7 +54,7 @@ public interface CreditApplyRecordMapper {
      * @return
      */
     @SelectProvider(type = CreditapplyrecordProvider.class,method = "listCreditUserForAdminExportExcle")
-    List<Map<String,Object>> listCreditUserForAdminExportExcle(Map<String,Object> map);
+    List<Map<String,Object>> listCreditUserForAdminExportExcle(Map<String, Object> map);
 
 
 
@@ -82,19 +83,20 @@ public interface CreditApplyRecordMapper {
 
 
     @Select("select count(id) from billcreate where settlementtime=#{settlement} and state=#{state} ")
-    int getCountBySettlementAndState(@Param("settlement") String settlement,@Param("state") Short state);
+    int getCountBySettlementAndState(@Param("settlement") String settlement, @Param("state") Short state);
 
 
-    @Select("<script>select B.*,M.username,BC.companyname from billcreate B left join member M on " +
+    @Select("<script>select B.*,M.username,M.clerkname,BC.companyname from billcreate B left join member M on " +
             " B.buyerid=M.id left join buyercompanyinfo BC on B.buyerid=BC.memberid where 1=1 " +
             "<if test=\"query.memberid &gt; 0\"> and M.id=#{query.memberid} </if>" +
             "<if test=\"query.state &gt; -1\"> and B.state=#{query.state} </if>"+
-            "<if test=\"query.membername != null and query.membername != '' \"> and M.realname  like '%${query.membername}' </if>"+
-            "<if test=\"query.companyname != null and query.companyname != '' \"> and BC.companyname  like '%${query.companyname}' </if>"+
+            "<if test=\"query.membername != null and query.membername != '' \"> and M.realname  like '%${query.membername}%' </if>"+
+            "<if test=\"query.companyname != null and query.companyname != '' \"> and BC.companyname  like '%${query.companyname}%' </if>"+
             "<if test=\"query.settlement != null and query.settlement != ''\"> and B.settlementtime=#{query.settlement} </if>" +
             "<if test=\"query.billno != null and query.billno != ''\"> and B.billno like '%${query.billno}%' </if>" +
+            "<if test=\"query.clerkname != null and query.clerkname != ''\"> and M.clerkname like '%${query.clerkname}%' </if>" +
             "</script>")
-    List<Map> getAccountDetaiByPage(@Param("query")AccountDetailQuery query);
+    List<Map> getAccountDetaiByPage(@Param("query") AccountDetailQuery query);
 
 
     /**
@@ -104,5 +106,12 @@ public interface CreditApplyRecordMapper {
      */
     @Select("select count(id) from creditapplyrecord where state=#{state}")
     int getCountByStates(@Param("state") Short state);
+
+
+//    @Update("update creditapplyrecord set reviewnotes = #{reviewnotes,typeHandler=project.jinshang.middleware.typeHandler.ArrayTypeHandler} where id = #{id}")
+//    int updateCreditApplyRecordReviewnotesByid(@Param("id") Long id, @Param("reviewnotes") List<String> reviewnotes);
+
+
+
 
 }

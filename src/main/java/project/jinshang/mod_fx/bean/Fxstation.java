@@ -1,5 +1,7 @@
 package project.jinshang.mod_fx.bean;
 
+import io.swagger.annotations.ApiModelProperty;
+
 import java.math.BigDecimal;
 
 /**
@@ -10,24 +12,17 @@ import java.math.BigDecimal;
  * @date 2018-05-05
  */
 public class Fxstation {
-    /**
-     * ID自增
-     */
+
+    @ApiModelProperty("ID自增")
     private Long id;
 
-    /**
-     * 佣金返现周期
-     */
+    @ApiModelProperty("佣金返现周期")
     private Long cycle;
 
-    /**
-     * 二级返佣金比例
-     */
+    @ApiModelProperty("二级返佣金比例")
     private BigDecimal ratio2;
 
-    /**
-     * 状态
-     */
+    @ApiModelProperty("状态")
     private Boolean disable;
 
     public Long getId() {

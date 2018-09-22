@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_product.ShippingTemplateGroupMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_product.bean.ShippingTemplateGroup" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="memberid" property="memberid" jdbcType="BIGINT" />
+    <result column="selflifting" property="selflifting" jdbcType="BIT" />
+    <result column="sfarrivepay" property="sfarrivepay" jdbcType="BIT" />
+    <result column="expresspay" property="expresspay" jdbcType="BIT" />
+    <result column="expreselflifting" property="expreselflifting" jdbcType="BIT" />
+    <result column="exprehousehoid" property="exprehousehoid" jdbcType="BIT" />
+    <result column="expretemp" property="expretemp" jdbcType="BIGINT" />
+    <result column="expreselftemp" property="expreselftemp" jdbcType="BIGINT" />
+    <result column="exprehousetemp" property="exprehousetemp" jdbcType="BIGINT" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="switch1address" property="switch1address" jdbcType="VARCHAR" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, memberid, selflifting, sfarrivepay, expresspay, expreselflifting, exprehousehoid, 
+    expretemp, expreselftemp, exprehousetemp, name, switch1address
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_product.bean.ShippingTemplateGroupExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from shippingtemplategroup
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from shippingtemplategroup
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from shippingtemplategroup
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_product.bean.ShippingTemplateGroupExample" >
+    delete from shippingtemplategroup
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_product.bean.ShippingTemplateGroup" >
+    insert into shippingtemplategroup (id, memberid, selflifting, 
+      sfarrivepay, expresspay, expreselflifting, 
+      exprehousehoid, expretemp, expreselftemp, 
+      exprehousetemp, name, switch1address
+      )
+    values (#{id,jdbcType=BIGINT}, #{memberid,jdbcType=BIGINT}, #{selflifting,jdbcType=BIT}, 
+      #{sfarrivepay,jdbcType=BIT}, #{expresspay,jdbcType=BIT}, #{expreselflifting,jdbcType=BIT}, 
+      #{exprehousehoid,jdbcType=BIT}, #{expretemp,jdbcType=BIGINT}, #{expreselftemp,jdbcType=BIGINT}, 
+      #{exprehousetemp,jdbcType=BIGINT}, #{name,jdbcType=VARCHAR}, #{switch1address,jdbcType=VARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_product.bean.ShippingTemplateGroup" keyProperty="id" useGeneratedKeys="true">
+    insert into shippingtemplategroup
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="memberid != null" >
+        memberid,
+      </if>
+      <if test="selflifting != null" >
+        selflifting,
+      </if>
+      <if test="sfarrivepay != null" >
+        sfarrivepay,
+      </if>
+      <if test="expresspay != null" >
+        expresspay,
+      </if>
+      <if test="expreselflifting != null" >
+        expreselflifting,
+      </if>
+      <if test="exprehousehoid != null" >
+        exprehousehoid,
+      </if>
+      <if test="expretemp != null" >
+        expretemp,
+      </if>
+      <if test="expreselftemp != null" >
+        expreselftemp,
+      </if>
+      <if test="exprehousetemp != null" >
+        exprehousetemp,
+      </if>
+      <if test="name != null" >
+        name,
+      </if>
+      <if test="switch1address != null" >
+        switch1address,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="memberid != null" >
+        #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="selflifting != null" >
+        #{selflifting,jdbcType=BIT},
+      </if>
+      <if test="sfarrivepay != null" >
+        #{sfarrivepay,jdbcType=BIT},
+      </if>
+      <if test="expresspay != null" >
+        #{expresspay,jdbcType=BIT},
+      </if>
+      <if test="expreselflifting != null" >
+        #{expreselflifting,jdbcType=BIT},
+      </if>
+      <if test="exprehousehoid != null" >
+        #{exprehousehoid,jdbcType=BIT},
+      </if>
+      <if test="expretemp != null" >
+        #{expretemp,jdbcType=BIGINT},
+      </if>
+      <if test="expreselftemp != null" >
+        #{expreselftemp,jdbcType=BIGINT},
+      </if>
+      <if test="exprehousetemp != null" >
+        #{exprehousetemp,jdbcType=BIGINT},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="switch1address != null" >
+        #{switch1address,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_product.bean.ShippingTemplateGroupExample" resultType="java.lang.Integer" >
+    select count(*) from shippingtemplategroup
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update shippingtemplategroup
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.memberid != null" >
+        memberid = #{record.memberid,jdbcType=BIGINT},
+      </if>
+      <if test="record.selflifting != null" >
+        selflifting = #{record.selflifting,jdbcType=BIT},
+      </if>
+      <if test="record.sfarrivepay != null" >
+        sfarrivepay = #{record.sfarrivepay,jdbcType=BIT},
+      </if>
+      <if test="record.expresspay != null" >
+        expresspay = #{record.expresspay,jdbcType=BIT},
+      </if>
+      <if test="record.expreselflifting != null" >
+        expreselflifting = #{record.expreselflifting,jdbcType=BIT},
+      </if>
+      <if test="record.exprehousehoid != null" >
+        exprehousehoid = #{record.exprehousehoid,jdbcType=BIT},
+      </if>
+      <if test="record.expretemp != null" >
+        expretemp = #{record.expretemp,jdbcType=BIGINT},
+      </if>
+      <if test="record.expreselftemp != null" >
+        expreselftemp = #{record.expreselftemp,jdbcType=BIGINT},
+      </if>
+      <if test="record.exprehousetemp != null" >
+        exprehousetemp = #{record.exprehousetemp,jdbcType=BIGINT},
+      </if>
+      <if test="record.name != null" >
+        name = #{record.name,jdbcType=VARCHAR},
+      </if>
+      <if test="record.switch1address != null" >
+        switch1address = #{record.switch1address,jdbcType=VARCHAR},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update shippingtemplategroup
+    set id = #{record.id,jdbcType=BIGINT},
+      memberid = #{record.memberid,jdbcType=BIGINT},
+      selflifting = #{record.selflifting,jdbcType=BIT},
+      sfarrivepay = #{record.sfarrivepay,jdbcType=BIT},
+      expresspay = #{record.expresspay,jdbcType=BIT},
+      expreselflifting = #{record.expreselflifting,jdbcType=BIT},
+      exprehousehoid = #{record.exprehousehoid,jdbcType=BIT},
+      expretemp = #{record.expretemp,jdbcType=BIGINT},
+      expreselftemp = #{record.expreselftemp,jdbcType=BIGINT},
+      exprehousetemp = #{record.exprehousetemp,jdbcType=BIGINT},
+      name = #{record.name,jdbcType=VARCHAR},
+      switch1address = #{record.switch1address,jdbcType=VARCHAR}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_product.bean.ShippingTemplateGroup" >
+    update shippingtemplategroup
+    <set >
+      <if test="memberid != null" >
+        memberid = #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="selflifting != null" >
+        selflifting = #{selflifting,jdbcType=BIT},
+      </if>
+      <if test="sfarrivepay != null" >
+        sfarrivepay = #{sfarrivepay,jdbcType=BIT},
+      </if>
+      <if test="expresspay != null" >
+        expresspay = #{expresspay,jdbcType=BIT},
+      </if>
+      <if test="expreselflifting != null" >
+        expreselflifting = #{expreselflifting,jdbcType=BIT},
+      </if>
+      <if test="exprehousehoid != null" >
+        exprehousehoid = #{exprehousehoid,jdbcType=BIT},
+      </if>
+      <if test="expretemp != null" >
+        expretemp = #{expretemp,jdbcType=BIGINT},
+      </if>
+      <if test="expreselftemp != null" >
+        expreselftemp = #{expreselftemp,jdbcType=BIGINT},
+      </if>
+      <if test="exprehousetemp != null" >
+        exprehousetemp = #{exprehousetemp,jdbcType=BIGINT},
+      </if>
+      <if test="name != null" >
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="switch1address != null" >
+        switch1address = #{switch1address,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_product.bean.ShippingTemplateGroup" >
+    update shippingtemplategroup
+    set memberid = #{memberid,jdbcType=BIGINT},
+      selflifting = #{selflifting,jdbcType=BIT},
+      sfarrivepay = #{sfarrivepay,jdbcType=BIT},
+      expresspay = #{expresspay,jdbcType=BIT},
+      expreselflifting = #{expreselflifting,jdbcType=BIT},
+      exprehousehoid = #{exprehousehoid,jdbcType=BIT},
+      expretemp = #{expretemp,jdbcType=BIGINT},
+      expreselftemp = #{expreselftemp,jdbcType=BIGINT},
+      exprehousetemp = #{exprehousetemp,jdbcType=BIGINT},
+      name = #{name,jdbcType=VARCHAR},
+      switch1address = #{switch1address,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

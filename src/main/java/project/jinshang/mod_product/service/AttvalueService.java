@@ -37,7 +37,7 @@ public class AttvalueService {
 
 
     public  void updateById(Attvalue attvalue){
-        attvalueMapper.updateByPrimaryKey(attvalue);
+        attvalueMapper.updateByPrimaryKeySelective(attvalue);
     }
 
 

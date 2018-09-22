@@ -634,6 +634,66 @@ public class StoreExample {
             addCriterion("citysmall not between", value1, value2, "citysmall");
             return (Criteria) this;
         }
+
+        public Criteria andShopgroupidIsNull() {
+            addCriterion("shopgroupid is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andShopgroupidIsNotNull() {
+            addCriterion("shopgroupid is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andShopgroupidEqualTo(Long value) {
+            addCriterion("shopgroupid =", value, "shopgroupid");
+            return (Criteria) this;
+        }
+
+        public Criteria andShopgroupidNotEqualTo(Long value) {
+            addCriterion("shopgroupid <>", value, "shopgroupid");
+            return (Criteria) this;
+        }
+
+        public Criteria andShopgroupidGreaterThan(Long value) {
+            addCriterion("shopgroupid >", value, "shopgroupid");
+            return (Criteria) this;
+        }
+
+        public Criteria andShopgroupidGreaterThanOrEqualTo(Long value) {
+            addCriterion("shopgroupid >=", value, "shopgroupid");
+            return (Criteria) this;
+        }
+
+        public Criteria andShopgroupidLessThan(Long value) {
+            addCriterion("shopgroupid <", value, "shopgroupid");
+            return (Criteria) this;
+        }
+
+        public Criteria andShopgroupidLessThanOrEqualTo(Long value) {
+            addCriterion("shopgroupid <=", value, "shopgroupid");
+            return (Criteria) this;
+        }
+
+        public Criteria andShopgroupidIn(List<Long> values) {
+            addCriterion("shopgroupid in", values, "shopgroupid");
+            return (Criteria) this;
+        }
+
+        public Criteria andShopgroupidNotIn(List<Long> values) {
+            addCriterion("shopgroupid not in", values, "shopgroupid");
+            return (Criteria) this;
+        }
+
+        public Criteria andShopgroupidBetween(Long value1, Long value2) {
+            addCriterion("shopgroupid between", value1, value2, "shopgroupid");
+            return (Criteria) this;
+        }
+
+        public Criteria andShopgroupidNotBetween(Long value1, Long value2) {
+            addCriterion("shopgroupid not between", value1, value2, "shopgroupid");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

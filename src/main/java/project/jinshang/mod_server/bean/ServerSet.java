@@ -22,6 +22,16 @@ public class ServerSet {
 
     private BigDecimal rate;
 
+    private String companyname;
+
+    public String getCompanyname() {
+        return companyname;
+    }
+
+    public void setCompanyname(String companyname) {
+        this.companyname = companyname;
+    }
+
     public Long getId() {
         return id;
     }

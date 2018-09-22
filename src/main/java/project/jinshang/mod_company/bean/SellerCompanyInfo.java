@@ -153,6 +153,12 @@ public class SellerCompanyInfo implements Serializable{
     @ApiModelProperty(notes = "接口状态")
     private Boolean disable;
 
+    @ApiModelProperty(notes = "是否可以自提")
+    private Boolean isselflifting;
+
+    @ApiModelProperty(notes = "运费是否计入结算价 0-不计入，1-计入")
+    private Short freightmode;
+
     public String getShopgrade() {
         return shopgrade;
     }
@@ -543,5 +549,21 @@ public class SellerCompanyInfo implements Serializable{
 
     public void setDisable(Boolean disable) {
         this.disable = disable;
+    }
+
+    public Boolean getIsselflifting() {
+        return isselflifting;
+    }
+
+    public void setIsselflifting(Boolean isselflifting) {
+        this.isselflifting = isselflifting;
+    }
+
+    public Short getFreightmode() {
+        return freightmode;
+    }
+
+    public void setFreightmode(Short freightmode) {
+        this.freightmode = freightmode;
     }
 }

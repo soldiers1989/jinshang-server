@@ -37,7 +37,7 @@ public interface ShopCarMapper {
      * @param memberid
      * @return
      */
-    @Select("SELECT sc.*,ps.storename,ps.pdstorenum,ps.startnum,ps.minplus,pi.productname," +
+    @Select("SELECT sc.*,ps.storename,ps.pdstorenum,ps.startnum,ps.minplus,ps.stepwiseprice,pi.productname," +
             "pi.material,pi.cardnum,pi.brand,pi.packagetype,pi.tag,pi.pdpicture,pi.stand,br.pic,pi.level3,pi.selfsupport " +
             "FROM shopcar sc LEFT JOIN productstore ps " +
             "on sc.pdid=ps.pdid and sc.storeid=ps.storeid and sc.pdno=ps.pdno " +

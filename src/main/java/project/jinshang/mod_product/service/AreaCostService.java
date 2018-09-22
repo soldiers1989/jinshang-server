@@ -43,4 +43,12 @@ public class AreaCostService {
     }
 
 
+    public List<AreaCost> getAreaCostByTemid(long id){
+        AreaCostExample areaCostExample  = new AreaCostExample();
+        areaCostExample.createCriteria().andTemidEqualTo(id);
+        List<AreaCost> list = areaCostMapper.selectByExample(areaCostExample);
+        return  list;
+    }
+
+
 }

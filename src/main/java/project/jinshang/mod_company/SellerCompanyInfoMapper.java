@@ -30,7 +30,7 @@ public interface SellerCompanyInfoMapper {
 
     int updateByPrimaryKey(SellerCompanyInfo record);
 
-    @Select("<script>SELECT sc.id,sc.memberid,sc.companyname,mm.username,sc.address,sp.gradename,sc.createdate,sc.shopperiod,sc.shopstate,sc.isrecommend,sc.validate,sc.deliverymode,sum(od.brokepay) as broker " +
+    @Select("<script>SELECT sc.id,sc.memberid,sc.companyname,mm.username,sc.address,sp.gradename,sc.createdate,sc.shopperiod,sc.shopstate,sc.isrecommend,sc.validate,sc.deliverymode " +
             "FROM sellercompanyinfo sc  " +
             "LEFT JOIN MEMBER mm ON sc.memberid = mm.id " +
             "LEFT JOIN shopgrade sp ON sc.shopgradeid=sp.id " +
@@ -84,5 +84,5 @@ public interface SellerCompanyInfoMapper {
 
 
     @Select("select * from sellercompanyinfo where memberid=#{memberid} order by id desc limit 1")
-    SellerCompanyInfo getSellerCompanyByMemberid(@Param("memberid") long memberId);
+    SellerCompanyInfo getSellerCompanyByMemberid(@Param("memberid") long memberid);
 }

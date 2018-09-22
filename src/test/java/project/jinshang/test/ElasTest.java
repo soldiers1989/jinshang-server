@@ -1,28 +1,18 @@
 package project.jinshang.test;
 
 import com.hankcs.hanlp.dictionary.CustomDictionary;
-import mizuki.project.core.restserver.util.JsonUtil;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
-import org.elasticsearch.action.admin.indices.mapping.put.PutMappingRequest;
 import org.elasticsearch.action.get.GetRequest;
 import org.elasticsearch.action.get.GetResponse;
-import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
-import org.elasticsearch.action.update.UpdateRequest;
-import org.elasticsearch.action.update.UpdateResponse;
-import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.MatchPhraseQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.Aggregation;
-import org.elasticsearch.search.aggregations.AggregationBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
-import org.elasticsearch.search.aggregations.ParsedAggregation;
 import org.elasticsearch.search.aggregations.bucket.nested.ParsedNested;
 import org.elasticsearch.search.aggregations.bucket.terms.ParsedStringTerms;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
@@ -38,19 +28,16 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.Quantity;
-import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_admin.mod_synonym.Synonym;
 import project.jinshang.mod_admin.mod_synonym.SynonymMapper;
 import project.jinshang.mod_product.ProductInfoMapper;
-import project.jinshang.mod_product.bean.ProductAttr;
 import project.jinshang.mod_product.bean.ProductInfo;
 import project.jinshang.mod_product.bean.ProductInfoExample;
-import project.jinshang.mod_product.service.ProductAttrService;
-import project.jinshang.mod_product.service.ProductSearchService;
+import project.jinshang.mod_product.bean.dto.ProductInfoEsDTO;
+import project.jinshang.mod_product.service.ProductSearchServiceImplEs;
 import project.jinshang.service.ElasticSearchService;
 
 import java.io.IOException;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -63,12 +50,18 @@ public class ElasTest {
     @Autowired
     private ElasticSearchService searchService;
     @Autowired
-    private ProductSearchService productSearchService;
+    private ProductSearchServiceImplEs productSearchService;
     @Autowired
     private SynonymMapper synonymMapper;
     @Autowired
     private ProductInfoMapper productInfoMapper;
     private Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    @Test
+    public void indexOne(){
+        ProductInfo info = productInfoMapper.selectByPrimaryKey(9317L);
+        System.out.println(productSearchService.genProductInfoData(info).get("indexes"));
+    }
 
 //    @Test
     public void test() throws Exception {
@@ -76,22 +69,22 @@ public class ElasTest {
         synonyms.forEach(synonym -> synonym.getWords().forEach(CustomDictionary::add));
         ProductInfoExample example = new ProductInfoExample();
         example.createCriteria().andPdstateEqualTo(Quantity.STATE_4);
-        List<ProductInfo> list = productInfoMapper.selectByExample(example);
-        list.forEach(info->{
-            try {
-                productSearchService.saveIndex(info);
-            } catch (Exception e) {
-                e.printStackTrace();
-                logger.error("rebuild es data err: ",e);
-            }
-        });
+        List<ProductInfoEsDTO> list = productInfoMapper.listProductInfoEsDTO();
+        List<Map<String,Object>> data = new ArrayList<>();
+        list.forEach(info-> data.add(productSearchService.genProductInfoData(info)));
+        try {
+            searchService.bulkUpdate(ElasticSearchService.INDEX_PRODUCT, data);
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error("rebuild es data err: ",e);
+        }
 
 //        PutMappingRequest request = new PutMappingRequest();
 //        request.source(searchService.mapping(),XContentType.JSON);
 //        searchService.getClient().
     }
 
-//    @Test
+    @Test
     public void delIndex() throws Exception{
         searchService.delIndex(ElasticSearchService.INDEX_PRODUCT);
     }
@@ -131,6 +124,46 @@ public class ElasTest {
 //        UpdateResponse response = searchService.getClient().update(request);
 //    }
 
+    /**
+     * 分组统计
+     */
+    @Test
+    public void aggregations(){
+        SearchRequest searchRequest = new SearchRequest(ElasticSearchService.INDEX_PRODUCT).types(ElasticSearchService.INDEX_PRODUCT_TYPE_INFO);
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        BoolQueryBuilder boolQueryBuilder=QueryBuilders.boolQuery();
+
+        boolQueryBuilder.must().add(QueryBuilders.termQuery("pdstate",4));
+        boolQueryBuilder.must().add(QueryBuilders.termQuery("producttype", AppConstant.FASTENER_PRO_TYPE));
+
+        searchSourceBuilder.aggregation(AggregationBuilders.terms("level3").field("level3").size(1000));
+        searchSourceBuilder.query(boolQueryBuilder);
+
+        searchRequest.source(searchSourceBuilder);
+        try {
+            SearchResponse response = searchService.getClient().search(searchRequest);
+
+            List<Aggregation> list = response.getAggregations().asList();
+            System.out.println(list.size());
+            for(Aggregation aggregation : list){
+                if (aggregation instanceof ParsedStringTerms) {
+                    ParsedStringTerms terms = (ParsedStringTerms) aggregation;
+                    List<? extends Terms.Bucket> buckets = terms.getBuckets();
+                    for(Terms.Bucket bucket : buckets){
+                        System.out.println(bucket.getKeyAsString()+"===="+bucket.getDocCount());
+                    }
+                }
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+
+
+
 //    @Test
     public void search() throws Exception{
         SearchRequest searchRequest = new SearchRequest(ElasticSearchService.INDEX_PRODUCT).types(ElasticSearchService.INDEX_PRODUCT_TYPE_INFO);
@@ -138,9 +171,9 @@ public class ElasTest {
 //        searchSourceBuilder.query(QueryBuilders.matchAllQuery());
         // Sort descending by _score (the default)
         BoolQueryBuilder boolQueryBuilder=QueryBuilders.boolQuery();
-        List<QueryBuilder> must1 = boolQueryBuilder.must();
-        must1.add(QueryBuilders.termQuery("pdstate",4));
-        must1.add(QueryBuilders.termQuery("producttype",AppConstant.FASTENER_PRO_TYPE));
+
+        boolQueryBuilder.must().add(QueryBuilders.termQuery("pdstate",4));
+        boolQueryBuilder.must().add(QueryBuilders.termQuery("producttype", AppConstant.FASTENER_PRO_TYPE));
 
         BoolQueryBuilder nestStore = QueryBuilders.boolQuery();
 //        nestStore.must().add(QueryBuilders.termQuery("stores.storename","宁波"));
@@ -187,6 +220,30 @@ public class ElasTest {
                 }
             }
         }
+    }
+
+    @Test
+    public void searchByStore() throws IOException {
+        List<Map<String, Object>> maps = productSearchService.searchByStoreidAndPdno((long) 163, "019333040330");
+        for(Map map : maps){
+            //System.out.println(map);
+
+            List<Map<String,Object>> stores = (List<Map<String, Object>>) map.get("stores");
+            for(Map<String,Object> store : stores){
+                System.out.println(store);
+
+               // store.put("pdstorenum",44);
+            }
+
+//            List<Map<String,Object>> list = new ArrayList<>();
+//            list.add(map);
+//            productSearchService.bulkUpdateIndex(list);
+        }
+    }
+
+    @Test
+    public void rebuild() throws InterruptedException {
+        productSearchService.rebuildIndex();
     }
 
 }

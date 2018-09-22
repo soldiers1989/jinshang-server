@@ -7,9 +7,12 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import mizuki.project.core.restserver.config.BasicRet;
 import org.springframework.beans.BeanUtils;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import project.jinshang.common.bean.PageRet;
+import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.Quantity;
+import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_activity.bean.*;
 import project.jinshang.mod_activity.bean.dto.LimitTimeProdQuery;
 import project.jinshang.mod_activity.service.LimitTimeCategoryService;
@@ -18,6 +21,7 @@ import project.jinshang.mod_activity.service.LimitTimeSettingService;
 import project.jinshang.mod_activity.service.LimitTimeStoreService;
 import project.jinshang.mod_admin.mod_transet.bean.TransactionSetting;
 import project.jinshang.mod_admin.mod_transet.service.TransactionSettingService;
+import project.jinshang.mod_member.bean.Member;
 import project.jinshang.mod_product.bean.ProductAttr;
 import project.jinshang.mod_product.bean.ProductInfo;
 import project.jinshang.mod_product.bean.ProductStore;
@@ -37,6 +41,7 @@ import java.util.*;
 @RestController
 @RequestMapping("/rest/front/activity/limittime")
 @Api(tags = "前台限时购")
+@SessionAttributes(AppConstant.MEMBER_SESSION_NAME)
 public class LimitTimeActivityFrontAction {
 
     @Resource
@@ -70,7 +75,10 @@ public class LimitTimeActivityFrontAction {
             @ApiImplicitParam(value = "状态 0=所有活动 4=活动中 9=预热活动",name = "state",required = true,paramType = "query")
     })
     public PageRet list(LimitTimeProdQuery query, @RequestParam(required = true,defaultValue = "1") int pageNo,
-                        @RequestParam(required = true,defaultValue = "20") int pageSize){
+                        @RequestParam(required = true,defaultValue = "20") int pageSize, Model model){
+
+        Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
+
         PageRet pageRet = new PageRet();
 
         if(query.getState() != Quantity.STATE_0 && query.getState() != Quantity.STATE_4 && query.getState() != Quantity.STATE_9){
@@ -89,6 +97,12 @@ public class LimitTimeActivityFrontAction {
 
         limitTimeProdService.setToStart();
         limitTimeProdService.setToEnd();
+
+
+            if(member == null || !"8".equals(member.getRegistertypelabel()) || !"9".equals(member.getRegisterchannellabel())){
+                query.setNotInIds("207,208,209,210");
+            }
+
 
         PageInfo pageInfo =  limitTimeProdService.listBuyPageForFront(query,befoBuytime,pageNo,pageSize);
 
