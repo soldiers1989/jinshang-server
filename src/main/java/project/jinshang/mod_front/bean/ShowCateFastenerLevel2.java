@@ -17,6 +17,8 @@ public class ShowCateFastenerLevel2 {
     @ApiModelProperty(notes = "2级分类名称")
     private  String level2category;
 
+    @ApiModelProperty(notes = "二级分类的图片地址")
+    private String img;
 
 
     @ApiModelProperty(notes = "该2级分类下的3级分类")
@@ -44,5 +46,13 @@ public class ShowCateFastenerLevel2 {
 
     public void setShowCategoryList(List<ShowCategory> showCategoryList) {
         this.showCategoryList = showCategoryList;
+    }
+
+    public String getImg() {
+        return img;
+    }
+
+    public void setImg(String img) {
+        this.img = img;
     }
 }

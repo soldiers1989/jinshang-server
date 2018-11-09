@@ -1,1192 +1,1272 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="project.jinshang.mod_product.OrdersMapper" >
-  <resultMap id="BaseResultMap" type="project.jinshang.mod_product.bean.Orders" >
-    <id column="id" property="id" jdbcType="BIGINT" />
-    <result column="memberid" property="memberid" jdbcType="BIGINT" />
-    <result column="saleid" property="saleid" jdbcType="BIGINT" />
-    <result column="orderno" property="orderno" jdbcType="VARCHAR" />
-    <result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
-    <result column="province" property="province" jdbcType="VARCHAR" />
-    <result column="city" property="city" jdbcType="VARCHAR" />
-    <result column="area" property="area" jdbcType="VARCHAR" />
-    <result column="receivingaddress" property="receivingaddress" jdbcType="VARCHAR" />
-    <result column="freight" property="freight" jdbcType="NUMERIC" />
-    <result column="mailornot" property="mailornot" jdbcType="BIT" />
-    <result column="deposit" property="deposit" jdbcType="NUMERIC" />
-    <result column="balance" property="balance" jdbcType="NUMERIC" />
-    <result column="futuretime" property="futuretime" jdbcType="TIMESTAMP" />
-    <result column="totalprice" property="totalprice" jdbcType="NUMERIC" />
-    <result column="integral" property="integral" jdbcType="INTEGER" />
-    <result column="code" property="code" jdbcType="VARCHAR" />
-    <result column="deliverymode" property="deliverymode" jdbcType="SMALLINT" />
-    <result column="ordertype" property="ordertype" jdbcType="SMALLINT" />
-    <result column="storename" property="storename" jdbcType="VARCHAR" />
-    <result column="storeid" property="storeid" jdbcType="BIGINT" />
-    <result column="transactionnumber" property="transactionnumber" jdbcType="VARCHAR" />
-    <result column="paymentmethod" property="paymentmethod" jdbcType="SMALLINT" />
-    <result column="paymenttime" property="paymenttime" jdbcType="TIMESTAMP" />
-    <result column="sellerdeliverytime" property="sellerdeliverytime" jdbcType="TIMESTAMP" />
-    <result column="deliveryno" property="deliveryno" jdbcType="VARCHAR" />
-    <result column="buyerdeliverytime" property="buyerdeliverytime" jdbcType="TIMESTAMP" />
-    <result column="buyerinspectiontime" property="buyerinspectiontime" jdbcType="TIMESTAMP" />
-    <result column="orderstatus" property="orderstatus" jdbcType="SMALLINT" />
-    <result column="actualpayment" property="actualpayment" jdbcType="NUMERIC" />
-    <result column="couriernumber" property="couriernumber" jdbcType="VARCHAR" />
-    <result column="logisticscompany" property="logisticscompany" jdbcType="VARCHAR" />
-    <result column="isbilling" property="isbilling" jdbcType="SMALLINT" />
-    <result column="billingtype" property="billingtype" jdbcType="SMALLINT" />
-    <result column="uuid" property="uuid" jdbcType="VARCHAR" />
-    <result column="membercompany" property="membercompany" jdbcType="VARCHAR" />
-    <result column="isonline" property="isonline" jdbcType="SMALLINT" />
-    <result column="allpay" property="allpay" jdbcType="NUMERIC" />
-    <result column="phone" property="phone" jdbcType="VARCHAR" />
-    <result column="shipto" property="shipto" jdbcType="VARCHAR" />
-    <result column="isbackcredit" property="isbackcredit" jdbcType="SMALLINT" />
-    <result column="paytype" property="paytype" jdbcType="SMALLINT" />
-    <result column="membername" property="membername" jdbcType="VARCHAR" />
-    <result column="sellername" property="sellername" jdbcType="VARCHAR" />
-    <result column="shopname" property="shopname" jdbcType="VARCHAR" />
-    <result column="brokepay" property="brokepay" jdbcType="NUMERIC" />
-    <result column="frozepay" property="frozepay" jdbcType="NUMERIC" />
-    <result column="serverpay" property="serverpay" jdbcType="NUMERIC" />
-    <result column="yuuuid" property="yuuuid" jdbcType="VARCHAR" />
-    <result column="delaydays" property="delaydays" jdbcType="INTEGER" />
-    <result column="ifdelay" property="ifdelay" jdbcType="SMALLINT" />
-    <result column="delaypenalty" property="delaypenalty" jdbcType="NUMERIC" />
-    <result column="ordertime" property="ordertime" jdbcType="BIGINT" />
-    <result column="yuordertime" property="yuordertime" jdbcType="BIGINT" />
-    <result column="deliverybill" property="deliverybill" jdbcType="SMALLINT" />
-    <result column="transactionid" property="transactionid" jdbcType="VARCHAR" />
-    <result column="reason" property="reason" jdbcType="VARCHAR" />
-    <result column="deliverytype" property="deliverytype" jdbcType="SMALLINT" />
-    <result column="billtoserver" property="billtoserver" jdbcType="SMALLINT" />
-    <result column="clerkname" property="clerkname" jdbcType="VARCHAR" />
-    <result column="clerknamephone" property="clerknamephone" jdbcType="VARCHAR" />
-    <result column="waysalesman" property="waysalesman" jdbcType="VARCHAR" />
-    <result column="presellconfim" property="presellconfim" jdbcType="SMALLINT" />
-    <result column="prestocktime" property="prestocktime" jdbcType="DATE" />
-    <result column="forwardnoticephone" property="forwardnoticephone" jdbcType="VARCHAR" />
-    <result column="orderfright" property="orderfright" jdbcType="SMALLINT" />
-    <result column="frighttemplate" property="frighttemplate" jdbcType="VARCHAR" />
-  </resultMap>
-  <sql id="Example_Where_Clause" >
-    <where >
-      <foreach collection="oredCriteria" item="criteria" separator="or" >
-        <if test="criteria.valid" >
-          <trim prefix="(" suffix=")" prefixOverrides="and" >
-            <foreach collection="criteria.criteria" item="criterion" >
-              <choose >
-                <when test="criterion.noValue" >
-                  and ${criterion.condition}
-                </when>
-                <when test="criterion.singleValue" >
-                  and ${criterion.condition} #{criterion.value}
-                </when>
-                <when test="criterion.betweenValue" >
-                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
-                </when>
-                <when test="criterion.listValue" >
-                  and ${criterion.condition}
-                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
-                    #{listItem}
-                  </foreach>
-                </when>
-              </choose>
+
+    <resultMap id="BaseResultMap" type="project.jinshang.mod_product.bean.Orders" >
+        <id column="id" property="id" jdbcType="BIGINT" />
+        <result column="memberid" property="memberid" jdbcType="BIGINT" />
+        <result column="saleid" property="saleid" jdbcType="BIGINT" />
+        <result column="orderno" property="orderno" jdbcType="VARCHAR" />
+        <result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
+        <result column="province" property="province" jdbcType="VARCHAR" />
+        <result column="city" property="city" jdbcType="VARCHAR" />
+        <result column="area" property="area" jdbcType="VARCHAR" />
+        <result column="receivingaddress" property="receivingaddress" jdbcType="VARCHAR" />
+        <result column="freight" property="freight" jdbcType="NUMERIC" />
+        <result column="mailornot" property="mailornot" jdbcType="BIT" />
+        <result column="deposit" property="deposit" jdbcType="NUMERIC" />
+        <result column="balance" property="balance" jdbcType="NUMERIC" />
+        <result column="futuretime" property="futuretime" jdbcType="TIMESTAMP" />
+        <result column="totalprice" property="totalprice" jdbcType="NUMERIC" />
+        <result column="integral" property="integral" jdbcType="INTEGER" />
+        <result column="code" property="code" jdbcType="VARCHAR" />
+        <result column="deliverymode" property="deliverymode" jdbcType="SMALLINT" />
+        <result column="ordertype" property="ordertype" jdbcType="SMALLINT" />
+        <result column="storename" property="storename" jdbcType="VARCHAR" />
+        <result column="storeid" property="storeid" jdbcType="BIGINT" />
+        <result column="transactionnumber" property="transactionnumber" jdbcType="VARCHAR" />
+        <result column="paymentmethod" property="paymentmethod" jdbcType="SMALLINT" />
+        <result column="paymenttime" property="paymenttime" jdbcType="TIMESTAMP" />
+        <result column="sellerdeliverytime" property="sellerdeliverytime" jdbcType="TIMESTAMP" />
+        <result column="deliveryno" property="deliveryno" jdbcType="VARCHAR" />
+        <result column="buyerdeliverytime" property="buyerdeliverytime" jdbcType="TIMESTAMP" />
+        <result column="buyerinspectiontime" property="buyerinspectiontime" jdbcType="TIMESTAMP" />
+        <result column="orderstatus" property="orderstatus" jdbcType="SMALLINT" />
+        <result column="actualpayment" property="actualpayment" jdbcType="NUMERIC" />
+        <result column="couriernumber" property="couriernumber" jdbcType="VARCHAR" />
+        <result column="logisticscompany" property="logisticscompany" jdbcType="VARCHAR" />
+        <result column="isbilling" property="isbilling" jdbcType="SMALLINT" />
+        <result column="billingtype" property="billingtype" jdbcType="SMALLINT" />
+        <result column="uuid" property="uuid" jdbcType="VARCHAR" />
+        <result column="membercompany" property="membercompany" jdbcType="VARCHAR" />
+        <result column="isonline" property="isonline" jdbcType="SMALLINT" />
+        <result column="allpay" property="allpay" jdbcType="NUMERIC" />
+        <result column="phone" property="phone" jdbcType="VARCHAR" />
+        <result column="shipto" property="shipto" jdbcType="VARCHAR" />
+        <result column="isbackcredit" property="isbackcredit" jdbcType="SMALLINT" />
+        <result column="paytype" property="paytype" jdbcType="SMALLINT" />
+        <result column="membername" property="membername" jdbcType="VARCHAR" />
+        <result column="sellername" property="sellername" jdbcType="VARCHAR" />
+        <result column="shopname" property="shopname" jdbcType="VARCHAR" />
+        <result column="brokepay" property="brokepay" jdbcType="NUMERIC" />
+        <result column="frozepay" property="frozepay" jdbcType="NUMERIC" />
+        <result column="serverpay" property="serverpay" jdbcType="NUMERIC" />
+        <result column="yuuuid" property="yuuuid" jdbcType="VARCHAR" />
+        <result column="delaydays" property="delaydays" jdbcType="INTEGER" />
+        <result column="ifdelay" property="ifdelay" jdbcType="SMALLINT" />
+        <result column="delaypenalty" property="delaypenalty" jdbcType="NUMERIC" />
+        <result column="ordertime" property="ordertime" jdbcType="BIGINT" />
+        <result column="yuordertime" property="yuordertime" jdbcType="BIGINT" />
+        <result column="deliverybill" property="deliverybill" jdbcType="SMALLINT" />
+        <result column="transactionid" property="transactionid" jdbcType="VARCHAR" />
+        <result column="reason" property="reason" jdbcType="VARCHAR" />
+        <result column="deliverytype" property="deliverytype" jdbcType="SMALLINT" />
+        <result column="billtoserver" property="billtoserver" jdbcType="SMALLINT" />
+        <result column="clerkname" property="clerkname" jdbcType="VARCHAR" />
+        <result column="clerknamephone" property="clerknamephone" jdbcType="VARCHAR" />
+        <result column="waysalesman" property="waysalesman" jdbcType="VARCHAR" />
+        <result column="orderfright" property="orderfright" jdbcType="SMALLINT" />
+        <result column="frighttemplate" property="frighttemplate" jdbcType="VARCHAR" />
+        <result column="presellconfim" property="presellconfim" jdbcType="SMALLINT" />
+        <result column="prestocktime" property="prestocktime" jdbcType="DATE" />
+        <result column="forwardnoticephone" property="forwardnoticephone" jdbcType="VARCHAR" />
+        <result column="ticketno" property="ticketno" jdbcType="VARCHAR" />
+        <result column="isticket" property="isticket" jdbcType="SMALLINT" />
+        <result column="discountprice" property="discountprice" jdbcType="NUMERIC" />
+        <result column="ismodifyfreight" property="ismodifyfreight" jdbcType="SMALLINT" />
+    </resultMap>
+
+    <sql id="Example_Where_Clause" >
+        <where >
+            <foreach collection="oredCriteria" item="criteria" separator="or" >
+                <if test="criteria.valid" >
+                    <trim prefix="(" suffix=")" prefixOverrides="and" >
+                        <foreach collection="criteria.criteria" item="criterion" >
+                            <choose >
+                                <when test="criterion.noValue" >
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue" >
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue" >
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue" >
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
             </foreach>
-          </trim>
-        </if>
-      </foreach>
-    </where>
-  </sql>
-  <sql id="Update_By_Example_Where_Clause" >
-    <where >
-      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
-        <if test="criteria.valid" >
-          <trim prefix="(" suffix=")" prefixOverrides="and" >
-            <foreach collection="criteria.criteria" item="criterion" >
-              <choose >
-                <when test="criterion.noValue" >
-                  and ${criterion.condition}
-                </when>
-                <when test="criterion.singleValue" >
-                  and ${criterion.condition} #{criterion.value}
-                </when>
-                <when test="criterion.betweenValue" >
-                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
-                </when>
-                <when test="criterion.listValue" >
-                  and ${criterion.condition}
-                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
-                    #{listItem}
-                  </foreach>
-                </when>
-              </choose>
+        </where>
+    </sql>
+
+    <sql id="Update_By_Example_Where_Clause" >
+        <where >
+            <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+                <if test="criteria.valid" >
+                    <trim prefix="(" suffix=")" prefixOverrides="and" >
+                        <foreach collection="criteria.criteria" item="criterion" >
+                            <choose >
+                                <when test="criterion.noValue" >
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue" >
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue" >
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue" >
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
             </foreach>
-          </trim>
+        </where>
+    </sql>
+
+    <sql id="Base_Column_List" >
+        id, memberid, saleid, orderno, createtime, province, city, area, receivingaddress,
+        freight, mailornot, deposit, balance, futuretime, totalprice, integral, code, deliverymode,
+        ordertype, storename, storeid, transactionnumber, paymentmethod, paymenttime, sellerdeliverytime,
+        deliveryno, buyerdeliverytime, buyerinspectiontime, orderstatus, actualpayment, couriernumber,
+        logisticscompany, isbilling, billingtype, uuid, membercompany, isonline, allpay,
+        phone, shipto, isbackcredit, paytype, membername, sellername, shopname, brokepay,
+        frozepay, serverpay, yuuuid, delaydays, ifdelay, delaypenalty, ordertime, yuordertime,
+        deliverybill, transactionid, reason, deliverytype, billtoserver, clerkname, clerknamephone,
+        waysalesman, orderfright, frighttemplate, presellconfim, prestocktime, forwardnoticephone,
+        ticketno, isticket, discountprice, ismodifyfreight
+    </sql>
+
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_product.bean.OrdersExample" >
+        select
+        <if test="distinct" >
+            distinct
         </if>
-      </foreach>
-    </where>
-  </sql>
-  <sql id="Base_Column_List" >
-    id, memberid, saleid, orderno, createtime, province, city, area, receivingaddress, 
-    freight, mailornot, deposit, balance, futuretime, totalprice, integral, code, deliverymode, 
-    ordertype, storename, storeid, transactionnumber, paymentmethod, paymenttime, sellerdeliverytime, 
-    deliveryno, buyerdeliverytime, buyerinspectiontime, orderstatus, actualpayment, couriernumber, 
-    logisticscompany, isbilling, billingtype, uuid, membercompany, isonline, allpay, 
-    phone, shipto, isbackcredit, paytype, membername, sellername, shopname, brokepay, 
-    frozepay, serverpay, yuuuid, delaydays, ifdelay, delaypenalty, ordertime, yuordertime, 
-    deliverybill, transactionid, reason, deliverytype, billtoserver, clerkname, clerknamephone, 
-    waysalesman, presellconfim, prestocktime, forwardnoticephone, orderfright, frighttemplate
-  </sql>
-  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_product.bean.OrdersExample" >
-    select
-    <if test="distinct" >
-      distinct
-    </if>
-    'true' as QUERYID,
-    <include refid="Base_Column_List" />
-    from orders
-    <if test="_parameter != null" >
-      <include refid="Example_Where_Clause" />
-    </if>
-    <if test="orderByClause != null" >
-      order by ${orderByClause}
-    </if>
-  </select>
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
-    select 
-    <include refid="Base_Column_List" />
-    from orders
-    where id = #{id,jdbcType=BIGINT}
-  </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
-    delete from orders
-    where id = #{id,jdbcType=BIGINT}
-  </delete>
-  <delete id="deleteByExample" parameterType="project.jinshang.mod_product.bean.OrdersExample" >
-    delete from orders
-    <if test="_parameter != null" >
-      <include refid="Example_Where_Clause" />
-    </if>
-  </delete>
-  <insert id="insert" parameterType="project.jinshang.mod_product.bean.Orders" >
-    insert into orders (id, memberid, saleid, 
-      orderno, createtime, province, 
-      city, area, receivingaddress, 
-      freight, mailornot, deposit, 
-      balance, futuretime, totalprice, 
-      integral, code, deliverymode, 
-      ordertype, storename, storeid, 
-      transactionnumber, paymentmethod, paymenttime, 
-      sellerdeliverytime, deliveryno, buyerdeliverytime, 
-      buyerinspectiontime, orderstatus, actualpayment, 
-      couriernumber, logisticscompany, isbilling, 
-      billingtype, uuid, membercompany, 
-      isonline, allpay, phone, 
-      shipto, isbackcredit, paytype, 
-      membername, sellername, shopname, 
-      brokepay, frozepay, serverpay, 
-      yuuuid, delaydays, ifdelay, 
-      delaypenalty, ordertime, yuordertime, 
-      deliverybill, transactionid, reason, 
-      deliverytype, billtoserver, clerkname, 
-      clerknamephone, waysalesman, presellconfim, 
-      prestocktime, forwardnoticephone, orderfright, 
-      frighttemplate)
-    values (#{id,jdbcType=BIGINT}, #{memberid,jdbcType=BIGINT}, #{saleid,jdbcType=BIGINT}, 
-      #{orderno,jdbcType=VARCHAR}, #{createtime,jdbcType=TIMESTAMP}, #{province,jdbcType=VARCHAR}, 
-      #{city,jdbcType=VARCHAR}, #{area,jdbcType=VARCHAR}, #{receivingaddress,jdbcType=VARCHAR}, 
-      #{freight,jdbcType=NUMERIC}, #{mailornot,jdbcType=BIT}, #{deposit,jdbcType=NUMERIC}, 
-      #{balance,jdbcType=NUMERIC}, #{futuretime,jdbcType=TIMESTAMP}, #{totalprice,jdbcType=NUMERIC}, 
-      #{integral,jdbcType=INTEGER}, #{code,jdbcType=VARCHAR}, #{deliverymode,jdbcType=SMALLINT}, 
-      #{ordertype,jdbcType=SMALLINT}, #{storename,jdbcType=VARCHAR}, #{storeid,jdbcType=BIGINT}, 
-      #{transactionnumber,jdbcType=VARCHAR}, #{paymentmethod,jdbcType=SMALLINT}, #{paymenttime,jdbcType=TIMESTAMP}, 
-      #{sellerdeliverytime,jdbcType=TIMESTAMP}, #{deliveryno,jdbcType=VARCHAR}, #{buyerdeliverytime,jdbcType=TIMESTAMP}, 
-      #{buyerinspectiontime,jdbcType=TIMESTAMP}, #{orderstatus,jdbcType=SMALLINT}, #{actualpayment,jdbcType=NUMERIC}, 
-      #{couriernumber,jdbcType=VARCHAR}, #{logisticscompany,jdbcType=VARCHAR}, #{isbilling,jdbcType=SMALLINT}, 
-      #{billingtype,jdbcType=SMALLINT}, #{uuid,jdbcType=VARCHAR}, #{membercompany,jdbcType=VARCHAR}, 
-      #{isonline,jdbcType=SMALLINT}, #{allpay,jdbcType=NUMERIC}, #{phone,jdbcType=VARCHAR}, 
-      #{shipto,jdbcType=VARCHAR}, #{isbackcredit,jdbcType=SMALLINT}, #{paytype,jdbcType=SMALLINT}, 
-      #{membername,jdbcType=VARCHAR}, #{sellername,jdbcType=VARCHAR}, #{shopname,jdbcType=VARCHAR}, 
-      #{brokepay,jdbcType=NUMERIC}, #{frozepay,jdbcType=NUMERIC}, #{serverpay,jdbcType=NUMERIC}, 
-      #{yuuuid,jdbcType=VARCHAR}, #{delaydays,jdbcType=INTEGER}, #{ifdelay,jdbcType=SMALLINT}, 
-      #{delaypenalty,jdbcType=NUMERIC}, #{ordertime,jdbcType=BIGINT}, #{yuordertime,jdbcType=BIGINT}, 
-      #{deliverybill,jdbcType=SMALLINT}, #{transactionid,jdbcType=VARCHAR}, #{reason,jdbcType=VARCHAR}, 
-      #{deliverytype,jdbcType=SMALLINT}, #{billtoserver,jdbcType=SMALLINT}, #{clerkname,jdbcType=VARCHAR}, 
-      #{clerknamephone,jdbcType=VARCHAR}, #{waysalesman,jdbcType=VARCHAR}, #{presellconfim,jdbcType=SMALLINT}, 
-      #{prestocktime,jdbcType=DATE}, #{forwardnoticephone,jdbcType=VARCHAR}, #{orderfright,jdbcType=SMALLINT}, 
-      #{frighttemplate,jdbcType=VARCHAR})
-  </insert>
-  <insert id="insertSelective" parameterType="project.jinshang.mod_product.bean.Orders" useGeneratedKeys="true" keyProperty="id">
-    insert into orders
-    <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        id,
-      </if>
-      <if test="memberid != null" >
-        memberid,
-      </if>
-      <if test="saleid != null" >
-        saleid,
-      </if>
-      <if test="orderno != null" >
-        orderno,
-      </if>
-      <if test="createtime != null" >
-        createtime,
-      </if>
-      <if test="province != null" >
-        province,
-      </if>
-      <if test="city != null" >
-        city,
-      </if>
-      <if test="area != null" >
-        area,
-      </if>
-      <if test="receivingaddress != null" >
-        receivingaddress,
-      </if>
-      <if test="freight != null" >
-        freight,
-      </if>
-      <if test="mailornot != null" >
-        mailornot,
-      </if>
-      <if test="deposit != null" >
-        deposit,
-      </if>
-      <if test="balance != null" >
-        balance,
-      </if>
-      <if test="futuretime != null" >
-        futuretime,
-      </if>
-      <if test="totalprice != null" >
-        totalprice,
-      </if>
-      <if test="integral != null" >
-        integral,
-      </if>
-      <if test="code != null" >
-        code,
-      </if>
-      <if test="deliverymode != null" >
-        deliverymode,
-      </if>
-      <if test="ordertype != null" >
-        ordertype,
-      </if>
-      <if test="storename != null" >
-        storename,
-      </if>
-      <if test="storeid != null" >
-        storeid,
-      </if>
-      <if test="transactionnumber != null" >
-        transactionnumber,
-      </if>
-      <if test="paymentmethod != null" >
-        paymentmethod,
-      </if>
-      <if test="paymenttime != null" >
-        paymenttime,
-      </if>
-      <if test="sellerdeliverytime != null" >
-        sellerdeliverytime,
-      </if>
-      <if test="deliveryno != null" >
-        deliveryno,
-      </if>
-      <if test="buyerdeliverytime != null" >
-        buyerdeliverytime,
-      </if>
-      <if test="buyerinspectiontime != null" >
-        buyerinspectiontime,
-      </if>
-      <if test="orderstatus != null" >
-        orderstatus,
-      </if>
-      <if test="actualpayment != null" >
-        actualpayment,
-      </if>
-      <if test="couriernumber != null" >
-        couriernumber,
-      </if>
-      <if test="logisticscompany != null" >
-        logisticscompany,
-      </if>
-      <if test="isbilling != null" >
-        isbilling,
-      </if>
-      <if test="billingtype != null" >
-        billingtype,
-      </if>
-      <if test="uuid != null" >
-        uuid,
-      </if>
-      <if test="membercompany != null" >
-        membercompany,
-      </if>
-      <if test="isonline != null" >
-        isonline,
-      </if>
-      <if test="allpay != null" >
-        allpay,
-      </if>
-      <if test="phone != null" >
-        phone,
-      </if>
-      <if test="shipto != null" >
-        shipto,
-      </if>
-      <if test="isbackcredit != null" >
-        isbackcredit,
-      </if>
-      <if test="paytype != null" >
-        paytype,
-      </if>
-      <if test="membername != null" >
-        membername,
-      </if>
-      <if test="sellername != null" >
-        sellername,
-      </if>
-      <if test="shopname != null" >
-        shopname,
-      </if>
-      <if test="brokepay != null" >
-        brokepay,
-      </if>
-      <if test="frozepay != null" >
-        frozepay,
-      </if>
-      <if test="serverpay != null" >
-        serverpay,
-      </if>
-      <if test="yuuuid != null" >
-        yuuuid,
-      </if>
-      <if test="delaydays != null" >
-        delaydays,
-      </if>
-      <if test="ifdelay != null" >
-        ifdelay,
-      </if>
-      <if test="delaypenalty != null" >
-        delaypenalty,
-      </if>
-      <if test="ordertime != null" >
-        ordertime,
-      </if>
-      <if test="yuordertime != null" >
-        yuordertime,
-      </if>
-      <if test="deliverybill != null" >
-        deliverybill,
-      </if>
-      <if test="transactionid != null" >
-        transactionid,
-      </if>
-      <if test="reason != null" >
-        reason,
-      </if>
-      <if test="deliverytype != null" >
-        deliverytype,
-      </if>
-      <if test="billtoserver != null" >
-        billtoserver,
-      </if>
-      <if test="clerkname != null" >
-        clerkname,
-      </if>
-      <if test="clerknamephone != null" >
-        clerknamephone,
-      </if>
-      <if test="waysalesman != null" >
-        waysalesman,
-      </if>
-      <if test="presellconfim != null" >
-        presellconfim,
-      </if>
-      <if test="prestocktime != null" >
-        prestocktime,
-      </if>
-      <if test="forwardnoticephone != null" >
-        forwardnoticephone,
-      </if>
-      <if test="orderfright != null" >
-        orderfright,
-      </if>
-      <if test="frighttemplate != null" >
-        frighttemplate,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        #{id,jdbcType=BIGINT},
-      </if>
-      <if test="memberid != null" >
-        #{memberid,jdbcType=BIGINT},
-      </if>
-      <if test="saleid != null" >
-        #{saleid,jdbcType=BIGINT},
-      </if>
-      <if test="orderno != null" >
-        #{orderno,jdbcType=VARCHAR},
-      </if>
-      <if test="createtime != null" >
-        #{createtime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="province != null" >
-        #{province,jdbcType=VARCHAR},
-      </if>
-      <if test="city != null" >
-        #{city,jdbcType=VARCHAR},
-      </if>
-      <if test="area != null" >
-        #{area,jdbcType=VARCHAR},
-      </if>
-      <if test="receivingaddress != null" >
-        #{receivingaddress,jdbcType=VARCHAR},
-      </if>
-      <if test="freight != null" >
-        #{freight,jdbcType=NUMERIC},
-      </if>
-      <if test="mailornot != null" >
-        #{mailornot,jdbcType=BIT},
-      </if>
-      <if test="deposit != null" >
-        #{deposit,jdbcType=NUMERIC},
-      </if>
-      <if test="balance != null" >
-        #{balance,jdbcType=NUMERIC},
-      </if>
-      <if test="futuretime != null" >
-        #{futuretime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="totalprice != null" >
-        #{totalprice,jdbcType=NUMERIC},
-      </if>
-      <if test="integral != null" >
-        #{integral,jdbcType=INTEGER},
-      </if>
-      <if test="code != null" >
-        #{code,jdbcType=VARCHAR},
-      </if>
-      <if test="deliverymode != null" >
-        #{deliverymode,jdbcType=SMALLINT},
-      </if>
-      <if test="ordertype != null" >
-        #{ordertype,jdbcType=SMALLINT},
-      </if>
-      <if test="storename != null" >
-        #{storename,jdbcType=VARCHAR},
-      </if>
-      <if test="storeid != null" >
-        #{storeid,jdbcType=BIGINT},
-      </if>
-      <if test="transactionnumber != null" >
-        #{transactionnumber,jdbcType=VARCHAR},
-      </if>
-      <if test="paymentmethod != null" >
-        #{paymentmethod,jdbcType=SMALLINT},
-      </if>
-      <if test="paymenttime != null" >
-        #{paymenttime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="sellerdeliverytime != null" >
-        #{sellerdeliverytime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="deliveryno != null" >
-        #{deliveryno,jdbcType=VARCHAR},
-      </if>
-      <if test="buyerdeliverytime != null" >
-        #{buyerdeliverytime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="buyerinspectiontime != null" >
-        #{buyerinspectiontime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="orderstatus != null" >
-        #{orderstatus,jdbcType=SMALLINT},
-      </if>
-      <if test="actualpayment != null" >
-        #{actualpayment,jdbcType=NUMERIC},
-      </if>
-      <if test="couriernumber != null" >
-        #{couriernumber,jdbcType=VARCHAR},
-      </if>
-      <if test="logisticscompany != null" >
-        #{logisticscompany,jdbcType=VARCHAR},
-      </if>
-      <if test="isbilling != null" >
-        #{isbilling,jdbcType=SMALLINT},
-      </if>
-      <if test="billingtype != null" >
-        #{billingtype,jdbcType=SMALLINT},
-      </if>
-      <if test="uuid != null" >
-        #{uuid,jdbcType=VARCHAR},
-      </if>
-      <if test="membercompany != null" >
-        #{membercompany,jdbcType=VARCHAR},
-      </if>
-      <if test="isonline != null" >
-        #{isonline,jdbcType=SMALLINT},
-      </if>
-      <if test="allpay != null" >
-        #{allpay,jdbcType=NUMERIC},
-      </if>
-      <if test="phone != null" >
-        #{phone,jdbcType=VARCHAR},
-      </if>
-      <if test="shipto != null" >
-        #{shipto,jdbcType=VARCHAR},
-      </if>
-      <if test="isbackcredit != null" >
-        #{isbackcredit,jdbcType=SMALLINT},
-      </if>
-      <if test="paytype != null" >
-        #{paytype,jdbcType=SMALLINT},
-      </if>
-      <if test="membername != null" >
-        #{membername,jdbcType=VARCHAR},
-      </if>
-      <if test="sellername != null" >
-        #{sellername,jdbcType=VARCHAR},
-      </if>
-      <if test="shopname != null" >
-        #{shopname,jdbcType=VARCHAR},
-      </if>
-      <if test="brokepay != null" >
-        #{brokepay,jdbcType=NUMERIC},
-      </if>
-      <if test="frozepay != null" >
-        #{frozepay,jdbcType=NUMERIC},
-      </if>
-      <if test="serverpay != null" >
-        #{serverpay,jdbcType=NUMERIC},
-      </if>
-      <if test="yuuuid != null" >
-        #{yuuuid,jdbcType=VARCHAR},
-      </if>
-      <if test="delaydays != null" >
-        #{delaydays,jdbcType=INTEGER},
-      </if>
-      <if test="ifdelay != null" >
-        #{ifdelay,jdbcType=SMALLINT},
-      </if>
-      <if test="delaypenalty != null" >
-        #{delaypenalty,jdbcType=NUMERIC},
-      </if>
-      <if test="ordertime != null" >
-        #{ordertime,jdbcType=BIGINT},
-      </if>
-      <if test="yuordertime != null" >
-        #{yuordertime,jdbcType=BIGINT},
-      </if>
-      <if test="deliverybill != null" >
-        #{deliverybill,jdbcType=SMALLINT},
-      </if>
-      <if test="transactionid != null" >
-        #{transactionid,jdbcType=VARCHAR},
-      </if>
-      <if test="reason != null" >
-        #{reason,jdbcType=VARCHAR},
-      </if>
-      <if test="deliverytype != null" >
-        #{deliverytype,jdbcType=SMALLINT},
-      </if>
-      <if test="billtoserver != null" >
-        #{billtoserver,jdbcType=SMALLINT},
-      </if>
-      <if test="clerkname != null" >
-        #{clerkname,jdbcType=VARCHAR},
-      </if>
-      <if test="clerknamephone != null" >
-        #{clerknamephone,jdbcType=VARCHAR},
-      </if>
-      <if test="waysalesman != null" >
-        #{waysalesman,jdbcType=VARCHAR},
-      </if>
-      <if test="presellconfim != null" >
-        #{presellconfim,jdbcType=SMALLINT},
-      </if>
-      <if test="prestocktime != null" >
-        #{prestocktime,jdbcType=DATE},
-      </if>
-      <if test="forwardnoticephone != null" >
-        #{forwardnoticephone,jdbcType=VARCHAR},
-      </if>
-      <if test="orderfright != null" >
-        #{orderfright,jdbcType=SMALLINT},
-      </if>
-      <if test="frighttemplate != null" >
-        #{frighttemplate,jdbcType=VARCHAR},
-      </if>
-    </trim>
-  </insert>
-  <select id="countByExample" parameterType="project.jinshang.mod_product.bean.OrdersExample" resultType="java.lang.Integer" >
-    select count(*) from orders
-    <if test="_parameter != null" >
-      <include refid="Example_Where_Clause" />
-    </if>
-  </select>
-  <update id="updateByExampleSelective" parameterType="map" >
-    update orders
-    <set >
-      <if test="record.id != null" >
-        id = #{record.id,jdbcType=BIGINT},
-      </if>
-      <if test="record.memberid != null" >
-        memberid = #{record.memberid,jdbcType=BIGINT},
-      </if>
-      <if test="record.saleid != null" >
-        saleid = #{record.saleid,jdbcType=BIGINT},
-      </if>
-      <if test="record.orderno != null" >
-        orderno = #{record.orderno,jdbcType=VARCHAR},
-      </if>
-      <if test="record.createtime != null" >
-        createtime = #{record.createtime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="record.province != null" >
-        province = #{record.province,jdbcType=VARCHAR},
-      </if>
-      <if test="record.city != null" >
-        city = #{record.city,jdbcType=VARCHAR},
-      </if>
-      <if test="record.area != null" >
-        area = #{record.area,jdbcType=VARCHAR},
-      </if>
-      <if test="record.receivingaddress != null" >
-        receivingaddress = #{record.receivingaddress,jdbcType=VARCHAR},
-      </if>
-      <if test="record.freight != null" >
-        freight = #{record.freight,jdbcType=NUMERIC},
-      </if>
-      <if test="record.mailornot != null" >
-        mailornot = #{record.mailornot,jdbcType=BIT},
-      </if>
-      <if test="record.deposit != null" >
-        deposit = #{record.deposit,jdbcType=NUMERIC},
-      </if>
-      <if test="record.balance != null" >
-        balance = #{record.balance,jdbcType=NUMERIC},
-      </if>
-      <if test="record.futuretime != null" >
-        futuretime = #{record.futuretime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="record.totalprice != null" >
-        totalprice = #{record.totalprice,jdbcType=NUMERIC},
-      </if>
-      <if test="record.integral != null" >
-        integral = #{record.integral,jdbcType=INTEGER},
-      </if>
-      <if test="record.code != null" >
-        code = #{record.code,jdbcType=VARCHAR},
-      </if>
-      <if test="record.deliverymode != null" >
-        deliverymode = #{record.deliverymode,jdbcType=SMALLINT},
-      </if>
-      <if test="record.ordertype != null" >
-        ordertype = #{record.ordertype,jdbcType=SMALLINT},
-      </if>
-      <if test="record.storename != null" >
-        storename = #{record.storename,jdbcType=VARCHAR},
-      </if>
-      <if test="record.storeid != null" >
-        storeid = #{record.storeid,jdbcType=BIGINT},
-      </if>
-      <if test="record.transactionnumber != null" >
-        transactionnumber = #{record.transactionnumber,jdbcType=VARCHAR},
-      </if>
-      <if test="record.paymentmethod != null" >
-        paymentmethod = #{record.paymentmethod,jdbcType=SMALLINT},
-      </if>
-      <if test="record.paymenttime != null" >
-        paymenttime = #{record.paymenttime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="record.sellerdeliverytime != null" >
-        sellerdeliverytime = #{record.sellerdeliverytime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="record.deliveryno != null" >
-        deliveryno = #{record.deliveryno,jdbcType=VARCHAR},
-      </if>
-      <if test="record.buyerdeliverytime != null" >
-        buyerdeliverytime = #{record.buyerdeliverytime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="record.buyerinspectiontime != null" >
-        buyerinspectiontime = #{record.buyerinspectiontime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="record.orderstatus != null" >
-        orderstatus = #{record.orderstatus,jdbcType=SMALLINT},
-      </if>
-      <if test="record.actualpayment != null" >
-        actualpayment = #{record.actualpayment,jdbcType=NUMERIC},
-      </if>
-      <if test="record.couriernumber != null" >
-        couriernumber = #{record.couriernumber,jdbcType=VARCHAR},
-      </if>
-      <if test="record.logisticscompany != null" >
-        logisticscompany = #{record.logisticscompany,jdbcType=VARCHAR},
-      </if>
-      <if test="record.isbilling != null" >
-        isbilling = #{record.isbilling,jdbcType=SMALLINT},
-      </if>
-      <if test="record.billingtype != null" >
-        billingtype = #{record.billingtype,jdbcType=SMALLINT},
-      </if>
-      <if test="record.uuid != null" >
-        uuid = #{record.uuid,jdbcType=VARCHAR},
-      </if>
-      <if test="record.membercompany != null" >
-        membercompany = #{record.membercompany,jdbcType=VARCHAR},
-      </if>
-      <if test="record.isonline != null" >
-        isonline = #{record.isonline,jdbcType=SMALLINT},
-      </if>
-      <if test="record.allpay != null" >
-        allpay = #{record.allpay,jdbcType=NUMERIC},
-      </if>
-      <if test="record.phone != null" >
-        phone = #{record.phone,jdbcType=VARCHAR},
-      </if>
-      <if test="record.shipto != null" >
-        shipto = #{record.shipto,jdbcType=VARCHAR},
-      </if>
-      <if test="record.isbackcredit != null" >
-        isbackcredit = #{record.isbackcredit,jdbcType=SMALLINT},
-      </if>
-      <if test="record.paytype != null" >
-        paytype = #{record.paytype,jdbcType=SMALLINT},
-      </if>
-      <if test="record.membername != null" >
-        membername = #{record.membername,jdbcType=VARCHAR},
-      </if>
-      <if test="record.sellername != null" >
-        sellername = #{record.sellername,jdbcType=VARCHAR},
-      </if>
-      <if test="record.shopname != null" >
-        shopname = #{record.shopname,jdbcType=VARCHAR},
-      </if>
-      <if test="record.brokepay != null" >
-        brokepay = #{record.brokepay,jdbcType=NUMERIC},
-      </if>
-      <if test="record.frozepay != null" >
-        frozepay = #{record.frozepay,jdbcType=NUMERIC},
-      </if>
-      <if test="record.serverpay != null" >
-        serverpay = #{record.serverpay,jdbcType=NUMERIC},
-      </if>
-      <if test="record.yuuuid != null" >
-        yuuuid = #{record.yuuuid,jdbcType=VARCHAR},
-      </if>
-      <if test="record.delaydays != null" >
-        delaydays = #{record.delaydays,jdbcType=INTEGER},
-      </if>
-      <if test="record.ifdelay != null" >
-        ifdelay = #{record.ifdelay,jdbcType=SMALLINT},
-      </if>
-      <if test="record.delaypenalty != null" >
-        delaypenalty = #{record.delaypenalty,jdbcType=NUMERIC},
-      </if>
-      <if test="record.ordertime != null" >
-        ordertime = #{record.ordertime,jdbcType=BIGINT},
-      </if>
-      <if test="record.yuordertime != null" >
-        yuordertime = #{record.yuordertime,jdbcType=BIGINT},
-      </if>
-      <if test="record.deliverybill != null" >
-        deliverybill = #{record.deliverybill,jdbcType=SMALLINT},
-      </if>
-      <if test="record.transactionid != null" >
-        transactionid = #{record.transactionid,jdbcType=VARCHAR},
-      </if>
-      <if test="record.reason != null" >
-        reason = #{record.reason,jdbcType=VARCHAR},
-      </if>
-      <if test="record.deliverytype != null" >
-        deliverytype = #{record.deliverytype,jdbcType=SMALLINT},
-      </if>
-      <if test="record.billtoserver != null" >
-        billtoserver = #{record.billtoserver,jdbcType=SMALLINT},
-      </if>
-      <if test="record.clerkname != null" >
-        clerkname = #{record.clerkname,jdbcType=VARCHAR},
-      </if>
-      <if test="record.clerknamephone != null" >
-        clerknamephone = #{record.clerknamephone,jdbcType=VARCHAR},
-      </if>
-      <if test="record.waysalesman != null" >
-        waysalesman = #{record.waysalesman,jdbcType=VARCHAR},
-      </if>
-      <if test="record.presellconfim != null" >
-        presellconfim = #{record.presellconfim,jdbcType=SMALLINT},
-      </if>
-      <if test="record.prestocktime != null" >
-        prestocktime = #{record.prestocktime,jdbcType=DATE},
-      </if>
-      <if test="record.forwardnoticephone != null" >
-        forwardnoticephone = #{record.forwardnoticephone,jdbcType=VARCHAR},
-      </if>
-      <if test="record.orderfright != null" >
-        orderfright = #{record.orderfright,jdbcType=SMALLINT},
-      </if>
-      <if test="record.frighttemplate != null" >
-        frighttemplate = #{record.frighttemplate,jdbcType=VARCHAR},
-      </if>
-    </set>
-    <if test="_parameter != null" >
-      <include refid="Update_By_Example_Where_Clause" />
-    </if>
-  </update>
-  <update id="updateByExample" parameterType="map" >
-    update orders
-    set id = #{record.id,jdbcType=BIGINT},
-      memberid = #{record.memberid,jdbcType=BIGINT},
-      saleid = #{record.saleid,jdbcType=BIGINT},
-      orderno = #{record.orderno,jdbcType=VARCHAR},
-      createtime = #{record.createtime,jdbcType=TIMESTAMP},
-      province = #{record.province,jdbcType=VARCHAR},
-      city = #{record.city,jdbcType=VARCHAR},
-      area = #{record.area,jdbcType=VARCHAR},
-      receivingaddress = #{record.receivingaddress,jdbcType=VARCHAR},
-      freight = #{record.freight,jdbcType=NUMERIC},
-      mailornot = #{record.mailornot,jdbcType=BIT},
-      deposit = #{record.deposit,jdbcType=NUMERIC},
-      balance = #{record.balance,jdbcType=NUMERIC},
-      futuretime = #{record.futuretime,jdbcType=TIMESTAMP},
-      totalprice = #{record.totalprice,jdbcType=NUMERIC},
-      integral = #{record.integral,jdbcType=INTEGER},
-      code = #{record.code,jdbcType=VARCHAR},
-      deliverymode = #{record.deliverymode,jdbcType=SMALLINT},
-      ordertype = #{record.ordertype,jdbcType=SMALLINT},
-      storename = #{record.storename,jdbcType=VARCHAR},
-      storeid = #{record.storeid,jdbcType=BIGINT},
-      transactionnumber = #{record.transactionnumber,jdbcType=VARCHAR},
-      paymentmethod = #{record.paymentmethod,jdbcType=SMALLINT},
-      paymenttime = #{record.paymenttime,jdbcType=TIMESTAMP},
-      sellerdeliverytime = #{record.sellerdeliverytime,jdbcType=TIMESTAMP},
-      deliveryno = #{record.deliveryno,jdbcType=VARCHAR},
-      buyerdeliverytime = #{record.buyerdeliverytime,jdbcType=TIMESTAMP},
-      buyerinspectiontime = #{record.buyerinspectiontime,jdbcType=TIMESTAMP},
-      orderstatus = #{record.orderstatus,jdbcType=SMALLINT},
-      actualpayment = #{record.actualpayment,jdbcType=NUMERIC},
-      couriernumber = #{record.couriernumber,jdbcType=VARCHAR},
-      logisticscompany = #{record.logisticscompany,jdbcType=VARCHAR},
-      isbilling = #{record.isbilling,jdbcType=SMALLINT},
-      billingtype = #{record.billingtype,jdbcType=SMALLINT},
-      uuid = #{record.uuid,jdbcType=VARCHAR},
-      membercompany = #{record.membercompany,jdbcType=VARCHAR},
-      isonline = #{record.isonline,jdbcType=SMALLINT},
-      allpay = #{record.allpay,jdbcType=NUMERIC},
-      phone = #{record.phone,jdbcType=VARCHAR},
-      shipto = #{record.shipto,jdbcType=VARCHAR},
-      isbackcredit = #{record.isbackcredit,jdbcType=SMALLINT},
-      paytype = #{record.paytype,jdbcType=SMALLINT},
-      membername = #{record.membername,jdbcType=VARCHAR},
-      sellername = #{record.sellername,jdbcType=VARCHAR},
-      shopname = #{record.shopname,jdbcType=VARCHAR},
-      brokepay = #{record.brokepay,jdbcType=NUMERIC},
-      frozepay = #{record.frozepay,jdbcType=NUMERIC},
-      serverpay = #{record.serverpay,jdbcType=NUMERIC},
-      yuuuid = #{record.yuuuid,jdbcType=VARCHAR},
-      delaydays = #{record.delaydays,jdbcType=INTEGER},
-      ifdelay = #{record.ifdelay,jdbcType=SMALLINT},
-      delaypenalty = #{record.delaypenalty,jdbcType=NUMERIC},
-      ordertime = #{record.ordertime,jdbcType=BIGINT},
-      yuordertime = #{record.yuordertime,jdbcType=BIGINT},
-      deliverybill = #{record.deliverybill,jdbcType=SMALLINT},
-      transactionid = #{record.transactionid,jdbcType=VARCHAR},
-      reason = #{record.reason,jdbcType=VARCHAR},
-      deliverytype = #{record.deliverytype,jdbcType=SMALLINT},
-      billtoserver = #{record.billtoserver,jdbcType=SMALLINT},
-      clerkname = #{record.clerkname,jdbcType=VARCHAR},
-      clerknamephone = #{record.clerknamephone,jdbcType=VARCHAR},
-      waysalesman = #{record.waysalesman,jdbcType=VARCHAR},
-      presellconfim = #{record.presellconfim,jdbcType=SMALLINT},
-      prestocktime = #{record.prestocktime,jdbcType=DATE},
-      forwardnoticephone = #{record.forwardnoticephone,jdbcType=VARCHAR},
-      orderfright = #{record.orderfright,jdbcType=SMALLINT},
-      frighttemplate = #{record.frighttemplate,jdbcType=VARCHAR}
-    <if test="_parameter != null" >
-      <include refid="Update_By_Example_Where_Clause" />
-    </if>
-  </update>
-  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_product.bean.Orders" >
-    update orders
-    <set >
-      <if test="memberid != null" >
-        memberid = #{memberid,jdbcType=BIGINT},
-      </if>
-      <if test="saleid != null" >
-        saleid = #{saleid,jdbcType=BIGINT},
-      </if>
-      <if test="orderno != null" >
-        orderno = #{orderno,jdbcType=VARCHAR},
-      </if>
-      <if test="createtime != null" >
-        createtime = #{createtime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="province != null" >
-        province = #{province,jdbcType=VARCHAR},
-      </if>
-      <if test="city != null" >
-        city = #{city,jdbcType=VARCHAR},
-      </if>
-      <if test="area != null" >
-        area = #{area,jdbcType=VARCHAR},
-      </if>
-      <if test="receivingaddress != null" >
-        receivingaddress = #{receivingaddress,jdbcType=VARCHAR},
-      </if>
-      <if test="freight != null" >
-        freight = #{freight,jdbcType=NUMERIC},
-      </if>
-      <if test="mailornot != null" >
-        mailornot = #{mailornot,jdbcType=BIT},
-      </if>
-      <if test="deposit != null" >
-        deposit = #{deposit,jdbcType=NUMERIC},
-      </if>
-      <if test="balance != null" >
-        balance = #{balance,jdbcType=NUMERIC},
-      </if>
-      <if test="futuretime != null" >
-        futuretime = #{futuretime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="totalprice != null" >
-        totalprice = #{totalprice,jdbcType=NUMERIC},
-      </if>
-      <if test="integral != null" >
-        integral = #{integral,jdbcType=INTEGER},
-      </if>
-      <if test="code != null" >
-        code = #{code,jdbcType=VARCHAR},
-      </if>
-      <if test="deliverymode != null" >
-        deliverymode = #{deliverymode,jdbcType=SMALLINT},
-      </if>
-      <if test="ordertype != null" >
-        ordertype = #{ordertype,jdbcType=SMALLINT},
-      </if>
-      <if test="storename != null" >
-        storename = #{storename,jdbcType=VARCHAR},
-      </if>
-      <if test="storeid != null" >
-        storeid = #{storeid,jdbcType=BIGINT},
-      </if>
-      <if test="transactionnumber != null" >
-        transactionnumber = #{transactionnumber,jdbcType=VARCHAR},
-      </if>
-      <if test="paymentmethod != null" >
-        paymentmethod = #{paymentmethod,jdbcType=SMALLINT},
-      </if>
-      <if test="paymenttime != null" >
-        paymenttime = #{paymenttime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="sellerdeliverytime != null" >
-        sellerdeliverytime = #{sellerdeliverytime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="deliveryno != null" >
-        deliveryno = #{deliveryno,jdbcType=VARCHAR},
-      </if>
-      <if test="buyerdeliverytime != null" >
-        buyerdeliverytime = #{buyerdeliverytime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="buyerinspectiontime != null" >
-        buyerinspectiontime = #{buyerinspectiontime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="orderstatus != null" >
-        orderstatus = #{orderstatus,jdbcType=SMALLINT},
-      </if>
-      <if test="actualpayment != null" >
-        actualpayment = #{actualpayment,jdbcType=NUMERIC},
-      </if>
-      <if test="couriernumber != null" >
-        couriernumber = #{couriernumber,jdbcType=VARCHAR},
-      </if>
-      <if test="logisticscompany != null" >
-        logisticscompany = #{logisticscompany,jdbcType=VARCHAR},
-      </if>
-      <if test="isbilling != null" >
-        isbilling = #{isbilling,jdbcType=SMALLINT},
-      </if>
-      <if test="billingtype != null" >
-        billingtype = #{billingtype,jdbcType=SMALLINT},
-      </if>
-      <if test="uuid != null" >
-        uuid = #{uuid,jdbcType=VARCHAR},
-      </if>
-      <if test="membercompany != null" >
-        membercompany = #{membercompany,jdbcType=VARCHAR},
-      </if>
-      <if test="isonline != null" >
-        isonline = #{isonline,jdbcType=SMALLINT},
-      </if>
-      <if test="allpay != null" >
-        allpay = #{allpay,jdbcType=NUMERIC},
-      </if>
-      <if test="phone != null" >
-        phone = #{phone,jdbcType=VARCHAR},
-      </if>
-      <if test="shipto != null" >
-        shipto = #{shipto,jdbcType=VARCHAR},
-      </if>
-      <if test="isbackcredit != null" >
-        isbackcredit = #{isbackcredit,jdbcType=SMALLINT},
-      </if>
-      <if test="paytype != null" >
-        paytype = #{paytype,jdbcType=SMALLINT},
-      </if>
-      <if test="membername != null" >
-        membername = #{membername,jdbcType=VARCHAR},
-      </if>
-      <if test="sellername != null" >
-        sellername = #{sellername,jdbcType=VARCHAR},
-      </if>
-      <if test="shopname != null" >
-        shopname = #{shopname,jdbcType=VARCHAR},
-      </if>
-      <if test="brokepay != null" >
-        brokepay = #{brokepay,jdbcType=NUMERIC},
-      </if>
-      <if test="frozepay != null" >
-        frozepay = #{frozepay,jdbcType=NUMERIC},
-      </if>
-      <if test="serverpay != null" >
-        serverpay = #{serverpay,jdbcType=NUMERIC},
-      </if>
-      <if test="yuuuid != null" >
-        yuuuid = #{yuuuid,jdbcType=VARCHAR},
-      </if>
-      <if test="delaydays != null" >
-        delaydays = #{delaydays,jdbcType=INTEGER},
-      </if>
-      <if test="ifdelay != null" >
-        ifdelay = #{ifdelay,jdbcType=SMALLINT},
-      </if>
-      <if test="delaypenalty != null" >
-        delaypenalty = #{delaypenalty,jdbcType=NUMERIC},
-      </if>
-      <if test="ordertime != null" >
-        ordertime = #{ordertime,jdbcType=BIGINT},
-      </if>
-      <if test="yuordertime != null" >
-        yuordertime = #{yuordertime,jdbcType=BIGINT},
-      </if>
-      <if test="deliverybill != null" >
-        deliverybill = #{deliverybill,jdbcType=SMALLINT},
-      </if>
-      <if test="transactionid != null" >
-        transactionid = #{transactionid,jdbcType=VARCHAR},
-      </if>
-      <if test="reason != null" >
-        reason = #{reason,jdbcType=VARCHAR},
-      </if>
-      <if test="deliverytype != null" >
-        deliverytype = #{deliverytype,jdbcType=SMALLINT},
-      </if>
-      <if test="billtoserver != null" >
-        billtoserver = #{billtoserver,jdbcType=SMALLINT},
-      </if>
-      <if test="clerkname != null" >
-        clerkname = #{clerkname,jdbcType=VARCHAR},
-      </if>
-      <if test="clerknamephone != null" >
-        clerknamephone = #{clerknamephone,jdbcType=VARCHAR},
-      </if>
-      <if test="waysalesman != null" >
-        waysalesman = #{waysalesman,jdbcType=VARCHAR},
-      </if>
-      <if test="presellconfim != null" >
-        presellconfim = #{presellconfim,jdbcType=SMALLINT},
-      </if>
-      <if test="prestocktime != null" >
-        prestocktime = #{prestocktime,jdbcType=DATE},
-      </if>
-      <if test="forwardnoticephone != null" >
-        forwardnoticephone = #{forwardnoticephone,jdbcType=VARCHAR},
-      </if>
-      <if test="orderfright != null" >
-        orderfright = #{orderfright,jdbcType=SMALLINT},
-      </if>
-      <if test="frighttemplate != null" >
-        frighttemplate = #{frighttemplate,jdbcType=VARCHAR},
-      </if>
-    </set>
-    where id = #{id,jdbcType=BIGINT}
-  </update>
-  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_product.bean.Orders" >
-    update orders
-    set memberid = #{memberid,jdbcType=BIGINT},
-      saleid = #{saleid,jdbcType=BIGINT},
-      orderno = #{orderno,jdbcType=VARCHAR},
-      createtime = #{createtime,jdbcType=TIMESTAMP},
-      province = #{province,jdbcType=VARCHAR},
-      city = #{city,jdbcType=VARCHAR},
-      area = #{area,jdbcType=VARCHAR},
-      receivingaddress = #{receivingaddress,jdbcType=VARCHAR},
-      freight = #{freight,jdbcType=NUMERIC},
-      mailornot = #{mailornot,jdbcType=BIT},
-      deposit = #{deposit,jdbcType=NUMERIC},
-      balance = #{balance,jdbcType=NUMERIC},
-      futuretime = #{futuretime,jdbcType=TIMESTAMP},
-      totalprice = #{totalprice,jdbcType=NUMERIC},
-      integral = #{integral,jdbcType=INTEGER},
-      code = #{code,jdbcType=VARCHAR},
-      deliverymode = #{deliverymode,jdbcType=SMALLINT},
-      ordertype = #{ordertype,jdbcType=SMALLINT},
-      storename = #{storename,jdbcType=VARCHAR},
-      storeid = #{storeid,jdbcType=BIGINT},
-      transactionnumber = #{transactionnumber,jdbcType=VARCHAR},
-      paymentmethod = #{paymentmethod,jdbcType=SMALLINT},
-      paymenttime = #{paymenttime,jdbcType=TIMESTAMP},
-      sellerdeliverytime = #{sellerdeliverytime,jdbcType=TIMESTAMP},
-      deliveryno = #{deliveryno,jdbcType=VARCHAR},
-      buyerdeliverytime = #{buyerdeliverytime,jdbcType=TIMESTAMP},
-      buyerinspectiontime = #{buyerinspectiontime,jdbcType=TIMESTAMP},
-      orderstatus = #{orderstatus,jdbcType=SMALLINT},
-      actualpayment = #{actualpayment,jdbcType=NUMERIC},
-      couriernumber = #{couriernumber,jdbcType=VARCHAR},
-      logisticscompany = #{logisticscompany,jdbcType=VARCHAR},
-      isbilling = #{isbilling,jdbcType=SMALLINT},
-      billingtype = #{billingtype,jdbcType=SMALLINT},
-      uuid = #{uuid,jdbcType=VARCHAR},
-      membercompany = #{membercompany,jdbcType=VARCHAR},
-      isonline = #{isonline,jdbcType=SMALLINT},
-      allpay = #{allpay,jdbcType=NUMERIC},
-      phone = #{phone,jdbcType=VARCHAR},
-      shipto = #{shipto,jdbcType=VARCHAR},
-      isbackcredit = #{isbackcredit,jdbcType=SMALLINT},
-      paytype = #{paytype,jdbcType=SMALLINT},
-      membername = #{membername,jdbcType=VARCHAR},
-      sellername = #{sellername,jdbcType=VARCHAR},
-      shopname = #{shopname,jdbcType=VARCHAR},
-      brokepay = #{brokepay,jdbcType=NUMERIC},
-      frozepay = #{frozepay,jdbcType=NUMERIC},
-      serverpay = #{serverpay,jdbcType=NUMERIC},
-      yuuuid = #{yuuuid,jdbcType=VARCHAR},
-      delaydays = #{delaydays,jdbcType=INTEGER},
-      ifdelay = #{ifdelay,jdbcType=SMALLINT},
-      delaypenalty = #{delaypenalty,jdbcType=NUMERIC},
-      ordertime = #{ordertime,jdbcType=BIGINT},
-      yuordertime = #{yuordertime,jdbcType=BIGINT},
-      deliverybill = #{deliverybill,jdbcType=SMALLINT},
-      transactionid = #{transactionid,jdbcType=VARCHAR},
-      reason = #{reason,jdbcType=VARCHAR},
-      deliverytype = #{deliverytype,jdbcType=SMALLINT},
-      billtoserver = #{billtoserver,jdbcType=SMALLINT},
-      clerkname = #{clerkname,jdbcType=VARCHAR},
-      clerknamephone = #{clerknamephone,jdbcType=VARCHAR},
-      waysalesman = #{waysalesman,jdbcType=VARCHAR},
-      presellconfim = #{presellconfim,jdbcType=SMALLINT},
-      prestocktime = #{prestocktime,jdbcType=DATE},
-      forwardnoticephone = #{forwardnoticephone,jdbcType=VARCHAR},
-      orderfright = #{orderfright,jdbcType=SMALLINT},
-      frighttemplate = #{frighttemplate,jdbcType=VARCHAR}
-    where id = #{id,jdbcType=BIGINT}
-  </update>
+        'true' as QUERYID,
+        <include refid="Base_Column_List" />
+        from public.orders
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+        <if test="orderByClause != null" >
+            order by ${orderByClause}
+        </if>
+    </select>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+        select
+        <include refid="Base_Column_List" />
+        from public.orders
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+        delete from public.orders
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+
+    <delete id="deleteByExample" parameterType="project.jinshang.mod_product.bean.OrdersExample" >
+        delete from public.orders
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+    </delete>
+
+    <insert id="insert" parameterType="project.jinshang.mod_product.bean.Orders" >
+        insert into public.orders (id, memberid, saleid,
+            orderno, createtime, province,
+            city, area, receivingaddress,
+            freight, mailornot, deposit,
+            balance, futuretime, totalprice,
+            integral, code, deliverymode,
+            ordertype, storename, storeid,
+            transactionnumber, paymentmethod, paymenttime,
+            sellerdeliverytime, deliveryno, buyerdeliverytime,
+            buyerinspectiontime, orderstatus,
+            actualpayment, couriernumber, logisticscompany,
+            isbilling, billingtype, uuid,
+            membercompany, isonline, allpay,
+            phone, shipto, isbackcredit,
+            paytype, membername, sellername,
+            shopname, brokepay, frozepay,
+            serverpay, yuuuid, delaydays,
+            ifdelay, delaypenalty, ordertime,
+            yuordertime, deliverybill, transactionid,
+            reason, deliverytype, billtoserver,
+            clerkname, clerknamephone, waysalesman,
+            orderfright, frighttemplate, presellconfim,
+            prestocktime, forwardnoticephone, ticketno,
+            isticket, discountprice, ismodifyfreight
+            )
+        values (#{id,jdbcType=BIGINT}, #{memberid,jdbcType=BIGINT}, #{saleid,jdbcType=BIGINT},
+            #{orderno,jdbcType=VARCHAR}, #{createtime,jdbcType=TIMESTAMP}, #{province,jdbcType=VARCHAR},
+            #{city,jdbcType=VARCHAR}, #{area,jdbcType=VARCHAR}, #{receivingaddress,jdbcType=VARCHAR},
+            #{freight,jdbcType=NUMERIC}, #{mailornot,jdbcType=BIT}, #{deposit,jdbcType=NUMERIC},
+            #{balance,jdbcType=NUMERIC}, #{futuretime,jdbcType=TIMESTAMP}, #{totalprice,jdbcType=NUMERIC},
+            #{integral,jdbcType=INTEGER}, #{code,jdbcType=VARCHAR}, #{deliverymode,jdbcType=SMALLINT},
+            #{ordertype,jdbcType=SMALLINT}, #{storename,jdbcType=VARCHAR}, #{storeid,jdbcType=BIGINT},
+            #{transactionnumber,jdbcType=VARCHAR}, #{paymentmethod,jdbcType=SMALLINT}, #{paymenttime,jdbcType=TIMESTAMP},
+            #{sellerdeliverytime,jdbcType=TIMESTAMP}, #{deliveryno,jdbcType=VARCHAR}, #{buyerdeliverytime,jdbcType=TIMESTAMP},
+            #{buyerinspectiontime,jdbcType=TIMESTAMP}, #{orderstatus,jdbcType=SMALLINT},
+            #{actualpayment,jdbcType=NUMERIC}, #{couriernumber,jdbcType=VARCHAR}, #{logisticscompany,jdbcType=VARCHAR},
+            #{isbilling,jdbcType=SMALLINT}, #{billingtype,jdbcType=SMALLINT}, #{uuid,jdbcType=VARCHAR},
+            #{membercompany,jdbcType=VARCHAR}, #{isonline,jdbcType=SMALLINT}, #{allpay,jdbcType=NUMERIC},
+            #{phone,jdbcType=VARCHAR}, #{shipto,jdbcType=VARCHAR}, #{isbackcredit,jdbcType=SMALLINT},
+            #{paytype,jdbcType=SMALLINT}, #{membername,jdbcType=VARCHAR}, #{sellername,jdbcType=VARCHAR},
+            #{shopname,jdbcType=VARCHAR}, #{brokepay,jdbcType=NUMERIC}, #{frozepay,jdbcType=NUMERIC},
+            #{serverpay,jdbcType=NUMERIC}, #{yuuuid,jdbcType=VARCHAR}, #{delaydays,jdbcType=INTEGER},
+            #{ifdelay,jdbcType=SMALLINT}, #{delaypenalty,jdbcType=NUMERIC}, #{ordertime,jdbcType=BIGINT},
+            #{yuordertime,jdbcType=BIGINT}, #{deliverybill,jdbcType=SMALLINT}, #{transactionid,jdbcType=VARCHAR},
+            #{reason,jdbcType=VARCHAR}, #{deliverytype,jdbcType=SMALLINT}, #{billtoserver,jdbcType=SMALLINT},
+            #{clerkname,jdbcType=VARCHAR}, #{clerknamephone,jdbcType=VARCHAR}, #{waysalesman,jdbcType=VARCHAR},
+            #{orderfright,jdbcType=SMALLINT}, #{frighttemplate,jdbcType=VARCHAR}, #{presellconfim,jdbcType=SMALLINT},
+            #{prestocktime,jdbcType=DATE}, #{forwardnoticephone,jdbcType=VARCHAR}, #{ticketno,jdbcType=VARCHAR},
+            #{isticket,jdbcType=SMALLINT}, #{discountprice,jdbcType=NUMERIC}, #{ismodifyfreight,jdbcType=SMALLINT}
+            )
+    </insert>
+
+    <insert id="insertSelective" parameterType="project.jinshang.mod_product.bean.Orders" useGeneratedKeys="true" keyProperty="id">
+        insert into public.orders
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="id != null" >
+                id,
+            </if>
+            <if test="memberid != null" >
+                memberid,
+            </if>
+            <if test="saleid != null" >
+                saleid,
+            </if>
+            <if test="orderno != null" >
+                orderno,
+            </if>
+            <if test="createtime != null" >
+                createtime,
+            </if>
+            <if test="province != null" >
+                province,
+            </if>
+            <if test="city != null" >
+                city,
+            </if>
+            <if test="area != null" >
+                area,
+            </if>
+            <if test="receivingaddress != null" >
+                receivingaddress,
+            </if>
+            <if test="freight != null" >
+                freight,
+            </if>
+            <if test="mailornot != null" >
+                mailornot,
+            </if>
+            <if test="deposit != null" >
+                deposit,
+            </if>
+            <if test="balance != null" >
+                balance,
+            </if>
+            <if test="futuretime != null" >
+                futuretime,
+            </if>
+            <if test="totalprice != null" >
+                totalprice,
+            </if>
+            <if test="integral != null" >
+                integral,
+            </if>
+            <if test="code != null" >
+                code,
+            </if>
+            <if test="deliverymode != null" >
+                deliverymode,
+            </if>
+            <if test="ordertype != null" >
+                ordertype,
+            </if>
+            <if test="storename != null" >
+                storename,
+            </if>
+            <if test="storeid != null" >
+                storeid,
+            </if>
+            <if test="transactionnumber != null" >
+                transactionnumber,
+            </if>
+            <if test="paymentmethod != null" >
+                paymentmethod,
+            </if>
+            <if test="paymenttime != null" >
+                paymenttime,
+            </if>
+            <if test="sellerdeliverytime != null" >
+                sellerdeliverytime,
+            </if>
+            <if test="deliveryno != null" >
+                deliveryno,
+            </if>
+            <if test="buyerdeliverytime != null" >
+                buyerdeliverytime,
+            </if>
+            <if test="buyerinspectiontime != null" >
+                buyerinspectiontime,
+            </if>
+            <if test="orderstatus != null" >
+                orderstatus,
+            </if>
+            <if test="actualpayment != null" >
+                actualpayment,
+            </if>
+            <if test="couriernumber != null" >
+                couriernumber,
+            </if>
+            <if test="logisticscompany != null" >
+                logisticscompany,
+            </if>
+            <if test="isbilling != null" >
+                isbilling,
+            </if>
+            <if test="billingtype != null" >
+                billingtype,
+            </if>
+            <if test="uuid != null" >
+                uuid,
+            </if>
+            <if test="membercompany != null" >
+                membercompany,
+            </if>
+            <if test="isonline != null" >
+                isonline,
+            </if>
+            <if test="allpay != null" >
+                allpay,
+            </if>
+            <if test="phone != null" >
+                phone,
+            </if>
+            <if test="shipto != null" >
+                shipto,
+            </if>
+            <if test="isbackcredit != null" >
+                isbackcredit,
+            </if>
+            <if test="paytype != null" >
+                paytype,
+            </if>
+            <if test="membername != null" >
+                membername,
+            </if>
+            <if test="sellername != null" >
+                sellername,
+            </if>
+            <if test="shopname != null" >
+                shopname,
+            </if>
+            <if test="brokepay != null" >
+                brokepay,
+            </if>
+            <if test="frozepay != null" >
+                frozepay,
+            </if>
+            <if test="serverpay != null" >
+                serverpay,
+            </if>
+            <if test="yuuuid != null" >
+                yuuuid,
+            </if>
+            <if test="delaydays != null" >
+                delaydays,
+            </if>
+            <if test="ifdelay != null" >
+                ifdelay,
+            </if>
+            <if test="delaypenalty != null" >
+                delaypenalty,
+            </if>
+            <if test="ordertime != null" >
+                ordertime,
+            </if>
+            <if test="yuordertime != null" >
+                yuordertime,
+            </if>
+            <if test="deliverybill != null" >
+                deliverybill,
+            </if>
+            <if test="transactionid != null" >
+                transactionid,
+            </if>
+            <if test="reason != null" >
+                reason,
+            </if>
+            <if test="deliverytype != null" >
+                deliverytype,
+            </if>
+            <if test="billtoserver != null" >
+                billtoserver,
+            </if>
+            <if test="clerkname != null" >
+                clerkname,
+            </if>
+            <if test="clerknamephone != null" >
+                clerknamephone,
+            </if>
+            <if test="waysalesman != null" >
+                waysalesman,
+            </if>
+            <if test="orderfright != null" >
+                orderfright,
+            </if>
+            <if test="frighttemplate != null" >
+                frighttemplate,
+            </if>
+            <if test="presellconfim != null" >
+                presellconfim,
+            </if>
+            <if test="prestocktime != null" >
+                prestocktime,
+            </if>
+            <if test="forwardnoticephone != null" >
+                forwardnoticephone,
+            </if>
+            <if test="ticketno != null" >
+                ticketno,
+            </if>
+            <if test="isticket != null" >
+                isticket,
+            </if>
+            <if test="discountprice != null" >
+                discountprice,
+            </if>
+            <if test="ismodifyfreight != null" >
+                ismodifyfreight,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="id != null" >
+                #{id,jdbcType=BIGINT},
+            </if>
+            <if test="memberid != null" >
+                #{memberid,jdbcType=BIGINT},
+            </if>
+            <if test="saleid != null" >
+                #{saleid,jdbcType=BIGINT},
+            </if>
+            <if test="orderno != null" >
+                #{orderno,jdbcType=VARCHAR},
+            </if>
+            <if test="createtime != null" >
+                #{createtime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="province != null" >
+                #{province,jdbcType=VARCHAR},
+            </if>
+            <if test="city != null" >
+                #{city,jdbcType=VARCHAR},
+            </if>
+            <if test="area != null" >
+                #{area,jdbcType=VARCHAR},
+            </if>
+            <if test="receivingaddress != null" >
+                #{receivingaddress,jdbcType=VARCHAR},
+            </if>
+            <if test="freight != null" >
+                #{freight,jdbcType=NUMERIC},
+            </if>
+            <if test="mailornot != null" >
+                #{mailornot,jdbcType=BIT},
+            </if>
+            <if test="deposit != null" >
+                #{deposit,jdbcType=NUMERIC},
+            </if>
+            <if test="balance != null" >
+                #{balance,jdbcType=NUMERIC},
+            </if>
+            <if test="futuretime != null" >
+                #{futuretime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="totalprice != null" >
+                #{totalprice,jdbcType=NUMERIC},
+            </if>
+            <if test="integral != null" >
+                #{integral,jdbcType=INTEGER},
+            </if>
+            <if test="code != null" >
+                #{code,jdbcType=VARCHAR},
+            </if>
+            <if test="deliverymode != null" >
+                #{deliverymode,jdbcType=SMALLINT},
+            </if>
+            <if test="ordertype != null" >
+                #{ordertype,jdbcType=SMALLINT},
+            </if>
+            <if test="storename != null" >
+                #{storename,jdbcType=VARCHAR},
+            </if>
+            <if test="storeid != null" >
+                #{storeid,jdbcType=BIGINT},
+            </if>
+            <if test="transactionnumber != null" >
+                #{transactionnumber,jdbcType=VARCHAR},
+            </if>
+            <if test="paymentmethod != null" >
+                #{paymentmethod,jdbcType=SMALLINT},
+            </if>
+            <if test="paymenttime != null" >
+                #{paymenttime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="sellerdeliverytime != null" >
+                #{sellerdeliverytime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="deliveryno != null" >
+                #{deliveryno,jdbcType=VARCHAR},
+            </if>
+            <if test="buyerdeliverytime != null" >
+                #{buyerdeliverytime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="buyerinspectiontime != null" >
+                #{buyerinspectiontime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="orderstatus != null" >
+                #{orderstatus,jdbcType=SMALLINT},
+            </if>
+            <if test="actualpayment != null" >
+                #{actualpayment,jdbcType=NUMERIC},
+            </if>
+            <if test="couriernumber != null" >
+                #{couriernumber,jdbcType=VARCHAR},
+            </if>
+            <if test="logisticscompany != null" >
+                #{logisticscompany,jdbcType=VARCHAR},
+            </if>
+            <if test="isbilling != null" >
+                #{isbilling,jdbcType=SMALLINT},
+            </if>
+            <if test="billingtype != null" >
+                #{billingtype,jdbcType=SMALLINT},
+            </if>
+            <if test="uuid != null" >
+                #{uuid,jdbcType=VARCHAR},
+            </if>
+            <if test="membercompany != null" >
+                #{membercompany,jdbcType=VARCHAR},
+            </if>
+            <if test="isonline != null" >
+                #{isonline,jdbcType=SMALLINT},
+            </if>
+            <if test="allpay != null" >
+                #{allpay,jdbcType=NUMERIC},
+            </if>
+            <if test="phone != null" >
+                #{phone,jdbcType=VARCHAR},
+            </if>
+            <if test="shipto != null" >
+                #{shipto,jdbcType=VARCHAR},
+            </if>
+            <if test="isbackcredit != null" >
+                #{isbackcredit,jdbcType=SMALLINT},
+            </if>
+            <if test="paytype != null" >
+                #{paytype,jdbcType=SMALLINT},
+            </if>
+            <if test="membername != null" >
+                #{membername,jdbcType=VARCHAR},
+            </if>
+            <if test="sellername != null" >
+                #{sellername,jdbcType=VARCHAR},
+            </if>
+            <if test="shopname != null" >
+                #{shopname,jdbcType=VARCHAR},
+            </if>
+            <if test="brokepay != null" >
+                #{brokepay,jdbcType=NUMERIC},
+            </if>
+            <if test="frozepay != null" >
+                #{frozepay,jdbcType=NUMERIC},
+            </if>
+            <if test="serverpay != null" >
+                #{serverpay,jdbcType=NUMERIC},
+            </if>
+            <if test="yuuuid != null" >
+                #{yuuuid,jdbcType=VARCHAR},
+            </if>
+            <if test="delaydays != null" >
+                #{delaydays,jdbcType=INTEGER},
+            </if>
+            <if test="ifdelay != null" >
+                #{ifdelay,jdbcType=SMALLINT},
+            </if>
+            <if test="delaypenalty != null" >
+                #{delaypenalty,jdbcType=NUMERIC},
+            </if>
+            <if test="ordertime != null" >
+                #{ordertime,jdbcType=BIGINT},
+            </if>
+            <if test="yuordertime != null" >
+                #{yuordertime,jdbcType=BIGINT},
+            </if>
+            <if test="deliverybill != null" >
+                #{deliverybill,jdbcType=SMALLINT},
+            </if>
+            <if test="transactionid != null" >
+                #{transactionid,jdbcType=VARCHAR},
+            </if>
+            <if test="reason != null" >
+                #{reason,jdbcType=VARCHAR},
+            </if>
+            <if test="deliverytype != null" >
+                #{deliverytype,jdbcType=SMALLINT},
+            </if>
+            <if test="billtoserver != null" >
+                #{billtoserver,jdbcType=SMALLINT},
+            </if>
+            <if test="clerkname != null" >
+                #{clerkname,jdbcType=VARCHAR},
+            </if>
+            <if test="clerknamephone != null" >
+                #{clerknamephone,jdbcType=VARCHAR},
+            </if>
+            <if test="waysalesman != null" >
+                #{waysalesman,jdbcType=VARCHAR},
+            </if>
+            <if test="orderfright != null" >
+                #{orderfright,jdbcType=SMALLINT},
+            </if>
+            <if test="frighttemplate != null" >
+                #{frighttemplate,jdbcType=VARCHAR},
+            </if>
+            <if test="presellconfim != null" >
+                #{presellconfim,jdbcType=SMALLINT},
+            </if>
+            <if test="prestocktime != null" >
+                #{prestocktime,jdbcType=DATE},
+            </if>
+            <if test="forwardnoticephone != null" >
+                #{forwardnoticephone,jdbcType=VARCHAR},
+            </if>
+            <if test="ticketno != null" >
+                #{ticketno,jdbcType=VARCHAR},
+            </if>
+            <if test="isticket != null" >
+                #{isticket,jdbcType=SMALLINT},
+            </if>
+            <if test="discountprice != null" >
+                #{discountprice,jdbcType=NUMERIC},
+            </if>
+            <if test="ismodifyfreight != null" >
+                #{ismodifyfreight,jdbcType=SMALLINT},
+            </if>
+        </trim>
+    </insert>
+
+    <select id="countByExample" parameterType="project.jinshang.mod_product.bean.OrdersExample" resultType="java.lang.Integer" >
+        select count(*) from public.orders
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+    </select>
+
+    <update id="updateByExampleSelective" parameterType="map" >
+        update public.orders
+        <set >
+            <if test="record.id != null" >
+                id = #{record.id,jdbcType=BIGINT},
+            </if>
+            <if test="record.memberid != null" >
+                memberid = #{record.memberid,jdbcType=BIGINT},
+            </if>
+            <if test="record.saleid != null" >
+                saleid = #{record.saleid,jdbcType=BIGINT},
+            </if>
+            <if test="record.orderno != null" >
+                orderno = #{record.orderno,jdbcType=VARCHAR},
+            </if>
+            <if test="record.createtime != null" >
+                createtime = #{record.createtime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.province != null" >
+                province = #{record.province,jdbcType=VARCHAR},
+            </if>
+            <if test="record.city != null" >
+                city = #{record.city,jdbcType=VARCHAR},
+            </if>
+            <if test="record.area != null" >
+                area = #{record.area,jdbcType=VARCHAR},
+            </if>
+            <if test="record.receivingaddress != null" >
+                receivingaddress = #{record.receivingaddress,jdbcType=VARCHAR},
+            </if>
+            <if test="record.freight != null" >
+                freight = #{record.freight,jdbcType=NUMERIC},
+            </if>
+            <if test="record.mailornot != null" >
+                mailornot = #{record.mailornot,jdbcType=BIT},
+            </if>
+            <if test="record.deposit != null" >
+                deposit = #{record.deposit,jdbcType=NUMERIC},
+            </if>
+            <if test="record.balance != null" >
+                balance = #{record.balance,jdbcType=NUMERIC},
+            </if>
+            <if test="record.futuretime != null" >
+                futuretime = #{record.futuretime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.totalprice != null" >
+                totalprice = #{record.totalprice,jdbcType=NUMERIC},
+            </if>
+            <if test="record.integral != null" >
+                integral = #{record.integral,jdbcType=INTEGER},
+            </if>
+            <if test="record.code != null" >
+                code = #{record.code,jdbcType=VARCHAR},
+            </if>
+            <if test="record.deliverymode != null" >
+                deliverymode = #{record.deliverymode,jdbcType=SMALLINT},
+            </if>
+            <if test="record.ordertype != null" >
+                ordertype = #{record.ordertype,jdbcType=SMALLINT},
+            </if>
+            <if test="record.storename != null" >
+                storename = #{record.storename,jdbcType=VARCHAR},
+            </if>
+            <if test="record.storeid != null" >
+                storeid = #{record.storeid,jdbcType=BIGINT},
+            </if>
+            <if test="record.transactionnumber != null" >
+                transactionnumber = #{record.transactionnumber,jdbcType=VARCHAR},
+            </if>
+            <if test="record.paymentmethod != null" >
+                paymentmethod = #{record.paymentmethod,jdbcType=SMALLINT},
+            </if>
+            <if test="record.paymenttime != null" >
+                paymenttime = #{record.paymenttime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.sellerdeliverytime != null" >
+                sellerdeliverytime = #{record.sellerdeliverytime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.deliveryno != null" >
+                deliveryno = #{record.deliveryno,jdbcType=VARCHAR},
+            </if>
+            <if test="record.buyerdeliverytime != null" >
+                buyerdeliverytime = #{record.buyerdeliverytime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.buyerinspectiontime != null" >
+                buyerinspectiontime = #{record.buyerinspectiontime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.orderstatus != null" >
+                orderstatus = #{record.orderstatus,jdbcType=SMALLINT},
+            </if>
+            <if test="record.actualpayment != null" >
+                actualpayment = #{record.actualpayment,jdbcType=NUMERIC},
+            </if>
+            <if test="record.couriernumber != null" >
+                couriernumber = #{record.couriernumber,jdbcType=VARCHAR},
+            </if>
+            <if test="record.logisticscompany != null" >
+                logisticscompany = #{record.logisticscompany,jdbcType=VARCHAR},
+            </if>
+            <if test="record.isbilling != null" >
+                isbilling = #{record.isbilling,jdbcType=SMALLINT},
+            </if>
+            <if test="record.billingtype != null" >
+                billingtype = #{record.billingtype,jdbcType=SMALLINT},
+            </if>
+            <if test="record.uuid != null" >
+                uuid = #{record.uuid,jdbcType=VARCHAR},
+            </if>
+            <if test="record.membercompany != null" >
+                membercompany = #{record.membercompany,jdbcType=VARCHAR},
+            </if>
+            <if test="record.isonline != null" >
+                isonline = #{record.isonline,jdbcType=SMALLINT},
+            </if>
+            <if test="record.allpay != null" >
+                allpay = #{record.allpay,jdbcType=NUMERIC},
+            </if>
+            <if test="record.phone != null" >
+                phone = #{record.phone,jdbcType=VARCHAR},
+            </if>
+            <if test="record.shipto != null" >
+                shipto = #{record.shipto,jdbcType=VARCHAR},
+            </if>
+            <if test="record.isbackcredit != null" >
+                isbackcredit = #{record.isbackcredit,jdbcType=SMALLINT},
+            </if>
+            <if test="record.paytype != null" >
+                paytype = #{record.paytype,jdbcType=SMALLINT},
+            </if>
+            <if test="record.membername != null" >
+                membername = #{record.membername,jdbcType=VARCHAR},
+            </if>
+            <if test="record.sellername != null" >
+                sellername = #{record.sellername,jdbcType=VARCHAR},
+            </if>
+            <if test="record.shopname != null" >
+                shopname = #{record.shopname,jdbcType=VARCHAR},
+            </if>
+            <if test="record.brokepay != null" >
+                brokepay = #{record.brokepay,jdbcType=NUMERIC},
+            </if>
+            <if test="record.frozepay != null" >
+                frozepay = #{record.frozepay,jdbcType=NUMERIC},
+            </if>
+            <if test="record.serverpay != null" >
+                serverpay = #{record.serverpay,jdbcType=NUMERIC},
+            </if>
+            <if test="record.yuuuid != null" >
+                yuuuid = #{record.yuuuid,jdbcType=VARCHAR},
+            </if>
+            <if test="record.delaydays != null" >
+                delaydays = #{record.delaydays,jdbcType=INTEGER},
+            </if>
+            <if test="record.ifdelay != null" >
+                ifdelay = #{record.ifdelay,jdbcType=SMALLINT},
+            </if>
+            <if test="record.delaypenalty != null" >
+                delaypenalty = #{record.delaypenalty,jdbcType=NUMERIC},
+            </if>
+            <if test="record.ordertime != null" >
+                ordertime = #{record.ordertime,jdbcType=BIGINT},
+            </if>
+            <if test="record.yuordertime != null" >
+                yuordertime = #{record.yuordertime,jdbcType=BIGINT},
+            </if>
+            <if test="record.deliverybill != null" >
+                deliverybill = #{record.deliverybill,jdbcType=SMALLINT},
+            </if>
+            <if test="record.transactionid != null" >
+                transactionid = #{record.transactionid,jdbcType=VARCHAR},
+            </if>
+            <if test="record.reason != null" >
+                reason = #{record.reason,jdbcType=VARCHAR},
+            </if>
+            <if test="record.deliverytype != null" >
+                deliverytype = #{record.deliverytype,jdbcType=SMALLINT},
+            </if>
+            <if test="record.billtoserver != null" >
+                billtoserver = #{record.billtoserver,jdbcType=SMALLINT},
+            </if>
+            <if test="record.clerkname != null" >
+                clerkname = #{record.clerkname,jdbcType=VARCHAR},
+            </if>
+            <if test="record.clerknamephone != null" >
+                clerknamephone = #{record.clerknamephone,jdbcType=VARCHAR},
+            </if>
+            <if test="record.waysalesman != null" >
+                waysalesman = #{record.waysalesman,jdbcType=VARCHAR},
+            </if>
+            <if test="record.orderfright != null" >
+                orderfright = #{record.orderfright,jdbcType=SMALLINT},
+            </if>
+            <if test="record.frighttemplate != null" >
+                frighttemplate = #{record.frighttemplate,jdbcType=VARCHAR},
+            </if>
+            <if test="record.presellconfim != null" >
+                presellconfim = #{record.presellconfim,jdbcType=SMALLINT},
+            </if>
+            <if test="record.prestocktime != null" >
+                prestocktime = #{record.prestocktime,jdbcType=DATE},
+            </if>
+            <if test="record.forwardnoticephone != null" >
+                forwardnoticephone = #{record.forwardnoticephone,jdbcType=VARCHAR},
+            </if>
+            <if test="record.ticketno != null" >
+                ticketno = #{record.ticketno,jdbcType=VARCHAR},
+            </if>
+            <if test="record.isticket != null" >
+                isticket = #{record.isticket,jdbcType=SMALLINT},
+            </if>
+            <if test="record.discountprice != null" >
+                discountprice = #{record.discountprice,jdbcType=NUMERIC},
+            </if>
+            <if test="record.ismodifyfreight != null" >
+                ismodifyfreight = #{record.ismodifyfreight,jdbcType=SMALLINT},
+            </if>
+        </set>
+        <if test="_parameter != null" >
+            <include refid="Update_By_Example_Where_Clause" />
+        </if>
+    </update>
+
+    <update id="updateByExample" parameterType="map" >
+        update public.orders
+        set id = #{record.id,jdbcType=BIGINT},
+            memberid = #{record.memberid,jdbcType=BIGINT},
+            saleid = #{record.saleid,jdbcType=BIGINT},
+            orderno = #{record.orderno,jdbcType=VARCHAR},
+            createtime = #{record.createtime,jdbcType=TIMESTAMP},
+            province = #{record.province,jdbcType=VARCHAR},
+            city = #{record.city,jdbcType=VARCHAR},
+            area = #{record.area,jdbcType=VARCHAR},
+            receivingaddress = #{record.receivingaddress,jdbcType=VARCHAR},
+            freight = #{record.freight,jdbcType=NUMERIC},
+            mailornot = #{record.mailornot,jdbcType=BIT},
+            deposit = #{record.deposit,jdbcType=NUMERIC},
+            balance = #{record.balance,jdbcType=NUMERIC},
+            futuretime = #{record.futuretime,jdbcType=TIMESTAMP},
+            totalprice = #{record.totalprice,jdbcType=NUMERIC},
+            integral = #{record.integral,jdbcType=INTEGER},
+            code = #{record.code,jdbcType=VARCHAR},
+            deliverymode = #{record.deliverymode,jdbcType=SMALLINT},
+            ordertype = #{record.ordertype,jdbcType=SMALLINT},
+            storename = #{record.storename,jdbcType=VARCHAR},
+            storeid = #{record.storeid,jdbcType=BIGINT},
+            transactionnumber = #{record.transactionnumber,jdbcType=VARCHAR},
+            paymentmethod = #{record.paymentmethod,jdbcType=SMALLINT},
+            paymenttime = #{record.paymenttime,jdbcType=TIMESTAMP},
+            sellerdeliverytime = #{record.sellerdeliverytime,jdbcType=TIMESTAMP},
+            deliveryno = #{record.deliveryno,jdbcType=VARCHAR},
+            buyerdeliverytime = #{record.buyerdeliverytime,jdbcType=TIMESTAMP},
+            buyerinspectiontime = #{record.buyerinspectiontime,jdbcType=TIMESTAMP},
+            orderstatus = #{record.orderstatus,jdbcType=SMALLINT},
+            actualpayment = #{record.actualpayment,jdbcType=NUMERIC},
+            couriernumber = #{record.couriernumber,jdbcType=VARCHAR},
+            logisticscompany = #{record.logisticscompany,jdbcType=VARCHAR},
+            isbilling = #{record.isbilling,jdbcType=SMALLINT},
+            billingtype = #{record.billingtype,jdbcType=SMALLINT},
+            uuid = #{record.uuid,jdbcType=VARCHAR},
+            membercompany = #{record.membercompany,jdbcType=VARCHAR},
+            isonline = #{record.isonline,jdbcType=SMALLINT},
+            allpay = #{record.allpay,jdbcType=NUMERIC},
+            phone = #{record.phone,jdbcType=VARCHAR},
+            shipto = #{record.shipto,jdbcType=VARCHAR},
+            isbackcredit = #{record.isbackcredit,jdbcType=SMALLINT},
+            paytype = #{record.paytype,jdbcType=SMALLINT},
+            membername = #{record.membername,jdbcType=VARCHAR},
+            sellername = #{record.sellername,jdbcType=VARCHAR},
+            shopname = #{record.shopname,jdbcType=VARCHAR},
+            brokepay = #{record.brokepay,jdbcType=NUMERIC},
+            frozepay = #{record.frozepay,jdbcType=NUMERIC},
+            serverpay = #{record.serverpay,jdbcType=NUMERIC},
+            yuuuid = #{record.yuuuid,jdbcType=VARCHAR},
+            delaydays = #{record.delaydays,jdbcType=INTEGER},
+            ifdelay = #{record.ifdelay,jdbcType=SMALLINT},
+            delaypenalty = #{record.delaypenalty,jdbcType=NUMERIC},
+            ordertime = #{record.ordertime,jdbcType=BIGINT},
+            yuordertime = #{record.yuordertime,jdbcType=BIGINT},
+            deliverybill = #{record.deliverybill,jdbcType=SMALLINT},
+            transactionid = #{record.transactionid,jdbcType=VARCHAR},
+            reason = #{record.reason,jdbcType=VARCHAR},
+            deliverytype = #{record.deliverytype,jdbcType=SMALLINT},
+            billtoserver = #{record.billtoserver,jdbcType=SMALLINT},
+            clerkname = #{record.clerkname,jdbcType=VARCHAR},
+            clerknamephone = #{record.clerknamephone,jdbcType=VARCHAR},
+            waysalesman = #{record.waysalesman,jdbcType=VARCHAR},
+            orderfright = #{record.orderfright,jdbcType=SMALLINT},
+            frighttemplate = #{record.frighttemplate,jdbcType=VARCHAR},
+            presellconfim = #{record.presellconfim,jdbcType=SMALLINT},
+            prestocktime = #{record.prestocktime,jdbcType=DATE},
+            forwardnoticephone = #{record.forwardnoticephone,jdbcType=VARCHAR},
+            ticketno = #{record.ticketno,jdbcType=VARCHAR},
+            isticket = #{record.isticket,jdbcType=SMALLINT},
+            discountprice = #{record.discountprice,jdbcType=NUMERIC},
+            ismodifyfreight = #{record.ismodifyfreight,jdbcType=SMALLINT}
+        <if test="_parameter != null" >
+            <include refid="Update_By_Example_Where_Clause" />
+        </if>
+    </update>
+
+    <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_product.bean.Orders" >
+        update public.orders
+        <set >
+            <if test="memberid != null" >
+                memberid = #{memberid,jdbcType=BIGINT},
+            </if>
+            <if test="saleid != null" >
+                saleid = #{saleid,jdbcType=BIGINT},
+            </if>
+            <if test="orderno != null" >
+                orderno = #{orderno,jdbcType=VARCHAR},
+            </if>
+            <if test="createtime != null" >
+                createtime = #{createtime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="province != null" >
+                province = #{province,jdbcType=VARCHAR},
+            </if>
+            <if test="city != null" >
+                city = #{city,jdbcType=VARCHAR},
+            </if>
+            <if test="area != null" >
+                area = #{area,jdbcType=VARCHAR},
+            </if>
+            <if test="receivingaddress != null" >
+                receivingaddress = #{receivingaddress,jdbcType=VARCHAR},
+            </if>
+            <if test="freight != null" >
+                freight = #{freight,jdbcType=NUMERIC},
+            </if>
+            <if test="mailornot != null" >
+                mailornot = #{mailornot,jdbcType=BIT},
+            </if>
+            <if test="deposit != null" >
+                deposit = #{deposit,jdbcType=NUMERIC},
+            </if>
+            <if test="balance != null" >
+                balance = #{balance,jdbcType=NUMERIC},
+            </if>
+            <if test="futuretime != null" >
+                futuretime = #{futuretime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="totalprice != null" >
+                totalprice = #{totalprice,jdbcType=NUMERIC},
+            </if>
+            <if test="integral != null" >
+                integral = #{integral,jdbcType=INTEGER},
+            </if>
+            <if test="code != null" >
+                code = #{code,jdbcType=VARCHAR},
+            </if>
+            <if test="deliverymode != null" >
+                deliverymode = #{deliverymode,jdbcType=SMALLINT},
+            </if>
+            <if test="ordertype != null" >
+                ordertype = #{ordertype,jdbcType=SMALLINT},
+            </if>
+            <if test="storename != null" >
+                storename = #{storename,jdbcType=VARCHAR},
+            </if>
+            <if test="storeid != null" >
+                storeid = #{storeid,jdbcType=BIGINT},
+            </if>
+            <if test="transactionnumber != null" >
+                transactionnumber = #{transactionnumber,jdbcType=VARCHAR},
+            </if>
+            <if test="paymentmethod != null" >
+                paymentmethod = #{paymentmethod,jdbcType=SMALLINT},
+            </if>
+            <if test="paymenttime != null" >
+                paymenttime = #{paymenttime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="sellerdeliverytime != null" >
+                sellerdeliverytime = #{sellerdeliverytime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="deliveryno != null" >
+                deliveryno = #{deliveryno,jdbcType=VARCHAR},
+            </if>
+            <if test="buyerdeliverytime != null" >
+                buyerdeliverytime = #{buyerdeliverytime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="buyerinspectiontime != null" >
+                buyerinspectiontime = #{buyerinspectiontime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="orderstatus != null" >
+                orderstatus = #{orderstatus,jdbcType=SMALLINT},
+            </if>
+            <if test="actualpayment != null" >
+                actualpayment = #{actualpayment,jdbcType=NUMERIC},
+            </if>
+            <if test="couriernumber != null" >
+                couriernumber = #{couriernumber,jdbcType=VARCHAR},
+            </if>
+            <if test="logisticscompany != null" >
+                logisticscompany = #{logisticscompany,jdbcType=VARCHAR},
+            </if>
+            <if test="isbilling != null" >
+                isbilling = #{isbilling,jdbcType=SMALLINT},
+            </if>
+            <if test="billingtype != null" >
+                billingtype = #{billingtype,jdbcType=SMALLINT},
+            </if>
+            <if test="uuid != null" >
+                uuid = #{uuid,jdbcType=VARCHAR},
+            </if>
+            <if test="membercompany != null" >
+                membercompany = #{membercompany,jdbcType=VARCHAR},
+            </if>
+            <if test="isonline != null" >
+                isonline = #{isonline,jdbcType=SMALLINT},
+            </if>
+            <if test="allpay != null" >
+                allpay = #{allpay,jdbcType=NUMERIC},
+            </if>
+            <if test="phone != null" >
+                phone = #{phone,jdbcType=VARCHAR},
+            </if>
+            <if test="shipto != null" >
+                shipto = #{shipto,jdbcType=VARCHAR},
+            </if>
+            <if test="isbackcredit != null" >
+                isbackcredit = #{isbackcredit,jdbcType=SMALLINT},
+            </if>
+            <if test="paytype != null" >
+                paytype = #{paytype,jdbcType=SMALLINT},
+            </if>
+            <if test="membername != null" >
+                membername = #{membername,jdbcType=VARCHAR},
+            </if>
+            <if test="sellername != null" >
+                sellername = #{sellername,jdbcType=VARCHAR},
+            </if>
+            <if test="shopname != null" >
+                shopname = #{shopname,jdbcType=VARCHAR},
+            </if>
+            <if test="brokepay != null" >
+                brokepay = #{brokepay,jdbcType=NUMERIC},
+            </if>
+            <if test="frozepay != null" >
+                frozepay = #{frozepay,jdbcType=NUMERIC},
+            </if>
+            <if test="serverpay != null" >
+                serverpay = #{serverpay,jdbcType=NUMERIC},
+            </if>
+            <if test="yuuuid != null" >
+                yuuuid = #{yuuuid,jdbcType=VARCHAR},
+            </if>
+            <if test="delaydays != null" >
+                delaydays = #{delaydays,jdbcType=INTEGER},
+            </if>
+            <if test="ifdelay != null" >
+                ifdelay = #{ifdelay,jdbcType=SMALLINT},
+            </if>
+            <if test="delaypenalty != null" >
+                delaypenalty = #{delaypenalty,jdbcType=NUMERIC},
+            </if>
+            <if test="ordertime != null" >
+                ordertime = #{ordertime,jdbcType=BIGINT},
+            </if>
+            <if test="yuordertime != null" >
+                yuordertime = #{yuordertime,jdbcType=BIGINT},
+            </if>
+            <if test="deliverybill != null" >
+                deliverybill = #{deliverybill,jdbcType=SMALLINT},
+            </if>
+            <if test="transactionid != null" >
+                transactionid = #{transactionid,jdbcType=VARCHAR},
+            </if>
+            <if test="reason != null" >
+                reason = #{reason,jdbcType=VARCHAR},
+            </if>
+            <if test="deliverytype != null" >
+                deliverytype = #{deliverytype,jdbcType=SMALLINT},
+            </if>
+            <if test="billtoserver != null" >
+                billtoserver = #{billtoserver,jdbcType=SMALLINT},
+            </if>
+            <if test="clerkname != null" >
+                clerkname = #{clerkname,jdbcType=VARCHAR},
+            </if>
+            <if test="clerknamephone != null" >
+                clerknamephone = #{clerknamephone,jdbcType=VARCHAR},
+            </if>
+            <if test="waysalesman != null" >
+                waysalesman = #{waysalesman,jdbcType=VARCHAR},
+            </if>
+            <if test="orderfright != null" >
+                orderfright = #{orderfright,jdbcType=SMALLINT},
+            </if>
+            <if test="frighttemplate != null" >
+                frighttemplate = #{frighttemplate,jdbcType=VARCHAR},
+            </if>
+            <if test="presellconfim != null" >
+                presellconfim = #{presellconfim,jdbcType=SMALLINT},
+            </if>
+            <if test="prestocktime != null" >
+                prestocktime = #{prestocktime,jdbcType=DATE},
+            </if>
+            <if test="forwardnoticephone != null" >
+                forwardnoticephone = #{forwardnoticephone,jdbcType=VARCHAR},
+            </if>
+            <if test="ticketno != null" >
+                ticketno = #{ticketno,jdbcType=VARCHAR},
+            </if>
+            <if test="isticket != null" >
+                isticket = #{isticket,jdbcType=SMALLINT},
+            </if>
+            <if test="discountprice != null" >
+                discountprice = #{discountprice,jdbcType=NUMERIC},
+            </if>
+            <if test="ismodifyfreight != null" >
+                ismodifyfreight = #{ismodifyfreight,jdbcType=SMALLINT},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_product.bean.Orders" >
+        update public.orders
+        set memberid = #{memberid,jdbcType=BIGINT},
+            saleid = #{saleid,jdbcType=BIGINT},
+            orderno = #{orderno,jdbcType=VARCHAR},
+            createtime = #{createtime,jdbcType=TIMESTAMP},
+            province = #{province,jdbcType=VARCHAR},
+            city = #{city,jdbcType=VARCHAR},
+            area = #{area,jdbcType=VARCHAR},
+            receivingaddress = #{receivingaddress,jdbcType=VARCHAR},
+            freight = #{freight,jdbcType=NUMERIC},
+            mailornot = #{mailornot,jdbcType=BIT},
+            deposit = #{deposit,jdbcType=NUMERIC},
+            balance = #{balance,jdbcType=NUMERIC},
+            futuretime = #{futuretime,jdbcType=TIMESTAMP},
+            totalprice = #{totalprice,jdbcType=NUMERIC},
+            integral = #{integral,jdbcType=INTEGER},
+            code = #{code,jdbcType=VARCHAR},
+            deliverymode = #{deliverymode,jdbcType=SMALLINT},
+            ordertype = #{ordertype,jdbcType=SMALLINT},
+            storename = #{storename,jdbcType=VARCHAR},
+            storeid = #{storeid,jdbcType=BIGINT},
+            transactionnumber = #{transactionnumber,jdbcType=VARCHAR},
+            paymentmethod = #{paymentmethod,jdbcType=SMALLINT},
+            paymenttime = #{paymenttime,jdbcType=TIMESTAMP},
+            sellerdeliverytime = #{sellerdeliverytime,jdbcType=TIMESTAMP},
+            deliveryno = #{deliveryno,jdbcType=VARCHAR},
+            buyerdeliverytime = #{buyerdeliverytime,jdbcType=TIMESTAMP},
+            buyerinspectiontime = #{buyerinspectiontime,jdbcType=TIMESTAMP},
+            orderstatus = #{orderstatus,jdbcType=SMALLINT},
+            actualpayment = #{actualpayment,jdbcType=NUMERIC},
+            couriernumber = #{couriernumber,jdbcType=VARCHAR},
+            logisticscompany = #{logisticscompany,jdbcType=VARCHAR},
+            isbilling = #{isbilling,jdbcType=SMALLINT},
+            billingtype = #{billingtype,jdbcType=SMALLINT},
+            uuid = #{uuid,jdbcType=VARCHAR},
+            membercompany = #{membercompany,jdbcType=VARCHAR},
+            isonline = #{isonline,jdbcType=SMALLINT},
+            allpay = #{allpay,jdbcType=NUMERIC},
+            phone = #{phone,jdbcType=VARCHAR},
+            shipto = #{shipto,jdbcType=VARCHAR},
+            isbackcredit = #{isbackcredit,jdbcType=SMALLINT},
+            paytype = #{paytype,jdbcType=SMALLINT},
+            membername = #{membername,jdbcType=VARCHAR},
+            sellername = #{sellername,jdbcType=VARCHAR},
+            shopname = #{shopname,jdbcType=VARCHAR},
+            brokepay = #{brokepay,jdbcType=NUMERIC},
+            frozepay = #{frozepay,jdbcType=NUMERIC},
+            serverpay = #{serverpay,jdbcType=NUMERIC},
+            yuuuid = #{yuuuid,jdbcType=VARCHAR},
+            delaydays = #{delaydays,jdbcType=INTEGER},
+            ifdelay = #{ifdelay,jdbcType=SMALLINT},
+            delaypenalty = #{delaypenalty,jdbcType=NUMERIC},
+            ordertime = #{ordertime,jdbcType=BIGINT},
+            yuordertime = #{yuordertime,jdbcType=BIGINT},
+            deliverybill = #{deliverybill,jdbcType=SMALLINT},
+            transactionid = #{transactionid,jdbcType=VARCHAR},
+            reason = #{reason,jdbcType=VARCHAR},
+            deliverytype = #{deliverytype,jdbcType=SMALLINT},
+            billtoserver = #{billtoserver,jdbcType=SMALLINT},
+            clerkname = #{clerkname,jdbcType=VARCHAR},
+            clerknamephone = #{clerknamephone,jdbcType=VARCHAR},
+            waysalesman = #{waysalesman,jdbcType=VARCHAR},
+            orderfright = #{orderfright,jdbcType=SMALLINT},
+            frighttemplate = #{frighttemplate,jdbcType=VARCHAR},
+            presellconfim = #{presellconfim,jdbcType=SMALLINT},
+            prestocktime = #{prestocktime,jdbcType=DATE},
+            forwardnoticephone = #{forwardnoticephone,jdbcType=VARCHAR},
+            ticketno = #{ticketno,jdbcType=VARCHAR},
+            isticket = #{isticket,jdbcType=SMALLINT},
+            discountprice = #{discountprice,jdbcType=NUMERIC},
+            ismodifyfreight = #{ismodifyfreight,jdbcType=SMALLINT}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
 </mapper>

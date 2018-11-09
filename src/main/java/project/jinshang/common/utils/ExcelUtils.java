@@ -408,8 +408,30 @@ public class ExcelUtils {
         return xwb;
     }
 
+
     /**
-     * 删除excel指定的一列
+     * 更新excel中某一行的值
+     * @param xwb XSSFWorkbook 对象
+     * @param sheetName sheet名称
+     * @param updateRow 要更新的第几行
+     * @param updateCell 要更新的第几个单元格的值
+     * @param content 要更新的值
+     * @return
+     */
+    public static XSSFWorkbook updateRows(XSSFWorkbook xwb,String sheetName,int updateRow,short updateCell,String content){
+        XSSFSheet sheet = StringUtils.isEmpty(sheetName)?xwb.getSheetAt(0):xwb.getSheet(sheetName);
+        XSSFRow row = null;
+        if (sheet.getRow(updateRow) != null) {
+            row = sheet.getRow(updateRow);
+            XSSFCell cell = row.createCell((short) updateCell);
+            cell.setCellValue(content);
+        }
+        return xwb;
+    }
+
+
+    /**
+     * 删除excel指定的一行
      * @param xwb XSSFWorkbook对象
      * @param sheetName sheet名称
      * @param deleteRow 要删除的哪一行

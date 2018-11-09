@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_coupon.YhqGetpacksMapper" >
+
+    <resultMap id="BaseResultMap" type="project.jinshang.mod_coupon.bean.YhqGetpacks" >
+        <id column="id" property="id" jdbcType="BIGINT" />
+        <result column="packsid" property="packsid" jdbcType="BIGINT" />
+        <result column="packsno" property="packsno" jdbcType="VARCHAR" />
+        <result column="memberid" property="memberid" jdbcType="BIGINT" />
+        <result column="gettime" property="gettime" jdbcType="TIMESTAMP" />
+        <result column="ticketlist" property="ticketlist" jdbcType="VARCHAR" />
+    </resultMap>
+
+    <sql id="Example_Where_Clause" >
+        <where >
+            <foreach collection="oredCriteria" item="criteria" separator="or" >
+                <if test="criteria.valid" >
+                    <trim prefix="(" suffix=")" prefixOverrides="and" >
+                        <foreach collection="criteria.criteria" item="criterion" >
+                            <choose >
+                                <when test="criterion.noValue" >
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue" >
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue" >
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue" >
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+
+    <sql id="Update_By_Example_Where_Clause" >
+        <where >
+            <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+                <if test="criteria.valid" >
+                    <trim prefix="(" suffix=")" prefixOverrides="and" >
+                        <foreach collection="criteria.criteria" item="criterion" >
+                            <choose >
+                                <when test="criterion.noValue" >
+                                    and ${criterion.condition}
+                                </when>
+                                <when test="criterion.singleValue" >
+                                    and ${criterion.condition} #{criterion.value}
+                                </when>
+                                <when test="criterion.betweenValue" >
+                                    and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                                </when>
+                                <when test="criterion.listValue" >
+                                    and ${criterion.condition}
+                                    <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                                        #{listItem}
+                                    </foreach>
+                                </when>
+                            </choose>
+                        </foreach>
+                    </trim>
+                </if>
+            </foreach>
+        </where>
+    </sql>
+
+    <sql id="Base_Column_List" >
+        id, packsid, packsno, memberid, gettime, ticketlist
+    </sql>
+
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_coupon.bean.YhqGetpacksExample" >
+        select
+        <if test="distinct" >
+            distinct
+        </if>
+        'true' as QUERYID,
+        <include refid="Base_Column_List" />
+        from public.yhq_getpacks
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+        <if test="orderByClause != null" >
+            order by ${orderByClause}
+        </if>
+    </select>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+        select 
+        <include refid="Base_Column_List" />
+        from public.yhq_getpacks
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+        delete from public.yhq_getpacks
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+
+    <delete id="deleteByExample" parameterType="project.jinshang.mod_coupon.bean.YhqGetpacksExample" >
+        delete from public.yhq_getpacks
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+    </delete>
+
+    <insert id="insert" parameterType="project.jinshang.mod_coupon.bean.YhqGetpacks" >
+        insert into public.yhq_getpacks (id, packsid, packsno, 
+            memberid, gettime, ticketlist
+            )
+        values (#{id,jdbcType=BIGINT}, #{packsid,jdbcType=BIGINT}, #{packsno,jdbcType=VARCHAR}, 
+            #{memberid,jdbcType=BIGINT}, #{gettime,jdbcType=TIMESTAMP}, #{ticketlist,jdbcType=VARCHAR}
+            )
+    </insert>
+
+    <insert id="insertSelective" parameterType="project.jinshang.mod_coupon.bean.YhqGetpacks" >
+        insert into public.yhq_getpacks
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="id != null" >
+                id,
+            </if>
+            <if test="packsid != null" >
+                packsid,
+            </if>
+            <if test="packsno != null" >
+                packsno,
+            </if>
+            <if test="memberid != null" >
+                memberid,
+            </if>
+            <if test="gettime != null" >
+                gettime,
+            </if>
+            <if test="ticketlist != null" >
+                ticketlist,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="id != null" >
+                #{id,jdbcType=BIGINT},
+            </if>
+            <if test="packsid != null" >
+                #{packsid,jdbcType=BIGINT},
+            </if>
+            <if test="packsno != null" >
+                #{packsno,jdbcType=VARCHAR},
+            </if>
+            <if test="memberid != null" >
+                #{memberid,jdbcType=BIGINT},
+            </if>
+            <if test="gettime != null" >
+                #{gettime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="ticketlist != null" >
+                #{ticketlist,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <select id="countByExample" parameterType="project.jinshang.mod_coupon.bean.YhqGetpacksExample" resultType="java.lang.Integer" >
+        select count(*) from public.yhq_getpacks
+        <if test="_parameter != null" >
+            <include refid="Example_Where_Clause" />
+        </if>
+    </select>
+
+    <update id="updateByExampleSelective" parameterType="map" >
+        update public.yhq_getpacks
+        <set >
+            <if test="record.id != null" >
+                id = #{record.id,jdbcType=BIGINT},
+            </if>
+            <if test="record.packsid != null" >
+                packsid = #{record.packsid,jdbcType=BIGINT},
+            </if>
+            <if test="record.packsno != null" >
+                packsno = #{record.packsno,jdbcType=VARCHAR},
+            </if>
+            <if test="record.memberid != null" >
+                memberid = #{record.memberid,jdbcType=BIGINT},
+            </if>
+            <if test="record.gettime != null" >
+                gettime = #{record.gettime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="record.ticketlist != null" >
+                ticketlist = #{record.ticketlist,jdbcType=VARCHAR},
+            </if>
+        </set>
+        <if test="_parameter != null" >
+            <include refid="Update_By_Example_Where_Clause" />
+        </if>
+    </update>
+
+    <update id="updateByExample" parameterType="map" >
+        update public.yhq_getpacks
+        set id = #{record.id,jdbcType=BIGINT},
+            packsid = #{record.packsid,jdbcType=BIGINT},
+            packsno = #{record.packsno,jdbcType=VARCHAR},
+            memberid = #{record.memberid,jdbcType=BIGINT},
+            gettime = #{record.gettime,jdbcType=TIMESTAMP},
+            ticketlist = #{record.ticketlist,jdbcType=VARCHAR}
+        <if test="_parameter != null" >
+            <include refid="Update_By_Example_Where_Clause" />
+        </if>
+    </update>
+
+    <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_coupon.bean.YhqGetpacks" >
+        update public.yhq_getpacks
+        <set >
+            <if test="packsid != null" >
+                packsid = #{packsid,jdbcType=BIGINT},
+            </if>
+            <if test="packsno != null" >
+                packsno = #{packsno,jdbcType=VARCHAR},
+            </if>
+            <if test="memberid != null" >
+                memberid = #{memberid,jdbcType=BIGINT},
+            </if>
+            <if test="gettime != null" >
+                gettime = #{gettime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="ticketlist != null" >
+                ticketlist = #{ticketlist,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_coupon.bean.YhqGetpacks" >
+        update public.yhq_getpacks
+        set packsid = #{packsid,jdbcType=BIGINT},
+            packsno = #{packsno,jdbcType=VARCHAR},
+            memberid = #{memberid,jdbcType=BIGINT},
+            gettime = #{gettime,jdbcType=TIMESTAMP},
+            ticketlist = #{ticketlist,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+</mapper>

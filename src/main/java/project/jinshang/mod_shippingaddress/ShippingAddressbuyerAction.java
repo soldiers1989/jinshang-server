@@ -320,6 +320,7 @@ public class ShippingAddressbuyerAction {
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
         PageInfo pageInfo = shippingAddressService.listAllShippingAddress(pageNo,pageSize,member.getId(),Quantity.STATE_2);
         pageRet.data.setPageInfo(pageInfo);
+        pageRet.setMessage("获取买家收货地址列表成功");
         pageRet.setResult(BasicRet.SUCCESS);
         return  pageRet;
     }

@@ -25,6 +25,7 @@ import project.jinshang.common.bean.PageRet;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.constant.SellerAuthorityConst;
+import project.jinshang.common.exception.MyException;
 import project.jinshang.common.utils.*;
 import project.jinshang.mod_admin.mod_transet.bean.TransactionSetting;
 import project.jinshang.mod_admin.mod_transet.service.TransactionSettingService;
@@ -1276,7 +1277,7 @@ public class ProductSellerAction {
     })
     //商品状态 0=放入仓库 1=待审核(立即发布) 2=审核通过 3=未通过 4=已上架(上架) 5=下架 6=删除 7-违规下架
     @PreAuthorize("hasAuthority('" + SellerAuthorityConst.POSTGOODS + "') || hasAuthority('" + SellerAuthorityConst.ALL + "')")
-    public BasicRet updatePdstate(@RequestParam(required = true) long id, @RequestParam(required = true) short pdstate, Model model, HttpServletRequest request) {
+    public BasicRet updatePdstate(@RequestParam(required = true) long id, @RequestParam(required = true) short pdstate, Model model, HttpServletRequest request) throws MyException {
         BasicRet basicRet = new BasicRet();
         ProductInfo info = new ProductInfo();
 
@@ -1473,14 +1474,15 @@ public class ProductSellerAction {
             pdstatemap.put(5,"下架");
             pdstatemap.put(6,"删除");
             pdstatemap.put(7,"违规下架");
-            memberLogOperator.saveMemberLog(member, null, "修改商品" + productInfo.getProductname() + "状态为" + pdstatemap.get((int)pdstate), request, memberOperateLogService);
+//            memberLogOperator.saveMemberLog(member, null, "修改商品" + productInfo.getProductname() + "状态为" + pdstatemap.get((int)pdstate), request, memberOperateLogService);
 
 
             basicRet.setMessage("修改成功");
             basicRet.setResult(BasicRet.SUCCESS);
         } else {
-            basicRet.setMessage("要修改的状态不对");
-            basicRet.setResult(BasicRet.ERR);
+            throw new MyException("要修改的状态不对");
+//            basicRet.setMessage("要修改的状态不对");
+//            basicRet.setResult(BasicRet.ERR);
         }
 
         return basicRet;

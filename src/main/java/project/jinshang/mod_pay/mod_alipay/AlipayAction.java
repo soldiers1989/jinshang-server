@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.exception.CashException;
 import project.jinshang.common.exception.MyException;
+import project.jinshang.common.utils.CommonUtils;
 import project.jinshang.common.utils.GenerateNo;
 import project.jinshang.mod_pay.bean.PayLogs;
 import project.jinshang.mod_pay.bean.Trade;
@@ -32,10 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/rest/alipay")
@@ -165,7 +163,8 @@ public class AlipayAction {
     @RequestMapping(value="/notify",method= {RequestMethod.POST, RequestMethod.GET})
     @ApiOperation(value = "")
     public String notify2(HttpServletRequest request, HttpServletResponse response) throws IOException, AlipayApiException, MyException, CashException {
-
+            logger.info("支付宝支付回调数据："+CommonUtils.getRequestParamStr(request));
+        try {
             //获取支付宝POST过来反馈信息
             Map<String,String> params = new HashMap<String,String>();
             Map<String,String[]> requestParams = request.getParameterMap();
@@ -229,7 +228,7 @@ public class AlipayAction {
                         if(out_trade_no_array[0].equals("order")){
                             res = tradeService.notify(out_trade_no,"alipay",trade_no);
                         }else if(out_trade_no_array[0].equals("buy")) {
-                            res = tradeService.notifyBuyerRecharge(out_trade_no_array[1],trade_no);
+                            res = tradeService.notifyBuyerRecharge(out_trade_no_array[1],trade_no,Quantity.STATE_0);
                         }else if(out_trade_no_array[0].equals("sell")){
                             res = tradeService.notifySellerRecharge(out_trade_no_array[1],trade_no);
                         }
@@ -251,6 +250,11 @@ public class AlipayAction {
 
                 return "fail";
             }
+        } catch (Exception e) {
+            logger.info("支付宝支付回调错误："+e.getMessage());
+            logger.error("支付宝支付回调错误："+e.getMessage());
+            throw new MyException("支付宝支付回调错误",e);
+        }
 
     }
 }

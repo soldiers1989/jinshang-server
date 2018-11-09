@@ -297,9 +297,9 @@ public class MemberAdminService {
      * @param mobile
      * @return
      */
-    public PageInfo findNotAddMembers(Long id,String companyname,String realname,String mobile,Long disStatus,int pageNo,int pageSize){
+    public PageInfo findNotAddMembers(Long id,String companyname,String realname,String mobile,Long disStatus,String clerkname,int pageNo,int pageSize){
         PageHelper.startPage(pageNo,pageSize);
-        List<MemberAdminViewDto> list =  memberMapper.findNotAddMembers(id, companyname,realname,mobile,disStatus);
+        List<MemberAdminViewDto> list =  memberMapper.findNotAddMembers(id, companyname,realname,mobile,disStatus,clerkname);
         return  new PageInfo(list);
     }
     /**

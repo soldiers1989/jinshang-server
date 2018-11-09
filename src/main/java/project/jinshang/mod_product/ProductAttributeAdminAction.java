@@ -479,6 +479,7 @@ public class ProductAttributeAdminAction {
             @ApiImplicitParam(name = "prodno",value = "品名编号",required = true,dataType = "string",paramType = "query"),
             @ApiImplicitParam(name = "unit",value = "计量单位",required = true,dataType = "string",paramType = "query"),
             @ApiImplicitParam(name = "mark",value = "备注",required = false,dataType = "string",paramType = "query"),
+            @ApiImplicitParam(name = "pic",value = "图片",required = false,dataType = "string",paramType = "query"),
     })
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.IDENTITYMANAGEMENT + "')")
     public  BasicRet updateProductName(@RequestParam(required = true) long id,
@@ -487,6 +488,7 @@ public class ProductAttributeAdminAction {
                                        @RequestParam(required = true) String prodno,
                                        @RequestParam(required =  true) String unit,
                                        @RequestParam(defaultValue = "") String mark,
+                                       @RequestParam(required = true)String pic,
                                        HttpServletRequest request,
                                        Model model){
         BasicRet basicRet = new BasicRet();
@@ -512,6 +514,7 @@ public class ProductAttributeAdminAction {
         productName.setUnit(unit);
         productName.setMark(mark);
         productName.setProdno(prodno);
+        productName.setPic(pic);
 
         productNameService.updateByPrimaryKeySelective(productName);
 
@@ -533,6 +536,7 @@ public class ProductAttributeAdminAction {
             @ApiImplicitParam(name = "unit",value = "计量单位",required = true,dataType = "string",paramType = "query"),
             @ApiImplicitParam(name = "attrJson",value = "显示名（需要拼装成json格式，例：[{\"name\": \"规格\",\"connector\": \"-\"},{\"name\": \"净含量\",\"connector\": \"-\"}]）",required = true,dataType = "string",paramType = "query"),
             @ApiImplicitParam(name = "mark",value = "备注",required = false,dataType = "string",paramType = "query"),
+            @ApiImplicitParam(name = "pic",value = "图片",required = true,dataType = "string",paramType = "query"),
     })
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.IDENTITYMANAGEMENT + "')")
     public BasicRet addProductName(@RequestParam(required = true) String name,
@@ -541,6 +545,7 @@ public class ProductAttributeAdminAction {
                                    @RequestParam(required =  true) String unit,
                                    @RequestParam(required = true) String attrJson,
                                    @RequestParam(defaultValue = "") String mark,
+                                   @RequestParam(required = true) String pic,
                                    Model model,HttpServletRequest request){
         BasicRet basicRet = new BasicRet();
 
@@ -570,6 +575,7 @@ public class ProductAttributeAdminAction {
         productName.setUnit(unit);
         productName.setMark(mark);
         productName.setProdno(prodno);
+        productName.setPic(pic);
         productNameService.add(productName);
 
         Gson gson = new Gson();

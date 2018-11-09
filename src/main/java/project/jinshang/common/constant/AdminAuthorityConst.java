@@ -204,6 +204,9 @@ public class AdminAuthorityConst {
     //开票对账单
     public  final  static  String  CREDITCASHSTATEMENT="CreditCashStatement";
 
+    //下单客户对账单
+    public  final  static  String  BUYERSTATEMENT="buyerstatement";
+
     //会员管理导出Excel
     public  final  static  String  MEMBERMANAGEMENTEXCEL="MemberManagementExcel";
     //商家管理导出Excel
@@ -249,4 +252,13 @@ public class AdminAuthorityConst {
 
     //退货退款原因管理
     public final static  String RETURNREASONS = "ReturnReasons";
+    //后台上传图片库权限
+    public final  static  String PHOTOSTORE = "photoStore";
+
+    //后台超时订单统计
+    public final static String TIMEOUTORDERS = "timeOutOrders";
+    //后台超时订单统计导出
+    public final  static  String TIMEOUTORDERSEXCEL = "timeOutOrdersExcel";
+    //修改运费
+    public final  static String CHANGELOGISTIC = "ChangeLogistic";
 }

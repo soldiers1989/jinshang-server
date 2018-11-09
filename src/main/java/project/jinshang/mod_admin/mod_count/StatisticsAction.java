@@ -1,5 +1,6 @@
 package project.jinshang.mod_admin.mod_count;
 
+import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -9,12 +10,12 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import project.jinshang.common.bean.PageRet;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.utils.DateUtils;
-import project.jinshang.mod_admin.mod_count.bean.MemberQueryParam;
-import project.jinshang.mod_admin.mod_count.bean.MemberStatistcModel;
-import project.jinshang.mod_admin.mod_count.bean.OrderComplex;
+import project.jinshang.mod_admin.mod_count.bean.*;
 import project.jinshang.mod_admin.mod_count.service.ProductViewService;
+import project.jinshang.mod_admin.mod_count.service.SearchKeyRecordService;
 import project.jinshang.mod_member.service.MemberService;
 import project.jinshang.mod_product.bean.OrderQueryParam;
 import project.jinshang.mod_product.service.OrdersService;
@@ -38,6 +39,9 @@ public class StatisticsAction {
 
     @Autowired
     private ProductViewService productViewService;
+
+    @Autowired
+    private SearchKeyRecordService searchKeyRecordService;
 
 
     private class StatisticsRet extends BasicRet{
@@ -336,5 +340,31 @@ public class StatisticsAction {
 
         return  null;
     }
+
+    @PostMapping(value = "/searchkeycount")
+    @ApiOperation(value = "获取搜索统计数据")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "startTime",value = "开始时间",required = false,paramType = "query",dataType = "string"),
+            @ApiImplicitParam(name = "endTime",value = "结束时间",required = false,paramType = "query",dataType = "string"),
+            @ApiImplicitParam(name = "pageNo", value = "页码", required = false, paramType = "query", dataType = "int", defaultValue = "1"),
+            @ApiImplicitParam(name = "pageSize", value = "页数", required = false, paramType = "query", dataType = "int", defaultValue = "20"),
+    })
+    public PageRet searchcount(int pageNo, int pageSize,SearchKeyQueryParam searchKeyQueryParam){
+        Date endTime = searchKeyQueryParam.getEndTime();
+        if(endTime!=null){
+            Calendar c = Calendar.getInstance();
+            c.setTime(endTime);
+            c.add(Calendar.DAY_OF_MONTH, 1);// 今天+1天
+            Date tomorrow = c.getTime();
+            searchKeyQueryParam.setEndTime(tomorrow);
+        }
+        PageInfo pageInfo = searchKeyRecordService.getListByPage(pageNo,pageSize,searchKeyQueryParam);
+        PageRet pageRet = new PageRet();
+        pageRet.data.setPageInfo(pageInfo);
+        pageRet.setMessage("返回成功");
+        pageRet.setResult(BasicRet.SUCCESS);
+        return pageRet;
+    }
+
 
 }

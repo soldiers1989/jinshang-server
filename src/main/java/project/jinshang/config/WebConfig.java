@@ -44,6 +44,7 @@ public class WebConfig extends WebMvcConfigurerAdapter {
                 .addPathPatterns("/rest/buyer/**")
                 .excludePathPatterns("/rest/buyer/registerMember")
                 .excludePathPatterns("/rest/buyer/registerMemberByMobile")
+                .excludePathPatterns("/rest/buyer/regiMemForTinyProg")
                 .excludePathPatterns("/rest/seller/login")
                 .excludePathPatterns("/rest/seller/subLogin")
                 .excludePathPatterns("/rest/buyer/login")

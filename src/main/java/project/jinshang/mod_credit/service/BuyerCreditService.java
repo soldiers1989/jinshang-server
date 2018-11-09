@@ -11,6 +11,7 @@ import project.jinshang.common.utils.DateUtils;
 import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_cash.BuyerCapitalMapper;
 import project.jinshang.mod_cash.bean.BuyerCapital;
+import project.jinshang.mod_cash.service.BuyerCapitalService;
 import project.jinshang.mod_credit.BillCreateMapper;
 import project.jinshang.mod_credit.CreditApplyRecordMapper;
 import project.jinshang.mod_credit.bean.*;
@@ -35,6 +36,8 @@ public class BuyerCreditService {
 
     @Autowired
     private BuyerCapitalMapper buyerCapitalMapper;
+    @Autowired
+    private BuyerCapitalService buyerCapitalService;
 
     public CreditApplyRecord getCreditApplyRecord(Long id){
         return creditApplyRecordMapper.selectByPrimaryKey(id);
@@ -45,7 +48,7 @@ public class BuyerCreditService {
      * @param buyerCapital
      */
     public void saveBuyerCapital(BuyerCapital buyerCapital){
-        buyerCapitalMapper.insertSelective(buyerCapital);
+        buyerCapitalService.insertSelective(buyerCapital);
     }
 
 
@@ -126,6 +129,24 @@ public class BuyerCreditService {
 
         Date start = DateUtils.StrToDate(buyerinspectiontimeStart);
         Date end = DateUtils.StrToDate(buyerinspectiontimeEnd);
+
+
+        if(end.before(new Date())){  //如果提前还款时间是当月的 28.29.30
+            Calendar calendar1 = Calendar.getInstance();
+            calendar1.set(Calendar.DAY_OF_MONTH,27);
+            calendar1.add(Calendar.MONTH,1);
+            Date buyerinspectiontimeEndDate1 = calendar1.getTime();
+            calendar1.add(Calendar.DATE,1);
+            calendar1.add(Calendar.MONTH,-1);
+            Date buyerinspectiontimeStartDate1 =  calendar1.getTime();
+
+            String buyerinspectiontimeStart1 = DateUtils.format(buyerinspectiontimeStartDate1,"yyyy-MM-dd")+" 00:00:00";
+            String buyerinspectiontimeEnd1 =  DateUtils.format(buyerinspectiontimeEndDate1,"yyyy-MM-dd")+" 23:59:59.999";
+
+            start = DateUtils.StrToDate(buyerinspectiontimeStart1);
+            end = DateUtils.StrToDate(buyerinspectiontimeEnd1);
+
+        }
 
 
 //        已用金额 = 消费总金额 - 退款总金额 - 已还款总金额(提前还款)

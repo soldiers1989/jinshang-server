@@ -6,7 +6,11 @@ package project.jinshang.common.utils;
 
 import com.google.gson.JsonParser;
 
+import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.Enumeration;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -89,6 +93,39 @@ public class CommonUtils {
     }
 
 
+    public static String getRequestParamStr(HttpServletRequest request){
+        Enumeration e = request.getParameterNames();
+        StringBuilder sb = new StringBuilder();
+        while(e.hasMoreElements()) {
+            String param = (String)e.nextElement();
+            sb.append(param).append(":").append(request.getParameter(param)).append("\n");
+        }
+        return sb.toString();
+    }
 
+
+
+    public static String getServerHost(){
+        try {
+            InetAddress addr = InetAddress.getLocalHost();
+            String hostName=addr.getHostName().toString(); //获取本机计算机名称
+            return hostName;
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+    public static String getServerIP(){
+        try {
+            InetAddress addr = InetAddress.getLocalHost();
+            String ip=addr.getHostAddress(); //获取本机计算机名称
+            return ip;
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 
 }

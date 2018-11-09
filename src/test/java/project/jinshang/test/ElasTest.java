@@ -65,7 +65,7 @@ public class ElasTest {
 
 //    @Test
     public void test() throws Exception {
-        List<Synonym> synonyms = synonymMapper.listAll();
+        List<Synonym> synonyms = synonymMapper.listAll(null);
         synonyms.forEach(synonym -> synonym.getWords().forEach(CustomDictionary::add));
         ProductInfoExample example = new ProductInfoExample();
         example.createCriteria().andPdstateEqualTo(Quantity.STATE_4);

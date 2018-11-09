@@ -196,6 +196,7 @@ public class IndexService {
                         Categories categories1 = categoriesService.getById(level2id);
                         if(categories1 == null) continue;
                         showCateFastenerLevel2.setLevel2category(categories1.getName());
+                        showCateFastenerLevel2.setImg(categories1.getImg());
                         List<ShowCatedetail> sameMaterialAndLevel2List = getByMaterialAndStand(showCatedetailList,material,level2id);
 
                         for(ShowCatedetail sameMaterialAndStand : sameMaterialAndLevel2List){

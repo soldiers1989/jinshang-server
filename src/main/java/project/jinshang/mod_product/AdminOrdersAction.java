@@ -29,6 +29,8 @@ import project.jinshang.mod_activity.bean.LimitTimeStore;
 import project.jinshang.mod_admin.mod_commondata.service.CommonDataValueService;
 import project.jinshang.mod_admin.mod_returnreason.bean.ReturnReason;
 import project.jinshang.mod_admin.mod_returnreason.service.ReturnReasonService;
+import project.jinshang.mod_admin.mod_statement.bean.BuyerStatement;
+import project.jinshang.mod_admin.mod_statement.service.StatementService;
 import project.jinshang.mod_admin.mod_transet.bean.TransactionSetting;
 import project.jinshang.mod_admin.mod_transet.service.TransactionSettingService;
 import project.jinshang.mod_cash.bean.BuyerCapital;
@@ -61,6 +63,8 @@ import project.jinshang.mod_shippingaddress.service.ShippingAddressService;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.*;
 
 /**
@@ -159,6 +163,11 @@ public class AdminOrdersAction {
 
     @Autowired
     private LogisticsInfoService logisticsInfoService;
+    @Autowired
+    private StatementService statementService;
+
+    @Autowired
+    private YhqUseService yhqUseService;
 
 
     //远期全款打折率
@@ -479,6 +488,7 @@ public class AdminOrdersAction {
             @ApiImplicitParam(name = "payType", value = "支付方式0=支付宝1=微信2=银行卡3=余额4=授信", required = false, paramType = "query", dataType = "int"),
             @ApiImplicitParam(name = "orderType", value = "订单类型0=立即发货1=远期全款2=远期定金3=远期余款", required = false, paramType = "query", dataType = "int"),
             @ApiImplicitParam(name = "orderNo", value = "订单号", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "invoiceheadup", value = "开票抬头", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "code", value = "合同号", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "tranNo", value = "交易号", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "transactionid", value = "支付宝交易号", required = false, paramType = "query", dataType = "string"),
@@ -495,6 +505,7 @@ public class AdminOrdersAction {
             @ApiImplicitParam(name = "deliverytype", value = "发货方式 0-卖家直发，1-平台代发", required = false, paramType = "query", dataType = "int"),
             @ApiImplicitParam(name = "shipto", value = "收货人", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "sendstatus", value = "发货状态 全部订单为不传 1为待发货（查询待发货和部分发货订单）3为待收货订单(查待收货和部分发货) 10为部分发货订单(只查10部分发货)", required = false, paramType = "query", dataType = "long"),
+            @ApiImplicitParam(name = "overtime", value = "超时时间 全部为不传 1=超时1天 2=超时2天 3=超时3天", required = false, paramType = "query", dataType = "int"),
 
     })
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.ORDERMANAGEMENT + "')")
@@ -782,7 +793,7 @@ public class AdminOrdersAction {
     @ApiOperation(value = "批量打印发货单[一组订单编号]")
     public OrdersRet printSendGoods(Long[] orderids) {
         OrdersRet ordersRet = new OrdersRet();
-
+        BigDecimal ordersPrice=Quantity.BIG_DECIMAL_0;
         List<Orders> list = ordersService.getOrdersByIds(orderids);
         for (Orders orders : list) {
             if (orders.getDeliverytype() == 1) {  //如果是代理发货，设置为代理发货地址
@@ -811,13 +822,17 @@ public class AdminOrdersAction {
                         orderProduct.getExtend().put("productinfo", opl.getProductinfojson());
                     }
                 }
-
+                ordersPrice=ordersPrice.add(orderProduct.getActualpayment()).add(orderProduct.getDiscountpay());
+                DecimalFormat decimalFormat=new DecimalFormat("#.00");
+//                BigDecimal actualpayment=new BigDecimal(orderProduct.getNum().multiply(orderProduct.getPrice()).toString()).setScale(2,BigDecimal.ROUND_HALF_UP);
+                BigDecimal actualpayment=orderProduct.getActualpayment().add(orderProduct.getDiscountpay());
+                orderProduct.setActualpayment(new BigDecimal(decimalFormat.format(actualpayment)));
                 retOrderProdList.add(orderProduct);
             }
 
 
             orders.setOrderProducts(retOrderProdList);
-
+            orders.setTotalprice(ordersPrice);
             BuyerCompanyInfo buyerCompanyInfo = buyerCompanyService.getBuyerCompanyInfoByMemberId(orders.getMemberid());
             Member member = memberService.getMemberById(orders.getMemberid());
             if (buyerCompanyInfo != null) {
@@ -983,7 +998,13 @@ public class AdminOrdersAction {
         OrderCarRet orderCarRet = new OrderCarRet();
         orderCarRet.setMessage("返回成功");
         orderCarRet.setResult(BasicRet.SUCCESS);
-        orderCarRet.data.orderProducts = ordersService.getOrderProductByOrderNo(orderno);
+        List<OrderProduct> productList=ordersService.getOrderProductByOrderNo(orderno);;
+        for (OrderProduct orderProduct:productList) {
+            DecimalFormat decimalFormat=new DecimalFormat("#.00");
+            BigDecimal actualpayment=new BigDecimal(orderProduct.getNum().multiply(orderProduct.getPrice()).toString()).setScale(2,BigDecimal.ROUND_HALF_UP);
+            orderProduct.setActualpayforcontract(new BigDecimal(decimalFormat.format(actualpayment)));
+        }
+        orderCarRet.data.orderProducts = productList;
         orderCarRet.data.orderProducts.forEach(orderProduct -> orderProduct.getExtend().put("productInfo", productInfoService.getById(orderProduct.getPdid())));
         return orderCarRet;
     }
@@ -1194,7 +1215,8 @@ public class AdminOrdersAction {
                                 //找出部分退货相同的商品，删除这个部分退货，并加数量和总价到原来的商品
                                 if (op.getPdid().longValue() == orderProductBack.getPdid().longValue() && op.getPdno().equals(orderProductBack.getPdno()) && op.getBackstate() == Quantity.STATE_0) {
                                     op.setNum(op.getNum().add(orderProduct.getNum()));
-                                    op.setActualpayment(op.getNum().multiply(op.getPrice()).add(op.getFreight()));
+                                    op.setActualpayment(new BigDecimal(op.getNum().multiply(op.getPrice()).add(op.getFreight()).toString()).setScale(2,BigDecimal.ROUND_HALF_UP).subtract(op.getDiscountpay()).subtract(orderProduct.getDiscountpay()));
+                                    op.setDiscountpay(op.getDiscountpay().add(orderProduct.getDiscountpay()));
                                     ordersService.updateOrderProduct(op);
                                     ordersService.deleteOrderProduct(orderProduct.getId());
                                     break;
@@ -1276,7 +1298,7 @@ public class AdminOrdersAction {
         List<Map<String,Object>>pdnumList = new ArrayList<Map<String,Object>>();*/
 
         Orders orders = ordersService.getOrdersByOrderNo(orderno);
-
+        Short isticket=orders.getIsticket();
         //运费
         BigDecimal orderFreight = orders.getFreight();
         //订单总价
@@ -1284,6 +1306,8 @@ public class AdminOrdersAction {
         //实付款
         //BigDecimal orderActualpayment = orders.getActualpayment();
 
+        BigDecimal discountpay=Quantity.BIG_DECIMAL_0;
+        BigDecimal totalDiscountpay=Quantity.BIG_DECIMAL_0;
 
         if (orders == null) {
             return new BasicRet(BasicRet.ERR, "订单不存在");
@@ -1325,6 +1349,12 @@ public class AdminOrdersAction {
 
         BigDecimal totalProductMoney = Quantity.BIG_DECIMAL_0;  //所有商品总金额
         BigDecimal totalWeight = Quantity.BIG_DECIMAL_0;  //所有商品总重量
+        BigDecimal totalNum = Quantity.BIG_DECIMAL_0; //所有数量
+
+        BigDecimal oldTotalProductMoney = Quantity.BIG_DECIMAL_0;  //所有商品总金额 (没有修改数量和运费前)
+        BigDecimal oldTotalWeight = Quantity.BIG_DECIMAL_0;  //所有商品总重量(没有修改数量和运费前)
+
+
 
 
         List<OrderProductModel> saveOrderProductList = new ArrayList<>();
@@ -1351,7 +1381,7 @@ public class AdminOrdersAction {
                     if (productStore1 == null) {
                         throw new MyException("商品id为" + orderProduct.getPdid() + "的库存信息不存在");
                     }
-
+                    discountpay=orderProduct.getDiscountpay()==null?Quantity.BIG_DECIMAL_0:orderProduct.getDiscountpay();
                     OrderProductModel saveOrderProduct = new OrderProductModel();
                     saveOrderProduct.setId(updateP.getId());
                     saveOrderProduct.setOldProductNum(orderProduct.getNum());
@@ -1361,14 +1391,27 @@ public class AdminOrdersAction {
                         saveOrderProduct.setPrice(orderProduct.getPrice());
                         saveOrderProduct.setFreight(Quantity.BIG_DECIMAL_0);
                         saveOrderProduct.setActualpayment(Quantity.BIG_DECIMAL_0);
+                        saveOrderProduct.setDiscountpay(discountpay);
+                        totalNum = totalNum.add(updateP.getNum());
                     } else {
                         saveOrderProduct.setNum(updateP.getNum());
                         saveOrderProduct.setPrice(orderProduct.getPrice());
 
 
-                        saveOrderProduct.setActualpayment(saveOrderProduct.getPrice().multiply(saveOrderProduct.getNum()).setScale(2,BigDecimal.ROUND_HALF_UP));
+                        BigDecimal oldActualpayment = orderProduct.getActualpayment();
+                        //退货金额计算公式:退货数量x单价-(退货数量/总数量)X产品的优惠金额
+                        BigDecimal pdbackNum=orderProduct.getNum().subtract(updateP.getNum());
+                        //subtractMoney是退款金额
+//                        BigDecimal subtractMoney=new BigDecimal(pdbackNum.multiply(orderProduct.getPrice()).subtract(pdbackNum.divide(orderProduct.getNum(),5,BigDecimal.ROUND_HALF_UP).multiply(discountpay)).toString()).setScale(2,BigDecimal.ROUND_HALF_UP);
+                        BigDecimal subtractMoney=new BigDecimal(oldActualpayment.multiply(pdbackNum).divide(orderProduct.getNum(),5,BigDecimal.ROUND_HALF_UP).toString()).setScale(2,BigDecimal.ROUND_HALF_UP);
+                        saveOrderProduct.setActualpayment(new BigDecimal(oldActualpayment.subtract(subtractMoney).toString()).setScale(2,BigDecimal.ROUND_HALF_UP));
+                        //重新核算优惠金额,担心采用 (优惠金额/订单数量)*剩余数量 的方式会导致精度丢失，故直接相减
+//                        discountpay=new BigDecimal(saveOrderProduct.getNum().multiply(orderProduct.getPrice()).subtract(saveOrderProduct.getActualpayment()).toString()).setScale(2,BigDecimal.ROUND_HALF_UP);
+                        discountpay=new BigDecimal(saveOrderProduct.getNum().multiply(discountpay).divide(orderProduct.getNum(),5,BigDecimal.ROUND_HALF_UP).toString()).setScale(2,BigDecimal.ROUND_HALF_UP);
+                        saveOrderProduct.setDiscountpay(discountpay);
                         totalProductMoney = totalProductMoney.add(saveOrderProduct.getActualpayment());
                         totalWeight = totalWeight.add(updateP.getNum().multiply(productStore1.getWeight()));
+                        totalNum = totalNum.add(updateP.getNum());
 
                         //TODO  兼容老数据
                         if(orders.getOrderfright() == null) {
@@ -1383,6 +1426,7 @@ public class AdminOrdersAction {
                         }
                     }
 
+                    totalDiscountpay=totalDiscountpay.add(discountpay);
                     saveOrderProductList.add(saveOrderProduct);
 
                     if (ordersService.updateOrderProductForModifyProductnum(saveOrderProduct) != 1) {
@@ -1405,6 +1449,13 @@ public class AdminOrdersAction {
 
                 }
             }
+
+            //计算商家没有修改数量和运费之前的 用于退回运费差额的计算。
+            if(orders.getIsmodifyfreight() == Quantity.STATE_1){
+                ProductStore oldProductStore = productStoreService.getProductStore(orderProduct.getPdid(), orderProduct.getPdno(), orders.getStoreid());
+                oldTotalProductMoney = oldTotalProductMoney.add(orderProduct.getActualpayment());
+                oldTotalWeight = oldTotalWeight.add(orderProduct.getNum().multiply(oldProductStore.getWeight()));
+            }
         }
 
 
@@ -1424,13 +1475,18 @@ public class AdminOrdersAction {
         //计算修改后需要交纳的运费金额
         BigDecimal updateFreightMoney = Quantity.BIG_DECIMAL_0;
 
+        //定义一个变量 用于存放修改商品订购数量后的运费（根据运费模板算出来的） 用于退回运费差额的计算。
+        BigDecimal updateNumBeforeFreightMoney = Quantity.BIG_DECIMAL_0;
+
 
        if(orders.getOrderfright() != null) {
            if (orders.getOrderfright() != 1 && orders.getOrderfright() != 2 && orders.getOrderfright() != 3 && totalWeight.compareTo(Quantity.BIG_DECIMAL_0) == 1) {
                OrderFrightDto orderFrightDto = GsonUtils.toBean(orders.getFrighttemplate(), OrderFrightDto.class);
-               updateFreightMoney = freightService.getFreightByOrderFrightDto(orderFrightDto, totalProductMoney, totalWeight, orders.getProvince(), orders.getCity());
+               updateFreightMoney = freightService.getFreightByOrderFrightDto(orderFrightDto, totalProductMoney.add(totalDiscountpay), totalWeight, orders.getProvince(), orders.getCity());
+               updateNumBeforeFreightMoney = updateFreightMoney;
            } else {
                updateFreightMoney = Quantity.BIG_DECIMAL_0;
+               updateNumBeforeFreightMoney = updateFreightMoney;
            }
        }else{
            //TODO 兼容老数据
@@ -1440,10 +1496,41 @@ public class AdminOrdersAction {
            }
        }
 
-        BigDecimal updateTotalMoney = totalProductMoney.add(updateFreightMoney).setScale(2,BigDecimal.ROUND_HALF_UP);  //修改后的订单的总金额（货款+运费）
+
+        //未修改运费的退运费金额 = 修改商品订购数量前的运费 - 修改商品订购数量后的运费
+        //退回的运费 = （未修改运费的退运费金额 / 未修改的运费金额） * 修改后的运费金额。
+        BigDecimal oldFreightMoney  = Quantity.BIG_DECIMAL_0; // 修改商品订购数量前的根据模板计算的运费
+        BigDecimal compareFreightMoney = Quantity.BIG_DECIMAL_0; //未修改运费的退运费金额
+        BigDecimal backFreightMoney = Quantity.BIG_DECIMAL_0; //退回的运费
+
+        if(orders.getOrderfright() != 1 && orders.getOrderfright() != 2 && orders.getOrderfright() != 3) {
+            oldFreightMoney = getOldFreightMoney(orders, oldTotalProductMoney, oldTotalWeight);
+        }
+
+        //如果有改过运费 都以改过运费的为准,但不包含修改数量为0的
+        if(orders.getIsmodifyfreight() == 1 && totalNum.compareTo(new BigDecimal(0))>0){
+            updateFreightMoney = orders.getFreight();
+        }
+
+        BigDecimal updateTotalMoney = BigDecimal.ZERO;
+
+        //修改过运费的 商品总价+(修改后总运费-退回的运费)
+        if(orders.getIsmodifyfreight() == 1 && orders.getFreight().compareTo(new BigDecimal(0))>0 && oldFreightMoney.compareTo(new BigDecimal(0))>0 && orders.getOrderfright() != 1 && orders.getOrderfright() != 2 && orders.getOrderfright() != 3) {
+            //计算出来的运费差额
+            backFreightMoney = getBackFreightMoney(orders, oldTotalProductMoney, oldTotalWeight, updateFreightMoney, updateNumBeforeFreightMoney);
+            updateTotalMoney = new BigDecimal(totalProductMoney.add(updateFreightMoney.subtract(backFreightMoney)).toString()).setScale(2, BigDecimal.ROUND_HALF_UP); //修改后的订单的总金额（货款+运费）
+        }else{
+            //没有修改过运费的 商品总价+运费
+            updateTotalMoney = new BigDecimal(totalProductMoney.add(updateFreightMoney).toString()).setScale(2, BigDecimal.ROUND_HALF_UP);  //修改后的订单的总金额（货款+运费）
+        }
+
+        //单个或者多个商品全部数量修改为0的情况
+        if(orders.getIsmodifyfreight() == 1 && totalNum.compareTo(new BigDecimal(0))==0){
+            updateTotalMoney = new BigDecimal(totalProductMoney.add(new BigDecimal(0)).toString()).setScale(2,BigDecimal.ROUND_HALF_UP);  //修改后的订单的总金额（货款+运费）
+        }
 
         //退款金额
-        BigDecimal backMoney = orderTotalprice.subtract(updateTotalMoney).setScale(2, BigDecimal.ROUND_HALF_UP);
+        BigDecimal backMoney = new BigDecimal(orderTotalprice.subtract(updateTotalMoney).toString()).setScale(2, BigDecimal.ROUND_HALF_UP);
 
         if (backMoney.compareTo(Quantity.BIG_DECIMAL_0) < 0) {
             throw new MyException("退款金额不可少于0");
@@ -1462,15 +1549,20 @@ public class AdminOrdersAction {
             updateOrders.setFreight(Quantity.BIG_DECIMAL_0);
             ordersService.deleteBillRecord(orders.getId().toString());
         } else {
-            updateOrders.setFreight(updateFreightMoney);
-            updateOrders.setTotalprice(updateTotalMoney);
+            if(orders.getIsmodifyfreight() == 1){
+                updateOrders.setFreight(updateFreightMoney.subtract(backFreightMoney));
+            }else {
+                updateOrders.setFreight(updateFreightMoney);
+            }
+            updateOrders.setTotalprice(updateTotalMoney.add(totalDiscountpay));
             updateOrders.setActualpayment(updateTotalMoney);
 
             //修改开票金额
             if (orders.getIsbilling() == Quantity.STATE_1) {
-                billingRecordService.updateAdminDecOrderProductnum(orders.getId().toString(), orders.getMemberid(), backMoney.multiply(new BigDecimal(-1)));
+                billingRecordService.updateAdminDecOrderProductnum(orders.getId().toString(), orders.getMemberid(), backMoney.multiply(new BigDecimal("-1")));
             }
         }
+        updateOrders.setDiscountprice(totalDiscountpay);
         ordersService.updateSingleOrder(updateOrders);
 
         //操作日志
@@ -1514,10 +1606,10 @@ public class AdminOrdersAction {
                         Refund refund = new Refund();
                         refund.setOutTradeNo(uuid);
                         refund.setChannel(tradeService.getPayChannel(orders.getPaytype()));
-                        refund.setRefundAmount((backMoney.multiply(new BigDecimal(100))).longValue());
+                        refund.setRefundAmount((backMoney.multiply(new BigDecimal("100"))).longValue());
                         refund.setRefundReason("订单退款");
                         BigDecimal totalAmout = tradeService.getTotalAmout(uuid);
-                        refund.setTotalAmount((totalAmout.multiply(new BigDecimal(100))).longValue());
+                        refund.setTotalAmount((totalAmout.multiply(new BigDecimal("100"))).longValue());
                         boolean result = tradeService.backMoney(refund);
 
                         if (result) {
@@ -1540,25 +1632,192 @@ public class AdminOrdersAction {
                     buyerCapitalService.insertSelective(buyerCapital1);
                 }
                 salerCapitalService.insertSelective(salerCapital);
+                if (buyerCapital1!=null&&buyerCapital1.getPaytype()!= Quantity.STATE_3&&buyerCapital1.getPaytype()!= Quantity.STATE_4){
+                    Member member=memberService.getMemberById(orders.getMemberid());
+                    BuyerStatement buyerStatement=ordersService.createBuyerStateForBack(orders,backMoney,new Date(),buyerCapital1.getPaytype(), (short) StatementType.StType5.getTyep(),member,null,false);
+                    statementService.insertStatement(buyerStatement);
+                }
             } else {
                 throw new MyException("未查询到该订单的付款信息");
             }
         }
-        //正式环境启用
-        if(profile.equals("prod") || profile.equals("pro")) {
+
         //商品数量被管理员修改 短信通知买家
         List<Orders> list = new ArrayList<>();
         list.add(orders);
         ordersService.smsNotifyAdminProductNum(list);
-         }
+
 
 
         return new BasicRet(BasicRet.SUCCESS, "修改成功");
     }
 
+    /**
+     * 算出需要退的运费
+     * @param orders
+     * @param oldTotalProductMoney
+     * @param oldTotalWeight
+     * @param updateFreightMoney
+     * @param updateNumBeforeFreightMoney
+     * @return
+     * @throws MyException
+     */
+    private BigDecimal getBackFreightMoney(Orders orders, BigDecimal oldTotalProductMoney, BigDecimal oldTotalWeight, BigDecimal updateFreightMoney, BigDecimal updateNumBeforeFreightMoney) throws MyException {
+        BigDecimal oldFreightMoney;
+        BigDecimal compareFreightMoney;
+        BigDecimal backFreightMoney;OrderFrightDto oldOrderFrightDto = GsonUtils.toBean(orders.getFrighttemplate(), OrderFrightDto.class);
+        oldFreightMoney = freightService.getFreightByOrderFrightDto(oldOrderFrightDto, oldTotalProductMoney, oldTotalWeight, orders.getProvince(), orders.getCity());
+        compareFreightMoney = oldFreightMoney.subtract(updateNumBeforeFreightMoney);
+        //这里divide加2是 BigDecimal的divide方法进行除法时当不整除，出现无限循环小数时，就会抛异常
+        backFreightMoney = (compareFreightMoney.divide(oldFreightMoney,5, RoundingMode.HALF_UP)).multiply(updateFreightMoney).setScale(2,BigDecimal.ROUND_HALF_UP);
+        return backFreightMoney;
+    }
+
+    /**
+     * 算出修改数量后 将这个数量传入根据运费模板算出运费
+     * 例如数量为1千支 12元运费 修改为0.1千支还是12元
+     * @param orders
+     * @param oldTotalProductMoney
+     * @param oldTotalWeight
+     * @return
+     * @throws MyException
+     */
+    private BigDecimal getOldFreightMoney(Orders orders, BigDecimal oldTotalProductMoney, BigDecimal oldTotalWeight) throws MyException {
+        BigDecimal oldFreightMoney;
+        OrderFrightDto oldOrderFrightDto = GsonUtils.toBean(orders.getFrighttemplate(), OrderFrightDto.class);
+        oldFreightMoney = freightService.getFreightByOrderFrightDto(oldOrderFrightDto, oldTotalProductMoney, oldTotalWeight, orders.getProvince(), orders.getCity());
+        return oldFreightMoney;
+    }
+
+
+    @RequestMapping(value = "/updateOrderFreight", method = RequestMethod.POST)
+    @ApiOperation(value = "订单修改运费")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "ordersid", value = "订单id", required = true, paramType = "query", dataType = "long"),
+            @ApiImplicitParam(name = "freight", value = "修改后的运费", required = true, paramType = "query", dataType = "double"),
+    })
+    @PreAuthorize("hasAuthority('" + AdminAuthorityConst.CHANGELOGISTIC + "')")
+    public BasicRet updateOrderFreight(Model model, Long ordersid, BigDecimal freight, HttpServletRequest request) {
+        BasicRet basicRet = new BasicRet();
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        Orders orders = ordersService.getOrdersById(ordersid);
+        if (orders != null) {
+            //判断订单状态 只有待付款才允许修改
+            if(orders.getOrderstatus() != Quantity.STATE_0){
+                basicRet.setResult(BasicRet.ERR);
+                basicRet.setMessage("不是待付款状态，不允许修改运费");
+                return basicRet;
+            }
+            if(orders.getIsticket() == Quantity.STATE_1){
+                basicRet.setResult(BasicRet.ERR);
+                basicRet.setMessage("使用优惠券的订单不允许修改运费");
+                return basicRet;
+            }
+            if(!StringUtils.isNumeric(freight.toString())){
+                basicRet.setResult(BasicRet.ERR);
+                basicRet.setMessage("运费请填写数字");
+                return basicRet;
+            }
+            if(freight.compareTo(new BigDecimal(0)) < 0){
+                basicRet.setResult(BasicRet.ERR);
+                basicRet.setMessage("运费不能为负数");
+                return basicRet;
+            }
+            if(orders.getFreight().compareTo(freight) == 0){
+                basicRet.setResult(BasicRet.ERR);
+                basicRet.setMessage("修改后的运费价格和之前的运费相同");
+                return basicRet;
+            }
 
 
 
+            List<OrderProduct> orderProductList = orderProductServices.getByOrderNo(orders.getOrderno());
+
+            BigDecimal totalProductMoney = Quantity.BIG_DECIMAL_0;  //所有商品总金额(不包含运费)
+            BigDecimal orderTotalPrice = Quantity.BIG_DECIMAL_0; //订单总价(含运费)
+            BigDecimal productMoney = Quantity.BIG_DECIMAL_0;  //一个商品的金额
+
+
+            BigDecimal deposit = Quantity.BIG_DECIMAL_0;  //远期定金
+            BigDecimal balance = Quantity.BIG_DECIMAL_0;  //远期余款
+            BigDecimal allPay = Quantity.BIG_DECIMAL_0;  //远期全款
+
+
+            //重新计算总价和加入运费
+            if(orderProductList!=null && orderProductList.size()>0) {
+                for (OrderProduct orderProduct : orderProductList) {
+                    productMoney = orderProduct.getPrice().multiply(orderProduct.getNum()).setScale(2,BigDecimal.ROUND_HALF_UP);
+                    if(orders.getOrdertype() == Quantity.STATE_1) {
+                        //远期全款
+                        allPay = allPay.add(productMoney.setScale(2,BigDecimal.ROUND_HALF_UP));
+                    }
+                    if(orders.getOrdertype() == Quantity.STATE_2) {
+                        //远期定金
+                        deposit = deposit.add(orderProduct.getPartpay());
+                        //修改运费的话 远期定金的 余款要加上运费
+                        balance = (balance.add(orderProduct.getYupay())).add(freight);
+                    }
+                    totalProductMoney =  totalProductMoney.add(productMoney);
+                }
+                orderTotalPrice = totalProductMoney.add(freight);
+
+                //将重新计算后的总价和运费存入
+                Orders updateOrders = new Orders();
+                updateOrders.setId(orders.getId());
+                updateOrders.setFreight(freight);
+                //actualpayment是已经减去优惠金额的 totalprice是没有减去优惠券金额的
+                //没有使用优惠券的时候
+                if (orders.getDiscountprice().compareTo(Quantity.BIG_DECIMAL_0) == 0) {
+                    updateOrders.setActualpayment(orderTotalPrice);
+                    if(orders.getOrdertype() == Quantity.STATE_1) {
+                        updateOrders.setAllpay(allPay.add(freight));
+                    }
+                } else {
+                    //使用优惠券的时候
+                    BigDecimal newActualpayment = orderTotalPrice.subtract(orders.getDiscountprice());
+                    BigDecimal newAllpay = (allPay.add(freight)).subtract(orders.getDiscountprice());
+                    updateOrders.setActualpayment(newActualpayment);
+                    if(orders.getOrdertype() == Quantity.STATE_1) {
+                        updateOrders.setAllpay(newAllpay);
+                    }
+                }
+                updateOrders.setTotalprice(orderTotalPrice);
+                updateOrders.setBalance(balance);
+                updateOrders.setDeposit(deposit);
+                //设置为已修改过运费
+                updateOrders.setIsmodifyfreight(Quantity.STATE_1);
+                ordersService.updateOrders(updateOrders);
+
+                //修改开票金额
+                if(orders.getIsbilling() == Quantity.STATE_1){
+                    //直接用修改过后的运费减去修改前的运费 差额就是开票要加的
+                    BigDecimal comparefreight = freight.subtract(orders.getFreight());
+                    billingRecordService.updateAdminDecOrderProductnum(orders.getId().toString(),orders.getMemberid(),comparefreight);
+                }
+            }
+        } else {
+            basicRet.setResult(BasicRet.ERR);
+            basicRet.setMessage("订单不存在");
+            return basicRet;
+        }
+
+        //保存操作日志
+        OperateLog operateLog = new OperateLog();
+        operateLog.setContent(freight + "运费修改");
+        operateLog.setContent("平台管理员将原运费"+orders.getFreight()+"改成"+freight);
+        operateLog.setOpid(admin.getId());
+        operateLog.setOpname(admin.getRealname());
+        operateLog.setOptime(new Date());
+        operateLog.setOptype(Quantity.STATE_0);
+        operateLog.setOrderid(orders.getId());
+        operateLog.setOrderno(orders.getOrderno());
+        ordersService.saveOperatelog(operateLog);
+        basicRet.setResult(BasicRet.SUCCESS);
+        basicRet.setMessage("修改成功");
+        //用户日志
+        memberLogOperator.saveMemberLog(null,admin, "订单运费修改为：" + freight, "/rest/admin/orders/updateOrderFreight",request, memberOperateLogService);
+        return basicRet;
+    }
 
 
 /*
@@ -2740,6 +2999,21 @@ public class AdminOrdersAction {
     public BasicRet updateBillRecord(Model model, BillingRecord billingRecord, HttpServletRequest request) {
         BasicRet basicRet = new BasicRet();
         ordersService.updateBillRecord(billingRecord);
+        if (billingRecord.getState()==Quantity.STATE_1){
+            BuyerStatement buyerStatement=new BuyerStatement();
+            BillingRecord billingRecord1=ordersService.getBillRecordByID(billingRecord.getId());
+            buyerStatement.setMemberid(billingRecord1.getMemberid());
+            buyerStatement.setContractno(billingRecord1.getBillno());
+            buyerStatement.setType((short) StatementType.StType8.getTyep());
+            buyerStatement.setBillrecoid(billingRecord1.getId());
+            buyerStatement.setDeliveryamount(Quantity.BIG_DECIMAL_0);
+            buyerStatement.setReceiptamount(Quantity.BIG_DECIMAL_0);
+            buyerStatement.setInvoiceamount(billingRecord1.getBillcash());
+            buyerStatement.setCreatetime(new Date());
+            buyerStatement.setRemark(billingRecord1.getInvoiceheadup());
+            buyerStatement.setPaytype((short)6);
+            statementService.insertStatement(buyerStatement);
+        }
         basicRet.setResult(BasicRet.SUCCESS);
         basicRet.setMessage("修改成功");
         Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
@@ -2760,6 +3034,10 @@ public class AdminOrdersAction {
     })
     public BasicRet batchUpdateBillRecord(Model model, HttpServletRequest request, String ids, Short state, String expressno, String expresscom, String billtype, String billno) {
         BasicRet basicRet = new BasicRet();
+        List<BuyerStatement> statementList=new ArrayList<>();
+        BuyerStatement buyerStatement=null;
+        Map<String,List<BillingRecord>> listMap = new LinkedHashMap<>();
+        List<BillingRecord> billingRecords=null;
         List<BillingRecord> list = ordersService.getBillRecordList(ids);
         for (BillingRecord billingRecord : list) {
             billingRecord.setExpressno(expressno);
@@ -2768,6 +3046,37 @@ public class AdminOrdersAction {
             billingRecord.setBilltype(billtype);
             billingRecord.setBillno(billno);
             ordersService.updateBillRecord(billingRecord);
+            if (listMap.containsKey(billingRecord.getInvoiceheadup())){
+                billingRecords=listMap.get(billingRecord.getInvoiceheadup());
+                billingRecords.add(billingRecord);
+            }else{
+                billingRecords=new ArrayList<>();
+                billingRecords.add(billingRecord);
+                listMap.put(billingRecord.getInvoiceheadup(),billingRecords);
+            }
+        }
+        for (Map.Entry<String,List<BillingRecord>> entry:listMap.entrySet()){
+            final BigDecimal[] billcash = {Quantity.BIG_DECIMAL_0};
+            String invoiceHeadUp=entry.getKey();
+            entry.getValue().stream().forEach(bg -> {
+                billcash[0] = billcash[0].add(bg.getBillcash());
+            });
+            buyerStatement=new BuyerStatement();
+            BillingRecord example=entry.getValue().get(0);
+            buyerStatement.setMemberid(example.getMemberid());
+            buyerStatement.setContractno(example.getBillno());
+            buyerStatement.setType((short) StatementType.StType8.getTyep());
+            buyerStatement.setBillrecoid(example.getId());
+            buyerStatement.setDeliveryamount(Quantity.BIG_DECIMAL_0);
+            buyerStatement.setReceiptamount(Quantity.BIG_DECIMAL_0);
+            buyerStatement.setInvoiceamount(billcash[0]);
+            buyerStatement.setCreatetime(new Date());
+            buyerStatement.setRemark(invoiceHeadUp);
+            buyerStatement.setPaytype((short)6);
+            statementList.add(buyerStatement);
+        }
+        if (statementList.size()>0){
+            statementService.insertStatementAll(statementList);
         }
         basicRet.setResult(BasicRet.SUCCESS);
         basicRet.setMessage("修改成功");
@@ -2898,7 +3207,7 @@ public class AdminOrdersAction {
                 }
 
                 if (subApply.compareTo(new BigDecimal(0)) > 0) {
-                    orders.setTotalprice(orders.getTotalprice().subtract(subApply));
+                    orders.setTotalprice(orders.getTotalprice().subtract(subApply).subtract(orders.getDiscountprice()));
                 }
 
 
@@ -3199,7 +3508,8 @@ public class AdminOrdersAction {
         if(orders.getOrderstatus() != Quantity.STATE_0){
             return  new BasicRet(BasicRet.ERR,"只有待付款订单可以改价");
         }
-
+        Short isticket=orders.getIsticket();
+        BigDecimal discountprice=Quantity.BIG_DECIMAL_0;
         List<ModifyOrderProductPrice> priceList = GsonUtils.toList(pricesJson,ModifyOrderProductPrice.class);
 
         for(ModifyOrderProductPrice price : priceList){
@@ -3239,23 +3549,24 @@ public class AdminOrdersAction {
         BigDecimal allPay = Quantity.BIG_DECIMAL_0;  //远期全款
 
         BigDecimal totalWeight = Quantity.BIG_DECIMAL_0; //总重量
+        List<OrderProduct>  updateOrderProductList=new ArrayList<>();
 
         for(OrderProduct orderProduct : orderProductList){
             OrderProduct updateOrderProduct = new OrderProduct();
             updateOrderProduct.setId(orderProduct.getId());
             updateOrderProduct.setPrice(orderProduct.getPrice());
 
-            BigDecimal productTotalPrice = orderProduct.getPrice().multiply(orderProduct.getNum()).setScale(2,BigDecimal.ROUND_HALF_UP);
+            BigDecimal productTotalPrice = new BigDecimal(orderProduct.getPrice().multiply(orderProduct.getNum()).toString()).setScale(2,BigDecimal.ROUND_HALF_UP);
 
             if(orderProduct.getProtype() == 0){  //远期类型0=不是远期1=全款2=定金
                 updateOrderProduct.setActualpayment(productTotalPrice.setScale(2,BigDecimal.ROUND_HALF_UP));
             }else if(orderProduct.getProtype() ==1){
-                updateOrderProduct.setAllpay(orderProduct.getPrice().multiply(orderProduct.getNum()));
+                updateOrderProduct.setAllpay(new BigDecimal(orderProduct.getPrice().multiply(orderProduct.getNum()).toString()));
                 updateOrderProduct.setActualpayment(productTotalPrice.setScale(2,BigDecimal.ROUND_HALF_UP));
                 allPay = allPay.add(productTotalPrice.setScale(2,BigDecimal.ROUND_HALF_UP));
             }else if(orderProduct.getProtype() == 2){
                 updateOrderProduct.setActualpayment(productTotalPrice.setScale(2,BigDecimal.ROUND_HALF_UP));
-                BigDecimal partpay = productTotalPrice.subtract(orderProduct.getFreight()).multiply(transactionSettingService.getTransactionSetting().getRemotepurchasingmargin()).multiply(new BigDecimal(0.01)).setScale(2,BigDecimal.ROUND_HALF_UP);
+                BigDecimal partpay = new BigDecimal(productTotalPrice.subtract(orderProduct.getFreight()).multiply(transactionSettingService.getTransactionSetting().getRemotepurchasingmargin()).multiply(new BigDecimal("0.01")).toString()).setScale(2,BigDecimal.ROUND_HALF_UP);
                 BigDecimal yupay = productTotalPrice.subtract(partpay);
                 updateOrderProduct.setPartpay(partpay);
                 updateOrderProduct.setYupay(yupay);
@@ -3265,28 +3576,56 @@ public class AdminOrdersAction {
             }else{
                 throw new RuntimeException("商品远期类型不合法");
             }
-
+            updateOrderProduct.setProtype(orderProduct.getProtype());
             orderTotalPrice = orderTotalPrice.add(updateOrderProduct.getActualpayment());
-            orderProductServices.updateByPrimaryKeySelective(updateOrderProduct);
+            updateOrderProductList.add(updateOrderProduct);
         }
+        //重新进行优惠金额的计算
+        if (isticket.compareTo((short) 1)==0){
+            //优惠金额
+            discountprice=orders.getDiscountprice();
+            if (orderTotalPrice.compareTo(discountprice)==-1){
+                return  new BasicRet(BasicRet.ERR,"减价后总金额小于优惠金额");
+            }
+            yhqUseService.useCouponForUpdate(updateOrderProductList,discountprice);
+
+        }
+        orderTotalPrice=Quantity.BIG_DECIMAL_0;
+        for (OrderProduct orderProduct:updateOrderProductList){
+            orderTotalPrice=orderTotalPrice.add(orderProduct.getActualpayment());
+            BigDecimal actualpayment=orderProduct.getActualpayment();
+            if(orderProduct.getProtype() == 2){
+                BigDecimal partpay = new BigDecimal(actualpayment.subtract(orderProduct.getFreight()).multiply(transactionSettingService.getTransactionSetting().getRemotepurchasingmargin()).multiply(new BigDecimal("0.01")).toString()).setScale(2,BigDecimal.ROUND_HALF_UP);
+                BigDecimal yupay = actualpayment.subtract(partpay);
+                orderProduct.setPartpay(partpay);
+                orderProduct.setYupay(yupay);
+
+                deposit = deposit.add(partpay);
+                balance = balance.add(yupay);
+            }
+            orderProductServices.updateByPrimaryKeySelective(orderProduct);
+        }
+
 
         //orderTotalPrice = orderTotalPrice.add(orders.getFreight());  //加上运费
         //重新计算运费
         BigDecimal fright = Quantity.BIG_DECIMAL_0;
-        if(orders.getOrderfright() != null && orders.getOrderfright() != -1 && orders.getFreight().compareTo(Quantity.BIG_DECIMAL_0) != 0){
+        if(orders.getOrderfright() != null&&orders.getOrderfright() != 1 && orders.getOrderfright() != 2 && orders.getOrderfright() != 3){
             OrderFrightDto orderFrightDto = null;
             if(StringUtils.hasText(orders.getFrighttemplate())){
                 orderFrightDto = GsonUtils.toBean(orders.getFrighttemplate(),OrderFrightDto.class);
 
                 BigDecimal totalProdMoney = Quantity.BIG_DECIMAL_0;
                 BigDecimal totalProdWeigth = Quantity.BIG_DECIMAL_0;
+                //此处运费的计算存在问题，需要用更新之后的orderProductList
+                orderProductList=ordersService.getOrderProductByOrderId(orders.getId());
                 for(OrderProduct orderProduct : orderProductList){
                     totalProdMoney = totalProdMoney.add(orderProduct.getActualpayment());
                     ProductStore productStore = productStoreService.getByPdidAndPdno(orderProduct.getPdid(),orderProduct.getPdno());
-                    totalProdWeigth = totalWeight.add(productStore.getWeight().multiply(orderProduct.getNum()));
+                    totalProdWeigth = totalProdWeigth.add(productStore.getWeight().multiply(orderProduct.getNum()));
                 }
 
-                fright = freightService.getFreightByOrderFrightDto(orderFrightDto,totalProdMoney,totalProdWeigth,orders.getProvince(),orders.getCity());
+                fright = freightService.getFreightByOrderFrightDto(orderFrightDto,totalProdMoney.add(discountprice),totalProdWeigth,orders.getProvince(),orders.getCity());
             }else{
                 fright = orders.getFreight();
             }
@@ -3302,10 +3641,10 @@ public class AdminOrdersAction {
         Orders updateOrders = new Orders();
         updateOrders.setId(orders.getId());
         updateOrders.setActualpayment(orderTotalPrice);
-        updateOrders.setTotalprice(orderTotalPrice);
-        updateOrders.setBalance(balance);
+        updateOrders.setTotalprice(orderTotalPrice.add(discountprice));
+        updateOrders.setBalance(balance.add(fright));
         updateOrders.setDeposit(deposit);
-        updateOrders.setAllpay(allPay);
+        updateOrders.setAllpay(orderTotalPrice);
         updateOrders.setFreight(fright);
         ordersService.updateSingleOrder(updateOrders);
 

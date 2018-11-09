@@ -35,10 +35,14 @@ import project.jinshang.mod_activity.service.LimitTimeStoreService;
 import project.jinshang.mod_admin.mod_commondata.service.CommonDataValueService;
 import project.jinshang.mod_admin.mod_returnreason.bean.ReturnReason;
 import project.jinshang.mod_admin.mod_returnreason.service.ReturnReasonService;
+import project.jinshang.mod_admin.mod_statement.bean.BuyerStatement;
+import project.jinshang.mod_admin.mod_statement.bean.BuyerStatementExample;
+import project.jinshang.mod_admin.mod_statement.service.StatementService;
 import project.jinshang.mod_admin.mod_transet.bean.TransactionSetting;
 import project.jinshang.mod_admin.mod_transet.service.TransactionSettingService;
 import project.jinshang.mod_cash.bean.BuyerCapital;
 import project.jinshang.mod_cash.bean.SalerCapital;
+import project.jinshang.mod_cash.bean.dto.BuyerCapitalViewDto;
 import project.jinshang.mod_cash.service.BuyerCapitalService;
 import project.jinshang.mod_cash.service.SalerCapitalService;
 import project.jinshang.mod_common.bean.SmsLog;
@@ -75,6 +79,7 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -175,6 +180,9 @@ public class SellerOrdersAction {
 
     @Autowired
     private LogisticsInfoService logisticsInfoService;
+    @Autowired
+    private StatementService statementService;
+
 
     //远期全款打折率
     private static final BigDecimal allPayRate = new BigDecimal(0.99);
@@ -431,11 +439,11 @@ public class SellerOrdersAction {
             memberOrders.setTotalprice(orders.getTotalprice());
             memberOrders.setBrokepay(orders.getBrokepay());
             //实付金额
-            BigDecimal actualpayment = new BigDecimal(0);
-            for (OrderProduct orderProduct : orderProducts) {
-                actualpayment = actualpayment.add(orderProduct.getActualpayment());
-            }
-            memberOrders.setActualpayment(actualpayment);
+//            BigDecimal actualpayment = new BigDecimal(0);
+//            for (OrderProduct orderProduct : orderProducts) {
+//                actualpayment = actualpayment.add(orderProduct.getActualpayment());
+//            }
+            memberOrders.setActualpayment(orders.getActualpayment());
             memberOrders.setReceiver(orders.getShipto());
             memberOrders.setReceiverPhone(orders.getPhone());
             //orders.totalprice,orders.freight,orders.deposit,orders.balance,orders.futuretime,orders.allpay,orders.ordertype
@@ -448,6 +456,7 @@ public class SellerOrdersAction {
             memberOrders.setAllpay(orders.getAllpay());
             memberOrders.setOrdertype(orders.getOrdertype());
             memberOrders.setOrderProducts(orderProducts);
+            memberOrders.setDiscountprice(orders.getDiscountprice());
             memberOrderses.add(memberOrders);
         }
         pageInfo.setList(memberOrderses);
@@ -900,7 +909,7 @@ public class SellerOrdersAction {
     @ApiOperation(value = "批量打印发货单[一组订单编号]")
     public OrdersRet printSendGoods(Long[] orderids) {
         OrdersRet ordersRet = new OrdersRet();
-
+        BigDecimal ordersPrice=Quantity.BIG_DECIMAL_0;
         List<Orders> list = ordersService.getOrdersByIds(orderids);
         for (Orders orders : list) {
             if (orders.getDeliverytype() == 1) {  //如果是代理发货，设置为代理发货地址
@@ -929,13 +938,17 @@ public class SellerOrdersAction {
                         orderProduct.getExtend().put("productinfo", opl.getProductinfojson());
                     }
                 }
-
+                ordersPrice=ordersPrice.add(orderProduct.getActualpayment()).add(orderProduct.getDiscountpay());
+                DecimalFormat decimalFormat=new DecimalFormat("#.00");
+//                BigDecimal actualpayment=new BigDecimal(orderProduct.getNum().multiply(orderProduct.getPrice()).toString()).setScale(2,BigDecimal.ROUND_HALF_UP);
+                BigDecimal actualpayment=orderProduct.getActualpayment().add(orderProduct.getDiscountpay());
+                orderProduct.setActualpayment(new BigDecimal(decimalFormat.format(actualpayment)));
                 retOrderProdList.add(orderProduct);
             }
 
 
             orders.setOrderProducts(retOrderProdList);
-
+            orders.setTotalprice(ordersPrice);
             BuyerCompanyInfo buyerCompanyInfo = buyerCompanyService.getBuyerCompanyInfoByMemberId(orders.getMemberid());
             Member member = memberService.getMemberById(orders.getMemberid());
             if (buyerCompanyInfo != null) {
@@ -1041,7 +1054,13 @@ public class SellerOrdersAction {
         OrderCarRet orderCarRet = new OrderCarRet();
         orderCarRet.setMessage("返回成功");
         orderCarRet.setResult(BasicRet.SUCCESS);
-        orderCarRet.data.orderProducts = ordersService.getOrderProductByOrderNo(orderno);
+        List<OrderProduct> productList=ordersService.getOrderProductByOrderNo(orderno);;
+        for (OrderProduct orderProduct:productList) {
+            DecimalFormat decimalFormat=new DecimalFormat("#.00");
+            BigDecimal actualpayment=new BigDecimal(orderProduct.getNum().multiply(orderProduct.getPrice()).toString()).setScale(2,BigDecimal.ROUND_HALF_UP);
+            orderProduct.setActualpayforcontract(new BigDecimal(decimalFormat.format(actualpayment)));
+        }
+        orderCarRet.data.orderProducts = productList;
         return orderCarRet;
     }
 
@@ -1082,7 +1101,7 @@ public class SellerOrdersAction {
         BasicRet basicRet = new BasicRet();
 
         //对操作类型进行校验 wyh
-        if(state != 3 && state != 8 && state != 9 && state != 10){
+        if(state!=1 && state != 3 && state != 8 && state != 9 && state != 10){
             basicRet.setResult(BasicRet.ERR);
             basicRet.setMessage("操作类型不合法");
             return basicRet;
@@ -1204,7 +1223,7 @@ public class SellerOrdersAction {
             @ApiImplicitParam(name = "couriernumber", value = "运输单号", required = true, paramType = "query", dataType = "String"),
             @ApiImplicitParam(name = "type", value = "type 1包邮 2自提  3顺丰到付 4物流自提 5物流到家 6快递", required = false, paramType = "query", dataType = "long"),
     })
-    public BasicRet sendOutGoods(Model model, String orderno, String logisticscompany, String couriernumber,long type, HttpServletRequest request) {
+    public BasicRet sendOutGoods(Model model, String orderno, String logisticscompany, String couriernumber,long type, HttpServletRequest request) throws MyException {
 
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
         logisticscompany = StringUtils.nvl(logisticscompany);
@@ -1262,9 +1281,18 @@ public class SellerOrdersAction {
 
                 updateOrder.setOrderstatus(Quantity.STATE_3);
                 updateOrder.setSellerdeliverytime(new Date());
-                ordersService.updateSingleOrder(updateOrder);
 
+                OrdersExample updateOrdersExample = new OrdersExample();
+                OrdersExample.Criteria criteria = updateOrdersExample.createCriteria();
+                criteria.andIdEqualTo(updateOrder.getId()).andOrderstatusEqualTo(Quantity.STATE_1);
 
+                 if(ordersService.sendOutGoodsUpdateOrder(updateOrder,updateOrdersExample) != 1){
+                    throw new MyException("请勿重复发货");
+                 }
+                 //进行对账单的插入
+                Member buyer=memberService.getMemberById(orders.getMemberid());
+                BuyerStatement buyerStatement=ordersService.createBuyerStateForSend(orders,orders.getActualpayment(),new Date(),buyer);
+                statementService.insertStatement(buyerStatement);
                 //保存操作日志
                 OperateLog operateLog = new OperateLog();
                 operateLog.setContent("已发货");
@@ -1369,13 +1397,14 @@ public class SellerOrdersAction {
             @ApiImplicitParam(name = "couriernumber", value = "运输单号", required = true, paramType = "query", dataType = "String"),
             @ApiImplicitParam(name = "type", value = "type 1包邮 2自提  3顺丰到付 4物流自提 5物流到家 6快递", required = false, paramType = "query", dataType = "long"),
     })
-    public BasicRet splitSendOutGoods(Model model, String orderno, String logisticscompany, String couriernumber,long type,String orderproductids, HttpServletRequest request) {
+    public BasicRet splitSendOutGoods(Model model, String orderno, String logisticscompany, String couriernumber,long type,String orderproductids, HttpServletRequest request) throws MyException {
 
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
 
         BasicRet basicRet = new BasicRet();
         Orders orders = ordersService.getOrdersByOrderNo(orderno);
-
+        BigDecimal sendAmount=Quantity.BIG_DECIMAL_0;
+        List<OrderProduct> orderProductList1=new ArrayList<>();
         if(type !=2) {
             if (logisticscompany == null || logisticscompany.equals("")) {
                 basicRet.setMessage("运输方式不允许为空");
@@ -1421,6 +1450,7 @@ public class SellerOrdersAction {
                         basicRet.setMessage("勾选的部分商品发货，在订单商品表未找到");
                         return basicRet;
                     }
+                    orderProductList1.add(newOrderProduct);
                 }
             }else{
                 basicRet.setResult(BasicRet.ERR);
@@ -1453,7 +1483,14 @@ public class SellerOrdersAction {
                         OrderProduct updateOrderProduct = new OrderProduct();
                         updateOrderProduct.setId(orderproductid);
                         updateOrderProduct.setDeliveryid(logisticsInfo.getId());
-                        orderProductServices.updateByPrimaryKeySelective(updateOrderProduct);
+                        //orderProductServices.updateByPrimaryKeySelective(updateOrderProduct);
+
+                        OrderProductExample updateOrderProductExample = new OrderProductExample();
+                        OrderProductExample.Criteria criteria = updateOrderProductExample.createCriteria();
+                        criteria.andIdEqualTo(orderproductid).andDeliveryidIsNull();
+                        if(orderProductServices.sendSplitOutGoodsUpdateOrderProduct(updateOrderProduct,updateOrderProductExample) != 1){
+                            throw new MyException("分批发货,请勿重复发货");
+                        }
                     }
                 }
 
@@ -1471,6 +1508,16 @@ public class SellerOrdersAction {
 
                 ordersService.updateSingleOrder(updateOrder);
 
+                //进行对账单的插入
+                for (OrderProduct orderProduct:orderProductList1) {
+                    sendAmount=sendAmount.add(orderProduct.getActualpayment());
+                }
+                if (updateOrder.getOrderstatus()==Quantity.STATE_3){
+                    sendAmount=sendAmount.add(orders.getFreight());
+                }
+                Member buyer=memberService.getMemberById(orders.getMemberid());
+                BuyerStatement buyerStatement=ordersService.createBuyerStateForSend(orders,sendAmount,new Date(),buyer);
+                statementService.insertStatement(buyerStatement);
 
                 //保存操作日志
                 OperateLog operateLog = new OperateLog();
@@ -1545,6 +1592,8 @@ public class SellerOrdersAction {
     public BasicRet getOrderProductBackByOrderProductId(Long id) {
         OrderCarRet orderCarRet = new OrderCarRet();
         OrderProductBack orderProductBack = ordersService.getOrderProductBackByOrderProductID(id);
+        OrderProduct orderProduct=orderProductServices.getOrderProductById(id);
+        orderProductBack.setDiscountpay(orderProduct.getDiscountpay());
         orderCarRet.data.orderProductBack = orderProductBack;
 
         //根据退货原因 查询违约金比例
@@ -1838,6 +1887,7 @@ public class SellerOrdersAction {
             Date tranTime = new Date();
             List<BuyerCapital> buyerCapitals = new ArrayList<BuyerCapital>();
             List<SalerCapital> salerCapitals = new ArrayList<SalerCapital>();
+            List<BuyerStatement> statementList=new ArrayList<>();
             //买家退款资金明细
             BuyerCapital buyerCapital1 = null;
             //买家违约资金明细
@@ -1846,6 +1896,8 @@ public class SellerOrdersAction {
             SalerCapital salerCapital1 = null;
             //卖家违约资金明细
             SalerCapital salerCapital2 = null;
+            //客户下单对账单
+            BuyerStatement buyerStatement=null;
             //立即发货,只有立即发货有部分退款
             if (orderProduct.getProtype() == Quantity.STATE_0) {
                 BigDecimal orderPay = orderProduct.getActualpayment().subtract(orderProduct.getFreight());
@@ -1870,11 +1922,18 @@ public class SellerOrdersAction {
                     if (buyerCapital.getPaytype() == Quantity.STATE_3) {
                         buyer.setBalance(buyer.getBalance().add(backPay.subtract(penaltyPay)).setScale(2,BigDecimal.ROUND_HALF_UP));
                         buyerCapital1 = createBuyerBackPay(order, backPay.subtract(penaltyPay).setScale(2,BigDecimal.ROUND_HALF_UP), tranTime, Quantity.STATE_3);
+                        //先插入一条退货对账单明细
+//                        buyerStatement=ordersService.createBuyerStateForBack(order,backPay.setScale(2,BigDecimal.ROUND_HALF_UP),tranTime,Quantity.STATE_3, (short) StatementType.StType3.getTyep(),buyer,returnReason,true);
+//                        statementList.add(buyerStatement);
                         //被扣得违约金 创建一条买家资金明细
                         if(orderProductBack.getAdminstate() != Quantity.STATE_2) {
                             createBuyerPenaltyPay(order, penaltyPay, tranTime, buyerCapitals, orderPay);
+                            //插入一条违约金的对账单明细
+                            buyerStatement=ordersService.createBuyerStateForBack(order,penaltyPay.setScale(2,BigDecimal.ROUND_HALF_UP),tranTime,Quantity.STATE_3, (short) StatementType.StType4.getTyep(),buyer,returnReason,true);
+                            statementList.add(buyerStatement);
                         }
-                        salerCapital1 = createSalerBackPay(order, backPay, tranTime);
+                        //授信、余额支付不插入退款对账单明细
+                        salerCapital1 = createSalerBackPay(order, backPay.add(orderProduct.getDiscountpay()), tranTime);
                         buyerCapitals.add(buyerCapital1);
                         salerCapitals.add(salerCapital1);
                     }
@@ -1885,11 +1944,18 @@ public class SellerOrdersAction {
                         buyer.setAvailablelimit(buyer.getAvailablelimit().add(backPay.subtract(penaltyPay)).setScale(2,BigDecimal.ROUND_HALF_UP));
                         buyer.setUsedlimit(buyer.getUsedlimit().subtract(backPay.subtract(penaltyPay)));
                         buyerCapital1 = createBuyerBackPay(order, backPay.subtract(penaltyPay).setScale(2,BigDecimal.ROUND_HALF_UP), tranTime, Quantity.STATE_4);
+                        //先插入一条退货对账单明细
+//                        buyerStatement=ordersService.createBuyerStateForBack(order,backPay.setScale(2,BigDecimal.ROUND_HALF_UP),tranTime,Quantity.STATE_4,(short) StatementType.StType3.getTyep(),buyer,returnReason,true);
+//                        statementList.add(buyerStatement);
                         //被扣得违约金 创建一条买家资金明细
                         if(orderProductBack.getAdminstate() != Quantity.STATE_2) {
                             createBuyerPenaltyPay(order, penaltyPay, tranTime, buyerCapitals, orderPay);
+                            //插入一条违约金的对账单明细
+                            buyerStatement=ordersService.createBuyerStateForBack(order,penaltyPay.setScale(2,BigDecimal.ROUND_HALF_UP),tranTime,Quantity.STATE_4, (short) StatementType.StType4.getTyep(),buyer,returnReason,true);
+                            statementList.add(buyerStatement);
                         }
-                        salerCapital1 = createSalerBackPay(order, backPay, tranTime);
+                        //授信、余额支付不插入退款对账单明细
+                        salerCapital1 = createSalerBackPay(order, backPay.add(orderProduct.getDiscountpay()), tranTime);
                         buyerCapitals.add(buyerCapital1);
                         salerCapitals.add(salerCapital1);
                     }
@@ -1936,7 +2002,16 @@ public class SellerOrdersAction {
                                         createBuyerPenaltyPay(order, penaltyPay, tranTime, buyerCapitals, orderPay);
                                     }
                                 }
-                                salerCapital1 = createSalerBackPay(order, backPay, tranTime);
+                                //先插入一条退货对账单明细
+//                                buyerStatement=ordersService.createBuyerStateForBack(order,backPay.setScale(2,BigDecimal.ROUND_HALF_UP),tranTime,order.getPaytype(),(short) StatementType.StType3.getTyep(),buyer,returnReason,true);
+//                                statementList.add(buyerStatement);
+                                //插入一条违约金的对账单明细
+                                buyerStatement=ordersService.createBuyerStateForBack(order,penaltyPay.setScale(2,BigDecimal.ROUND_HALF_UP),tranTime,order.getPaytype(), (short) StatementType.StType4.getTyep(),buyer,returnReason,true);
+                                statementList.add(buyerStatement);
+                                //非余额、授信支付，需要再插入一条退款记录
+                                buyerStatement=ordersService.createBuyerStateForBack(order,backPay.subtract(penaltyPay).setScale(2,BigDecimal.ROUND_HALF_UP),tranTime,order.getPaytype(), (short) StatementType.StType5.getTyep(),buyer,returnReason,true);
+                                statementList.add(buyerStatement);
+                                salerCapital1 = createSalerBackPay(order, backPay.add(orderProduct.getDiscountpay()), tranTime);
                                 buyerCapitals.add(buyerCapital1);
                                 salerCapitals.add(salerCapital1);
                             }else{
@@ -1950,7 +2025,7 @@ public class SellerOrdersAction {
                     if (penaltyPay.compareTo(Quantity.BIG_DECIMAL_0) == 1 &&  orderProductBack.getAdminstate() == Quantity.STATE_2){
                         BigDecimal sellerPenaltyPay = penaltyPay.multiply(forwardsalesmargin).setScale(2,BigDecimal.ROUND_HALF_UP);
                         if(sellerPenaltyPay.compareTo(Quantity.BIG_DECIMAL_0)>0){
-                            sellerMember.setSellerbanlance(sellerMember.getSellerbanlance().add(sellerPenaltyPay));
+                            sellerMember.setSellerfreezebanlance(sellerMember.getSellerfreezebanlance().add(sellerPenaltyPay));
                             salerCapital2 = createSalerPenaltyPay(order, sellerPenaltyPay, tranTime, Quantity.STATE_6, orderPay, Quantity.BUYER_BACK_REASON);
                             salerCapitals.add(salerCapital2);
                         }
@@ -2033,11 +2108,18 @@ public class SellerOrdersAction {
                     if (buyerCapital.getPaytype() == Quantity.STATE_3) {
                         buyer.setBalance(buyer.getBalance().add(backPay).subtract(penaltyPay).setScale(2,BigDecimal.ROUND_HALF_UP));
                         buyerCapital1 = createBuyerBackPay(order, backPay.subtract(penaltyPay).setScale(2,BigDecimal.ROUND_HALF_UP), tranTime, Quantity.STATE_3);
+                        //先插入一条退货对账单明细
+//                        buyerStatement=ordersService.createBuyerStateForBack(order,backPay.setScale(2,BigDecimal.ROUND_HALF_UP),tranTime,Quantity.STATE_3, (short) StatementType.StType3.getTyep(),buyer,returnReason,true);
+//                        statementList.add(buyerStatement);
                         //被扣得违约金 创建一条买家资金明细
                         if(orderProductBack.getAdminstate() != Quantity.STATE_2) {
                             createBuyerPenaltyPay(order, penaltyPay, tranTime, buyerCapitals, orderPay);
+                            //插入一条违约金的对账单明细
+                            buyerStatement=ordersService.createBuyerStateForBack(order,penaltyPay.setScale(2,BigDecimal.ROUND_HALF_UP),tranTime,Quantity.STATE_3, (short) StatementType.StType4.getTyep(),buyer,returnReason,true);
+                            statementList.add(buyerStatement);
                         }
-                        salerCapital1 = createSalerBackPay(order, backPay, tranTime);
+                        //授信、余额支付不插入退款对账单明细
+                        salerCapital1 = createSalerBackPay(order, backPay.add(orderProduct.getDiscountpay()), tranTime);
                         buyerCapitals.add(buyerCapital1);
                         salerCapitals.add(salerCapital1);
                     }
@@ -2046,11 +2128,18 @@ public class SellerOrdersAction {
                         buyer.setAvailablelimit(buyer.getAvailablelimit().add(backPay.subtract(penaltyPay)).setScale(2,BigDecimal.ROUND_HALF_UP));
                         buyer.setUsedlimit(buyer.getUsedlimit().subtract(backPay.subtract(penaltyPay)).setScale(2,BigDecimal.ROUND_HALF_UP));
                         buyerCapital1 = createBuyerBackPay(order, backPay.subtract(penaltyPay).setScale(2,BigDecimal.ROUND_HALF_UP), tranTime, Quantity.STATE_4);
+                        //先插入一条退货对账单明细
+//                        buyerStatement=ordersService.createBuyerStateForBack(order,backPay.setScale(2,BigDecimal.ROUND_HALF_UP),tranTime,Quantity.STATE_4, (short) StatementType.StType3.getTyep(),buyer,returnReason,true);
+//                        statementList.add(buyerStatement);
                         //被扣得违约金 创建一条买家资金明细
                         if(orderProductBack.getAdminstate() != Quantity.STATE_2) {
                             createBuyerPenaltyPay(order, penaltyPay, tranTime, buyerCapitals, orderPay);
+                            //插入一条违约金的对账单明细
+                            buyerStatement=ordersService.createBuyerStateForBack(order,penaltyPay.setScale(2,BigDecimal.ROUND_HALF_UP),tranTime,Quantity.STATE_4, (short) StatementType.StType4.getTyep(),buyer,returnReason,true);
+                            statementList.add(buyerStatement);
                         }
-                        salerCapital1 = createSalerBackPay(order, backPay, tranTime);
+                        //授信、余额支付不插入退款对账单明细
+                        salerCapital1 = createSalerBackPay(order, backPay.add(orderProduct.getDiscountpay()), tranTime);
                         buyerCapitals.add(buyerCapital1);
                         salerCapitals.add(salerCapital1);
                     }
@@ -2081,7 +2170,16 @@ public class SellerOrdersAction {
                                 }else {
                                     buyerCapital1 = createBuyerBackPay(order, backPay.subtract(penaltyPay).setScale(2,BigDecimal.ROUND_HALF_UP), tranTime, Quantity.STATE_2);
                                 }
-                                salerCapital1 = createSalerBackPay(order, backPay, tranTime);
+                                //先插入一条退货对账单明细
+//                                buyerStatement=ordersService.createBuyerStateForBack(order,backPay.setScale(2,BigDecimal.ROUND_HALF_UP),tranTime,order.getPaytype(),(short) StatementType.StType3.getTyep(),buyer,returnReason,true);
+//                                statementList.add(buyerStatement);
+                                //插入一条违约金的对账单明细
+                                buyerStatement=ordersService.createBuyerStateForBack(order,penaltyPay.setScale(2,BigDecimal.ROUND_HALF_UP),tranTime,order.getPaytype(), (short) StatementType.StType4.getTyep(),buyer,returnReason,true);
+                                statementList.add(buyerStatement);
+                                //非余额、授信支付，需要再插入一条退款记录
+                                buyerStatement=ordersService.createBuyerStateForBack(order,backPay.subtract(penaltyPay).setScale(2,BigDecimal.ROUND_HALF_UP),tranTime,order.getPaytype(), (short) StatementType.StType5.getTyep(),buyer,returnReason,true);
+                                statementList.add(buyerStatement);
+                                salerCapital1 = createSalerBackPay(order, backPay.add(orderProduct.getDiscountpay()), tranTime);
                                 buyerCapitals.add(buyerCapital1);
                                 salerCapitals.add(salerCapital1);
                             }else{
@@ -2094,7 +2192,7 @@ public class SellerOrdersAction {
                     if (penaltyPay.compareTo(Quantity.BIG_DECIMAL_0) == 1 && orderProductBack.getAdminstate() == Quantity.STATE_2) {
                         BigDecimal sellerPenaltyPay = penaltyPay.multiply(forwardsalesmargin).setScale(2,BigDecimal.ROUND_HALF_UP);
                         if(sellerPenaltyPay.compareTo(Quantity.BIG_DECIMAL_0)>0){
-                            sellerMember.setSellerbanlance(sellerMember.getSellerbanlance().add(sellerPenaltyPay));
+                            sellerMember.setSellerfreezebanlance(sellerMember.getSellerfreezebanlance().add(sellerPenaltyPay));
                             salerCapital2 = createSalerPenaltyPay(order, sellerPenaltyPay, tranTime, Quantity.STATE_6, orderPay, Quantity.BUYER_BACK_REASON);
                             salerCapitals.add(salerCapital2);
                         }
@@ -2190,11 +2288,18 @@ public class SellerOrdersAction {
                     if (depositBuyerCapital.getPaytype() == Quantity.STATE_3) {
                         buyer.setBalance(buyer.getBalance().add(buyerBackPay));
                         buyerCapital1 = createBuyerBackPay(order, buyerBackPay, tranTime, Quantity.STATE_3);
+                        //先插入一条退货对账单明细
+//                        buyerStatement=ordersService.createBuyerStateForBack(order,backPay.setScale(2,BigDecimal.ROUND_HALF_UP),tranTime,Quantity.STATE_3, (short) StatementType.StType3.getTyep(),buyer,returnReason,true);
+//                        statementList.add(buyerStatement);
                         //被扣得违约金 创建一条买家资金明细
                         if(orderProductBack.getAdminstate() != Quantity.STATE_2) {
                             createBuyerPenaltyPay(order, penaltyPay, tranTime, buyerCapitals, orderPay);
+                            //插入一条违约金的对账单明细
+                            buyerStatement=ordersService.createBuyerStateForBack(order,penaltyPay.setScale(2,BigDecimal.ROUND_HALF_UP),tranTime,Quantity.STATE_3, (short) StatementType.StType4.getTyep(),buyer,returnReason,true);
+                            statementList.add(buyerStatement);
                         }
-                        salerCapital1 = createSalerBackPay(order, salerBackPay, tranTime);
+                        //授信、余额支付不插入退款对账单明细
+                        salerCapital1 = createSalerBackPay(order, salerBackPay.add(orderProduct.getDiscountpay()), tranTime);
                         buyerCapitals.add(buyerCapital1);
                         salerCapitals.add(salerCapital1);
                     }
@@ -2204,11 +2309,18 @@ public class SellerOrdersAction {
                         buyer.setAvailablelimit(buyer.getAvailablelimit().add(buyerBackPay));
                         buyer.setUsedlimit(buyer.getUsedlimit().subtract(buyerBackPay));
                         buyerCapital1 = createBuyerBackPay(order, buyerBackPay, tranTime, Quantity.STATE_4);
+                        //先插入一条退货对账单明细
+//                        buyerStatement=ordersService.createBuyerStateForBack(order,backPay.setScale(2,BigDecimal.ROUND_HALF_UP),tranTime,Quantity.STATE_4, (short) StatementType.StType3.getTyep(),buyer,returnReason,true);
+//                        statementList.add(buyerStatement);
                         //被扣得违约金 创建一条买家资金明细
                         if(orderProductBack.getAdminstate() != Quantity.STATE_2) {
                             createBuyerPenaltyPay(order, penaltyPay, tranTime, buyerCapitals, orderPay);
+                            //插入一条违约金的对账单明细
+                            buyerStatement=ordersService.createBuyerStateForBack(order,penaltyPay.setScale(2,BigDecimal.ROUND_HALF_UP),tranTime,Quantity.STATE_4, (short) StatementType.StType4.getTyep(),buyer,returnReason,true);
+                            statementList.add(buyerStatement);
                         }
-                        salerCapital1 = createSalerBackPay(order, salerBackPay, tranTime);
+                        //授信、余额支付不插入退款对账单明细
+                        salerCapital1 = createSalerBackPay(order, salerBackPay.add(orderProduct.getDiscountpay()), tranTime);
                         buyerCapitals.add(buyerCapital1);
                         salerCapitals.add(salerCapital1);
                     }
@@ -2282,7 +2394,16 @@ public class SellerOrdersAction {
                                         createBuyerPenaltyPay(order, penaltyPay, tranTime, buyerCapitals, orderPay);
                                     }
                                 }
-                                salerCapital1 = createSalerBackPay(order, salerBackPay, tranTime);
+                                //先插入一条退货对账单明细
+//                                buyerStatement=ordersService.createBuyerStateForBack(order,backPay.setScale(2,BigDecimal.ROUND_HALF_UP),tranTime,order.getPaytype(),(short) StatementType.StType3.getTyep(),buyer,returnReason,true);
+//                                statementList.add(buyerStatement);
+                                //插入一条违约金的对账单明细
+                                buyerStatement=ordersService.createBuyerStateForBack(order,penaltyPay.setScale(2,BigDecimal.ROUND_HALF_UP),tranTime,order.getPaytype(), (short) StatementType.StType4.getTyep(),buyer,returnReason,true);
+                                statementList.add(buyerStatement);
+                                //非余额、授信支付，需要再插入一条退款记录
+                                buyerStatement=ordersService.createBuyerStateForBack(order,backPay.subtract(penaltyPay).setScale(2,BigDecimal.ROUND_HALF_UP),tranTime,order.getPaytype(), (short) StatementType.StType5.getTyep(),buyer,returnReason,true);
+                                statementList.add(buyerStatement);
+                                salerCapital1 = createSalerBackPay(order, salerBackPay.add(orderProduct.getDiscountpay()), tranTime);
                                 buyerCapitals.add(buyerCapital1);
                                 salerCapitals.add(salerCapital1);
                             }else{
@@ -2296,7 +2417,7 @@ public class SellerOrdersAction {
                         //penaltyPay = totalPenal;
                         BigDecimal sellerPenaltyPay = penaltyPay.multiply(forwardsalesmargin).setScale(2,BigDecimal.ROUND_HALF_UP);
                         if(sellerPenaltyPay.compareTo(Quantity.BIG_DECIMAL_0)>0){
-                            sellerMember.setSellerbanlance(sellerMember.getSellerbanlance().add(sellerPenaltyPay));
+                            sellerMember.setSellerfreezebanlance(sellerMember.getSellerfreezebanlance().add(sellerPenaltyPay));
                             salerCapital2 = createSalerPenaltyPay(order, sellerPenaltyPay, tranTime, Quantity.STATE_6, orderPay, Quantity.BUYER_BACK_REASON);
                             salerCapitals.add(salerCapital2);
                         }
@@ -2376,6 +2497,10 @@ public class SellerOrdersAction {
 
             if(salerCapitals.size()>0){
                 ordersService.insertSallerCapitalNew(salerCapitals);
+            }
+
+            if (statementList.size()>0){
+                statementService.insertStatementAll(statementList);
             }
         }
     }
@@ -2884,6 +3009,7 @@ public class SellerOrdersAction {
                 Date tranTime = new Date();
                 List<BuyerCapital> buyerCapitals = new ArrayList<BuyerCapital>();
                 List<SalerCapital> salerCapitals = new ArrayList<SalerCapital>();
+                List<BuyerStatement> statementList=new ArrayList<>();
                 //买家退款资金明细
                 BuyerCapital buyerCapital1 = null;
                 //买家违约资金明细
@@ -2892,11 +3018,16 @@ public class SellerOrdersAction {
                 SalerCapital salerCapital1 = null;
                 //卖家违约资金明细
                 SalerCapital salerCapital2 = null;
+                //客户下单对账单
+                BuyerStatement buyerStatement=null;
+                //订单的支付明细
+                BuyerCapital buyerCapital=null;
+                boolean isDeposit=false;
                 //立即发货
                 if (orders.getOrdertype() == Quantity.STATE_0) {
 
                     //判断退回到余额还是授信
-                    BuyerCapital buyerCapital = ordersService.getBuyerCapitalByNoType(orders.getOrderno(), Quantity.STATE_0);
+                    buyerCapital = ordersService.getBuyerCapitalByNoType(orders.getOrderno(), Quantity.STATE_0);
                     if (buyerCapital != null) {
 
 
@@ -3020,7 +3151,7 @@ public class SellerOrdersAction {
                     member.setSellerbanlance(member.getSellerbanlance().subtract(penaltyPay).setScale(2,BigDecimal.ROUND_HALF_UP));
 
                     //判断退回到余额还是授信
-                    BuyerCapital buyerCapital = ordersService.getBuyerCapitalByNoType(orders.getOrderno(), Quantity.STATE_9);
+                    buyerCapital = ordersService.getBuyerCapitalByNoType(orders.getOrderno(), Quantity.STATE_9);
                     if (buyerCapital != null) {
                         //退回到余额
                         if (buyerCapital.getPaytype() == Quantity.STATE_3) {
@@ -3216,10 +3347,10 @@ public class SellerOrdersAction {
 
 
                     //定金支付明细
-                    BuyerCapital depositBuyerCapital = ordersService.getBuyerCapitalByNoType(orders.getOrderno(), Quantity.STATE_7);
-                    if (depositBuyerCapital != null) {
+                    buyerCapital = ordersService.getBuyerCapitalByNoType(orders.getOrderno(), Quantity.STATE_7);
+                    if (buyerCapital != null) {
                         //退回到余额
-                        if (depositBuyerCapital.getPaytype() == Quantity.STATE_3) {
+                        if (buyerCapital.getPaytype() == Quantity.STATE_3) {
                             buyer.setBalance(buyer.getBalance().add(backPay).add(buyerPenaltyPay));
                             buyerCapital1 = createBuyerBackPay(orders, backPay, tranTime, Quantity.STATE_3);
                             salerCapital1 = createSalerBackPay(orders, backPay, tranTime);
@@ -3228,7 +3359,7 @@ public class SellerOrdersAction {
                         }
 
                         //退回到授信
-                        if (depositBuyerCapital.getPaytype() == Quantity.STATE_4) {
+                        if (buyerCapital.getPaytype() == Quantity.STATE_4) {
                             buyer.setBalance(buyer.getBalance().add(buyerPenaltyPay));
 
 //                            if(buyerPenaltyPay.compareTo(Quantity.BIG_DECIMAL_0)>0) {
@@ -3246,9 +3377,9 @@ public class SellerOrdersAction {
                             salerCapitals.add(salerCapital1);
                         }
                         //退回到支付宝或微信
-                        if(depositBuyerCapital.getPaytype()==Quantity.STATE_0||
-                                depositBuyerCapital.getPaytype()==Quantity.STATE_1 ||
-                                depositBuyerCapital.getPaytype()== Quantity.STATE_2
+                        if(buyerCapital.getPaytype()==Quantity.STATE_0||
+                                buyerCapital.getPaytype()==Quantity.STATE_1 ||
+                                buyerCapital.getPaytype()== Quantity.STATE_2
                                 ){
                             String uuid = orders.getUuid();
                             String yuuuid = orders.getYuuuid();
@@ -3323,11 +3454,39 @@ public class SellerOrdersAction {
                         }
                     }
                 }
+                Member member1=memberService.getMemberById(orders.getMemberid());
+                if (buyerCapital.getPaytype() == Quantity.STATE_3&&productType==Quantity.STATE_1){
+                    //插入一条违约金的对账单明细
+                    buyerStatement=ordersService.createBuyerStateForBack(orders,buyerPenaltyPay,new Date(),buyerCapital.getPaytype(), (short) StatementType.StType4.getTyep(),member1,null,false);
+                    statementList.add(buyerStatement);
+                    //余额与授信不插入退款记录
+                }
+                if (buyerCapital.getPaytype() == Quantity.STATE_4&&productType==Quantity.STATE_1){
+                    //插入一条违约金的对账单明细
+                    buyerStatement=ordersService.createBuyerStateForBack(orders,buyerPenaltyPay,new Date(),buyerCapital.getPaytype(), (short) StatementType.StType4.getTyep(),member1,null,false);
+                    statementList.add(buyerStatement);
+                    //余额与授信不插入退款记录
+                }
+                if (buyerCapital.getPaytype() == Quantity.STATE_0
+                        || buyerCapital.getPaytype() == Quantity.STATE_1
+                        || buyerCapital.getPaytype() == Quantity.STATE_2){
+                    if(productType==Quantity.STATE_1){
+                        //插入一条违约金的对账单明细
+                        buyerStatement=ordersService.createBuyerStateForBack(orders,buyerPenaltyPay,new Date(),buyerCapital.getPaytype(), (short) StatementType.StType4.getTyep(),member1,null,false);
+                        statementList.add(buyerStatement);
+                    }
+                    //插入一条退款对账单明细
+                    buyerStatement=ordersService.createBuyerStateForBack(orders,backPay,new Date(),buyerCapital.getPaytype(), (short) StatementType.StType5.getTyep(),member1,null,false);
+                    statementList.add(buyerStatement);
+                }
                 //保存用户余额和授信
                 ordersService.saveMember(buyer,oldBuyer);
                 ordersService.saveMember(member,oldMember);
                 ordersService.insertBuyerCapital(buyerCapitals);
                 ordersService.insertSallerCapital(salerCapitals);
+                if (statementList.size()>0){
+                    statementService.insertStatementAll(statementList);
+                }
             } else {
                 basicRet.setResult(BasicRet.ERR);
                 basicRet.setMessage("不能取消订单");
@@ -3355,7 +3514,7 @@ public class SellerOrdersAction {
             Map<String, BigDecimal> proMap = new HashMap<String, BigDecimal>();
             //加库存
             for (OrderProduct orderProduct : orderProducts) {
-                LimitTimeStore store = shopCarService.getLimitTimeStore(orderProduct.getStoreid());
+                LimitTimeStore store = shopCarService.getLimitTimeStore(orderProduct.getLimitid(), orderProduct.getPdid(), orderProduct.getPdno());
                 LimitTimeProd prod = shopCarService.getLimitTimeProd(orderProduct.getPdid(),orderProduct.getLimitid());
                 store.setStorenum(store.getStorenum().add(orderProduct.getNum()));
                 store.setSalesnum(store.getSalesnum().subtract(orderProduct.getNum()));
@@ -3474,10 +3633,12 @@ public class SellerOrdersAction {
         //运费
         BigDecimal orderFreight = orders.getFreight();
         //订单总价
-        BigDecimal orderTotalprice = orders.getTotalprice();
+        BigDecimal orderTotalprice = orders.getActualpayment();
         //实付款
         //BigDecimal orderActualpayment = orders.getActualpayment();
 
+        BigDecimal discountpay=Quantity.BIG_DECIMAL_0;
+        BigDecimal totalDiscountpay=Quantity.BIG_DECIMAL_0;
 
 
         if(orders == null){
@@ -3526,6 +3687,10 @@ public class SellerOrdersAction {
 
         BigDecimal totalProductMoney = Quantity.BIG_DECIMAL_0;  //所有商品总金额
         BigDecimal totalWeight = Quantity.BIG_DECIMAL_0;  //所有商品总重量
+        BigDecimal totalNum = Quantity.BIG_DECIMAL_0; //所有数量
+
+        BigDecimal oldTotalProductMoney = Quantity.BIG_DECIMAL_0;  //所有商品总金额 (没有修改数量和运费前)
+        BigDecimal oldTotalWeight = Quantity.BIG_DECIMAL_0;  //所有商品总重量(没有修改数量和运费前)
 
         List<OrderProductModel> saveOrderProductList = new ArrayList<>();
 
@@ -3553,7 +3718,7 @@ public class SellerOrdersAction {
                     if (productStore1 == null) {
                         throw new RuntimeException("商品id为" + orderProduct.getPdid() + "的库存信息不存在");
                     }
-
+                    discountpay=orderProduct.getDiscountpay()==null?Quantity.BIG_DECIMAL_0:orderProduct.getDiscountpay();
                     OrderProductModel saveOrderProduct = new OrderProductModel();
                     saveOrderProduct.setId(updateP.getId());
                     saveOrderProduct.setOldProductNum(orderProduct.getNum());
@@ -3563,13 +3728,28 @@ public class SellerOrdersAction {
                         saveOrderProduct.setPrice(orderProduct.getPrice());
                         saveOrderProduct.setFreight(Quantity.BIG_DECIMAL_0);
                         saveOrderProduct.setActualpayment(Quantity.BIG_DECIMAL_0);
+                        saveOrderProduct.setDiscountpay(discountpay);
+                        totalNum = totalNum.add(updateP.getNum());
                     }else {
                         saveOrderProduct.setNum(updateP.getNum());
                         saveOrderProduct.setPrice(orderProduct.getPrice());
 
-                        saveOrderProduct.setActualpayment(new BigDecimal(saveOrderProduct.getPrice().multiply(saveOrderProduct.getNum()).toString()).setScale(2,BigDecimal.ROUND_HALF_UP));
+                        BigDecimal oldActualpayment = orderProduct.getActualpayment();
+                        //退货金额计算公式:退货数量x单价-(退货数量/总数量)X产品的优惠金额
+                        BigDecimal pdbackNum=orderProduct.getNum().subtract(updateP.getNum());
+                        //subtractMoney是退款金额
+//                        BigDecimal subtractMoney=new BigDecimal(pdbackNum.multiply(orderProduct.getPrice()).subtract(pdbackNum.divide(orderProduct.getNum(),5,BigDecimal.ROUND_HALF_UP).multiply(discountpay)).toString()).setScale(2,BigDecimal.ROUND_HALF_UP);
+                        BigDecimal subtractMoney=new BigDecimal(oldActualpayment.multiply(pdbackNum).divide(orderProduct.getNum(),5,BigDecimal.ROUND_HALF_UP).toString()).setScale(2,BigDecimal.ROUND_HALF_UP);
+                        saveOrderProduct.setActualpayment(new BigDecimal(orderProduct.getActualpayment().subtract(subtractMoney).toString()).setScale(2,BigDecimal.ROUND_HALF_UP));
+                        //重新核算优惠金额,担心采用 (优惠金额/订单数量)*剩余数量 的方式会导致精度丢失，故直接相减
+//                        discountpay=new BigDecimal(saveOrderProduct.getNum().multiply(orderProduct.getPrice()).subtract(saveOrderProduct.getActualpayment()).toString()).setScale(2,BigDecimal.ROUND_HALF_UP);
+                        discountpay=new BigDecimal(saveOrderProduct.getNum().multiply(discountpay).divide(orderProduct.getNum(),5,BigDecimal.ROUND_HALF_UP).toString()).setScale(2,BigDecimal.ROUND_HALF_UP);
+                        saveOrderProduct.setDiscountpay(discountpay);
+
+//                        saveOrderProduct.setActualpayment(new BigDecimal(saveOrderProduct.getPrice().multiply(saveOrderProduct.getNum()).toString()).setScale(2,BigDecimal.ROUND_HALF_UP));
                         totalProductMoney = totalProductMoney.add(saveOrderProduct.getActualpayment());
                         totalWeight = totalWeight.add(updateP.getNum().multiply(productStore1.getWeight()));
+                        totalNum = totalNum.add(updateP.getNum());
 
                         //计算运费
 //                        BigDecimal figtht = BigDecimal.valueOf(0);
@@ -3595,7 +3775,7 @@ public class SellerOrdersAction {
                         }
 
                     }
-
+                    totalDiscountpay=totalDiscountpay.add(discountpay);
                     saveOrderProductList.add(saveOrderProduct);
 
                     if (ordersService.updateOrderProductForModifyProductnum(saveOrderProduct) != 1) {
@@ -3617,31 +3797,76 @@ public class SellerOrdersAction {
                     }
                 }
             }
+
+            //计算商家没有修改数量和运费之前的 用于退回运费差额的计算。
+            if(orders.getIsmodifyfreight() == Quantity.STATE_1){
+                ProductStore oldProductStore = productStoreService.getProductStore(orderProduct.getPdid(), orderProduct.getPdno(), orders.getStoreid());
+                oldTotalProductMoney = oldTotalProductMoney.add(orderProduct.getActualpayment());
+                oldTotalWeight = oldTotalWeight.add(orderProduct.getNum().multiply(oldProductStore.getWeight()));
+            }
         }
 
 
         //计算修改后需要交纳的运费金额
         BigDecimal updateFreightMoney = Quantity.BIG_DECIMAL_0;
 
+        //定义一个变量 用于存放修改商品订购数量后的运费（根据运费模板算出来的） 用于退回运费差额的计算。
+        BigDecimal updateNumBeforeFreightMoney = Quantity.BIG_DECIMAL_0;
+
 
         if(orders.getOrderfright() != null) {
             if (orders.getOrderfright() != 1 && orders.getOrderfright() != 2 && orders.getOrderfright() != 3 && totalWeight.compareTo(Quantity.BIG_DECIMAL_0) == 1) {
                 OrderFrightDto orderFrightDto = GsonUtils.toBean(orders.getFrighttemplate(), OrderFrightDto.class);
-                updateFreightMoney = freightService.getFreightByOrderFrightDto(orderFrightDto, totalProductMoney, totalWeight, orders.getProvince(), orders.getCity());
+                updateFreightMoney = freightService.getFreightByOrderFrightDto(orderFrightDto, totalProductMoney.add(totalDiscountpay), totalWeight, orders.getProvince(), orders.getCity());
+                updateNumBeforeFreightMoney = updateFreightMoney;
             } else {
-                updateFreightMoney = Quantity.BIG_DECIMAL_0;
+                    updateFreightMoney = Quantity.BIG_DECIMAL_0;
+                    updateNumBeforeFreightMoney = updateFreightMoney;
             }
         }else{
             //TODO 兼容老数据
             for (OrderProduct op : saveOrderProductList) {
-                updateFreightMoney = updateFreightMoney.add(op.getFreight());
+                if(orders.getFreight().compareTo(new BigDecimal(0)) ==0) {
+                    updateFreightMoney = updateFreightMoney.add(op.getFreight());
+                    updateNumBeforeFreightMoney = updateFreightMoney;
+                }
 //               totalPrice = totalPrice.add(op.getActualpayment());
             }
         }
 
-        BigDecimal updateTotalMoney = new BigDecimal(totalProductMoney.add(updateFreightMoney).toString()).setScale(2,BigDecimal.ROUND_HALF_UP);  //修改后的订单的总金额（货款+运费）
+        //未修改运费的退运费金额 = 修改商品订购数量前的运费 - 修改商品订购数量后的运费
+        //退回的运费 = （未修改运费的退运费金额 / 未修改的运费金额） * 修改后的运费金额。
+        BigDecimal oldFreightMoney  = Quantity.BIG_DECIMAL_0; // 修改商品订购数量前的根据模板计算的运费
+        BigDecimal compareFreightMoney = Quantity.BIG_DECIMAL_0; //未修改运费的退运费金额
+        BigDecimal backFreightMoney = Quantity.BIG_DECIMAL_0; //退回的运费
+
+        if(orders.getOrderfright() != 1 && orders.getOrderfright() != 2 && orders.getOrderfright() != 3) {
+            oldFreightMoney = getOldFreightMoney(orders, oldTotalProductMoney, oldTotalWeight);
+        }
 
 
+        //如果有改过运费 都以改过运费的为准,但不包含修改数量为0的
+        if(orders.getIsmodifyfreight() == 1 && totalNum.compareTo(new BigDecimal(0))>0){
+            updateFreightMoney = orders.getFreight();
+        }
+
+
+        BigDecimal updateTotalMoney = BigDecimal.ZERO;
+
+        //修改过运费的 商品总价+(修改后总运费-退回的运费)
+        if(orders.getIsmodifyfreight() == 1 && orders.getFreight().compareTo(new BigDecimal(0))>0 && oldFreightMoney.compareTo(new BigDecimal(0))>0 && orders.getOrderfright() != 1 && orders.getOrderfright() != 2 && orders.getOrderfright() != 3) {
+            //计算出来的运费差额
+            backFreightMoney = getBackFreightMoney(orders, oldTotalProductMoney, oldTotalWeight, updateFreightMoney, updateNumBeforeFreightMoney);
+            updateTotalMoney = new BigDecimal(totalProductMoney.add(updateFreightMoney.subtract(backFreightMoney)).toString()).setScale(2, BigDecimal.ROUND_HALF_UP);
+        }else{
+            //没有修改过运费的 商品总价+运费
+            updateTotalMoney = new BigDecimal(totalProductMoney.add(updateFreightMoney).toString()).setScale(2, BigDecimal.ROUND_HALF_UP);  //修改后的订单的总金额（货款+运费）
+        }
+
+        //单个或者多个商品全部数量修改为0的情况
+        if(orders.getIsmodifyfreight() == 1 && totalNum.compareTo(new BigDecimal(0))==0){
+            updateTotalMoney = new BigDecimal(totalProductMoney.add(new BigDecimal(0)).toString()).setScale(2,BigDecimal.ROUND_HALF_UP);  //修改后的订单的总金额（货款+运费）
+        }
 
 //        BigDecimal totalFreight = Quantity.BIG_DECIMAL_0;
 //        BigDecimal totalPrice = Quantity.BIG_DECIMAL_0;
@@ -3653,10 +3878,10 @@ public class SellerOrdersAction {
 //        totalFreight.setScale(2,BigDecimal.ROUND_HALF_UP);
 //        totalPrice.setScale(2,BigDecimal.ROUND_HALF_UP);
 
+
+
         //退款金额
         BigDecimal backMoney = new BigDecimal(orderTotalprice.subtract(updateTotalMoney).toString()).setScale(2,BigDecimal.ROUND_HALF_UP);
-
-
 
 //          卖方修改订单数量，算卖方违约，卖方需要缴纳一定违约金
 //          违约金 = 货品退货金额*违约金比例
@@ -3713,6 +3938,8 @@ public class SellerOrdersAction {
         Orders updateOrders = new Orders();
         updateOrders.setId(orders.getId());
 
+
+
         //如果退款金额与订单总额相等
         if(backMoney.compareTo(orderTotalprice) ==0){
             updateOrders.setOrderstatus(Quantity.STATE_7);
@@ -3722,8 +3949,12 @@ public class SellerOrdersAction {
             updateOrders.setFreight(Quantity.BIG_DECIMAL_0);
             ordersService.deleteBillRecord(orders.getId().toString());
         }else if(backMoney.compareTo(Quantity.BIG_DECIMAL_0) >=0){
-            updateOrders.setFreight(updateFreightMoney);
-            updateOrders.setTotalprice(updateTotalMoney);
+            if(orders.getIsmodifyfreight() == 1){
+                updateOrders.setFreight(updateFreightMoney.subtract(backFreightMoney));
+            }else {
+                updateOrders.setFreight(updateFreightMoney);
+            }
+            updateOrders.setTotalprice(updateTotalMoney.add(totalDiscountpay));
             updateOrders.setActualpayment(updateTotalMoney);
 
             //修改开票金额
@@ -3731,13 +3962,13 @@ public class SellerOrdersAction {
                 billingRecordService.updateAdminDecOrderProductnum(orders.getId().toString(),orders.getMemberid(),backMoney.multiply(new BigDecimal(-1)));
             }
         }
-
+        updateOrders.setDiscountprice(totalDiscountpay);
         ordersService.updateSingleOrder(updateOrders);
 
 
         //操作日志
         OperateLog operateLog = new OperateLog();
-        operateLog.setContent("卖家修改订单商品数量，退款"+backMoney);
+        operateLog.setContent("卖家修改订单商品数量退款"+backMoney);
         operateLog.setOpid(member.getId());
         operateLog.setOpname(member.getUsername());
         operateLog.setOptime(new Date());
@@ -3796,6 +4027,33 @@ public class SellerOrdersAction {
                     }
                 }
 
+                List<BuyerStatement> statementList=new ArrayList<>();
+                BuyerStatement buyerStatement=null;
+                Member buyer=memberService.getMemberById(orders.getMemberid());
+                if (buyerCapital.getPaytype() == Quantity.STATE_3){
+                    //插入一条违约金的对账单明细
+                    buyerStatement=ordersService.createBuyerStateForBack(orders,buyerPenaltyPay,new Date(),buyerCapital.getPaytype(), (short) StatementType.StType4.getTyep(),buyer,null,false);
+                    statementList.add(buyerStatement);
+                    //余额与授信不插入退款记录
+                }
+                if (buyerCapital.getPaytype() == Quantity.STATE_4){
+                    //插入一条违约金的对账单明细
+                    buyerStatement=ordersService.createBuyerStateForBack(orders,buyerPenaltyPay,new Date(),buyerCapital.getPaytype(), (short) StatementType.StType4.getTyep(),buyer,null,false);
+                    statementList.add(buyerStatement);
+                    //余额与授信不插入退款记录
+                }
+                if (buyerCapital.getPaytype() == Quantity.STATE_0
+                        || buyerCapital.getPaytype() == Quantity.STATE_1
+                        || buyerCapital.getPaytype() == Quantity.STATE_2){
+                    //插入一条违约金的对账单明细
+                    buyerStatement=ordersService.createBuyerStateForBack(orders,buyerPenaltyPay,new Date(),buyerCapital.getPaytype(), (short) StatementType.StType4.getTyep(),buyer,null,false);
+                    statementList.add(buyerStatement);
+                    //插入一条退款对账单明细
+                    buyerStatement=ordersService.createBuyerStateForBack(orders,backMoney,new Date(),buyerCapital.getPaytype(), (short) StatementType.StType5.getTyep(),buyer,null,false);
+                    statementList.add(buyerStatement);
+                }
+
+
                 SalerCapital salerCapital =  createSalerBackPay(orders,backMoney,tranTime);
 
                 if (buyerCapital1 != null) {
@@ -3803,25 +4061,64 @@ public class SellerOrdersAction {
                 }
 
                 salerCapitalService.insertSelective(salerCapital);
+                if (statementList.size()>0){
+                    statementService.insertStatementAll(statementList);
+                }
 
             } else {
                 throw new RuntimeException("未查询到该订单的付款信息");
             }
+
         }
 
-        //正式环境启用
-        if(profile.equals("prod") || profile.equals("pro")) {
+
             //商品数量被卖家端修改 短信通知买家
             List<Orders> list = new ArrayList<>();
             list.add(orders);
             ordersService.smsNotifySellerProductNum(list);
-        }
+
 
 
 
         return  new BasicRet(BasicRet.SUCCESS,"修改成功");
     }
+    /**
+     * 算出需要退的运费
+     * @param orders
+     * @param oldTotalProductMoney
+     * @param oldTotalWeight
+     * @param updateFreightMoney
+     * @param updateNumBeforeFreightMoney
+     * @return
+     * @throws MyException
+     */
+    private BigDecimal getBackFreightMoney(Orders orders, BigDecimal oldTotalProductMoney, BigDecimal oldTotalWeight, BigDecimal updateFreightMoney, BigDecimal updateNumBeforeFreightMoney) throws MyException {
+        BigDecimal oldFreightMoney;
+        BigDecimal compareFreightMoney;
+        BigDecimal backFreightMoney;
+        OrderFrightDto oldOrderFrightDto = GsonUtils.toBean(orders.getFrighttemplate(), OrderFrightDto.class);
+        oldFreightMoney = freightService.getFreightByOrderFrightDto(oldOrderFrightDto, oldTotalProductMoney, oldTotalWeight, orders.getProvince(), orders.getCity());
+        compareFreightMoney = oldFreightMoney.subtract(updateNumBeforeFreightMoney);
+        //这里divide加2是 BigDecimal的divide方法进行除法时当不整除，出现无限循环小数时，就会抛异常
+        backFreightMoney = (compareFreightMoney.divide(oldFreightMoney,5,RoundingMode.HALF_UP)).multiply(updateFreightMoney).setScale(2,BigDecimal.ROUND_HALF_UP);
+        return backFreightMoney;
+    }
 
+    /**
+     * 算出修改数量后 将这个数量传入根据运费模板算出运费
+     * 例如数量为1千支 12元运费 修改为0.1千支还是12元
+     * @param orders
+     * @param oldTotalProductMoney
+     * @param oldTotalWeight
+     * @return
+     * @throws MyException
+     */
+    private BigDecimal getOldFreightMoney(Orders orders, BigDecimal oldTotalProductMoney, BigDecimal oldTotalWeight) throws MyException {
+        BigDecimal oldFreightMoney;
+        OrderFrightDto oldOrderFrightDto = GsonUtils.toBean(orders.getFrighttemplate(), OrderFrightDto.class);
+        oldFreightMoney = freightService.getFreightByOrderFrightDto(oldOrderFrightDto, oldTotalProductMoney, oldTotalWeight, orders.getProvince(), orders.getCity());
+        return oldFreightMoney;
+    }
 
 
 
@@ -4421,6 +4718,138 @@ public class SellerOrdersAction {
 
         //保存用户日志
         memberLogOperator.saveMemberLog(seller, null, "卖家申请发货延期天数："+delaydays, "/rest/seller/orders/saveDelayDays", request, memberOperateLogService);
+        return basicRet;
+    }
+
+    @RequestMapping(value = "/updateOrderFreight", method = RequestMethod.POST)
+    @ApiOperation(value = "订单修改运费")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "ordersid", value = "订单id", required = true, paramType = "query", dataType = "long"),
+            @ApiImplicitParam(name = "freight", value = "修改后的运费", required = true, paramType = "query", dataType = "double"),
+    })
+    public BasicRet updateOrderFreight(Model model, Long ordersid, BigDecimal freight, HttpServletRequest request) {
+        BasicRet basicRet = new BasicRet();
+        Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
+        Orders orders = ordersService.getOrdersById(ordersid);
+        if (orders != null) {
+            //判断订单状态 只有待付款才允许修改
+            if(orders.getOrderstatus() != Quantity.STATE_0){
+                basicRet.setResult(BasicRet.ERR);
+                basicRet.setMessage("不是待付款状态，不允许修改运费");
+                return basicRet;
+            }
+            if(orders.getIsticket() == Quantity.STATE_1){
+                basicRet.setResult(BasicRet.ERR);
+                basicRet.setMessage("使用优惠券的订单不允许修改运费");
+                return basicRet;
+            }
+            if(!orders.getSaleid().equals(member.getId())){
+                basicRet.setResult(BasicRet.ERR);
+                basicRet.setMessage("该订单卖家不是你，不可修改");
+                return basicRet;
+            }
+            if(!StringUtils.isNumeric(freight.toString())){
+                basicRet.setResult(BasicRet.ERR);
+                basicRet.setMessage("运费请填写数字");
+                return basicRet;
+            }
+            if(freight.compareTo(new BigDecimal(0)) < 0){
+                basicRet.setResult(BasicRet.ERR);
+                basicRet.setMessage("运费不能为负数");
+                return basicRet;
+            }
+            if(orders.getFreight().compareTo(freight) == 0){
+                basicRet.setResult(BasicRet.ERR);
+                basicRet.setMessage("修改后的运费价格和之前的运费相同");
+                return basicRet;
+            }
+
+
+
+            List<OrderProduct> orderProductList = orderProductServices.getByOrderNo(orders.getOrderno());
+
+            BigDecimal totalProductMoney = Quantity.BIG_DECIMAL_0;  //所有商品总金额(不包含运费)
+            BigDecimal orderTotalPrice = Quantity.BIG_DECIMAL_0; //订单总价(含运费)
+            BigDecimal productMoney = Quantity.BIG_DECIMAL_0;  //一个商品的金额
+
+
+            BigDecimal deposit = Quantity.BIG_DECIMAL_0;  //远期定金
+            BigDecimal balance = Quantity.BIG_DECIMAL_0;  //远期余款
+            BigDecimal allPay = Quantity.BIG_DECIMAL_0;  //远期全款
+
+
+            //重新计算总价和加入运费
+           if(orderProductList!=null && orderProductList.size()>0) {
+               for (OrderProduct orderProduct : orderProductList) {
+                    productMoney = orderProduct.getPrice().multiply(orderProduct.getNum()).setScale(2,BigDecimal.ROUND_HALF_UP);
+                   if(orders.getOrdertype() == Quantity.STATE_1) {
+                       //远期全款
+                       allPay = allPay.add(productMoney.setScale(2,BigDecimal.ROUND_HALF_UP));
+                   }
+                   if(orders.getOrdertype() == Quantity.STATE_2) {
+                       //远期定金
+                       deposit = deposit.add(orderProduct.getPartpay());
+                       //修改运费的话 远期定金的 余款要加上运费
+                       balance = (balance.add(orderProduct.getYupay())).add(freight);
+                   }
+                   totalProductMoney =  totalProductMoney.add(productMoney);
+               }
+               orderTotalPrice = totalProductMoney.add(freight);
+
+               //将重新计算后的总价和运费存入
+               Orders updateOrders = new Orders();
+               updateOrders.setId(orders.getId());
+               updateOrders.setFreight(freight);
+               //actualpayment是已经减去优惠金额的 totalprice是没有减去优惠券金额的
+                   //没有使用优惠券的时候
+               if (orders.getDiscountprice().compareTo(Quantity.BIG_DECIMAL_0) == 0) {
+                       updateOrders.setActualpayment(orderTotalPrice);
+                       if(orders.getOrdertype() == Quantity.STATE_1) {
+                           updateOrders.setAllpay(allPay.add(freight));
+                       }
+               } else {
+                   //使用优惠券的时候
+                       BigDecimal newActualpayment = orderTotalPrice.subtract(orders.getDiscountprice());
+                       BigDecimal newAllpay = (allPay.add(freight)).subtract(orders.getDiscountprice());
+                       updateOrders.setActualpayment(newActualpayment);
+                       if(orders.getOrdertype() == Quantity.STATE_1) {
+                           updateOrders.setAllpay(newAllpay);
+                       }
+               }
+               updateOrders.setTotalprice(orderTotalPrice);
+               updateOrders.setBalance(balance);
+               updateOrders.setDeposit(deposit);
+               //设置为已修改过运费
+               updateOrders.setIsmodifyfreight(Quantity.STATE_1);
+               ordersService.updateOrders(updateOrders);
+
+               //修改开票金额
+               if(orders.getIsbilling() == Quantity.STATE_1){
+                   //直接用修改过后的运费减去修改前的运费 差额就是开票要加的
+                   BigDecimal comparefreight = freight.subtract(orders.getFreight());
+                   billingRecordService.updateAdminDecOrderProductnum(orders.getId().toString(),orders.getMemberid(),comparefreight);
+               }
+           }
+        } else {
+            basicRet.setResult(BasicRet.ERR);
+            basicRet.setMessage("订单不存在");
+            return basicRet;
+        }
+
+        //保存操作日志
+        OperateLog operateLog = new OperateLog();
+        operateLog.setContent("卖家将原运费"+orders.getFreight()+"改成"+freight);
+        operateLog.setOpid(member.getId());
+        operateLog.setOpname(member.getUsername());
+        operateLog.setOptime(new Date());
+        operateLog.setOptype(Quantity.STATE_0);
+        operateLog.setOrderid(orders.getId());
+        operateLog.setOrderno(orders.getOrderno());
+        ordersService.saveOperatelog(operateLog);
+        basicRet.setResult(BasicRet.SUCCESS);
+        basicRet.setMessage("修改成功");
+        //用户日志
+        memberLogOperator.saveMemberLog(member, null, "订单运费修改为：" + freight, "/rest/seller/orders/updateOrderFreight",request, memberOperateLogService);
         return basicRet;
     }
 

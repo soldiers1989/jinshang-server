@@ -305,6 +305,21 @@ public class DateUtils {
         return date;
     }
 
+    /**
+     * 获取某一天(例如昨天，前天，明天)
+     * @return
+     */
+    public static  String LastOrNextDate(int day){
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Date date=new Date();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.add(Calendar.DAY_OF_MONTH, day);
+        date = calendar.getTime();
+        String newdate = sdf.format(date);
+        return  newdate;
+    }
+
 
 
 

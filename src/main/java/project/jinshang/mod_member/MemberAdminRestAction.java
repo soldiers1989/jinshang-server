@@ -128,6 +128,7 @@ public class MemberAdminRestAction {
             @ApiImplicitParam(value = "营业执照图片", name = "businesslicencenumberphoto", required = false, paramType = "query"),
             @ApiImplicitParam(value = "备注", name = "remark", required = false, paramType = "query"),
             @ApiImplicitParam(name = "service", value = "是否是服务商", required = true, paramType = "query", dataType = "boolean"),
+            @ApiImplicitParam(value = "授信是否可透支0-不可1-可以", name = "iscreditoverdraft", required = true, paramType = "query",dataType = "short"),
     })
     @PreAuthorize("hasAuthority('" + AdminAuthorityConst.MEMBERMANAGEMENT + "')")
     public BasicRet editMember(@RequestParam(required = true) long id,
@@ -166,6 +167,7 @@ public class MemberAdminRestAction {
                                @RequestParam(required = false, defaultValue = "") String businesslicencenumberphoto,
                                @RequestParam(required = false, defaultValue = "") String remark,
                                @RequestParam(required = true) boolean services,
+                               @RequestParam(required = false) Short iscreditoverdraft,
                                Model model, HttpServletRequest request
     ) {
 
@@ -232,7 +234,7 @@ public class MemberAdminRestAction {
         member.setAddress(address);
         member.setClerkname(clerkname);
         member.setRemark(remark);
-
+        member.setIscreditoverdraft(iscreditoverdraft);
 
 
         //更新业务员
@@ -820,18 +822,20 @@ public class MemberAdminRestAction {
             @ApiImplicitParam(name = "username", value = "个人姓名", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "mobile", value = "联系手机", required = false, paramType = "query", dataType = "string"),
             @ApiImplicitParam(name = "disStatus", value = "分配状态 0/未分配、1/已分配、2/所有”，默认为“未分配", required = false, paramType = "query", dataType = "long",defaultValue = "1"),
+            @ApiImplicitParam(name = "clerkname", value = "客服人员", required = false, paramType = "query", dataType = "string"),
     })
     public PageRet findNotAddMembers(@RequestParam(required = false, defaultValue = "") Long id,
                                      @RequestParam(required = false, defaultValue = "") String companyname,
                                      @RequestParam(required = false, defaultValue = "") String realname,
                                      @RequestParam(required = false, defaultValue = "") String mobile,
                                      @RequestParam(required = false, defaultValue = "1") Long disStatus,
+                                     @RequestParam(required = false, defaultValue = "") String clerkname,
                                      @RequestParam(required = true) int pageNo,
                                      @RequestParam(required = true) int pageSize) {
         PageRet pageRet = new PageRet();
 //        Admin admin = adminService.getById(adminid);
 
-        PageInfo pageInfo = memberAdminService.findNotAddMembers(id, companyname,realname, mobile,disStatus,pageNo, pageSize);
+        PageInfo pageInfo = memberAdminService.findNotAddMembers(id, companyname,realname, mobile,disStatus,clerkname,pageNo, pageSize);
         pageRet.data.setPageInfo(pageInfo);
         pageRet.setResult(BasicRet.SUCCESS);
         return pageRet;

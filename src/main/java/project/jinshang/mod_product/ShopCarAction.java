@@ -1,6 +1,7 @@
 package project.jinshang.mod_product;
 
 import com.github.pagehelper.PageInfo;
+import com.google.common.primitives.Longs;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import io.swagger.annotations.Api;
@@ -28,8 +29,10 @@ import project.jinshang.mod_admin.mod_transet.service.TransactionSettingService;
 import project.jinshang.mod_company.StoreMapper;
 import project.jinshang.mod_company.bean.Store;
 import project.jinshang.mod_invoice.bean.InvoiceInfo;
+import project.jinshang.mod_member.bean.Favorite;
 import project.jinshang.mod_member.bean.Member;
 import project.jinshang.mod_member.bean.MemberRateSetting;
+import project.jinshang.mod_member.service.FavoriteService;
 import project.jinshang.mod_member.service.MemberRateSettingService;
 import project.jinshang.mod_product.bean.*;
 import project.jinshang.mod_product.service.*;
@@ -87,7 +90,8 @@ public class ShopCarAction {
     private ProductStoreService productStoreService;
     @Autowired
     private ShippingAddressService shippingAddressService;
-
+    @Autowired
+    private FavoriteService favoriteService;
 
 
     MemberLogOperator memberLogOperator = new MemberLogOperator();
@@ -217,12 +221,26 @@ public class ShopCarAction {
                 //计算远期定金和全款
                 if (!shopCar.getDelivertime().equals(Quantity.LIJIFAHUO)) {
                     shopCar.setProtype(protype);
+                    BigDecimal appPap = saleprice.multiply(convertNum);
+                    shopCar.setProtype(shopCar.getProtype());
+                    if (shopCar.getProtype() != Quantity.STATE_0) {
+                        if (shopCar.getProtype() == Quantity.STATE_1) {
+                            shopCar.setPrice(shopCar.getPrice().multiply(TradeConstant.allPayRate));
+                            //全款
+                            shopCar.setAllpay(appPap.multiply(TradeConstant.allPayRate));
+                        } else {
+                            //定金
+                            shopCar.setPartpay(appPap.multiply(transactionSettingService.getTransactionSetting().getRemotepurchasingmargin().multiply(new BigDecimal(0.01))));
+                            //余款
+                            shopCar.setYupay(appPap.subtract(shopCar.getPartpay()));
+                        }
+                    }
                     //全款
-                    shopCar.setAllpay(saleprice.multiply(convertNum).multiply(TradeConstant.allPayRate));
+//                    shopCar.setAllpay(saleprice.multiply(convertNum).multiply(TradeConstant.allPayRate));
                     //定金
-                    shopCar.setPartpay(saleprice.multiply(convertNum).multiply(transactionSettingService.getTransactionSetting().getRemotepurchasingmargin().multiply(new BigDecimal(0.01))));
+//                    shopCar.setPartpay(saleprice.multiply(convertNum).multiply(transactionSettingService.getTransactionSetting().getRemotepurchasingmargin().multiply(new BigDecimal(0.01))));
                     //余款
-                    shopCar.setYupay(saleprice.multiply(convertNum).multiply((new BigDecimal(1).subtract(transactionSettingService.getTransactionSetting().getRemotepurchasingmargin().multiply(new BigDecimal(0.01))))));
+//                    shopCar.setYupay(saleprice.multiply(convertNum).multiply((new BigDecimal(1).subtract(transactionSettingService.getTransactionSetting().getRemotepurchasingmargin().multiply(new BigDecimal(0.01))))));
                 }
                 shopCarService.updateShopCar(shopCar);
             }
@@ -814,7 +832,7 @@ public class ShopCarAction {
             ProductInfo info = shopCarService.getProductInfo(shopCar.getPdid());
             //判断买家卖家是否是同一人
             Long sellerId = info.getMemberid();
-            if (sellerId == member.getId()) {
+            if (sellerId.compareTo(member.getId())==0) {
                 basicRet.setMessage("不能购买自己的商品");
                 basicRet.setResult(BasicRet.ERR);
                 return basicRet;
@@ -923,12 +941,23 @@ public class ShopCarAction {
                     if (shopCar.getProtype() != Quantity.STATE_0) {
                         BigDecimal appPap = salePrice.multiply(shopCar1.getPdnumber());
                         shopCar1.setProtype(shopCar.getProtype());
+                        if (shopCar1.getProtype() != Quantity.STATE_0) {
+                            if (shopCar1.getProtype() == Quantity.STATE_1) {
+                                //全款
+                                shopCar1.setAllpay(appPap.multiply(TradeConstant.allPayRate));
+                            } else {
+                                //定金
+                                shopCar1.setPartpay(appPap.multiply(transactionSettingService.getTransactionSetting().getRemotepurchasingmargin().multiply(new BigDecimal(0.01))));
+                                //余款
+                                shopCar1.setYupay(appPap.subtract(shopCar1.getPartpay()));
+                            }
+                        }
                         //全款
-                        shopCar1.setAllpay(appPap.multiply(TradeConstant.allPayRate));
+//                        shopCar1.setAllpay(appPap.multiply(TradeConstant.allPayRate));
                         //定金
-                        shopCar1.setPartpay(appPap.multiply(transactionSettingService.getTransactionSetting().getRemotepurchasingmargin().multiply(new BigDecimal(0.01))));
+//                        shopCar1.setPartpay(appPap.multiply(transactionSettingService.getTransactionSetting().getRemotepurchasingmargin().multiply(new BigDecimal(0.01))));
                         //余款
-                        shopCar1.setYupay(appPap.subtract(shopCar1.getPartpay()));
+//                        shopCar1.setYupay(appPap.subtract(shopCar1.getPartpay()));
                     }
                     shopCarService.updateShopCar(shopCar1);
                 }
@@ -1248,6 +1277,32 @@ public class ShopCarAction {
         return shopCarRet;
     }
 
+    @PostMapping(value = "/moveToFavorite")
+    public  BasicRet moveToFavorite(Model model,long[] shopcarids){
+        BasicRet basicRet=new BasicRet();
+        basicRet.setMessage("收藏成功");
+        basicRet.setResult(BasicRet.SUCCESS);
+        Member member= (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
+        List<Long> list = Longs.asList(shopcarids);
+        for (long shopcarid:list){
+            Long pid=shopCarService.getShopCarByPrimeKey(shopcarid).getPdid();
+            if (favoriteService.getGoodsFavoriteByMemberId(member.getId(), pid)) {
+//                basicRet.setResult(BasicRet.SUCCESS);
+//                basicRet.setMessage("添加成功");
+//                return basicRet;
+            }else {
+                Favorite favorite = new Favorite();
+                favorite.setMemberid(member.getId());
+                favorite.setPid(pid);
+                favorite.setCreatetime(new Date());
+
+                favoriteService.add(favorite);
+            }
+
+            shopCarService.deleteShopCar(shopcarid);
+        }
+        return basicRet;
+    }
 
 
 

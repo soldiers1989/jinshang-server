@@ -2,11 +2,15 @@ package project.jinshang.mod_product.provider;
 
 import org.apache.ibatis.jdbc.SQL;
 import project.jinshang.common.constant.Quantity;
+import project.jinshang.common.utils.DateUtils;
 import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_product.bean.OrderQueryParam;
 
 import java.lang.reflect.Array;
 import java.sql.ParameterMetaData;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.time.LocalTime;
 import java.util.*;
 
 /**
@@ -25,6 +29,12 @@ public class OrdersProvider {
         sql.LEFT_OUTER_JOIN("member m on o.saleid=m.id ");
         sql.LEFT_OUTER_JOIN("member mm on o.memberid=mm.id ");
         sql.LEFT_OUTER_JOIN("buyercompanyinfo bc on o.memberid=bc.memberid ");
+
+        //发票抬头查询
+        if(StringUtils.hasText(param.getInvoiceheadup())){
+            sql.LEFT_OUTER_JOIN(" billorder bo on o.id=bo.orderid");
+            sql.LEFT_OUTER_JOIN(" billingrecord blr on bo.billrecordid = blr.id");
+        }
 
         if (StringUtils.hasText(param.getMemberName())) {
             String memberName = "%" + param.getMemberName() + "%";
@@ -141,6 +151,12 @@ public class OrdersProvider {
             sql.WHERE("shopName like #{shopname}");
         }
 
+        if(StringUtils.hasText(param.getInvoiceheadup())){
+            String invoicehead = "%"+param.getInvoiceheadup()+"%";
+            param.setInvoiceheadup(invoicehead);
+            sql.WHERE("blr.invoiceheadup like #{invoiceheadup}");
+        }
+
         if (StringUtils.hasText(param.getShipto())) {
             String shipto = "%" + param.getShipto() + "%";
             param.setShipto(shipto);
@@ -193,6 +209,45 @@ public class OrdersProvider {
             Date tomorrow = c.getTime();
             param.setPrestocktimeEnd(tomorrow);
             sql.WHERE("prestocktime <=#{prestocktimeEnd}");
+        }
+        //超时时间
+        if(param.getOvertime() != null){
+            //获取当前系统时间
+            LocalTime time = LocalTime.now();
+            int h = time.getHour();
+            //获取今天时间16点
+            String todaytime = DateUtils.LastOrNextDate(0)+ " 16:00:00" ;
+            Timestamp todaytime1 = Timestamp.valueOf(todaytime);
+            param.setTodaytime(todaytime1);
+            //获取昨天时间16点
+            String yesterday = DateUtils.LastOrNextDate(-1)+" 16:00:00";
+            Timestamp yesterday1 = Timestamp.valueOf(yesterday);
+            param.setYesterdaytime(yesterday1);
+            //获取前天时间16点
+            String beforeyesterday = DateUtils.LastOrNextDate(-2)+" 16:00:00";
+            Timestamp beforeyesterday1 = Timestamp.valueOf(beforeyesterday);
+            param.setBeforeyesterdaytime(beforeyesterday1);
+            //获取大前天时间16点
+            String threedaysago = DateUtils.LastOrNextDate(-3)+" 16:00:00";
+            Timestamp threedaysago1 = Timestamp.valueOf(threedaysago);
+            param.setThreedaysagotime(threedaysago1);
+            if(param.getOvertime() ==0){
+                //昨天16点之前生成的未发货订单。
+                sql.WHERE("o.paymenttime < #{yesterdaytime} AND o.orderstatus = '1' AND sellerdeliverytime IS NULL");
+            }
+            if(param.getOvertime() ==1){
+                //昨天16点之前(00:00 - 15:59)生成的未发货订单 + 前天16点及以后(16:00 - 24:00)生成的未发货订单
+                sql.WHERE("o.paymenttime > #{beforeyesterdaytime}  AND o.paymenttime < #{yesterdaytime} AND o.orderstatus = '1' AND o.sellerdeliverytime IS NULL");
+            }
+            if(param.getOvertime() ==2){
+                //前天16点之前(00:00 - 15:59)生成的未发货订单 + 大前天16点及以后(16:00 - 24:00)生成的未发货订单
+                sql.WHERE("o.paymenttime > #{threedaysagotime}  AND o.paymenttime < #{beforeyesterdaytime} AND o.orderstatus = '1' AND o.sellerdeliverytime IS NULL");
+            }
+            if(param.getOvertime() ==3){
+                //大前天16点之前生成的所有未发货订单
+                sql.WHERE("o.paymenttime < #{threedaysagotime} AND o.orderstatus = '1' AND o.sellerdeliverytime IS NULL");
+            }
+
         }
         sql.ORDER_BY( "o.id desc" );
         return  sql.toString();

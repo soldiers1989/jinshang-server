@@ -1,5 +1,4 @@
 package project.jinshang.mod_admin.mod_prod;
-
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import io.swagger.annotations.Api;
@@ -15,11 +14,13 @@ import org.springframework.web.multipart.commons.CommonsMultipartFile;
 import project.jinshang.common.bean.AdminLogOperator;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.Quantity;
+import project.jinshang.common.utils.BeanUtils;
 import project.jinshang.common.utils.CommonUtils;
 import project.jinshang.common.utils.GenerateNo;
 import project.jinshang.mod_admin.mod_upload.ProductBatchImport;
 import project.jinshang.mod_admin.mod_upload.ProductStoreModel;
 import project.jinshang.mod_member.bean.Admin;
+import project.jinshang.mod_product.ProductAttributeAdminAction;
 import project.jinshang.mod_product.bean.*;
 import project.jinshang.mod_product.bean.dto.AttributetblDto1;
 import project.jinshang.mod_product.service.*;
@@ -71,6 +72,9 @@ public class ProductsManageAction {
 
     @Autowired
     private  AttributetblService attributetblService;
+
+    @Autowired
+    private ProductStoreService productStoreService;
 
     @Autowired
     private  Gson gson;
@@ -178,6 +182,8 @@ public class ProductsManageAction {
             return  basicRet;
         }
 
+        Products oldProducts = new Products();
+        org.springframework.beans.BeanUtils.copyProperties(products,oldProducts);
 
         Categories categories =  categoriesService.getById(level1id);
         if(categories != null) {
@@ -338,12 +344,25 @@ public class ProductsManageAction {
 
         productsService.update(products);
 
+        //同步更新productinfo.weight 和 productstore.weight
+        if(products.getWeight().compareTo(oldProducts.getWeight()) != 0){
+            productInfoService.updateWeightByProductsid(weight,products.getId());
+            productStoreService.updateWeightByProductsid(weight,products.getId());
+        }
+
 
         //修改图片
         productInfoService.updateImgByProductsno(products);
 
         //根据要修改的id 去查询是否productinfo里面是否为pdstate为5 已下架才去更新
-        List<ProductInfo> productInfoList = productInfoService.getProductInfoByProductId(id);
+        //List<ProductInfo> productInfoList = productInfoService.getProductInfoByProductId(id);
+
+        ProductInfoExample example = new ProductInfoExample();
+        ProductInfoExample.Criteria criteria = example.createCriteria();
+        criteria.andPdstateEqualTo(Quantity.STATE_5);
+        criteria.andProductidEqualTo(id);
+        List<ProductInfo> productInfoList = productInfoService.listProductByExample(example);
+
         for (ProductInfo productInfo:productInfoList) {
             if(productInfo.getPdstate() == Quantity.STATE_5){
                 ProductInfo updateProductInfo = new ProductInfo();
@@ -371,7 +390,7 @@ public class ProductsManageAction {
                 updateProductInfo.setPddes(pddes);
                 updateProductInfo.setPddrawing(pddrawing);
                 updateProductInfo.setPdpicture(pdpicture);
-                updateProductInfo.setCreatetime(new Date());
+                //updateProductInfo.setCreatetime(new Date());
                 updateProductInfo.setStand(stand);
                 productInfoService.updateByPrimaryKeySelective(updateProductInfo);
             }
@@ -761,6 +780,13 @@ public class ProductsManageAction {
                     attr.setValue(aArr[1]);
 
                     this.checkValue(attr);
+
+                    if(attr.getAttribute().equalsIgnoreCase("牙距")){
+                        attr.setValue(ProductAttributeAdminAction.convertValue(attr.getValue()));
+                    }else  if(attr.getAttribute().equalsIgnoreCase("厚度")){
+                        attr.setValue(ProductAttributeAdminAction.convertValue(attr.getValue()));
+                    }
+
                     prodAttrList.add(attr);
                 }
 
@@ -975,6 +1001,52 @@ public class ProductsManageAction {
                 attribute.setValue(attv);
             }
         }
+    }
+
+
+
+
+
+    @RequestMapping(value = "/batchUpdatePicture",method = RequestMethod.POST)
+    @ApiOperation("批量上传相同的图片")
+    @ApiImplicitParams({
+            @ApiImplicitParam(value = "products主键ids",name ="ids",required = true,dataType = "string",paramType = "query"),
+            @ApiImplicitParam(value = "商品图片url",name ="pdpicture",required = true,dataType = "string",paramType = "query"),
+
+    })
+    public BasicRet batchUpdatePicture(
+            @RequestParam(required = true) Long[] ids,
+            @RequestParam(required = true) String[] pdpicture,  //商品图片
+            Model model, HttpServletRequest request
+    ){
+        BasicRet basicRet =  new BasicRet();
+       if(ids == null || ids.length ==0){
+           basicRet.setResult(BasicRet.ERR);
+           basicRet.setMessage("请至少勾选一个产品");
+           return basicRet;
+       }
+        if(pdpicture == null || pdpicture.length ==0){
+            basicRet.setResult(BasicRet.ERR);
+            basicRet.setMessage("请至少上传一张图片");
+            return basicRet;
+        }
+
+       List<Products> productsList = productsService.getProductsByIds(ids);
+        for (Products products:productsList) {
+            Products updateProducts = new Products();
+            updateProducts.setId(products.getId());
+            updateProducts.setPdpicture(pdpicture);
+            productsService.updateByPrimaryKeySelective(updateProducts);
+            //修改图片
+            updateProducts.setProductno(products.getProductno());
+            productInfoService.updateImgByProductsno(updateProducts);
+        }
+        basicRet.setMessage("更新成功");
+        basicRet.setResult(BasicRet.SUCCESS);
+        //日志
+        Admin admin = (Admin) model.asMap().get(AppConstant.ADMIN_SESSION_NAME);
+        adminLogOperator.saveAdminLog(admin,"批量修改紧固件产品的图片",(short)3,"products",request,adminOperateLogService);
+        return basicRet;
     }
 
 

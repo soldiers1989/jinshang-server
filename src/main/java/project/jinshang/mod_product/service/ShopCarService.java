@@ -364,7 +364,7 @@ public class ShopCarService {
      * 批量删除商品
      * @param ids
      */
-    public void deleteAll(List<Long> ids){
-        shopCarMapper.deleteAll(ids);
+    public int deleteAll(List<Long> ids){
+       return shopCarMapper.deleteAll(ids);
     }
 }

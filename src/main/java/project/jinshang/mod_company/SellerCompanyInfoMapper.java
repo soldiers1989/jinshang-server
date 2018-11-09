@@ -2,6 +2,7 @@ package project.jinshang.mod_company;
 
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 import project.jinshang.mod_company.bean.SellerCompanyInfo;
 import project.jinshang.mod_company.bean.SellerCompanyInfoExample;
 
@@ -10,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 
 public interface SellerCompanyInfoMapper {
+    @Update("update sellerCompanyInfo set linkmantel = #{linkmantel} where memberid= #{id}")
+    int updateSellerMobile(SellerCompanyInfo sellerCompanyInfo);
     int countByExample(SellerCompanyInfoExample example);
 
     int deleteByPrimaryKey(Long id);
@@ -85,4 +88,21 @@ public interface SellerCompanyInfoMapper {
 
     @Select("select * from sellercompanyinfo where memberid=#{memberid} order by id desc limit 1")
     SellerCompanyInfo getSellerCompanyByMemberid(@Param("memberid") long memberid);
+
+    @Select("select * from sellercompanyinfo where memberid !='109' and memberid != '6700'")
+    List<SellerCompanyInfo> selectAllSellerCompanyInfoNotEqualsJinShangAozhang();
+
+    @Select("select * from sellercompanyinfo ")
+    List<SellerCompanyInfo> selectAllSellerCompanyInfo();
+
+    @Select({"<script>",
+            "select s.* from sellercompanyinfo  s",
+            "where s.memberid in ",
+            "<foreach item='item' index='index' collection='ids'",
+            "open='(' separator=',' close=')'>",
+            "#{item}",
+            "</foreach>",
+            "</script>"
+    })
+    List<SellerCompanyInfo> selectAoZhangJinShangSellerCompanyInfoInIds(@Param("ids") long[] ids);
 }

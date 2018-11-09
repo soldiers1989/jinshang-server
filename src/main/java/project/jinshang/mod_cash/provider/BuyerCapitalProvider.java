@@ -141,6 +141,9 @@ public class BuyerCapitalProvider {
             dto.setUsername("%"+dto.getUsername()+"%");
             sql.append(" and M.username like #{dto.username} ");
         }
+        if (dto.getOrderid()!=null && dto.getOrderid()>0){
+            sql.append(" and o.id=#{dto.orderid} ");
+        }
         sql.append(" order by B.tradetime ASC ");
         return sql.toString();
     }

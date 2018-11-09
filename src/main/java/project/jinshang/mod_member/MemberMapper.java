@@ -68,6 +68,15 @@ public interface MemberMapper {
     @Select("select * from member where username=#{username} limit 1 ")
     Member getMemberByUsername(String username);
 
+    @Select("<script>select m.* " +
+            "from member m " +
+            "<where> 1=1 " +
+            "<if test=\"username != null and username !=''\">and m.username = #{username} </if>" +
+            "<if test=\"id != null and id !=''\">and m.id = #{id} </if>" +
+            "</where> order by m.id desc limit 1" +
+            "</script>")
+    Member getMemberByUsernameOrId(@Param("username") String username,@Param("id") long id);
+
 //    @CacheEvict(value = {"jinshang-member"},key ="'jinshang-member-selectByPrimaryKey-id:'+#p0")
 //    @Update("update member set sellerbanlance=#{sellerBalance},sellerfreezebanlance=#{sellerfreezebanlance} where id=#{id}")
 //    int updateSellerMemberBalance(@Param("id") long id,@Param("sellerBalance") BigDecimal sellerBalance,@Param("sellerfreezebanlance") BigDecimal sellerfreezebanlance);
@@ -114,7 +123,8 @@ public interface MemberMapper {
      */
     @CacheEvict(value = {"jinshang-member"},key ="'jinshang-member-selectByPrimaryKey-id:'+#p0")
     @Update("update member set sellerbanlance=sellerbanlance + #{sellerbanlance},sellerfreezebanlance=sellerfreezebanlance + #{sellerfreezebanlance}," +
-            "goodsbanlance=goodsbanlance + #{goodsbanlance},billmoney=billmoney + #{billmoney} where id=#{id}")
+            "goodsbanlance=goodsbanlance + #{goodsbanlance},billmoney=billmoney + #{billmoney} where id=#{id} and sellerbanlance + #{sellerbanlance}>=0 and sellerfreezebanlance + #{sellerfreezebanlance}>=0 " +
+            " and goodsbanlance + #{goodsbanlance}>=0 and billmoney + #{billmoney}>=0 ")
     int updateSellerMemberBalanceInDb2(@Param("id") long id, @Param("sellerbanlance") BigDecimal sellerbanlance, @Param("sellerfreezebanlance") BigDecimal sellerfreezebanlance,
                                        @Param("goodsbanlance") BigDecimal goodsbanlance, @Param("billmoney") BigDecimal billmoney);
 
@@ -396,11 +406,12 @@ public interface MemberMapper {
             "<if test='companyname != null and companyname != \"\"'>AND b.companyname LIKE CONCAT('%',#{companyname,jdbcType=VARCHAR},'%')</if>"+
             "<if test='realname != null and realname != \"\"'>AND m.realname LIKE CONCAT('%',#{realname,jdbcType=VARCHAR},'%')</if>"+
             "<if test='mobile != null and mobile != \"\"'>AND m.mobile LIKE CONCAT('%',#{mobile,jdbcType=VARCHAR},'%')</if>"+
+            "<if test='clerkname != null and clerkname != \"\"'>AND m.clerkname LIKE CONCAT('%',#{clerkname,jdbcType=VARCHAR},'%')</if>"+
             "<if test='disStatus ==0 and disStatus !=null'>and (m.clerkname is null or m.clerkname = '') </if>"+
             "<if test='disStatus ==1 and disStatus !=null'>and (m.clerkname  is not null and m.clerkname !='') </if>"+
             " order by m.createdate desc"+
             "</script>")
-    List<MemberAdminViewDto> findNotAddMembers(@Param("id") Long id, @Param("companyname") String companyname,@Param("realname") String realname, @Param("mobile") String mobile,@Param("disStatus")Long disStatus);
+    List<MemberAdminViewDto> findNotAddMembers(@Param("id") Long id, @Param("companyname") String companyname,@Param("realname") String realname, @Param("mobile") String mobile,@Param("disStatus")Long disStatus,@Param("clerkname")String clerkname);
 
     @Select("<script>SELECT m.id,m.username,m.realname,m.createdate,b.companyname,m.mobile,m.clerkname,m.waysalesman,m.labelname  FROM  member m left join buyercompanyinfo b on m.id=b.memberid where 1=1 " +
             "<if test='id != null and id != \"\" '>AND m.id=#{id}</if>"+

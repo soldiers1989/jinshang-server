@@ -24,14 +24,8 @@ public class ProductViewStatisticsTask {
     @Autowired
     private ProductViewService productViewService;
 
-//    @Scheduled(cron="*/1 * * * * *")
-//    public void  testadd(){
-//        Random random = new Random();
-//
-//        ProductViewStatistics.addCount(new Long(random.nextInt(2)));
-//    }
 
-
+    //每个应用单独统计
     @Scheduled(cron="*/60 * * * * *")
     public void  switchAndGetCollection(){
         Map<Long,Integer> map =  ProductViewStatistics.getandclear();

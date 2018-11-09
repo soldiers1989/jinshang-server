@@ -84,6 +84,18 @@ public class MemberOrders {
     @ApiModelProperty(notes = "卖家远期订单手机号提醒")
     private String forwardnoticephone;
 
+    @ApiModelProperty(notes ="是否使用优惠券 0=否,1=是")
+    private Short isticket;
+    @ApiModelProperty(notes ="优惠金额")
+    private BigDecimal discountprice;
+    @ApiModelProperty(notes ="优惠券编码")
+    private String ticketno;
+
+
+    @ApiModelProperty(notes = "发货时间")
+    private Date sellerdeliverytime;
+
+
     public Short getPresellconfim() {
         return presellconfim;
     }
@@ -314,5 +326,37 @@ public class MemberOrders {
 
     public void setLogisticsInfoDtoList(List<LogisticsInfoDto> logisticsInfoDtoList) {
         LogisticsInfoDtoList = logisticsInfoDtoList;
+    }
+
+    public Short getIsticket() {
+        return isticket;
+    }
+
+    public void setIsticket(Short isticket) {
+        this.isticket = isticket;
+    }
+
+    public BigDecimal getDiscountprice() {
+        return discountprice;
+    }
+
+    public void setDiscountprice(BigDecimal discountprice) {
+        this.discountprice = discountprice;
+    }
+
+    public String getTicketno() {
+        return ticketno;
+    }
+
+    public void setTicketno(String ticketno) {
+        this.ticketno = ticketno;
+    }
+
+    public Date getSellerdeliverytime() {
+        return sellerdeliverytime;
+    }
+
+    public void setSellerdeliverytime(Date sellerdeliverytime) {
+        this.sellerdeliverytime = sellerdeliverytime;
     }
 }

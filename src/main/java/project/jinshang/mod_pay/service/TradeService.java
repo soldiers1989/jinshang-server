@@ -13,11 +13,16 @@ import project.jinshang.common.exception.CashException;
 import project.jinshang.common.exception.MyException;
 import project.jinshang.common.utils.DateUtils;
 import project.jinshang.common.utils.GenerateNo;
+import project.jinshang.common.utils.StatementType;
 import project.jinshang.common.utils.StringUtils;
-import project.jinshang.mod_cash.BuyerCapitalMapper;
+import project.jinshang.mod_admin.mod_statement.bean.BuyerStatement;
+import project.jinshang.mod_admin.mod_statement.service.StatementService;
 import project.jinshang.mod_cash.SalerCapitalMapper;
 import project.jinshang.mod_cash.bean.BuyerCapital;
 import project.jinshang.mod_cash.bean.SalerCapital;
+import project.jinshang.mod_cash.service.BuyerCapitalService;
+import project.jinshang.mod_company.BuyerCompanyInfoMapper;
+import project.jinshang.mod_company.bean.BuyerCompanyInfo;
 import project.jinshang.mod_pay.bean.PayLogs;
 import project.jinshang.mod_pay.bean.PayTradeLogs;
 import project.jinshang.mod_pay.mod_alipay.AlipayService;
@@ -55,8 +60,6 @@ public class TradeService {
     @Autowired
     private SalerCapitalMapper salerCapitalMapper;
 
-    @Autowired
-    private BuyerCapitalMapper buyerCapitalMapper;
 
     @Autowired
     private OrdersService ordersService;
@@ -76,7 +79,12 @@ public class TradeService {
     private MyWxPayService wxPayService;
     @Autowired
     private AbcService abcService;
-
+    @Autowired
+    private BuyerCapitalService buyerCapitalService;
+    @Autowired
+    private StatementService statementService;
+    @Autowired
+    private BuyerCompanyInfoMapper buyerCompanyInfoMapper;
 
     /**
      * 买家充值
@@ -91,12 +99,12 @@ public class TradeService {
 
         String uuid = "buy" + "-" + orders;
 
-        BuyerCapital buyerCapital = buyerCapitalMapper.getBuyerCapitalByRechargenumber(orders);
+        BuyerCapital buyerCapital = buyerCapitalService.getBuyerCapitalByRechargenumber(orders);
         if (buyerCapital != null && buyerCapital.getRechargeperform() == Quantity.STATE_) {
             BuyerCapital updateCapital = new BuyerCapital();
             updateCapital.setId(buyerCapital.getId());
             updateCapital.setRechargeperform(rechargeperform);
-            buyerCapitalMapper.updateByPrimaryKeySelective(updateCapital);
+            buyerCapitalService.updateByPrimaryKeySelective(updateCapital);
 
             trade.setAmount((buyerCapital.getCapital().multiply(new BigDecimal(100))).longValue());
             trade.setOutTradeNo(uuid);
@@ -419,13 +427,14 @@ public class TradeService {
         //一个订单一条资金记录
         List<BuyerCapital> buyerCapitals = new ArrayList<BuyerCapital>();
         List<SalerCapital> salerCapitals = new ArrayList<SalerCapital>();
+        List<BuyerCapital> statementList=new ArrayList<>();
         for (Orders order : ordersList) {
 
             String transactionNo = GenerateNo.getTransactionNo();
             Date tranTime = new Date();
             //创建订单资金明细
             BuyerCapital buyerOrderCapital = createBuyerOrderCapital(order, type, tranTime, transactionNo, transactionid);
-
+            statementList.add(buyerOrderCapital);
             SalerCapital salerCapital = createSalerOrderCapital(order, tranTime, transactionNo, transactionid);
 
             buyerCapitals.add(buyerOrderCapital);
@@ -438,10 +447,15 @@ public class TradeService {
         }
         //批量保存买家卖家资金明细
         if (buyerCapitals.size() > Quantity.STATE_0) {
-            buyerCapitalMapper.insertAll(buyerCapitals);
+            buyerCapitalService.insertAll(buyerCapitals);
         }
         if (salerCapitals.size() > Quantity.STATE_0) {
             salerCapitalMapper.insertAll(salerCapitals);
+        }
+        if (statementList.size()>Quantity.STATE_0){
+            for (BuyerCapital buyerCapital:statementList) {
+                buyerCapitalService.insertStateSelective(buyerCapital,true);
+            }
         }
     }
 
@@ -709,8 +723,8 @@ public class TradeService {
      * order: 充值单号
      * channel: alipay / wxpay
      */
-    public boolean notifyBuyerRecharge(String order, String transactionid) throws CashException {
-        BuyerCapital buyerCapital = buyerCapitalMapper.getBuyerCapitalByRechargenumber(order);
+    public boolean notifyBuyerRecharge(String order, String transactionid,short type) throws CashException {
+        BuyerCapital buyerCapital = buyerCapitalService.getBuyerCapitalByRechargenumber(order);
 
         if (buyerCapital != null) {
             if(buyerCapital.getRechargestate() == Quantity.STATE_1){
@@ -722,8 +736,29 @@ public class TradeService {
             updateCapital.setRechargestate(Quantity.STATE_1);
             updateCapital.setSuccesstime(new Date());
             updateCapital.setTransactionid(transactionid);
-            buyerCapitalMapper.updateByPrimaryKeySelective(updateCapital);
+            buyerCapitalService.updateByPrimaryKeySelective(updateCapital);
 
+            //插入对账单
+            BuyerCapital updateCapital1=buyerCapitalService.getById(updateCapital.getId());
+            updateCapital1.setPaytype(type);
+            BuyerStatement buyerStatement=new BuyerStatement();
+            buyerStatement.setMemberid(updateCapital1.getMemberid());
+            buyerStatement.setContractno(updateCapital1.getRechargenumber());
+            buyerStatement.setType((short) StatementType.StType6.getTyep());
+            buyerStatement.setDeliveryamount(Quantity.BIG_DECIMAL_0);
+            buyerStatement.setReceiptamount(updateCapital1.getCapital());
+            buyerStatement.setInvoiceamount(Quantity.BIG_DECIMAL_0);
+            buyerStatement.setPaytype(updateCapital1.getPaytype());
+            buyerStatement.setCreatetime(new Date());
+            buyerStatement.setPayno(updateCapital1.getTransactionid());
+//            Member member=memberMapper.getMemberByid(updateCapital1.getMemberid());
+            BuyerCompanyInfo buyerCompanyInfo=buyerCompanyInfoMapper.getBuyerCompanyInfoByMemberId(buyerCapital.getMemberid());
+            if (buyerCompanyInfo!=null){
+                buyerStatement.setRemark(updateCapital1.getMemberid()+"\t\n"+buyerCompanyInfo.getCompanyname());
+            }else {
+                buyerStatement.setRemark(updateCapital1.getMemberid()+"");
+            }
+            statementService.insertStatement(buyerStatement);
             //修改买家资金
             memberMapper.updateBuyerMemberBalanceInDb(buyerCapital.getMemberid(), buyerCapital.getCapital());
 
@@ -1035,7 +1070,7 @@ public class TradeService {
             payMethod(ordersList, Quantity.STATE_2, transactionid);
         }
 
-        ordersService.smsNotifySellerToOrders(ordersList);
+        //ordersService.smsNotifySellerToOrders(ordersList);
         wmsService.synOrders(ordersList);
 
         if (ordersList.size() > 0) {
@@ -1215,13 +1250,49 @@ public class TradeService {
             updateOrder.setOrdertime(ordertime);
             logs.setOrdertype(Quantity.STATE_1);
         }
+
+        notify(uuid,channel,transactionid);
+
         ordersMapper.updateByPrimaryKeySelective(updateOrder);
         payTradeLogsService.insertSelective(logs);
 
 
-        System.out.println(notify(uuid,channel,transactionid));
+        System.out.println("完成");
     }
 
+
+    public void testForCharge(String rechargeNo,String uuid,String transactionid,String total_amount,String  channel,String payDate) throws CashException, MyException {
+
+//        Orders order = ordersService.getOrdersByOrderNo(orderno);
+//        if(order == null){
+//            System.out.println("订单不存在");
+//            return;
+//        }
+
+        Short paytype = -1;
+        //0=支付宝1=微信2=银行卡
+        if(channel.equals("alipay")){
+            paytype = 0;
+        }else if(channel.equals("wxpay")){
+            paytype = 1;
+        }else if(channel.equals("bank")){
+            paytype = 2;
+        }
+
+        String rechargeNo1="buy-"+rechargeNo;
+
+        PayLogs payLogs = new PayLogs();
+        payLogs.setTransactionid(transactionid);
+        payLogs.setOuttradeno(rechargeNo1);
+        payLogs.setMoney(new BigDecimal(total_amount));
+        payLogs.setCreatetime(new Date());
+        payLogs.setChannel(channel);
+        payLogsService.insertSelective(payLogs);
+//        ordersMapper.updateByPrimaryKeySelective(updateOrder);
+
+        this.notifyBuyerRecharge(rechargeNo,transactionid,Quantity.STATE_0);
+        System.out.println(notify(uuid,channel,transactionid));
+    }
 
 
 }

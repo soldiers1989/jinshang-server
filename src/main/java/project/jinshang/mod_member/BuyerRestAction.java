@@ -10,7 +10,10 @@ import org.springframework.web.bind.annotation.*;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.constant.SmsType;
+import project.jinshang.common.constant.ThirdPartLoginType;
 import project.jinshang.common.utils.*;
+import project.jinshang.mod_admin.mod_statement.bean.dto.BuyerStatementDto;
+import project.jinshang.mod_admin.mod_statement.service.StatementService;
 import project.jinshang.mod_cash.bean.BuyerCapital;
 import project.jinshang.mod_cash.service.BuyerCapitalService;
 import project.jinshang.mod_common.bean.BasicExtRet;
@@ -24,6 +27,8 @@ import project.jinshang.mod_member.bean.MemberToken;
 import project.jinshang.mod_member.service.AdvanceSellerPublish;
 import project.jinshang.mod_member.service.MemberService;
 import project.jinshang.mod_member.service.MemberTokenService;
+import project.jinshang.mod_member.bean.*;
+import project.jinshang.mod_member.service.*;
 import project.jinshang.mod_product.service.OrdersService;
 
 import javax.servlet.http.Cookie;
@@ -64,6 +69,121 @@ public class BuyerRestAction {
 
     @Autowired
     private BuyerCapitalService buyerCapitalService;
+    @Autowired
+    private ThirdPartLoginService thirdPartLoginService;
+    @Autowired
+    private UserBindService userBindService;
+
+
+    @RequestMapping(value = "/regiMemForTinyProg", method = RequestMethod.POST)
+    @ApiOperation(value = "小程序中注册用户,并绑定微信账号")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "username", value = "用户名", required = true, paramType = "query"),
+            @ApiImplicitParam(name = "password", value = "密码(base64编码)", required = true, paramType = "query"),
+            @ApiImplicitParam(name = "mobile", value = "手机号", required = true, paramType = "query"),
+            @ApiImplicitParam(name = "invitecode", value = "邀请码", required = false, paramType = "query"),
+            @ApiImplicitParam(name = "clerkname", value = "业务员", required = false, paramType = "query"),
+            @ApiImplicitParam(name = "realname", value = "真实姓名", required = false, paramType = "query"),
+            @ApiImplicitParam(name = "registersourcelabel", value = "注册来源", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "registertypelabel", value = "注册类型", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "registerchannellabel", value = "注册渠道", required = false, paramType = "query", dataType = "string"),
+            @ApiImplicitParam(name = "mobileCode", value = "手机验证码", required = true, paramType = "string"),
+            @ApiImplicitParam(name="code",value = "微信临时登录凭证code",required = true,paramType = "string"),
+            @ApiImplicitParam(name="nickname",value = "微信用户的昵称",required = false,paramType = "string"),
+    })
+    public MemberRet regiMemForTinyProg(Member member, String mobileCode,String code,String nickname,Model model) throws IOException {
+
+        member.setPassword(Base64Utils.decode(member.getPassword()));
+
+        String invitecode = member.getInvitecode();
+
+        MemberRet memberRet = new MemberRet();
+        ErrorMes errorMes = new ErrorMes();
+        //判断手机验证码是否正确
+        SmsLog smsLog = mobileService.getLastLog(member.getMobile(), SmsType.REGISTER, 5);
+        if (smsLog == null || !mobileCode.equalsIgnoreCase(smsLog.getVerifycode())) {
+            errorMes.addError("mobileCode", "手机验证码不正确");
+            memberRet.errs = errorMes;
+            memberRet.setResult(BasicRet.ERR);
+            memberRet.setMessage("手机验证码不正确");
+            return memberRet;
+        }
+
+        errorMes = memberService.registerMember(member);
+
+        if (errorMes.getSize() != 0) {
+            memberRet.errs = errorMes;
+            memberRet.setMessage(errorMes.getAllErrStr());
+            return (MemberRet) memberRet.setResult(BasicRet.ERR);
+        }
+
+
+        member = memberService.getMemberByUsername(member.getUsername());
+        //Temp
+        if("919f23".equalsIgnoreCase(invitecode)){//送现金10元
+            BuyerCapital buyerCapital = new BuyerCapital();
+            buyerCapital.setCapitaltype(Quantity.STATE_1);
+            buyerCapital.setCapital(new BigDecimal(10));
+            buyerCapital.setTradeno(GenerateNo.getTransactionNo());
+            buyerCapital.setRemark("注册送现金");
+            buyerCapital.setTradetime(new Date());
+            buyerCapital.setMemberid(member.getId());
+            buyerCapital.setRechargestate(Quantity.STATE_1);
+            buyerCapital.setSuccesstime(new Date());
+            buyerCapitalService.insertSelective(buyerCapital);
+            memberService.updateBuyerMemberBalanceInDb(member.getId(),new BigDecimal(10));
+
+            memberRet.setRegmes("注册送现金");
+        }
+
+        member.setFrom("buyer");
+        member.setLoginType("main");
+
+        memberService.fillMember(member);
+        model.addAttribute(AppConstant.MEMBER_SESSION_NAME, member);
+
+        //进行微信openid和注册账号的绑定
+        WxAccessToken wxAccessToken=thirdPartLoginService.getWxAccTokForTinyProg(code);
+        String openid=wxAccessToken.getUnionid();
+        //判断该微信号是否已经绑定了其他的帐号
+        int bindingCount = userBindService.getBindingCount(openid, ThirdPartLoginType.wxLogin);
+        if(bindingCount>0){
+            memberRet.setResult(BasicRet.ERR);
+            memberRet.setMessage("该微信帐号已经绑定其他帐号了");
+            return  memberRet;
+        }
+        UserBinding binding = new UserBinding();
+        binding.setMemberid(member.getId());
+        binding.setOpenid(openid);
+        binding.setName(nickname);
+        binding.setState(Quantity.STATE_1);
+        binding.setType(ThirdPartLoginType.wxLogin);
+        binding.setBindtime(new Date());
+        userBindService.insertSelective(binding);
+
+
+        //注册用户在对账单表中插入一条初始记录
+        BuyerStatementDto buyerStatementDto=new BuyerStatementDto();
+        buyerStatementDto.setMemberid(member.getId());
+        buyerStatementDto.setCreatetime(new Date());
+        buyerStatementDto.setContractno("000000000000000000000");
+        buyerStatementDto.setType((short) 9);
+//                buyerStatementDto.setDeliveryamount(fahuoamount);
+//                buyerStatementDto.setReceiptamount(shoukuanamount);
+        buyerStatementDto.setReceivableamount(Quantity.BIG_DECIMAL_0);
+//                buyerStatementDto.setInvoiceamount(kaipiaoamount);
+        buyerStatementDto.setInvoicebalance(Quantity.BIG_DECIMAL_0);
+        buyerStatementDto.setPaytype((short) 6);
+        buyerStatementDto.setPayno(null);
+        buyerStatementDto.setRemark("系统首次统计用户上期结余");
+        statementService.insertStatementForTest(buyerStatementDto);
+
+
+        memberRet.setMessage("注册成功");
+        return (MemberRet) memberRet.setResult(BasicRet.SUCCESS);
+    }
+    @Autowired
+    private StatementService statementService;
 
 
 
@@ -134,6 +254,22 @@ public class BuyerRestAction {
         memberService.fillMember(member);
         model.addAttribute(AppConstant.MEMBER_SESSION_NAME, member);
 
+        //注册用户在对账单表中插入一条初始记录
+        BuyerStatementDto buyerStatementDto=new BuyerStatementDto();
+        buyerStatementDto.setMemberid(member.getId());
+        buyerStatementDto.setCreatetime(new Date());
+        buyerStatementDto.setContractno("000000000000000000000");
+        buyerStatementDto.setType((short) 9);
+//                buyerStatementDto.setDeliveryamount(fahuoamount);
+//                buyerStatementDto.setReceiptamount(shoukuanamount);
+        buyerStatementDto.setReceivableamount(Quantity.BIG_DECIMAL_0);
+//                buyerStatementDto.setInvoiceamount(kaipiaoamount);
+        buyerStatementDto.setInvoicebalance(Quantity.BIG_DECIMAL_0);
+        buyerStatementDto.setPaytype((short) 6);
+        buyerStatementDto.setPayno(null);
+        buyerStatementDto.setRemark("系统首次统计用户上期结余");
+        statementService.insertStatementForTest(buyerStatementDto);
+
         memberRet.setMessage("注册成功");
 
         return (MemberRet) memberRet.setResult(BasicRet.SUCCESS);
@@ -199,6 +335,22 @@ public class BuyerRestAction {
 
         memberService.fillMember(member);
         model.addAttribute(AppConstant.MEMBER_SESSION_NAME, member);
+
+        //注册用户在对账单表中插入一条初始记录
+        BuyerStatementDto buyerStatementDto=new BuyerStatementDto();
+        buyerStatementDto.setMemberid(member.getId());
+        buyerStatementDto.setCreatetime(new Date());
+        buyerStatementDto.setContractno("000000000000000000000");
+        buyerStatementDto.setType((short) 9);
+//                buyerStatementDto.setDeliveryamount(fahuoamount);
+//                buyerStatementDto.setReceiptamount(shoukuanamount);
+        buyerStatementDto.setReceivableamount(Quantity.BIG_DECIMAL_0);
+//                buyerStatementDto.setInvoiceamount(kaipiaoamount);
+        buyerStatementDto.setInvoicebalance(Quantity.BIG_DECIMAL_0);
+        buyerStatementDto.setPaytype((short) 6);
+        buyerStatementDto.setPayno(null);
+        buyerStatementDto.setRemark("系统首次统计用户上期结余");
+        statementService.insertStatementForTest(buyerStatementDto);
 
         memberRet.setMessage("注册成功");
         return (MemberRet) memberRet.setResult(BasicRet.SUCCESS);

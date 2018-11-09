@@ -8,6 +8,7 @@
     <result column="unit" property="unit" jdbcType="VARCHAR" />
     <result column="mark" property="mark" jdbcType="VARCHAR" />
     <result column="prodno" property="prodno" jdbcType="VARCHAR" />
+    <result column="pic" property="pic" jdbcType="VARCHAR" />
   </resultMap>
   <sql id="Example_Where_Clause" >
     <where >
@@ -68,7 +69,7 @@
     </where>
   </sql>
   <sql id="Base_Column_List" >
-    id, name, typeid, unit, mark, prodno
+    id, name, typeid, unit, mark, prodno, pic
   </sql>
   <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_product.bean.ProductNameExample" >
     select
@@ -95,16 +96,20 @@
     delete from productname
     where id = #{id,jdbcType=BIGINT}
   </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_product.bean.ProductNameExample" >
+    delete from productname
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
   <insert id="insert" parameterType="project.jinshang.mod_product.bean.ProductName" useGeneratedKeys="true" keyProperty="id">
     insert into productname ( name, typeid,
-      unit, mark, prodno)
+      unit, mark, prodno, 
+      pic)
     values (#{name,jdbcType=VARCHAR}, #{typeid,jdbcType=BIGINT},
-      #{unit,jdbcType=VARCHAR}, #{mark,jdbcType=VARCHAR}, #{prodno,jdbcType=VARCHAR})
+      #{unit,jdbcType=VARCHAR}, #{mark,jdbcType=VARCHAR}, #{prodno,jdbcType=VARCHAR}, 
+      #{pic,jdbcType=VARCHAR})
   </insert>
-
-
-
-
   <insert id="insertSelective" parameterType="project.jinshang.mod_product.bean.ProductName" >
     insert into productname
     <trim prefix="(" suffix=")" suffixOverrides="," >
@@ -126,6 +131,9 @@
       <if test="prodno != null" >
         prodno,
       </if>
+      <if test="pic != null" >
+        pic,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="id != null" >
@@ -145,6 +153,9 @@
       </if>
       <if test="prodno != null" >
         #{prodno,jdbcType=VARCHAR},
+      </if>
+      <if test="pic != null" >
+        #{pic,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -175,6 +186,9 @@
       <if test="record.prodno != null" >
         prodno = #{record.prodno,jdbcType=VARCHAR},
       </if>
+      <if test="record.pic != null" >
+        pic = #{record.pic,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
@@ -187,7 +201,8 @@
       typeid = #{record.typeid,jdbcType=BIGINT},
       unit = #{record.unit,jdbcType=VARCHAR},
       mark = #{record.mark,jdbcType=VARCHAR},
-      prodno = #{record.prodno,jdbcType=VARCHAR}
+      prodno = #{record.prodno,jdbcType=VARCHAR},
+      pic = #{record.pic,jdbcType=VARCHAR}
     <if test="_parameter != null" >
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -210,6 +225,9 @@
       <if test="prodno != null" >
         prodno = #{prodno,jdbcType=VARCHAR},
       </if>
+      <if test="pic != null" >
+        pic = #{pic,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=BIGINT}
   </update>
@@ -219,7 +237,8 @@
       typeid = #{typeid,jdbcType=BIGINT},
       unit = #{unit,jdbcType=VARCHAR},
       mark = #{mark,jdbcType=VARCHAR},
-      prodno = #{prodno,jdbcType=VARCHAR}
+      prodno = #{prodno,jdbcType=VARCHAR},
+      pic = #{pic,jdbcType=VARCHAR}
     where id = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

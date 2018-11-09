@@ -9,9 +9,11 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import project.jinshang.common.constant.DistributeTaskConst;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.exception.CashException;
 import project.jinshang.common.exception.MyException;
+import project.jinshang.common.utils.CommonUtils;
 import project.jinshang.common.utils.JinShangSms;
 import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_activity.bean.LimitTimeProd;
@@ -36,14 +38,18 @@ import project.jinshang.mod_product.OperateLogMapper;
 import project.jinshang.mod_product.bean.*;
 import project.jinshang.mod_product.service.*;
 import project.jinshang.mod_wms_middleware.WMSService;
+import project.jinshang.scheduled.Bean.DistributeTask;
+import project.jinshang.scheduled.Bean.DistributeTaskLog;
+import project.jinshang.scheduled.mapper.DistributeTaskMapper;
 import project.jinshang.scheduled.mapper.OrderTaskMapper;
+import project.jinshang.scheduled.service.DistributeTaskLogService;
 
 import java.math.BigDecimal;
 import java.util.*;
 
 @Component
 @Transactional(rollbackFor = Exception.class)
-@Profile({"test","pro"})
+//@Profile({"test","pro"})
 public class QuartzTask {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -107,69 +113,139 @@ public class QuartzTask {
     @Autowired
     private CompatibleFreightOrdersService compatibleFreightOrdersService;
 
-    /**
-     * 自动关闭超时未付款订单
-     */
-    @Scheduled(cron = "0 0/10 * * * ?")
-    public void updateNotPayOrdersForFinish(){
-        System.out.println("更新超时付款订单状态为已关闭");
-        TransactionSetting transactionSetting = transactionSettingService.getTransactionSetting();
-
-        BigDecimal unpaidtimeout = transactionSetting.getUnpaidtimeout();
-        int unpaidtimeoutHour = unpaidtimeout.intValue();
+    @Autowired
+    private DistributeTaskMapper distributeTaskMapper;
+    @Autowired
+    private DistributeTaskLogService distributeTaskLogService;
 
 
+    //自动关闭超时未付款订单
+    @Scheduled(cron = "0 0/5 * * * ?")
+    public void updateNotPayOrdersForFinish_task(){
+        this.updateNotPayOrdersForFinish();
+    }
 
+    @Scheduled(cron = "0 0/1 * * * ?")
+    public void autoFreezeToGoodsBanlance_task() throws CashException{
+        this.autoFreezeToGoodsBanlance();
+    }
 
-        List<Orders> orders = orderTaskMapper.getOuttimeNotPayOrders(unpaidtimeoutHour+" hour");
-        for (Orders order : orders) {
+    @Scheduled(cron = "0 0 0/1 * * ?")
+    public void  autoDeliveryGoods_task(){
+        this.autoDeliveryGoods();
+    }
 
+    @Scheduled(cron = "0 0/1 * * * ?")
+    public void  autoConfirmGoods_task() throws CashException,MyException {
+        this.autoConfirmGoods();
+    }
 
-            if (order.getCreatetime() != null) {
-                Orders updateOrder = new Orders();
-                updateOrder.setId(order.getId());
-                updateOrder.setOrderstatus(Quantity.STATE_7);
-                updateOrder.setReason("订单超时取消");
-                ordersService.updateSingleOrder(updateOrder);
-                //将商品库存加回去
-                List<OrderProduct> orderProductList = ordersService.getOrderProductByOrderId(order.getId());
-                for (OrderProduct orderProduct : orderProductList) {
-                    productStoreService.addStoreNumByPdidAndPdno(orderProduct.getPdid(), orderProduct.getPdno(), orderProduct.getNum());
-                }
-            }
-        }
-        System.out.println("更新超时付款订单完成");
+    @Scheduled(cron = "0 0/1 * * * ?")
+    public void closeNotPayLinimtOrders_task(){
+        this.closeNotPayLinimtOrders();
     }
 
 
 
 
 
-    @Scheduled(cron = "0 0/3 * * * ?")
+    /**
+     * 自动关闭超时未付款订单
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public void updateNotPayOrdersForFinish(){
+        System.out.println("更新超时付款订单状态为已关闭");
+
+        if(distributeTaskMapper.start(DistributeTaskConst.ORDER_OVERTIME_NOT_PAY_ORDERS) != 1){
+            System.out.println("计划任务已被其他服务执行");
+            logger.error("计划任务已被其他服务执行");
+            return;
+        }
+
+        DistributeTaskLog taskLog  = new DistributeTaskLog();
+        taskLog.setHostip(CommonUtils.getServerIP());
+        taskLog.setHostname(CommonUtils.getServerHost());
+        taskLog.setTaskcode(DistributeTaskConst.ORDER_OVERTIME_NOT_PAY_ORDERS);
+
+
+        try {
+            TransactionSetting transactionSetting = transactionSettingService.getTransactionSetting();
+
+            BigDecimal unpaidtimeout = transactionSetting.getUnpaidtimeout();
+            int unpaidtimeoutHour = unpaidtimeout.intValue();
+
+            List<Orders> orders = orderTaskMapper.getOuttimeNotPayOrders(unpaidtimeoutHour+" hour");
+            for (Orders order : orders) {
+                if (order.getCreatetime() != null) {
+                    Orders updateOrder = new Orders();
+                    updateOrder.setId(order.getId());
+                    updateOrder.setOrderstatus(Quantity.STATE_7);
+                    updateOrder.setReason("订单超时取消");
+                    ordersService.updateSingleOrder(updateOrder);
+                    //将商品库存加回去
+                    List<OrderProduct> orderProductList = ordersService.getOrderProductByOrderId(order.getId());
+                    for (OrderProduct orderProduct : orderProductList) {
+                        productStoreService.addStoreNumByPdidAndPdno(orderProduct.getPdid(), orderProduct.getPdno(), orderProduct.getNum());
+                    }
+                }
+            }
+            System.out.println("更新超时付款订单完成");
+        } catch (Exception e) {
+            logger.error("自动关闭超时未付款订单",e);
+            taskLog.setState(Quantity.STATE_2);
+            taskLog.setError(e.toString());
+            distributeTaskLogService.insert(taskLog);
+            throw e;
+        } finally {
+            distributeTaskMapper.end(DistributeTaskConst.ORDER_OVERTIME_NOT_PAY_ORDERS);
+            taskLog.setState(Quantity.STATE_1);
+        }
+
+        distributeTaskLogService.insert(taskLog);
+    }
+
+
+
+
+
+    @Transactional(rollbackFor = Exception.class)
     public void autoFreezeToGoodsBanlance() throws CashException {
         System.out.println("自动执行冻结金额到货款---开始");
         //Date date=new Date();
 
-        List<Orders> ordersList = ordersService.getSellerSettleOrdersList();
-
-        //更新冻结金额，货款金额和可开票金额
-        for(Orders  orders:ordersList){
-            Long sellerId = orders.getSaleid();
-            Member seller = memberService.getMemberById(sellerId);
-            BigDecimal differpay = orders.getFrozepay();
-
-            memberService.updateSellerMemberBalanceInDb(seller.getId(),new BigDecimal(0),differpay.multiply(new BigDecimal(-1)),differpay.subtract(orders.getBrokepay()),differpay);
-            Member member = memberService.getMemberById(seller.getId());
-            if(member.getSellerfreezebanlance().compareTo(Quantity.BIG_DECIMAL_0) <0 ){
-                logger.error("冻结金额到货款自动确认 "+seller.getUsername()+"冻结金额不足");
-                throw new CashException(seller.getUsername()+"冻结金额不足");
-            }
-
-            //将订单标记为已结算状态
-            if(orderTaskMapper.settleOrders(orders.getId()) != 1){
-                throw  new CashException(orders.getOrderno()+"订单状态不正确,无法结算");
-            }
+        if(distributeTaskMapper.start(DistributeTaskConst.ORDER_FREEZE_TO_GOODSBANLANCE)!=1){
+            System.out.println("计划任务已被其他服务执行");
+            logger.error("计划任务已被其他服务执行");
+            return;
         }
+
+        DistributeTaskLog taskLog  = new DistributeTaskLog();
+        taskLog.setHostip(CommonUtils.getServerIP());
+        taskLog.setHostname(CommonUtils.getServerHost());
+        taskLog.setTaskcode(DistributeTaskConst.ORDER_FREEZE_TO_GOODSBANLANCE);
+
+
+        try {
+            List<Orders> ordersList = ordersService.getSellerSettleOrdersList();
+
+            //更新冻结金额，货款金额和可开票金额
+            for(Orders  orders:ordersList){
+                Long sellerId = orders.getSaleid();
+                Member seller = memberService.getMemberById(sellerId);
+                BigDecimal differpay = orders.getFrozepay();
+
+                memberService.updateSellerMemberBalanceInDb(seller.getId(),new BigDecimal(0),differpay.multiply(new BigDecimal(-1)),differpay.subtract(orders.getBrokepay()),differpay);
+                Member member = memberService.getMemberById(seller.getId());
+                if(member.getSellerfreezebanlance().compareTo(Quantity.BIG_DECIMAL_0) <0 ){
+                    logger.error("冻结金额到货款自动确认 "+seller.getUsername()+"冻结金额不足");
+                    throw new CashException(seller.getUsername()+"冻结金额不足");
+                }
+
+                //将订单标记为已结算状态
+                if(orderTaskMapper.settleOrders(orders.getId()) != 1){
+                    throw  new CashException(orders.getOrderno()+"订单状态不正确,无法结算");
+                }
+            }
 
 
         /*
@@ -183,7 +259,20 @@ public class QuartzTask {
             ordersService.updateSalerCapital(updateSalerCapital);
         }*/
 
-        System.out.println("自动执行冻结金额到货款---结束");
+            System.out.println("自动执行冻结金额到货款---结束");
+        } catch (CashException e) {
+            logger.error("执行冻结金额到货款",e);
+            e.printStackTrace();
+            taskLog.setState(Quantity.STATE_2);
+            taskLog.setError(e.toString());
+            distributeTaskLogService.insert(taskLog);
+            throw e;
+        } finally {
+            distributeTaskMapper.end(DistributeTaskConst.ORDER_FREEZE_TO_GOODSBANLANCE);
+            taskLog.setState(Quantity.STATE_1);
+        }
+
+        distributeTaskLogService.insert(taskLog);
 
     }
 
@@ -195,46 +284,76 @@ public class QuartzTask {
     /**
      * 买家订单自动确认收货
       */
-    @Scheduled(cron = "0 0 0/2 * * ?")
-//    @Scheduled(cron = "0 0/2 * * * ?")
+   @Transactional(rollbackFor = Exception.class)
    public void  autoDeliveryGoods(){
        System.out.println("买家订单自动确认收货---开始");
 
-       TransactionSetting transactionSetting = transactionSettingService.getTransactionSetting();
-       BigDecimal confirmreceipttimeout = transactionSetting.getConfirmreceipttimeout();
+       if(distributeTaskMapper.start(DistributeTaskConst.ORDER_AUTO_DELIVERY_GOODS)!=1){
+           return;
+       }
 
-       //正式环境使用
-       String intervalday = "'"+confirmreceipttimeout+" day'";
+       DistributeTaskLog taskLog  = new DistributeTaskLog();
+       taskLog.setHostip(CommonUtils.getServerIP());
+       taskLog.setHostname(CommonUtils.getServerHost());
+       taskLog.setTaskcode(DistributeTaskConst.ORDER_AUTO_DELIVERY_GOODS);
 
-       //测试使用
+
+        try {
+            TransactionSetting transactionSetting = transactionSettingService.getTransactionSetting();
+            BigDecimal confirmreceipttimeout = transactionSetting.getConfirmreceipttimeout();
+
+            //正式环境使用
+            String intervalday = "'"+confirmreceipttimeout+" day'";
+
+            //测试使用
 //       confirmreceipttimeout = new BigDecimal(2);
 //       String intervalday = "'"+confirmreceipttimeout+" min'";
 
-        List<Orders> list = orderTaskMapper.selectTimeOutNotReviceOrdersToRevice(intervalday);
-        for(Orders orders : list){
-            if(orderTaskMapper.updateTimeOutNotReviceOrdersToRevice(orders.getId())>0) {
-                OperateLog operateLog = new OperateLog();
-                operateLog.setOrderid(orders.getId());
-                operateLog.setOrderno(orders.getOrderno());
-                operateLog.setOptype(Quantity.STATE_0);
-                operateLog.setContent("系统自动确认订单收货");
-                operateLog.setOpname("system");
-                operateLog.setOptime(new Date());
-                operateLog.setOpid((long) 0);
-                operateLogMapper.insertSelective(operateLog);
+            List<Orders> list = orderTaskMapper.selectTimeOutNotReviceOrdersToRevice(intervalday);
+            for(Orders orders : list){
+                if(orderTaskMapper.updateTimeOutNotReviceOrdersToRevice(orders.getId())>0) {
+                    OperateLog operateLog = new OperateLog();
+                    operateLog.setOrderid(orders.getId());
+                    operateLog.setOrderno(orders.getOrderno());
+                    operateLog.setOptype(Quantity.STATE_0);
+                    operateLog.setContent("系统自动确认订单收货");
+                    operateLog.setOpname("system");
+                    operateLog.setOptime(new Date());
+                    operateLog.setOpid((long) 0);
+                    operateLogMapper.insertSelective(operateLog);
+                }
             }
+            logger.error("买家订单自动确认收货---结束");
+        } catch (Exception e) {
+            logger.error("买家订单自动确认收货",e);
+            taskLog.setState(Quantity.STATE_2);
+            taskLog.setError(e.toString());
+            distributeTaskLogService.insert(taskLog);
+            throw e;
+        } finally {
+           distributeTaskMapper.end(DistributeTaskConst.ORDER_AUTO_DELIVERY_GOODS);
+           taskLog.setState(Quantity.STATE_1);
         }
 
-       System.out.println("买家订单自动确认收货---结束");
-   }
+        distributeTaskLogService.insert(taskLog);
+    }
 
 
     /**
      * 买家订单自动确认验货
      */
-    @Scheduled(cron = "0 0/3 * * * ?")
-//    @Scheduled(cron = "0 0/1 * * * ?")
+    @Transactional(rollbackFor = Exception.class)
     public void  autoConfirmGoods() throws CashException,MyException {
+
+        if(distributeTaskMapper.start(DistributeTaskConst.ORDER_AUTO_CONFIRM_GOODS) !=1){
+            return;
+        }
+
+        DistributeTaskLog taskLog  = new DistributeTaskLog();
+        taskLog.setHostip(CommonUtils.getServerIP());
+        taskLog.setHostname(CommonUtils.getServerHost());
+        taskLog.setTaskcode(DistributeTaskConst.ORDER_AUTO_CONFIRM_GOODS);
+
         try {
             System.out.println("买家订单自动确认验货---开始");
 
@@ -291,7 +410,16 @@ public class QuartzTask {
             System.out.println("买家订单自动确认验货---结束");
         } catch (Exception e) {
             e.printStackTrace();
+            logger.error("买家订单自动确认验货",e);
+
+            taskLog.setState(Quantity.STATE_2);
+            taskLog.setError(e.toString());
+            distributeTaskLogService.insert(taskLog);
             throw e;
+        }finally {
+            distributeTaskMapper.end(DistributeTaskConst.ORDER_AUTO_CONFIRM_GOODS);
+            taskLog.setState(Quantity.STATE_1);
+            distributeTaskLogService.insert(taskLog);
         }
     }
 
@@ -1024,47 +1152,67 @@ public class QuartzTask {
 
 */
 
-
-    @Scheduled(cron = "0 0/2 * * * ?")
-    public void updateNotPayLimitOrdersForFinish(){
+    @Transactional(rollbackFor = Exception.class)
+    public void closeNotPayLinimtOrders(){
         System.out.println("更新限时购超时付款订单状态为已关闭");
 
-
-
-
-        TransactionSetting transactionSetting = transactionSettingService.getTransactionSetting();
-        BigDecimal timedoutofpayment = transactionSetting.getTimedoutofpayment();
-
-        List<Orders> ordersList = ordersService.getNotPayMoneyLimitOrders(timedoutofpayment.intValue());
-
-        for(Orders orders : ordersList){
-
-
-
-            //找到该订单中的商品
-            List<OrderProduct> orderProductList = orderProductServices.getByOrderid(orders.getId());
-
-            for(OrderProduct orderProduct : orderProductList){
-                LimitTimeProd limitTimeProd = limitTimeProdService.getById(orderProduct.getLimitid());
-                LimitTimeStore limitTimeStore = shopCarService.getLimitTimeStore(orderProduct.getLimitid(),orderProduct.getPdid(),orderProduct.getPdno());
-                limitTimeProdService.updateSalestotalnumInDB(orderProduct.getLimitid(),orderProduct.getNum().multiply(new BigDecimal(-1)));
-                limitTimeStoreService.updateLimitStoreNum(limitTimeStore.getId(),orderProduct.getNum(),orderProduct.getNum().multiply(new BigDecimal(-1)));
-            }
-
-            //更新订单为关闭状态
-            Orders updateOrders = new Orders();
-            updateOrders.setId(orders.getId());
-            updateOrders.setOrderstatus(Quantity.STATE_7);
-            updateOrders.setReason("订单超时取消");
-            ordersService.updateSingleOrder(updateOrders);
-
-
-
-            wmsService.cancelOrders(orders, WMSService.CANCEL_ORDER_TYPE);
-
-
+        if(distributeTaskMapper.start(DistributeTaskConst.ORDER_CLOSE_NOTPAY_LINIMTORDERS) !=1){
+            return;
         }
-        System.out.println("更新限时购超时付款订单完成");
+
+        DistributeTaskLog taskLog  = new DistributeTaskLog();
+        taskLog.setHostip(CommonUtils.getServerIP());
+        taskLog.setHostname(CommonUtils.getServerHost());
+        taskLog.setTaskcode(DistributeTaskConst.ORDER_CLOSE_NOTPAY_LINIMTORDERS);
+
+
+        try {
+            TransactionSetting transactionSetting = transactionSettingService.getTransactionSetting();
+            BigDecimal timedoutofpayment = transactionSetting.getTimedoutofpayment();
+
+            List<Orders> ordersList = ordersService.getNotPayMoneyLimitOrders(timedoutofpayment.intValue());
+
+            for(Orders orders : ordersList){
+
+
+
+                //找到该订单中的商品
+                List<OrderProduct> orderProductList = orderProductServices.getByOrderid(orders.getId());
+
+                for(OrderProduct orderProduct : orderProductList){
+                    LimitTimeProd limitTimeProd = limitTimeProdService.getById(orderProduct.getLimitid());
+                    LimitTimeStore limitTimeStore = shopCarService.getLimitTimeStore(orderProduct.getLimitid(),orderProduct.getPdid(),orderProduct.getPdno());
+                    limitTimeProdService.updateSalestotalnumInDB(orderProduct.getLimitid(),orderProduct.getNum().multiply(new BigDecimal(-1)));
+                    limitTimeStoreService.updateLimitStoreNum(limitTimeStore.getId(),orderProduct.getNum(),orderProduct.getNum().multiply(new BigDecimal(-1)));
+                }
+
+                //更新订单为关闭状态
+                Orders updateOrders = new Orders();
+                updateOrders.setId(orders.getId());
+                updateOrders.setOrderstatus(Quantity.STATE_7);
+                updateOrders.setReason("订单超时取消");
+                ordersService.updateSingleOrder(updateOrders);
+
+
+
+                wmsService.cancelOrders(orders, WMSService.CANCEL_ORDER_TYPE);
+
+
+            }
+            System.out.println("更新限时购超时付款订单完成");
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error("更新限时购超时付款订单",e);
+            taskLog.setState(Quantity.STATE_2);
+            taskLog.setError(e.toString());
+            distributeTaskLogService.insert(taskLog);
+            throw e;
+        } finally {
+            distributeTaskMapper.end(DistributeTaskConst.ORDER_CLOSE_NOTPAY_LINIMTORDERS);
+            taskLog.setState(Quantity.STATE_1);
+        }
+
+        distributeTaskLogService.insert(taskLog);
     }
 
 

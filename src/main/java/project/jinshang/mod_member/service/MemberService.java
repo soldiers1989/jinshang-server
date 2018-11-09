@@ -1064,4 +1064,8 @@ public class MemberService {
     public void updateMemberByIds(StringBuffer ids){
         memberMapper.updateMemberByIds(ids);
     }
+
+    public Member getMemberByUsernameOrId(String membername,long id) {
+        return  memberMapper.getMemberByUsernameOrId(membername,id);
+    }
 }

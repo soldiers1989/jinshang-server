@@ -4,6 +4,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.util.Date;
+import java.util.List;
 
 public class Article {
     private Long id;
@@ -43,6 +44,15 @@ public class Article {
 
     @ApiModelProperty(notes = "文章类型的标题")
     private String docName;
+
+    private Short type;
+
+    private Short iscarousel;
+
+    @ApiModelProperty(notes = "文章图片json字符串")
+    private String picjson;
+
+    private List<ArticlePic> picList;
 
     public Long getId() {
         return id;
@@ -137,7 +147,23 @@ public class Article {
     }
 
     public void setPic(String pic) {
-        this.pic = pic;
+        this.pic = pic == null ? null : pic.trim();
+    }
+
+    public Short getType() {
+        return type;
+    }
+
+    public void setType(Short type) {
+        this.type = type;
+    }
+
+    public Short getIscarousel() {
+        return iscarousel;
+    }
+
+    public void setIscarousel(Short iscarousel) {
+        this.iscarousel = iscarousel;
     }
 
     public String getDocName() {
@@ -146,5 +172,21 @@ public class Article {
 
     public void setDocName(String docName) {
         this.docName = docName;
+    }
+
+    public String getPicjson() {
+        return picjson;
+    }
+
+    public void setPicjson(String picjson) {
+        this.picjson = picjson;
+    }
+
+    public List<ArticlePic> getPicList() {
+        return picList;
+    }
+
+    public void setPicList(List<ArticlePic> picList) {
+        this.picList = picList;
     }
 }

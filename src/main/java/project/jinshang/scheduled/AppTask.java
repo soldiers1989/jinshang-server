@@ -200,7 +200,7 @@ public class AppTask {
      * 根据productinfo表中packagetype（包装方式）字段更新productstore表中intervalprice（区间价）字段
      */
     //@Scheduled(cron = "0 */5 * * * ?")
-    @Scheduled(cron = "0 05 18 14 6 ?")
+    //@Scheduled(cron = "0 05 18 14 6 ?")
     public void updateProductStore(){
         List<Map<String,Object>> list = appTaskService.getProductinfoList();
         for(Map<String,Object> map:list){

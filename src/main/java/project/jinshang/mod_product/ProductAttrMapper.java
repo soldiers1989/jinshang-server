@@ -22,7 +22,7 @@ public interface ProductAttrMapper {
     int deleteByPid(@Param("productid") Long productid);
 
     @Cacheable(value = "productattr",key = "'getListByPidAndPdno:'+#p0+':'+#p1")
-    @Select("select * from productattr where productid=#{productid} and pdno=#{pdno} order by attributeid asc ")
+    @Select("select pattr.* from productattr pattr left join attributetbl atb on pattr.attributeid = atb.id where pattr.productid=#{productid} and pattr.pdno=#{pdno} order by  atb.sort asc,atb.id asc ")
     List<ProductAttr> getListByPidAndPdno(@Param("productid") Long productid,@Param("pdno") String pdno);
 
 //    @Select("select * from productattr where productid=#{productid} and pdno=#{pdno} order by attributeid asc ")

@@ -51,7 +51,7 @@ public class SynonymRestAction {
                     .setCreateDt(new Timestamp(System.currentTimeMillis()))
                     .setWords(list);
             synonymMapper.save(synonym);
-            productSearchService.rebuildIndex();
+
             return new BasicRet(BasicRet.SUCCESS);
         }catch (Exception e){
             throw new RestMainException(e, model);
@@ -66,7 +66,7 @@ public class SynonymRestAction {
     ) throws RestMainException{
         try{
             synonymMapper.del(id);
-            productSearchService.rebuildIndex();
+
             return new BasicRet(BasicRet.SUCCESS);
         }catch (Exception e){
             throw new RestMainException(e, model);
@@ -75,13 +75,15 @@ public class SynonymRestAction {
 
     @RequestMapping(value="/list",method= RequestMethod.POST)
     @ApiOperation(value = "获取同义词组列表")
-    public SynonymListRet list(@RequestParam(required = true,defaultValue = "1") int pageNo,
+    public SynonymListRet list(
+                               String seachKey,
+                               @RequestParam(required = true,defaultValue = "1") int currentPage,
                                @RequestParam(required = true,defaultValue = "20") int pageSize,Model model) throws RestMainException{
         try{
             SynonymListRet ret = new SynonymListRet();
 
-            PageHelper.startPage(pageNo,pageSize);
-            PageInfo pageInfo = new PageInfo(synonymMapper.listAll());
+            PageHelper.startPage(currentPage,pageSize);
+            PageInfo pageInfo = new PageInfo(synonymMapper.listAll(seachKey));
             ret.getData().setPageInfo(pageInfo);
             ret.setResult(BasicRet.SUCCESS);
             return ret;
@@ -109,7 +111,7 @@ public class SynonymRestAction {
             }
             synonym.setWords(list);
             synonymMapper.update(synonym);
-            productSearchService.rebuildIndex();
+
             return new BasicRet(BasicRet.SUCCESS);
         }catch (Exception e){
             throw new RestMainException(e, model);

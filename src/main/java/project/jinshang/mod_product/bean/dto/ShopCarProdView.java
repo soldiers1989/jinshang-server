@@ -61,6 +61,9 @@ public class ShopCarProdView {
     //余款
     private BigDecimal yupay;
 
+    //优惠金额
+    private BigDecimal discountprice;
+
     private Map<String,Object> extend = new HashMap<>();
 
 
@@ -302,5 +305,13 @@ public class ShopCarProdView {
 
     public void setProductname(String productname) {
         this.productname = productname;
+    }
+
+    public BigDecimal getDiscountprice() {
+        return discountprice;
+    }
+
+    public void setDiscountprice(BigDecimal discountprice) {
+        this.discountprice = discountprice;
     }
 }

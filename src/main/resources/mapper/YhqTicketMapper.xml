@@ -1,0 +1,546 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_coupon.YhqTicketMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_coupon.bean.YhqTicket" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="no" property="no" jdbcType="VARCHAR" />
+    <result column="name" property="name" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="BIGINT" />
+    <result column="planid" property="planid" jdbcType="BIGINT" />
+    <result column="ticketsetid" property="ticketsetid" jdbcType="BIGINT" />
+    <result column="projectid" property="projectid" jdbcType="BIGINT" />
+    <result column="about" property="about" jdbcType="VARCHAR" />
+    <result column="capital" property="capital" jdbcType="NUMERIC" />
+    <result column="available" property="available" jdbcType="NUMERIC" />
+    <result column="rule" property="rule" jdbcType="VARCHAR" />
+    <result column="categorieslist" property="categorieslist" jdbcType="VARCHAR" />
+    <result column="storelist" property="storelist" jdbcType="VARCHAR" />
+    <result column="productstorelist" property="productstorelist" jdbcType="VARCHAR" />
+    <result column="membergradelist" property="membergradelist" jdbcType="VARCHAR" />
+    <result column="starttime" property="starttime" jdbcType="TIMESTAMP" />
+    <result column="endtime" property="endtime" jdbcType="TIMESTAMP" />
+    <result column="validityrule" property="validityrule" jdbcType="VARCHAR" />
+    <result column="validitystarttime" property="validitystarttime" jdbcType="TIMESTAMP" />
+    <result column="validityendtime" property="validityendtime" jdbcType="TIMESTAMP" />
+    <result column="status" property="status" jdbcType="BIGINT" />
+    <result column="memberid" property="memberid" jdbcType="BIGINT" />
+    <result column="gettime" property="gettime" jdbcType="TIMESTAMP" />
+    <result column="usertime" property="usertime" jdbcType="TIMESTAMP" />
+    <result column="usersid" property="usersid" jdbcType="BIGINT" />
+    <result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, no, name, type, planid, ticketsetid, projectid, about, capital, available, rule, 
+    categorieslist, storelist, productstorelist, membergradelist, starttime, endtime, 
+    validityrule, validitystarttime, validityendtime, status, memberid, gettime, usertime, 
+    usersid, createtime
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_coupon.bean.YhqTicketExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from yhq_ticket
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from yhq_ticket
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from yhq_ticket
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_coupon.bean.YhqTicketExample" >
+    delete from yhq_ticket
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_coupon.bean.YhqTicket" >
+    insert into yhq_ticket (id, no, name, 
+      type, planid, ticketsetid, 
+      projectid, about, capital, 
+      available, rule, categorieslist, 
+      storelist, productstorelist, membergradelist, 
+      starttime, endtime, validityrule, 
+      validitystarttime, validityendtime, 
+      status, memberid, gettime, 
+      usertime, usersid, createtime
+      )
+    values (#{id,jdbcType=BIGINT}, #{no,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, 
+      #{type,jdbcType=BIGINT}, #{planid,jdbcType=BIGINT}, #{ticketsetid,jdbcType=BIGINT}, 
+      #{projectid,jdbcType=BIGINT}, #{about,jdbcType=VARCHAR}, #{capital,jdbcType=NUMERIC}, 
+      #{available,jdbcType=NUMERIC}, #{rule,jdbcType=VARCHAR}, #{categorieslist,jdbcType=VARCHAR}, 
+      #{storelist,jdbcType=VARCHAR}, #{productstorelist,jdbcType=VARCHAR}, #{membergradelist,jdbcType=VARCHAR}, 
+      #{starttime,jdbcType=TIMESTAMP}, #{endtime,jdbcType=TIMESTAMP}, #{validityrule,jdbcType=VARCHAR}, 
+      #{validitystarttime,jdbcType=TIMESTAMP}, #{validityendtime,jdbcType=TIMESTAMP}, 
+      #{status,jdbcType=BIGINT}, #{memberid,jdbcType=BIGINT}, #{gettime,jdbcType=TIMESTAMP}, 
+      #{usertime,jdbcType=TIMESTAMP}, #{usersid,jdbcType=BIGINT}, #{createtime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_coupon.bean.YhqTicket" >
+    insert into yhq_ticket
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="no != null" >
+        no,
+      </if>
+      <if test="name != null" >
+        name,
+      </if>
+      <if test="type != null" >
+        type,
+      </if>
+      <if test="planid != null" >
+        planid,
+      </if>
+      <if test="ticketsetid != null" >
+        ticketsetid,
+      </if>
+      <if test="projectid != null" >
+        projectid,
+      </if>
+      <if test="about != null" >
+        about,
+      </if>
+      <if test="capital != null" >
+        capital,
+      </if>
+      <if test="available != null" >
+        available,
+      </if>
+      <if test="rule != null" >
+        rule,
+      </if>
+      <if test="categorieslist != null" >
+        categorieslist,
+      </if>
+      <if test="storelist != null" >
+        storelist,
+      </if>
+      <if test="productstorelist != null" >
+        productstorelist,
+      </if>
+      <if test="membergradelist != null" >
+        membergradelist,
+      </if>
+      <if test="starttime != null" >
+        starttime,
+      </if>
+      <if test="endtime != null" >
+        endtime,
+      </if>
+      <if test="validityrule != null" >
+        validityrule,
+      </if>
+      <if test="validitystarttime != null" >
+        validitystarttime,
+      </if>
+      <if test="validityendtime != null" >
+        validityendtime,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+      <if test="memberid != null" >
+        memberid,
+      </if>
+      <if test="gettime != null" >
+        gettime,
+      </if>
+      <if test="usertime != null" >
+        usertime,
+      </if>
+      <if test="usersid != null" >
+        usersid,
+      </if>
+      <if test="createtime != null" >
+        createtime,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="no != null" >
+        #{no,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null" >
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        #{type,jdbcType=BIGINT},
+      </if>
+      <if test="planid != null" >
+        #{planid,jdbcType=BIGINT},
+      </if>
+      <if test="ticketsetid != null" >
+        #{ticketsetid,jdbcType=BIGINT},
+      </if>
+      <if test="projectid != null" >
+        #{projectid,jdbcType=BIGINT},
+      </if>
+      <if test="about != null" >
+        #{about,jdbcType=VARCHAR},
+      </if>
+      <if test="capital != null" >
+        #{capital,jdbcType=NUMERIC},
+      </if>
+      <if test="available != null" >
+        #{available,jdbcType=NUMERIC},
+      </if>
+      <if test="rule != null" >
+        #{rule,jdbcType=VARCHAR},
+      </if>
+      <if test="categorieslist != null" >
+        #{categorieslist,jdbcType=VARCHAR},
+      </if>
+      <if test="storelist != null" >
+        #{storelist,jdbcType=VARCHAR},
+      </if>
+      <if test="productstorelist != null" >
+        #{productstorelist,jdbcType=VARCHAR},
+      </if>
+      <if test="membergradelist != null" >
+        #{membergradelist,jdbcType=VARCHAR},
+      </if>
+      <if test="starttime != null" >
+        #{starttime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="endtime != null" >
+        #{endtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="validityrule != null" >
+        #{validityrule,jdbcType=VARCHAR},
+      </if>
+      <if test="validitystarttime != null" >
+        #{validitystarttime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="validityendtime != null" >
+        #{validityendtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=BIGINT},
+      </if>
+      <if test="memberid != null" >
+        #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="gettime != null" >
+        #{gettime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="usertime != null" >
+        #{usertime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="usersid != null" >
+        #{usersid,jdbcType=BIGINT},
+      </if>
+      <if test="createtime != null" >
+        #{createtime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_coupon.bean.YhqTicketExample" resultType="java.lang.Integer" >
+    select count(*) from yhq_ticket
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update yhq_ticket
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.no != null" >
+        no = #{record.no,jdbcType=VARCHAR},
+      </if>
+      <if test="record.name != null" >
+        name = #{record.name,jdbcType=VARCHAR},
+      </if>
+      <if test="record.type != null" >
+        type = #{record.type,jdbcType=BIGINT},
+      </if>
+      <if test="record.planid != null" >
+        planid = #{record.planid,jdbcType=BIGINT},
+      </if>
+      <if test="record.ticketsetid != null" >
+        ticketsetid = #{record.ticketsetid,jdbcType=BIGINT},
+      </if>
+      <if test="record.projectid != null" >
+        projectid = #{record.projectid,jdbcType=BIGINT},
+      </if>
+      <if test="record.about != null" >
+        about = #{record.about,jdbcType=VARCHAR},
+      </if>
+      <if test="record.capital != null" >
+        capital = #{record.capital,jdbcType=NUMERIC},
+      </if>
+      <if test="record.available != null" >
+        available = #{record.available,jdbcType=NUMERIC},
+      </if>
+      <if test="record.rule != null" >
+        rule = #{record.rule,jdbcType=VARCHAR},
+      </if>
+      <if test="record.categorieslist != null" >
+        categorieslist = #{record.categorieslist,jdbcType=VARCHAR},
+      </if>
+      <if test="record.storelist != null" >
+        storelist = #{record.storelist,jdbcType=VARCHAR},
+      </if>
+      <if test="record.productstorelist != null" >
+        productstorelist = #{record.productstorelist,jdbcType=VARCHAR},
+      </if>
+      <if test="record.membergradelist != null" >
+        membergradelist = #{record.membergradelist,jdbcType=VARCHAR},
+      </if>
+      <if test="record.starttime != null" >
+        starttime = #{record.starttime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.endtime != null" >
+        endtime = #{record.endtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.validityrule != null" >
+        validityrule = #{record.validityrule,jdbcType=VARCHAR},
+      </if>
+      <if test="record.validitystarttime != null" >
+        validitystarttime = #{record.validitystarttime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.validityendtime != null" >
+        validityendtime = #{record.validityendtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.status != null" >
+        status = #{record.status,jdbcType=BIGINT},
+      </if>
+      <if test="record.memberid != null" >
+        memberid = #{record.memberid,jdbcType=BIGINT},
+      </if>
+      <if test="record.gettime != null" >
+        gettime = #{record.gettime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.usertime != null" >
+        usertime = #{record.usertime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="record.usersid != null" >
+        usersid = #{record.usersid,jdbcType=BIGINT},
+      </if>
+      <if test="record.createtime != null" >
+        createtime = #{record.createtime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update yhq_ticket
+    set id = #{record.id,jdbcType=BIGINT},
+      no = #{record.no,jdbcType=VARCHAR},
+      name = #{record.name,jdbcType=VARCHAR},
+      type = #{record.type,jdbcType=BIGINT},
+      planid = #{record.planid,jdbcType=BIGINT},
+      ticketsetid = #{record.ticketsetid,jdbcType=BIGINT},
+      projectid = #{record.projectid,jdbcType=BIGINT},
+      about = #{record.about,jdbcType=VARCHAR},
+      capital = #{record.capital,jdbcType=NUMERIC},
+      available = #{record.available,jdbcType=NUMERIC},
+      rule = #{record.rule,jdbcType=VARCHAR},
+      categorieslist = #{record.categorieslist,jdbcType=VARCHAR},
+      storelist = #{record.storelist,jdbcType=VARCHAR},
+      productstorelist = #{record.productstorelist,jdbcType=VARCHAR},
+      membergradelist = #{record.membergradelist,jdbcType=VARCHAR},
+      starttime = #{record.starttime,jdbcType=TIMESTAMP},
+      endtime = #{record.endtime,jdbcType=TIMESTAMP},
+      validityrule = #{record.validityrule,jdbcType=VARCHAR},
+      validitystarttime = #{record.validitystarttime,jdbcType=TIMESTAMP},
+      validityendtime = #{record.validityendtime,jdbcType=TIMESTAMP},
+      status = #{record.status,jdbcType=BIGINT},
+      memberid = #{record.memberid,jdbcType=BIGINT},
+      gettime = #{record.gettime,jdbcType=TIMESTAMP},
+      usertime = #{record.usertime,jdbcType=TIMESTAMP},
+      usersid = #{record.usersid,jdbcType=BIGINT},
+      createtime = #{record.createtime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_coupon.bean.YhqTicket" >
+    update yhq_ticket
+    <set >
+      <if test="no != null" >
+        no = #{no,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null" >
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        type = #{type,jdbcType=BIGINT},
+      </if>
+      <if test="planid != null" >
+        planid = #{planid,jdbcType=BIGINT},
+      </if>
+      <if test="ticketsetid != null" >
+        ticketsetid = #{ticketsetid,jdbcType=BIGINT},
+      </if>
+      <if test="projectid != null" >
+        projectid = #{projectid,jdbcType=BIGINT},
+      </if>
+      <if test="about != null" >
+        about = #{about,jdbcType=VARCHAR},
+      </if>
+      <if test="capital != null" >
+        capital = #{capital,jdbcType=NUMERIC},
+      </if>
+      <if test="available != null" >
+        available = #{available,jdbcType=NUMERIC},
+      </if>
+      <if test="rule != null" >
+        rule = #{rule,jdbcType=VARCHAR},
+      </if>
+      <if test="categorieslist != null" >
+        categorieslist = #{categorieslist,jdbcType=VARCHAR},
+      </if>
+      <if test="storelist != null" >
+        storelist = #{storelist,jdbcType=VARCHAR},
+      </if>
+      <if test="productstorelist != null" >
+        productstorelist = #{productstorelist,jdbcType=VARCHAR},
+      </if>
+      <if test="membergradelist != null" >
+        membergradelist = #{membergradelist,jdbcType=VARCHAR},
+      </if>
+      <if test="starttime != null" >
+        starttime = #{starttime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="endtime != null" >
+        endtime = #{endtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="validityrule != null" >
+        validityrule = #{validityrule,jdbcType=VARCHAR},
+      </if>
+      <if test="validitystarttime != null" >
+        validitystarttime = #{validitystarttime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="validityendtime != null" >
+        validityendtime = #{validityendtime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=BIGINT},
+      </if>
+      <if test="memberid != null" >
+        memberid = #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="gettime != null" >
+        gettime = #{gettime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="usertime != null" >
+        usertime = #{usertime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="usersid != null" >
+        usersid = #{usersid,jdbcType=BIGINT},
+      </if>
+      <if test="createtime != null" >
+        createtime = #{createtime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_coupon.bean.YhqTicket" >
+    update yhq_ticket
+    set no = #{no,jdbcType=VARCHAR},
+      name = #{name,jdbcType=VARCHAR},
+      type = #{type,jdbcType=BIGINT},
+      planid = #{planid,jdbcType=BIGINT},
+      ticketsetid = #{ticketsetid,jdbcType=BIGINT},
+      projectid = #{projectid,jdbcType=BIGINT},
+      about = #{about,jdbcType=VARCHAR},
+      capital = #{capital,jdbcType=NUMERIC},
+      available = #{available,jdbcType=NUMERIC},
+      rule = #{rule,jdbcType=VARCHAR},
+      categorieslist = #{categorieslist,jdbcType=VARCHAR},
+      storelist = #{storelist,jdbcType=VARCHAR},
+      productstorelist = #{productstorelist,jdbcType=VARCHAR},
+      membergradelist = #{membergradelist,jdbcType=VARCHAR},
+      starttime = #{starttime,jdbcType=TIMESTAMP},
+      endtime = #{endtime,jdbcType=TIMESTAMP},
+      validityrule = #{validityrule,jdbcType=VARCHAR},
+      validitystarttime = #{validitystarttime,jdbcType=TIMESTAMP},
+      validityendtime = #{validityendtime,jdbcType=TIMESTAMP},
+      status = #{status,jdbcType=BIGINT},
+      memberid = #{memberid,jdbcType=BIGINT},
+      gettime = #{gettime,jdbcType=TIMESTAMP},
+      usertime = #{usertime,jdbcType=TIMESTAMP},
+      usersid = #{usersid,jdbcType=BIGINT},
+      createtime = #{createtime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

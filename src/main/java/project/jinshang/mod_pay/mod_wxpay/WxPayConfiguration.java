@@ -16,6 +16,9 @@ public class WxPayConfiguration {
     private String mchKey;
     private String keyPath;
 
+    /*for small program*/
+    private String mpAppId;
+
     @Bean
     @ConditionalOnMissingBean
     public WxPayConfig config() {
@@ -70,4 +73,13 @@ public class WxPayConfiguration {
         this.keyPath = keyPath;
         return this;
     }
+
+    public String getMpAppId() {
+        return mpAppId;
+    }
+
+    public void setMpAppId(String mpAppId) {
+        this.mpAppId = mpAppId;
+    }
+
 }

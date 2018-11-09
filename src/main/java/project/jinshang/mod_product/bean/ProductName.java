@@ -18,8 +18,8 @@ public class ProductName {
     @ApiModelProperty(notes = "分类名称")
     private  String categoryname;
 
-
-
+    @ApiModelProperty(notes = "品名图片")
+    private String pic;
     public Long getId() {
         return id;
     }
@@ -68,11 +68,11 @@ public class ProductName {
         this.prodno = prodno == null ? null : prodno.trim();
     }
 
-    public String getCategoryname() {
-        return categoryname;
+    public String getPic() {
+        return pic;
     }
 
-    public void setCategoryname(String categoryname) {
-        this.categoryname = categoryname;
+    public void setPic(String pic) {
+        this.pic = pic == null ? null : pic.trim();
     }
 }

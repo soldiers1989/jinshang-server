@@ -2,7 +2,7 @@ package project.jinshang.mod_admin.mod_article.bean;
 
 import java.util.List;
 
-public class ArticleCategory {
+public class ArticleCategory{
     private Long id;
 
     private Long praentid;
@@ -14,6 +14,8 @@ public class ArticleCategory {
     private Short docislist;
 
     private List<ArticleCategory> childrenArticleCategory;
+
+    private List<Article> articleList;
 
     public Long getId() {
         return id;
@@ -62,4 +64,14 @@ public class ArticleCategory {
     public void setChildrenArticleCategory(List<ArticleCategory> childrenArticleCategory) {
         this.childrenArticleCategory = childrenArticleCategory;
     }
+
+    public List<Article> getArticleList() {
+        return articleList;
+    }
+
+    public void setArticleList(List<Article> articleList) {
+        this.articleList = articleList;
+    }
+
+
 }

@@ -43,6 +43,7 @@ public interface BillCreateMapper {
             "<if test=\"billno != null and billno !='' \"> and B.billno=#{billno} </if>" +
             "<if test=\"settlementtime != null and settlementtime !='' \"> and B.settlementtime=#{settlementtime} </if>" +
             "<if test=\"state != null and state &gt; -1 \"> and B.state=#{state} </if>" +
+            "order by id desc"+
             "</script>")
     List<BillCreate> list(BillCreateQueryDto dto);
 

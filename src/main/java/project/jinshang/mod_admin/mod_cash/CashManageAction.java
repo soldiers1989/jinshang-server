@@ -23,6 +23,8 @@ import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.utils.*;
 import project.jinshang.mod_admin.mod_cash.dto.AdvanceCapitalQueryDto;
 import project.jinshang.mod_admin.mod_cash.dto.AdvanceCapitalSellerQueryDto;
+import project.jinshang.mod_admin.mod_statement.bean.BuyerStatement;
+import project.jinshang.mod_admin.mod_statement.service.StatementService;
 import project.jinshang.mod_cash.bean.BuyerCapital;
 import project.jinshang.mod_cash.bean.SalerCapital;
 import project.jinshang.mod_cash.bean.dto.BuyerCapitalAccountDto;
@@ -31,6 +33,8 @@ import project.jinshang.mod_cash.bean.dto.BuyerCapitalQueryDto;
 import project.jinshang.mod_cash.bean.dto.SalerCapitalQueryDto;
 import project.jinshang.mod_cash.service.BuyerCapitalService;
 import project.jinshang.mod_cash.service.SalerCapitalService;
+import project.jinshang.mod_company.bean.BuyerCompanyInfo;
+import project.jinshang.mod_company.service.BuyerCompanyService;
 import project.jinshang.mod_member.bean.Admin;
 import project.jinshang.mod_member.bean.Member;
 import project.jinshang.mod_member.service.MemberService;
@@ -62,6 +66,10 @@ public class CashManageAction {
 
     @Autowired
     private SalerCapitalService salerCapitalService;
+    @Autowired
+    private StatementService statementService;
+    @Autowired
+    private BuyerCompanyService buyerCompanyService;
 
 
     @RequestMapping(value = "/sellerList",method = RequestMethod.POST)
@@ -1336,6 +1344,26 @@ public class CashManageAction {
             }
             buyerCapitalService.updateByPrimaryKeySelective(updateBuyerCapital);
 
+            if(rechargestate == 4) {
+                BuyerStatement buyerStatement=new BuyerStatement();
+                BuyerCapital buyerCapital1=buyerCapitalService.getById(buyerCapital.getId());
+                BuyerCompanyInfo buyerCompanyInfo=buyerCompanyService.getBuyerCompanyInfoByMemberId(member.getId());
+                buyerStatement.setMemberid(buyerCapital1.getMemberid());
+                buyerStatement.setContractno(buyerCapital1.getRechargenumber());
+                buyerStatement.setType((short) StatementType.StType6.getTyep());
+                buyerStatement.setDeliveryamount(Quantity.BIG_DECIMAL_0);
+                buyerStatement.setReceiptamount(buyerCapital1.getCapital());
+                buyerStatement.setInvoiceamount(Quantity.BIG_DECIMAL_0);
+                buyerStatement.setPaytype((short) PayType.TYPE06.getTyep());
+                buyerStatement.setCreatetime(new Date());
+                buyerStatement.setPayno(buyerCapital1.getTransactionid());
+                if (buyerCompanyInfo!=null){
+                    buyerStatement.setRemark(buyerCapital1.getOperation()+"\t\n"+buyerCapital1.getVerify()+"\t\n"+member.getId()+"\t\n"+buyerCompanyInfo.getCompanyname());
+                }else {
+                    buyerStatement.setRemark(buyerCapital1.getOperation()+"\t\n"+buyerCapital1.getVerify()+"\t\n"+member.getId()+"");
+                }
+                statementService.insertStatement(buyerStatement);
+            }
         }else{ //卖家
 
             SalerCapital salerCapital =  salerCapitalService.getById(id);
@@ -1441,6 +1469,24 @@ public class CashManageAction {
             }
 
             buyerCapitalService.updateByPrimaryKeySelective(updateBuyerCapital);
+            BuyerStatement buyerStatement=new BuyerStatement();
+            BuyerCapital buyerCapital1=buyerCapitalService.getById(buyerCapital.getId());
+            BuyerCompanyInfo buyerCompanyInfo=buyerCompanyService.getBuyerCompanyInfoByMemberId(member.getId());
+            buyerStatement.setMemberid(buyerCapital1.getMemberid());
+            buyerStatement.setContractno(buyerCapital1.getRechargenumber());
+            buyerStatement.setType((short) StatementType.StType6.getTyep());
+            buyerStatement.setDeliveryamount(Quantity.BIG_DECIMAL_0);
+            buyerStatement.setReceiptamount(buyerCapital1.getCapital().multiply(new BigDecimal("-1")));
+            buyerStatement.setInvoiceamount(Quantity.BIG_DECIMAL_0);
+            buyerStatement.setPaytype((short) PayType.TYPE06.getTyep());
+            buyerStatement.setCreatetime(new Date());
+            buyerStatement.setPayno(buyerCapital1.getTransactionid());
+            if (buyerCompanyInfo!=null){
+                buyerStatement.setRemark(buyerCapital1.getOperation()+"\t\n"+buyerCapital1.getVerify()+"\t\n"+member.getId()+"\t\n"+buyerCompanyInfo.getCompanyname());
+            }else {
+                buyerStatement.setRemark(buyerCapital1.getOperation()+"\t\n"+buyerCapital1.getVerify()+"\t\n"+member.getId()+"");
+            }
+            statementService.insertStatement(buyerStatement);
 
         }else{ //卖家
 
@@ -1664,6 +1710,36 @@ public class CashManageAction {
         buyerCapitalService.updateByPrimaryKeySelective(updatebuyerCapital);
 
 
+
+        if (rechargestate == 4){
+            BuyerStatement buyerStatement=new BuyerStatement();
+            BuyerCapital buyerCapital1=buyerCapitalService.getById(buyerCapital.getId());
+            BuyerCompanyInfo buyerCompanyInfo=buyerCompanyService.getBuyerCompanyInfoByMemberId(member.getId());
+            buyerStatement.setMemberid(buyerCapital1.getMemberid());
+            buyerStatement.setContractno(buyerCapital1.getPresentationnumber());
+            buyerStatement.setType((short) StatementType.StType7.getTyep());
+            buyerStatement.setDeliveryamount(Quantity.BIG_DECIMAL_0);
+            buyerStatement.setReceiptamount(buyerCapital1.getCapital().multiply(new BigDecimal("-1")));
+            buyerStatement.setInvoiceamount(Quantity.BIG_DECIMAL_0);
+            short withdrawtype=buyerCapital1.getWithdrawtype();
+            switch (withdrawtype){
+                case 1:
+                    buyerStatement.setPaytype((short) PayType.TYPE02.getTyep());
+                    break;
+                case 2:
+                    buyerStatement.setPaytype((short) PayType.TYPE01.getTyep());
+                    break;
+                case 3:
+                    buyerStatement.setPaytype((short) PayType.TYPE03.getTyep());
+            }
+            buyerStatement.setCreatetime(new Date());
+            if (buyerCompanyInfo!=null){
+                buyerStatement.setRemark("审核人:"+buyerCapital1.getVerify()+"\t\n"+buyerCapital1.getMemberid()+"\t\n"+buyerCompanyInfo.getCompanyname());
+            }else {
+                buyerStatement.setRemark("审核人:"+buyerCapital1.getVerify()+"\t\n"+buyerCapital1.getMemberid()+"");
+            }
+            statementService.insertStatement(buyerStatement);
+        }
         basicRet.setResult(BasicRet.SUCCESS);
         basicRet.setMessage("审核成功");
         return  basicRet;

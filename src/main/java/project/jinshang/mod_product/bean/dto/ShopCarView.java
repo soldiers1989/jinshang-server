@@ -53,6 +53,16 @@ public class ShopCarView {
     @ApiModelProperty(notes = "远期类型0=不是远期1=全款2=定金")
     private Short protype;
 
+    @ApiModelProperty(notes = "优惠金额")
+    private BigDecimal discountprice;
+
+    @ApiModelProperty(notes = "远期定金优惠金额")
+    private BigDecimal depositDisprice;
+
+    @ApiModelProperty(notes = "远期余款优惠金额")
+    private BigDecimal balanceDisprice;
+
+
 
 
 
@@ -159,5 +169,29 @@ public class ShopCarView {
 
     public void setProtype(Short protype) {
         this.protype = protype;
+    }
+
+    public BigDecimal getDiscountprice() {
+        return discountprice;
+    }
+
+    public void setDiscountprice(BigDecimal discountprice) {
+        this.discountprice = discountprice;
+    }
+
+    public BigDecimal getDepositDisprice() {
+        return depositDisprice;
+    }
+
+    public void setDepositDisprice(BigDecimal depositDisprice) {
+        this.depositDisprice = depositDisprice;
+    }
+
+    public BigDecimal getBalanceDisprice() {
+        return balanceDisprice;
+    }
+
+    public void setBalanceDisprice(BigDecimal balanceDisprice) {
+        this.balanceDisprice = balanceDisprice;
     }
 }

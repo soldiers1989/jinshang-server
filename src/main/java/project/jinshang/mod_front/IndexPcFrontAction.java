@@ -97,6 +97,34 @@ public class IndexPcFrontAction {
         return  showCateRet;
     }
 
+    @PostMapping("/listShowCateForTinyPro")
+    @ApiOperation("展示类目")
+    public ShowCateRetByType listShowCateForTinyPro(){
+        ShowCateRetByType showCateRetByType = new ShowCateRetByType();
+
+        List<ShowCateFrontView> list = redisCacheService.getShowCate();
+        //list=null;
+        if(list == null){
+            list = redisCacheService.addShowCate();
+        }
+
+        ShowCateDataByType showCateDataByType =  new ShowCateDataByType();
+        List<ShowCateFrontView> listForFastener=new ArrayList<>();
+        List<ShowCateFrontView> listForOther=new ArrayList<>();
+        list.stream().forEach(showCateFrontView->{
+            if("紧固件".equals(showCateFrontView.getShowCate().getType())){
+                listForFastener.add(showCateFrontView);
+            }else if ("工业品".equals(showCateFrontView.getShowCate().getType())){
+                listForOther.add(showCateFrontView);
+            }
+        });
+        showCateDataByType.setListForFastener(listForFastener);
+        showCateDataByType.setListForOther(listForOther);
+        showCateRetByType.setData(showCateDataByType);
+        showCateRetByType.setResult(BasicRet.SUCCESS);
+        return  showCateRetByType;
+    }
+
 
 
 

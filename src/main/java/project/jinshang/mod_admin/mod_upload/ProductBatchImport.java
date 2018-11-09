@@ -71,7 +71,7 @@ public class ProductBatchImport {
                     !keySet.contains("市场价") ||
                     !keySet.contains("成本价") ||
                     !keySet.contains("商品库存") ||
-                    !keySet.contains("商品货号") ||
+                    !keySet.contains("商品编码") ||
                     !keySet.contains("仓库名称") ||
                     !keySet.contains("运费集合名称") ||
                     !keySet.contains("商品标签") ||
@@ -222,9 +222,9 @@ public class ProductBatchImport {
 
 
                     //@ApiModelProperty(notes = "商品货号")
-                    String goodsNum = this.getValue(row.getCell(map.get("商品货号")));
+                    String goodsNum = this.getValue(row.getCell(map.get("商品编码")));
                     if(!StringUtils.hasText(goodsNum)){
-                        throw  new RuntimeException("第"+(i+1)+"行商品货号填写不正确");
+                        throw  new RuntimeException("第"+(i+1)+"行商品编码填写不正确");
                     }
                     productImportModel.setGoodsNum(goodsNum);
 

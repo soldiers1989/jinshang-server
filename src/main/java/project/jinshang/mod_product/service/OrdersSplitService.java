@@ -11,6 +11,7 @@ import project.jinshang.mod_activity.bean.LimitTimeProd;
 import project.jinshang.mod_activity.bean.LimitTimeStore;
 import project.jinshang.mod_activity.service.LimitTimeProdService;
 import project.jinshang.mod_activity.service.LimitTimeStoreService;
+import project.jinshang.mod_admin.mod_transet.service.TransactionSettingService;
 import project.jinshang.mod_product.bean.*;
 import project.jinshang.mod_product.bean.dto.ShopCarProdView;
 import project.jinshang.mod_product.bean.dto.ShopCarView;
@@ -41,6 +42,8 @@ public class OrdersSplitService {
     private FreightService freightService;
     @Autowired
     private ShippingTemplateGroupService shippingTemplateGroupService;
+    @Autowired
+    private TransactionSettingService transactionSettingService;
 
     /**
      * 购物车订单划分订单
@@ -119,8 +122,9 @@ public class OrdersSplitService {
     /**
      * 统计单个订单的总价格、总重量
      * @param splitShopCarList
+     * @param flag 标记是预览页面还是提交结算页面，0-预览，1-提交结算
      */
-    public void enOrdersStep1(List<ShopCarView> splitShopCarList){
+    public void enOrdersStep1(List<ShopCarView> splitShopCarList,short flag){
         for (ShopCarView shopCarView : splitShopCarList) {
             //订单总重量
             BigDecimal totalWeight = Quantity.BIG_DECIMAL_0;
@@ -130,18 +134,29 @@ public class OrdersSplitService {
             BigDecimal productPartTotalPrice = Quantity.BIG_DECIMAL_0;
             //订单商品余款总价
             BigDecimal productYuTotalPrice = Quantity.BIG_DECIMAL_0;
-
+            BigDecimal discountprice=Quantity.BIG_DECIMAL_0;
             for (ShopCarProdView prodView : shopCarView.getShopCarProdViewList()) {
                 totalWeight = totalWeight.add(prodView.getWeight().multiply(prodView.getPdnumber()));
                 productTotalPrice = productTotalPrice.add(prodView.getAllpay());
+                if (flag==Quantity.STATE_1){
+                    if(prodView.getProtype()==2){
+                        BigDecimal partpay = new BigDecimal(prodView.getAllpay().multiply(transactionSettingService.getTransactionSetting().getRemotepurchasingmargin()).multiply(new BigDecimal("0.01")).toString()).setScale(2,BigDecimal.ROUND_HALF_UP);
+                        BigDecimal yupay = prodView.getAllpay().subtract(partpay);
+                        prodView.setPartpay(partpay);
+                        prodView.setYupay(yupay);
+                    }
+                }
                 productPartTotalPrice = productPartTotalPrice.add(prodView.getPartpay());
                 productYuTotalPrice = productYuTotalPrice.add(prodView.getYupay());
+                prodView.setDiscountprice(prodView.getDiscountprice()==null?Quantity.BIG_DECIMAL_0:prodView.getDiscountprice());
+                discountprice=discountprice.add(prodView.getDiscountprice());
             }
 
             shopCarView.setTotalWeight(totalWeight);
             shopCarView.setProductTotalPrice(productTotalPrice);
             shopCarView.setProductPartTotalPrice(productPartTotalPrice);
             shopCarView.setProductYuTotalPrice(productYuTotalPrice);
+            shopCarView.setDiscountprice(discountprice);
         }
     }
 
@@ -200,7 +215,7 @@ public class OrdersSplitService {
                 shopCarView.setSupportShippingMethod(shippintMethod);
                 if (shopCarView.getShippingTemplateId() > 0) {  //使用运费模板
                     if(StringUtils.hasText(province)) {
-                        Map<String, Object> freightMap = freightService.getFreight(shopCarView.getShippingTemplateId(), shopCarView.getProductTotalPrice(), shopCarView.getTotalWeight(), province, city);
+                        Map<String, Object> freightMap = freightService.getFreight(shopCarView.getShippingTemplateId(), shopCarView.getProductTotalPrice().add(shopCarView.getDiscountprice()), shopCarView.getTotalWeight(), province, city);
                         //计算运费
                         BigDecimal freight = (BigDecimal) freightMap.get("freight");
                         shopCarView.setFreight(freight.setScale(2, BigDecimal.ROUND_HALF_UP));

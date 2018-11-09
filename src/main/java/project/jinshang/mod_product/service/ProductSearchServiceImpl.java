@@ -33,8 +33,8 @@ public class ProductSearchServiceImpl implements ProductSearchService {
 
     private ExecutorService cachedThreadPool = Executors.newCachedThreadPool();
 
-    private void saveIndex(long productId, String[] params){
-        String sindex = nlpUtils.seqForPgVector(params);
+    private void saveIndex(long productId, Set<String> params){
+        String sindex = nlpUtils.tranlatePGVector(nlpUtils.seqForPgVector(params));
         Map<String,Object> map = productSearchMapper.findById(productId);
         if(map!=null){
             if(!sindex.equals(map.get("sindex"))) productSearchMapper.updateIndex(productId,sindex);
@@ -72,7 +72,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
 
         String[] paramArr =  new String[params.size()];
 
-        saveIndex(productInfo.getId(),params.toArray(paramArr));
+        saveIndex(productInfo.getId(),params);
     }
     public  void  delIndex(long productId){
         productSearchMapper.deleteIndex(productId);
@@ -206,7 +206,7 @@ public class ProductSearchServiceImpl implements ProductSearchService {
     public void rebuildIndex(){
         cachedThreadPool.execute(() -> {
             // 重新加载词典
-            List<Synonym> synonyms = synonymMapper.listAll();
+            List<Synonym> synonyms = synonymMapper.listAll(null);
             synonyms.forEach(synonym -> synonym.getWords().forEach(CustomDictionary::add));
 
             ProductInfoExample example = new ProductInfoExample();

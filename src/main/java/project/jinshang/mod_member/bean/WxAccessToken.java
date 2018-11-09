@@ -11,6 +11,7 @@ public class WxAccessToken implements Serializable{
     private String errcode;
     private String openid;
     private String unionid;
+    private String session_key;
 
 
     public String getAccess_token() {
@@ -38,6 +39,14 @@ public class WxAccessToken implements Serializable{
         this.unionid = unionid;
     }
 
+    public String getSession_key() {
+        return session_key;
+    }
+
+    public void setSession_key(String session_key) {
+        this.session_key = session_key;
+    }
+
     @Override
     public String toString() {
         return "WxAccessToken{" +
@@ -45,6 +54,7 @@ public class WxAccessToken implements Serializable{
                 ", errcode='" + errcode + '\'' +
                 ", openid='" + openid + '\'' +
                 ", unionid='" + unionid + '\'' +
+                ", session_key='"+session_key+"\'"+
                 '}';
     }
 }

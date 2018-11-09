@@ -11,6 +11,7 @@ import project.jinshang.mod_product.bean.dto.ProdUnitRateViewDto;
 import project.jinshang.mod_product.bean.dto.ProductInfoEsDTO;
 import project.jinshang.mod_product.service.ProductInfoProvider;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
@@ -310,6 +311,12 @@ public interface ProductInfoMapper {
             "pddrawing=#{pddrawing,typeHandler=project.jinshang.typeHandler.ArrayTypeHandler} where productsno=#{productno}")
     int updateImgByProductsno(Products products);
 
+    @CacheEvict(value = "jinshang-productinfo",allEntries = true)
+    @Update("update productinfo set weight=#{weight} where id in (select id from productinfo where productid=#{productid})")
+    int updateWeightByProductsid(@Param("weight") BigDecimal weight,@Param("productid") Long productid);
+
+
+
     @Select("<script>" +
             "select DISTINCT p.* from productinfo p left join productstore ps on p.id=ps.pdid where p.pdstate = 4 " +
             "<if test=\"info.memberid !=null and info.memberid!= ''\">and p.memberid=#{info.memberid} </if>" +
@@ -337,6 +344,6 @@ public interface ProductInfoMapper {
     @Select("select count(1) from orderproduct where orderno = #{orderno} ")
     int getProductInfoCountByOrderno(@Param("orderno") String orderno);
 
-    @Select("select p.* from  productinfo p where p.productid = #{productid}")
-    List<ProductInfo> getProductInfoByProductId(@Param("productid") long productid);
+//    @Select("select p.* from  productinfo p where p.productid = #{productid}")
+//    List<ProductInfo> getProductInfoByProductId(@Param("productid") long productid);
 }

@@ -15,8 +15,11 @@ import org.springframework.web.bind.annotation.*;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.constant.SellerAuthorityConst;
+import project.jinshang.common.constant.SmsType;
 import project.jinshang.common.utils.CommonUtils;
 import project.jinshang.common.utils.StringUtils;
+import project.jinshang.mod_common.bean.SmsLog;
+import project.jinshang.mod_common.service.MobileService;
 import project.jinshang.mod_company.bean.SellerCompanyInfo;
 import project.jinshang.mod_company.bean.Store;
 import project.jinshang.mod_company.service.BuyerCompanyService;
@@ -65,6 +68,9 @@ public class SellerCompanyAction {
 
     @Autowired
     private SellerCategoryService sellerCategoryService;
+
+    @Autowired
+    private MobileService mobileService;
 
 
     @RequestMapping(value = "/applyToShop",method = RequestMethod.POST)
@@ -297,8 +303,40 @@ public class SellerCompanyAction {
 
         return  ret;
     }
-
-
+    @RequestMapping(value = "/checkMobileCode",method = RequestMethod.POST)
+    @ApiOperation(value = "验证卖家原手机号码")
+    public BasicRet checkMobileCode(String mobile,String mobilecode){
+        BasicRet basicRet = new BasicRet();
+        String type = SmsType.verification;
+        boolean b = mobileService.checkMobileCode(mobile, mobilecode, type);
+        if(b){
+            basicRet.setResult(BasicRet.SUCCESS);
+            basicRet.setMessage("验证成功,下一步");
+        }else{
+            basicRet.setResult(BasicRet.ERR);
+            basicRet.setMessage("验证码错误请重新验证");
+        }
+        return basicRet;
+    }
+    @RequestMapping(value = "/updateSellerMobile", method = RequestMethod.POST)
+    @ApiOperation(value = "修改卖家手机号码")
+    public BasicRet updateSellerMobile(@RequestParam(required = true)String mobile,
+                                        @RequestParam(required = true)String mobileCode,Model model){
+        Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
+        BasicRet basicRet = new BasicRet();
+        //验证手机号是否正确
+        SmsLog lastLog = mobileService.getLastLog(mobile, SmsType.verification, 5);
+        if(lastLog == null || !mobileCode.equalsIgnoreCase(lastLog.getVerifycode())){
+            basicRet. setResult(BasicRet.ERR);
+            basicRet.setMessage("手机验证码不正确");
+            return basicRet;
+        } else {
+            sellerCompanyInfoService.updateSellerMobile(member.getId(),mobile);
+            basicRet.setResult(BasicRet.SUCCESS);
+            basicRet.setMessage("手机号码修改成功");
+        }
+        return basicRet;
+    }
 
     private  class  SellerCompanyRet extends  BasicRet{
         private  SellerCompanyInfo sellerCompanyInfo;

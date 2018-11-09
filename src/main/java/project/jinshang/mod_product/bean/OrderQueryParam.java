@@ -81,6 +81,9 @@ public class OrderQueryParam {
     @ApiModelProperty(notes = "发货状态 全部订单为不传 1为待发货订单 3为已发货订单 10为部分发货订单 与orderstatus状态含义一样")
     private Short sendstatus;
 
+    @ApiModelProperty(notes = "超时时间 全部为不传 1=超时1天 2=超时2天 3=超时3天")
+    private Short overtime;
+
     private int pageNo;
 
     private int pageSize;
@@ -99,6 +102,36 @@ public class OrderQueryParam {
 
     @ApiModelProperty(notes = "是否需要开票")
     private Integer isbilling;
+
+    @ApiModelProperty(notes = "买家注册时间开始")
+    private Date registerTimeStart;
+
+    @ApiModelProperty(notes = "买家注册时间结束")
+    private Date registerTimeEnd;
+
+    @ApiModelProperty(notes = "开票抬头")
+    private String invoiceheadup;
+
+    @ApiModelProperty("可传入多个订单状态，适用于小程序的订单列表的获取")
+    private String multiOrderStates;
+
+    @ApiModelProperty("小程序的订单搜索，可以代表商品名称以及订单号")
+    private String prodNamAndOrderNo;
+
+
+
+    @ApiModelProperty(notes = "用于超时订单统计 今天时间16点")
+    private Date todaytime;
+
+    @ApiModelProperty(notes = "用于超时订单统计 昨天时间16点")
+    private Date yesterdaytime;
+
+    @ApiModelProperty(notes = "用于超时订单统计 前天时间16点")
+    private Date beforeyesterdaytime;
+
+    @ApiModelProperty(notes = "用于超时订单统计 大前天时间16点")
+    private Date threedaysagotime;
+
     public Short getPresellconfim() {
         return presellconfim;
     }
@@ -122,12 +155,6 @@ public class OrderQueryParam {
     public void setPrestocktimeEnd(Date prestocktimeEnd) {
         this.prestocktimeEnd = prestocktimeEnd;
     }
-
-    @ApiModelProperty(notes = "买家注册时间开始")
-    private Date registerTimeStart;
-
-    @ApiModelProperty(notes = "买家注册时间结束")
-    private Date registerTimeEnd;
 
     public Date getRegisterTimeStart() {
         return registerTimeStart;
@@ -408,5 +435,69 @@ public class OrderQueryParam {
 
     public void setIsbilling(Integer isbilling) {
         this.isbilling = isbilling;
+    }
+
+    public String getMultiOrderStates() {
+        return multiOrderStates;
+    }
+
+    public void setMultiOrderStates(String multiOrderStates) {
+        this.multiOrderStates = multiOrderStates;
+    }
+
+    public String getProdNamAndOrderNo() {
+        return prodNamAndOrderNo;
+    }
+
+    public void setProdNamAndOrderNo(String prodNamAndOrderNo) {
+        this.prodNamAndOrderNo = prodNamAndOrderNo;
+    }
+
+    public String getInvoiceheadup() {
+        return invoiceheadup;
+    }
+
+    public void setInvoiceheadup(String invoiceheadup) {
+        this.invoiceheadup = invoiceheadup;
+    }
+
+    public Short getOvertime() {
+        return overtime;
+    }
+
+    public void setOvertime(Short overtime) {
+        this.overtime = overtime;
+    }
+
+    public Date getYesterdaytime() {
+        return yesterdaytime;
+    }
+
+    public void setYesterdaytime(Date yesterdaytime) {
+        this.yesterdaytime = yesterdaytime;
+    }
+
+    public Date getBeforeyesterdaytime() {
+        return beforeyesterdaytime;
+    }
+
+    public void setBeforeyesterdaytime(Date beforeyesterdaytime) {
+        this.beforeyesterdaytime = beforeyesterdaytime;
+    }
+
+    public Date getTodaytime() {
+        return todaytime;
+    }
+
+    public void setTodaytime(Date todaytime) {
+        this.todaytime = todaytime;
+    }
+
+    public Date getThreedaysagotime() {
+        return threedaysagotime;
+    }
+
+    public void setThreedaysagotime(Date threedaysagotime) {
+        this.threedaysagotime = threedaysagotime;
     }
 }

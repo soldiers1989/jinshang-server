@@ -2,13 +2,18 @@ package project.jinshang.scheduled;
 
 
 import com.github.pagehelper.PageInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import project.jinshang.common.constant.DistributeTaskConst;
+import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.exception.CashException;
 
+import project.jinshang.common.utils.CommonUtils;
 import project.jinshang.common.utils.DateUtils;
 import project.jinshang.mod_fx.bean.*;
 import project.jinshang.mod_fx.service.*;
@@ -22,6 +27,9 @@ import project.jinshang.mod_product.bean.dto.OrdersView;
 import project.jinshang.mod_product.service.CategoriesService;
 import project.jinshang.mod_product.service.OrderProductServices;
 import project.jinshang.mod_product.service.OrdersService;
+import project.jinshang.scheduled.Bean.DistributeTaskLog;
+import project.jinshang.scheduled.mapper.DistributeTaskMapper;
+import project.jinshang.scheduled.service.DistributeTaskLogService;
 
 import java.math.BigDecimal;
 
@@ -38,8 +46,10 @@ import java.util.*;
  */
 @Component
 @Transactional(rollbackFor = Exception.class)
-@Profile({"test","pro"})
+//@Profile({"test","pro"})
 public class OrderTask {
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     private OrdersService ordersService;
@@ -63,6 +73,10 @@ public class OrderTask {
     @Autowired
     private CategoriesService categoriesService;
 
+    @Autowired
+    private DistributeTaskMapper distributeTaskMapper;
+    @Autowired
+    private DistributeTaskLogService distributeTaskLogService;
 
     /**
      * 每天半夜4点执行一次 每天只能执行一次否则会有重复记录
@@ -73,20 +87,31 @@ public class OrderTask {
     //@Scheduled(cron = "0 16 15 * * ?")
     // @Scheduled(cron = "0 0/3 * * * ?")
     @Scheduled(cron = "0 0 4 * * ?")
-    public void Order() throws CashException {
-        Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DATE, -1);
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        Date starttime = cal.getTime();
+    public void FX_Order() throws CashException {
 
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(new Date());
-        calendar.set(Calendar.HOUR_OF_DAY, 0);
-        calendar.set(Calendar.MINUTE, 0);
-        calendar.set(Calendar.SECOND, 0);
-        Date endtime = calendar.getTime();
+        DistributeTaskLog taskLog  = new DistributeTaskLog();
+        taskLog.setHostip(CommonUtils.getServerIP());
+        taskLog.setHostname(CommonUtils.getServerHost());
+        taskLog.setTaskcode(DistributeTaskConst.FX_ORDERS);
+
+        if(distributeTaskMapper.start(DistributeTaskConst.FX_ORDERS)!=1){
+            return;
+        }
+
+        try {
+            Calendar cal = Calendar.getInstance();
+            cal.add(Calendar.DATE, -1);
+            cal.set(Calendar.HOUR_OF_DAY, 0);
+            cal.set(Calendar.MINUTE, 0);
+            cal.set(Calendar.SECOND, 0);
+            Date starttime = cal.getTime();
+
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(new Date());
+            calendar.set(Calendar.HOUR_OF_DAY, 0);
+            calendar.set(Calendar.MINUTE, 0);
+            calendar.set(Calendar.SECOND, 0);
+            Date endtime = calendar.getTime();
 
 
       /*  Date date = new Date();//取时间
@@ -99,105 +124,115 @@ public class OrderTask {
         Date endtime = calendar1.getTime();*/
 
 
-        //查询出昨天0点到24点之间付款，且状态正常的订单
-        Fxstation fxstation1 =fxStationService.getStationInfo();
-        if(fxstation1.getDisable()==false) {
-            System.out.println("系统默认开启三级分销");
-            List<Orders> orderlist = ordersService.getRegularOrders(starttime, endtime);
+            //查询出昨天0点到24点之间付款，且状态正常的订单
+            Fxstation fxstation1 =fxStationService.getStationInfo();
+            if(fxstation1.getDisable()==false) {
+                System.out.println("系统默认开启三级分销");
+                List<Orders> orderlist = ordersService.getRegularOrders(starttime, endtime);
 
-            //判断下单人是否有介绍人，即其“inviterid”是否为空，若不为空则继续，若为空则跳过该订单；
-            for (Orders orders : orderlist) {
-                Member member = memberService.getMemberById(orders.getMemberid());
-                if (null == member.getInviterid()) {
-                    System.out.println("介绍人为空则跳过该订单");
-                    continue;
-                }
-                System.out.println("进入遍历订单关联商品");
-                //不为空则 订单遍历该订单关联商品
-                List<OrderProduct> orderProductList = orderProductServices.getByOrderNo(orders.getOrderno());
-
-                BigDecimal commisionprice1 = new BigDecimal(0);
-                BigDecimal commisionprice2 = new BigDecimal(0);
-                //生成type=1 的记录
-                Fxcommision fxcommision1 = new Fxcommision();
-                //生成type=2 的记录
-                Fxcommision fxcommision2 = new Fxcommision();
-
-                // 返佣帐号ID 根据订单买家ID，读取其“inviterid”，查询该邀请人ID
-                Member ordermember = memberService.getInviterIdByMemberId(orders.getMemberid());
-                //一级返佣账号
-                Member member1 = memberService.getInviterIdByMemberId(ordermember.getInviterid());
-                //再查询是否有 根据一级返佣帐号判断并读取二级返佣帐号
-                Member member2 = memberService.getInviterIdByMemberId(member1.getInviterid());
-
-                for (OrderProduct orderProduct : orderProductList) {
-                    //部分退货的时候 Classifyid有可能为空
-                    if (orderProduct.getClassifyid() == null) {
+                //判断下单人是否有介绍人，即其“inviterid”是否为空，若不为空则继续，若为空则跳过该订单；
+                for (Orders orders : orderlist) {
+                    Member member = memberService.getMemberById(orders.getMemberid());
+                    if (null == member.getInviterid()) {
+                        System.out.println("介绍人为空则跳过该订单");
                         continue;
                     }
+                    System.out.println("进入遍历订单关联商品");
+                    //不为空则 订单遍历该订单关联商品
+                    List<OrderProduct> orderProductList = orderProductServices.getByOrderNo(orders.getOrderno());
 
-                    Fxcategories fxcategories = fxCategoriesService.getCategoriesInfoById(orderProduct.getClassifyid());
-                    commisionprice1 = commisionprice1.add(getCommisionPrice(orderProduct, fxcategories));
+                    BigDecimal commisionprice1 = new BigDecimal(0);
+                    BigDecimal commisionprice2 = new BigDecimal(0);
+                    //生成type=1 的记录
+                    Fxcommision fxcommision1 = new Fxcommision();
+                    //生成type=2 的记录
+                    Fxcommision fxcommision2 = new Fxcommision();
+
+                    // 返佣帐号ID 根据订单买家ID，读取其“inviterid”，查询该邀请人ID
+                    Member ordermember = memberService.getInviterIdByMemberId(orders.getMemberid());
+                    //一级返佣账号
+                    Member member1 = memberService.getInviterIdByMemberId(ordermember.getInviterid());
+                    //再查询是否有 根据一级返佣帐号判断并读取二级返佣帐号
+                    Member member2 = memberService.getInviterIdByMemberId(member1.getInviterid());
+
+                    for (OrderProduct orderProduct : orderProductList) {
+                        //部分退货的时候 Classifyid有可能为空
+                        if (orderProduct.getClassifyid() == null) {
+                            continue;
+                        }
+
+                        Fxcategories fxcategories = fxCategoriesService.getCategoriesInfoById(orderProduct.getClassifyid());
+                        commisionprice1 = commisionprice1.add(getCommisionPrice(orderProduct, fxcategories));
+                        if (null != member2) {
+                            Fxstation fxstation = fxStationService.getStationInfo();
+                            commisionprice2 = commisionprice1.multiply(fxstation.getRatio2().divide(new BigDecimal(100)));
+                        }
+                    }
+
+                    fxcommision1.setCommisionprice(commisionprice1);
+                    fxcommision1.setOrderid(orders.getId());
+                    fxcommision1.setOrderno(orders.getOrderno());
+                    fxcommision1.setMemberid(orders.getMemberid());
+                    fxcommision1.setSaleid(orders.getSaleid());
+                    fxcommision1.setCmemberid(member1.getId());
+                    fxcommision1.setType(1l);
+                    fxcommision1.setOrdercreatetime(orders.getCreatetime());
+                    fxcommision1.setTotalprice(orders.getTotalprice());
+                    fxcommision1.setCommisionprice(commisionprice1);
+                    fxcommision1.setProgressnum(1l);
+                    fxcommision1.setCreatetime(new Date());
+                    fxCommisionService.insertFxcommision(fxcommision1);
+                    //佣金流转表 流转记录
+                    Fxcirculation fxcirculation = new Fxcirculation();
+                    fxcirculation.setCommisionid(fxcommision1.getId());
+                    fxcirculation.setOrderid(orders.getId());
+                    fxcirculation.setOrderno(orders.getOrderno());
+                    fxcirculation.setMemberid(orders.getMemberid());
+                    fxcirculation.setSaleid(orders.getSaleid());
+                    fxcirculation.setCirculationtext(orders.getOrderno() + "一级佣金核算中");
+                    fxcirculation.setCirculationold(0l);
+                    fxcirculation.setCirculationnew(1l);
+                    fxcirculation.setCreatetime(new Date());
+                    fxCirculationService.insertFxcirculation(fxcirculation);
+
                     if (null != member2) {
-                        Fxstation fxstation = fxStationService.getStationInfo();
-                        commisionprice2 = commisionprice1.multiply(fxstation.getRatio2().divide(new BigDecimal(100)));
+                        fxcommision2.setCommisionprice(commisionprice2);
+                        fxcommision2.setOrderid(orders.getId());
+                        fxcommision2.setOrderno(orders.getOrderno());
+                        fxcommision2.setMemberid(orders.getMemberid());
+                        fxcommision2.setSaleid(orders.getSaleid());
+                        fxcommision2.setCmemberid(member2.getId());
+                        fxcommision2.setType(2l);
+                        fxcommision2.setOrdercreatetime(orders.getCreatetime());
+                        fxcommision2.setTotalprice(orders.getTotalprice());
+                        fxcommision2.setProgressnum(1l);
+                        fxcommision2.setCreatetime(new Date());
+                        fxCommisionService.insertFxcommision(fxcommision2);
+                        //佣金流转表 流转记录
+                        Fxcirculation fxcirculation_two = new Fxcirculation();
+                        fxcirculation_two.setCommisionid(fxcommision2.getId());
+                        fxcirculation_two.setOrderid(orders.getId());
+                        fxcirculation_two.setOrderno(orders.getOrderno());
+                        fxcirculation_two.setMemberid(orders.getMemberid());
+                        fxcirculation_two.setSaleid(orders.getSaleid());
+                        fxcirculation_two.setCirculationtext(orders.getOrderno() + "二级佣金核算中");
+                        fxcirculation_two.setCirculationold(0l);
+                        fxcirculation_two.setCirculationnew(1l);
+                        fxcirculation_two.setCreatetime(new Date());
+                        fxCirculationService.insertFxcirculation(fxcirculation_two);
                     }
                 }
-
-                fxcommision1.setCommisionprice(commisionprice1);
-                fxcommision1.setOrderid(orders.getId());
-                fxcommision1.setOrderno(orders.getOrderno());
-                fxcommision1.setMemberid(orders.getMemberid());
-                fxcommision1.setSaleid(orders.getSaleid());
-                fxcommision1.setCmemberid(member1.getId());
-                fxcommision1.setType(1l);
-                fxcommision1.setOrdercreatetime(orders.getCreatetime());
-                fxcommision1.setTotalprice(orders.getTotalprice());
-                fxcommision1.setCommisionprice(commisionprice1);
-                fxcommision1.setProgressnum(1l);
-                fxcommision1.setCreatetime(new Date());
-                fxCommisionService.insertFxcommision(fxcommision1);
-                //佣金流转表 流转记录
-                Fxcirculation fxcirculation = new Fxcirculation();
-                fxcirculation.setCommisionid(fxcommision1.getId());
-                fxcirculation.setOrderid(orders.getId());
-                fxcirculation.setOrderno(orders.getOrderno());
-                fxcirculation.setMemberid(orders.getMemberid());
-                fxcirculation.setSaleid(orders.getSaleid());
-                fxcirculation.setCirculationtext(orders.getOrderno() + "一级佣金核算中");
-                fxcirculation.setCirculationold(0l);
-                fxcirculation.setCirculationnew(1l);
-                fxcirculation.setCreatetime(new Date());
-                fxCirculationService.insertFxcirculation(fxcirculation);
-
-                if (null != member2) {
-                    fxcommision2.setCommisionprice(commisionprice2);
-                    fxcommision2.setOrderid(orders.getId());
-                    fxcommision2.setOrderno(orders.getOrderno());
-                    fxcommision2.setMemberid(orders.getMemberid());
-                    fxcommision2.setSaleid(orders.getSaleid());
-                    fxcommision2.setCmemberid(member2.getId());
-                    fxcommision2.setType(2l);
-                    fxcommision2.setOrdercreatetime(orders.getCreatetime());
-                    fxcommision2.setTotalprice(orders.getTotalprice());
-                    fxcommision2.setProgressnum(1l);
-                    fxcommision2.setCreatetime(new Date());
-                    fxCommisionService.insertFxcommision(fxcommision2);
-                    //佣金流转表 流转记录
-                    Fxcirculation fxcirculation_two = new Fxcirculation();
-                    fxcirculation_two.setCommisionid(fxcommision2.getId());
-                    fxcirculation_two.setOrderid(orders.getId());
-                    fxcirculation_two.setOrderno(orders.getOrderno());
-                    fxcirculation_two.setMemberid(orders.getMemberid());
-                    fxcirculation_two.setSaleid(orders.getSaleid());
-                    fxcirculation_two.setCirculationtext(orders.getOrderno() + "二级佣金核算中");
-                    fxcirculation_two.setCirculationold(0l);
-                    fxcirculation_two.setCirculationnew(1l);
-                    fxcirculation_two.setCreatetime(new Date());
-                    fxCirculationService.insertFxcirculation(fxcirculation_two);
-                }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            taskLog.setError(e.toString());
+            taskLog.setState(Quantity.STATE_2);
+        } finally {
+            distributeTaskMapper.end(DistributeTaskConst.FX_ORDERS);
+            taskLog.setState(Quantity.STATE_1);
         }
+
+        distributeTaskLogService.insert(taskLog);
 
     }
 
@@ -235,131 +270,156 @@ public class OrderTask {
     //@Scheduled(cron = "0 0/3 * * * ?")
     @Scheduled(cron = "0 0 5 * * ?")
     public void executeReturn() throws CashException {
-        System.out.println("执行返佣");
-        //查询每天遍历progressNum为1和2的返佣记录
-        Fxstation fxstation1 = fxStationService.getStationInfo();
-        if(fxstation1.getDisable()==false) {
-            System.out.println("系统默认开启三级分销");
-            List<Fxcommision> fxcommisionList = fxCommisionService.getFxcommisionList();
 
-            //查询佣金返现周期
-            Fxstation fxstation = fxStationService.getStationInfo();
-            int cycle = fxstation.getCycle().intValue();
-            for (Fxcommision fxcommision : fxcommisionList) {
+        if(distributeTaskMapper.start(DistributeTaskConst.FX_EXECUTE_RUTUNR) != 1){
+            return;
+        }
 
-                //查询是否订单为5.订单已完成
-                Orders orders = ordersService.getOrdersById(fxcommision.getOrderid());
-                if (1 == fxcommision.getProgressnum()) {
-                    if (5 == orders.getOrderstatus()) {
-                        recount1(fxstation, cycle, fxcommision, orders);
+        DistributeTaskLog taskLog  = new DistributeTaskLog();
+        taskLog.setHostip(CommonUtils.getServerIP());
+        taskLog.setHostname(CommonUtils.getServerHost());
+        taskLog.setTaskcode(DistributeTaskConst.FX_EXECUTE_RUTUNR);
 
-                        //佣金流转表 流转记录
-                        Fxcirculation fxcirculation_two = new Fxcirculation();
-                        fxcirculation_two.setCommisionid(fxcommision.getId());
-                        fxcirculation_two.setOrderid(orders.getId());
-                        fxcirculation_two.setOrderno(orders.getOrderno());
-                        fxcirculation_two.setMemberid(orders.getMemberid());
-                        fxcirculation_two.setSaleid(orders.getSaleid());
-                        fxcirculation_two.setCirculationtext(orders.getOrderno() + "订单完成_执行返佣");
-                        fxcirculation_two.setCirculationold(1l);
-                        fxcirculation_two.setCirculationnew(2l);
-                        fxcirculation_two.setCreatetime(new Date());
-                        fxCirculationService.insertFxcirculation(fxcirculation_two);
 
-                    } else if (7 == orders.getOrderstatus()) {
-                        //订单被关闭，关闭相应返佣记录
-                        Fxcommision updatefxcommision = new Fxcommision();
-                        updatefxcommision.setId(fxcommision.getId());
-                        updatefxcommision.setProgressnum(97l);
-                        BigDecimal zero = new BigDecimal(0);
-                        updatefxcommision.setCommisionprice(zero);
-                        fxCommisionService.updateByFxcommision(updatefxcommision);
+        try {
+            System.out.println("执行返佣");
+            //查询每天遍历progressNum为1和2的返佣记录
+            Fxstation fxstation1 = fxStationService.getStationInfo();
+            if(fxstation1.getDisable()==false) {
+                System.out.println("系统默认开启三级分销");
+                List<Fxcommision> fxcommisionList = fxCommisionService.getFxcommisionList();
 
-                        Fxcirculation fxcirculation_two = new Fxcirculation();
-                        fxcirculation_two.setCommisionid(fxcommision.getId());
-                        fxcirculation_two.setOrderid(orders.getId());
-                        fxcirculation_two.setOrderno(orders.getOrderno());
-                        fxcirculation_two.setMemberid(orders.getMemberid());
-                        fxcirculation_two.setSaleid(orders.getSaleid());
-                        fxcirculation_two.setCirculationtext(orders.getOrderno() + "订单关闭_不执行返佣");
-                        fxcirculation_two.setCirculationold(1l);
-                        fxcirculation_two.setCirculationnew(97l);
-                        fxcirculation_two.setCreatetime(new Date());
-                        fxCirculationService.insertFxcirculation(fxcirculation_two);
+                //查询佣金返现周期
+                Fxstation fxstation = fxStationService.getStationInfo();
+                int cycle = fxstation.getCycle().intValue();
+                for (Fxcommision fxcommision : fxcommisionList) {
 
+                    //查询是否订单为5.订单已完成
+                    Orders orders = ordersService.getOrdersById(fxcommision.getOrderid());
+                    if (1 == fxcommision.getProgressnum()) {
+                        if (5 == orders.getOrderstatus()) {
+                            recount1(fxstation, cycle, fxcommision, orders);
+
+                            //佣金流转表 流转记录
+                            Fxcirculation fxcirculation_two = new Fxcirculation();
+                            fxcirculation_two.setCommisionid(fxcommision.getId());
+                            fxcirculation_two.setOrderid(orders.getId());
+                            fxcirculation_two.setOrderno(orders.getOrderno());
+                            fxcirculation_two.setMemberid(orders.getMemberid());
+                            fxcirculation_two.setSaleid(orders.getSaleid());
+                            fxcirculation_two.setCirculationtext(orders.getOrderno() + "订单完成_执行返佣");
+                            fxcirculation_two.setCirculationold(1l);
+                            fxcirculation_two.setCirculationnew(2l);
+                            fxcirculation_two.setCreatetime(new Date());
+                            fxCirculationService.insertFxcirculation(fxcirculation_two);
+
+                        } else if (7 == orders.getOrderstatus()) {
+                            //订单被关闭，关闭相应返佣记录
+                            Fxcommision updatefxcommision = new Fxcommision();
+                            updatefxcommision.setId(fxcommision.getId());
+                            updatefxcommision.setProgressnum(97l);
+                            BigDecimal zero = new BigDecimal(0);
+                            updatefxcommision.setCommisionprice(zero);
+                            fxCommisionService.updateByFxcommision(updatefxcommision);
+
+                            Fxcirculation fxcirculation_two = new Fxcirculation();
+                            fxcirculation_two.setCommisionid(fxcommision.getId());
+                            fxcirculation_two.setOrderid(orders.getId());
+                            fxcirculation_two.setOrderno(orders.getOrderno());
+                            fxcirculation_two.setMemberid(orders.getMemberid());
+                            fxcirculation_two.setSaleid(orders.getSaleid());
+                            fxcirculation_two.setCirculationtext(orders.getOrderno() + "订单关闭_不执行返佣");
+                            fxcirculation_two.setCirculationold(1l);
+                            fxcirculation_two.setCirculationnew(97l);
+                            fxcirculation_two.setCreatetime(new Date());
+                            fxCirculationService.insertFxcirculation(fxcirculation_two);
+
+
+                        } else {
+                            //如果没有已完成则
+                            System.out.println("没有已完成或者关闭的订单，不需要执行任何操作");
+                            continue;
+                        }
+
+                    } else if (2 == fxcommision.getProgressnum()) {
+                        //返佣入账
+                        //当前时间减去买家确认验货时间  是否大于返佣周期天数
+                        System.out.println("当前时间减去买家确认验货时间  是否大于返佣周期天数");
+                        int days = DateUtils.diffDays(new Date(), fxcommision.getBuyerinspectiontime());
+                        if (days - cycle > 0) {
+
+
+                            Fxcommision updatefxcommision = new Fxcommision();
+                            updatefxcommision.setId(fxcommision.getId());
+                            updatefxcommision.setProgressnum(99l);
+                            fxCommisionService.updateByFxcommision(updatefxcommision);
+
+                            //流转记录
+                            Fxcirculation fxcirculation_two = new Fxcirculation();
+                            fxcirculation_two.setCommisionid(fxcommision.getId());
+                            fxcirculation_two.setOrderid(orders.getId());
+                            fxcirculation_two.setOrderno(orders.getOrderno());
+                            fxcirculation_two.setMemberid(orders.getMemberid());
+                            fxcirculation_two.setSaleid(orders.getSaleid());
+                            fxcirculation_two.setCirculationtext(orders.getOrderno() + "超过返佣周期天数_更新为已完成,进行返佣");
+                            fxcirculation_two.setCirculationold(2l);
+                            fxcirculation_two.setCirculationnew(97l);
+                            fxcirculation_two.setCreatetime(new Date());
+                            fxCirculationService.insertFxcirculation(fxcirculation_two);
+
+
+                            Fxmoneylist fxmoneylist = new Fxmoneylist();
+                            fxmoneylist.setMemberid(fxcommision.getCmemberid());//返佣人ID
+                            fxmoneylist.setListtype(1l);
+                            fxmoneylist.setListtext(orders.getOrderno() + "佣金入账");
+                            fxmoneylist.setMoneynum(fxcommision.getCommisionprice());
+                            fxmoneylist.setMoneytotal(fxcommision.getCommisionprice());
+                            fxmoneylist.setCreatetime(new Date());
+                            fxMoneyListService.insertFxmoneylist(fxmoneylist);
+
+
+                            //判断在佣金余额表 是否已经存入过返佣人id
+                            Fxmoney oldfxmoney = fxMoneyService.getByCMemberId(fxmoneylist.getMemberid());
+                            Fxmoney fxmoney = new Fxmoney();
+                            if (oldfxmoney != null) {
+                                fxmoney.setId(oldfxmoney.getId());
+                                BigDecimal moneytotal = new BigDecimal(0);
+                                moneytotal = oldfxmoney.getMoneytotal().add(fxmoneylist.getMoneytotal());
+                                fxmoney.setMoneytotal(moneytotal);
+                                fxMoneyService.updateByFxmoney(fxmoney);
+                            } else {
+                                fxmoney.setMemberid(fxcommision.getCmemberid());
+                                BigDecimal moneytotal = new BigDecimal(0);
+                                moneytotal = moneytotal.add(fxmoneylist.getMoneytotal());
+                                fxmoney.setMoneytotal(moneytotal);
+                                fxMoneyService.insertFxmoney(fxmoney);
+                            }
+
+                        }
 
                     } else {
-                        //如果没有已完成则
-                        System.out.println("没有已完成或者关闭的订单，不需要执行任何操作");
+                        //如果没有
+                        System.out.println("没有订单进行中和佣金核算中，不需要执行任何操作");
                         continue;
                     }
 
-                } else if (2 == fxcommision.getProgressnum()) {
-                    //返佣入账
-                    //当前时间减去买家确认验货时间  是否大于返佣周期天数
-                    System.out.println("当前时间减去买家确认验货时间  是否大于返佣周期天数");
-                    int days = DateUtils.diffDays(new Date(), fxcommision.getBuyerinspectiontime());
-                    if (days - cycle > 0) {
-
-
-                        Fxcommision updatefxcommision = new Fxcommision();
-                        updatefxcommision.setId(fxcommision.getId());
-                        updatefxcommision.setProgressnum(99l);
-                        fxCommisionService.updateByFxcommision(updatefxcommision);
-
-                        //流转记录
-                        Fxcirculation fxcirculation_two = new Fxcirculation();
-                        fxcirculation_two.setCommisionid(fxcommision.getId());
-                        fxcirculation_two.setOrderid(orders.getId());
-                        fxcirculation_two.setOrderno(orders.getOrderno());
-                        fxcirculation_two.setMemberid(orders.getMemberid());
-                        fxcirculation_two.setSaleid(orders.getSaleid());
-                        fxcirculation_two.setCirculationtext(orders.getOrderno() + "超过返佣周期天数_更新为已完成,进行返佣");
-                        fxcirculation_two.setCirculationold(2l);
-                        fxcirculation_two.setCirculationnew(97l);
-                        fxcirculation_two.setCreatetime(new Date());
-                        fxCirculationService.insertFxcirculation(fxcirculation_two);
-
-
-                        Fxmoneylist fxmoneylist = new Fxmoneylist();
-                        fxmoneylist.setMemberid(fxcommision.getCmemberid());//返佣人ID
-                        fxmoneylist.setListtype(1l);
-                        fxmoneylist.setListtext(orders.getOrderno() + "佣金入账");
-                        fxmoneylist.setMoneynum(fxcommision.getCommisionprice());
-                        fxmoneylist.setMoneytotal(fxcommision.getCommisionprice());
-                        fxmoneylist.setCreatetime(new Date());
-                        fxMoneyListService.insertFxmoneylist(fxmoneylist);
-
-
-                        //判断在佣金余额表 是否已经存入过返佣人id
-                        Fxmoney oldfxmoney = fxMoneyService.getByCMemberId(fxmoneylist.getMemberid());
-                        Fxmoney fxmoney = new Fxmoney();
-                        if (oldfxmoney != null) {
-                            fxmoney.setId(oldfxmoney.getId());
-                            BigDecimal moneytotal = new BigDecimal(0);
-                            moneytotal = oldfxmoney.getMoneytotal().add(fxmoneylist.getMoneytotal());
-                            fxmoney.setMoneytotal(moneytotal);
-                            fxMoneyService.updateByFxmoney(fxmoney);
-                        } else {
-                            fxmoney.setMemberid(fxcommision.getCmemberid());
-                            BigDecimal moneytotal = new BigDecimal(0);
-                            moneytotal = moneytotal.add(fxmoneylist.getMoneytotal());
-                            fxmoney.setMoneytotal(moneytotal);
-                            fxMoneyService.insertFxmoney(fxmoney);
-                        }
-
-                    }
-
-                } else {
-                    //如果没有
-                    System.out.println("没有订单进行中和佣金核算中，不需要执行任何操作");
-                    continue;
                 }
-
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error("执行返佣",e);
+            taskLog.setState(Quantity.STATE_2);
+            taskLog.setError(e.toString());
+        } finally {
+            distributeTaskMapper.end(DistributeTaskConst.FX_EXECUTE_RUTUNR);
+            taskLog.setState(Quantity.STATE_1);
         }
 
+        distributeTaskLogService.insert(taskLog);
+
     }
+
+
 
     private void recount(Fxstation fxstation, int cycle, Fxcommision fxcommision, Orders orders) {
         //Progressnum 为2：佣金核算中
@@ -517,36 +577,36 @@ public class OrderTask {
         }
     }
 
-    /**
-     * 每天上午8点执行一次
-     *
-     */
-    @Scheduled(cron = "0 0 8 * * ?")
-    public void futureOrderPrepareRemind(){
-        LocalDate localDate = LocalDate.now();
-        OrderQueryParam queryFutureParam = new OrderQueryParam();
-        queryFutureParam.setPresellconfim((short)1);
-        PageInfo allMemberFutureOrdersList = ordersService.getAllMemberOrdersList(queryFutureParam);
-        List<OrdersView> list = allMemberFutureOrdersList.getList();
-        for (OrdersView futureOrder:list){
-            Date prestocktime = futureOrder.getPrestocktime();
-            Instant instant = prestocktime.toInstant();
-            ZoneId zoneId = ZoneId.systemDefault();
-
-            // atZone()方法返回在指定时区从此Instant生成的ZonedDateTime。
-            LocalDate newPrestocktime = instant.atZone(zoneId).toLocalDate();
-            String forwardnoticephone = futureOrder.getForwardnoticephone();
-            if (prestocktime.equals(localDate) || (localDate.plus(3,ChronoUnit.DAYS)).compareTo(newPrestocktime) == 0){
-                List<Orders> orderViewList = new ArrayList<>();
-                for (OrdersView ordersView:list) {
-                    Orders orders = new Orders();
-                    //属性转换
-                    orderViewList.add(orders);
-                }
-                ordersService.smsNotifySellerToFutureOrders(orderViewList);
-            }
-
-        }
-    }
+//    /**
+//     * 每天上午8点执行一次
+//     *
+//     */
+//    @Scheduled(cron = "0 0 8 * * ?")
+//    public void futureOrderPrepareRemind(){
+//        LocalDate localDate = LocalDate.now();
+//        OrderQueryParam queryFutureParam = new OrderQueryParam();
+//        queryFutureParam.setPresellconfim((short)1);
+//        PageInfo allMemberFutureOrdersList = ordersService.getAllMemberOrdersList(queryFutureParam);
+//        List<OrdersView> list = allMemberFutureOrdersList.getList();
+//        for (OrdersView futureOrder:list){
+//            Date prestocktime = futureOrder.getPrestocktime();
+//            Instant instant = prestocktime.toInstant();
+//            ZoneId zoneId = ZoneId.systemDefault();
+//
+//            // atZone()方法返回在指定时区从此Instant生成的ZonedDateTime。
+//            LocalDate newPrestocktime = instant.atZone(zoneId).toLocalDate();
+//            String forwardnoticephone = futureOrder.getForwardnoticephone();
+//            if (prestocktime.equals(localDate) || (localDate.plus(3,ChronoUnit.DAYS)).compareTo(newPrestocktime) == 0){
+//                List<Orders> orderViewList = new ArrayList<>();
+//                for (OrdersView ordersView:list) {
+//                    Orders orders = new Orders();
+//                    //属性转换
+//                    orderViewList.add(orders);
+//                }
+//                ordersService.smsNotifySellerToFutureOrders(orderViewList);
+//            }
+//
+//        }
+//    }
 
 }

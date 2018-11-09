@@ -4605,6 +4605,66 @@ public class MemberExample {
             addCriterion("waysalesmansetdate not between", value1, value2, "waysalesmansetdate");
             return (Criteria) this;
         }
+
+        public Criteria andIscreditoverdraftIsNull() {
+            addCriterion("iscreditoverdraft is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIscreditoverdraftIsNotNull() {
+            addCriterion("iscreditoverdraft is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIscreditoverdraftEqualTo(Short value) {
+            addCriterion("iscreditoverdraft =", value, "iscreditoverdraft");
+            return (Criteria) this;
+        }
+
+        public Criteria andIscreditoverdraftNotEqualTo(Short value) {
+            addCriterion("iscreditoverdraft <>", value, "iscreditoverdraft");
+            return (Criteria) this;
+        }
+
+        public Criteria andIscreditoverdraftGreaterThan(Short value) {
+            addCriterion("iscreditoverdraft >", value, "iscreditoverdraft");
+            return (Criteria) this;
+        }
+
+        public Criteria andIscreditoverdraftGreaterThanOrEqualTo(Short value) {
+            addCriterion("iscreditoverdraft >=", value, "iscreditoverdraft");
+            return (Criteria) this;
+        }
+
+        public Criteria andIscreditoverdraftLessThan(Short value) {
+            addCriterion("iscreditoverdraft <", value, "iscreditoverdraft");
+            return (Criteria) this;
+        }
+
+        public Criteria andIscreditoverdraftLessThanOrEqualTo(Short value) {
+            addCriterion("iscreditoverdraft <=", value, "iscreditoverdraft");
+            return (Criteria) this;
+        }
+
+        public Criteria andIscreditoverdraftIn(List<Short> values) {
+            addCriterion("iscreditoverdraft in", values, "iscreditoverdraft");
+            return (Criteria) this;
+        }
+
+        public Criteria andIscreditoverdraftNotIn(List<Short> values) {
+            addCriterion("iscreditoverdraft not in", values, "iscreditoverdraft");
+            return (Criteria) this;
+        }
+
+        public Criteria andIscreditoverdraftBetween(Short value1, Short value2) {
+            addCriterion("iscreditoverdraft between", value1, value2, "iscreditoverdraft");
+            return (Criteria) this;
+        }
+
+        public Criteria andIscreditoverdraftNotBetween(Short value1, Short value2) {
+            addCriterion("iscreditoverdraft not between", value1, value2, "iscreditoverdraft");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {
@@ -4614,13 +4674,6 @@ public class MemberExample {
         }
     }
 
-    /**
-     * null
-     * 
-     * @author wcyong
-     * 
-     * @date 2018-07-12
-     */
     public static class Criterion {
         private String condition;
 

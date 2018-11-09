@@ -13,7 +13,9 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import project.jinshang.common.constant.DistributeTaskConst;
 import project.jinshang.common.constant.Quantity;
+import project.jinshang.common.utils.CommonUtils;
 import project.jinshang.common.utils.GsonUtils;
 import project.jinshang.common.utils.HttpClientUtils;
 import project.jinshang.common.utils.StringUtils;
@@ -30,6 +32,9 @@ import project.jinshang.mod_product.service.ProductStoreService;
 import project.jinshang.mod_wms_middleware.bean.OrderSynLog;
 import project.jinshang.mod_wms_middleware.bean.WmsMidMsg;
 import project.jinshang.mod_wms_middleware.service.OrderSynLogService;
+import project.jinshang.scheduled.Bean.DistributeTaskLog;
+import project.jinshang.scheduled.mapper.DistributeTaskMapper;
+import project.jinshang.scheduled.service.DistributeTaskLogService;
 
 import java.sql.Timestamp;
 import java.util.*;
@@ -83,6 +88,11 @@ public class WMSService {
     @Autowired
     private MemberService memberService;
 
+    @Autowired
+    private DistributeTaskMapper distributeTaskMapper;
+    @Autowired
+    private DistributeTaskLogService distributeTaskLogService;
+
     @Value("${shop.orders-syn.id}")
     private String shopSelfSupportid;
 
@@ -95,31 +105,53 @@ public class WMSService {
 
 
 
-    @Scheduled(cron = "0 0/1 * * * ?")
+    @Scheduled(cron = "0 0/5 * * * ?")
     public void checkUnSend() {
-        List<WmsMidMsg> list = wmsMiddlewareMsgMapper.list(0);
-        for (WmsMidMsg msg : list) {
-            cachedThreadPool.execute(() -> {
-                Map<String, Object> ret = HttpClientUtils.post(msg.getUrl(), JsonUtil.toMap(msg.getParams()));
-                if (((int) ret.getOrDefault("result", -100)) >= 0) {
-                    wmsMiddlewareMsgMapper.del(msg.getId());
 
-                    String ordersJson = (String) GsonUtils.toMap(msg.getParams()).get("saleOrderJsonList");
-                    List<HashedMap> orderMap = GsonUtils.toList(ordersJson,HashedMap.class);
-                    List<OrderSynLog> synLogs = new ArrayList<>();
-                    orderMap.forEach(orders -> {
-                        OrderSynLog log = new OrderSynLog();
-                        log.setOperatetime(new Date());
-                        log.setOrderno(orders.get("orderno").toString());
-                        log.setType(Quantity.STATE_1);
-                        log.setState(Quantity.STATE_1);
-                        synLogs.add(log);
-                    });
-
-                    orderSynLogService.batchAdd(synLogs);
-                }
-            });
+        if(distributeTaskMapper.start(DistributeTaskConst.CHECK_UN_SEND) != 1){
+            return;
         }
+
+        DistributeTaskLog taskLog  = new DistributeTaskLog();
+        taskLog.setHostip(CommonUtils.getServerIP());
+        taskLog.setHostname(CommonUtils.getServerHost());
+        taskLog.setTaskcode(DistributeTaskConst.CHECK_UN_SEND);
+
+
+        try {
+            List<WmsMidMsg> list = wmsMiddlewareMsgMapper.list(0);
+            for (WmsMidMsg msg : list) {
+                cachedThreadPool.execute(() -> {
+                    Map<String, Object> ret = HttpClientUtils.post(msg.getUrl(), JsonUtil.toMap(msg.getParams()));
+                    if (((int) ret.getOrDefault("result", -100)) >= 0) {
+                        wmsMiddlewareMsgMapper.del(msg.getId());
+
+                        String ordersJson = (String) GsonUtils.toMap(msg.getParams()).get("saleOrderJsonList");
+                        List<HashedMap> orderMap = GsonUtils.toList(ordersJson,HashedMap.class);
+                        List<OrderSynLog> synLogs = new ArrayList<>();
+                        orderMap.forEach(orders -> {
+                            OrderSynLog log = new OrderSynLog();
+                            log.setOperatetime(new Date());
+                            log.setOrderno(orders.get("orderno").toString());
+                            log.setType(Quantity.STATE_1);
+                            log.setState(Quantity.STATE_1);
+                            synLogs.add(log);
+                        });
+
+                        orderSynLogService.batchAdd(synLogs);
+                    }
+                });
+            }
+        } catch (Exception e) {
+            logger.error("推送失败数据",e);
+            taskLog.setError(e.toString());
+            taskLog.setState(Quantity.STATE_2);
+
+        } finally {
+            distributeTaskMapper.end(DistributeTaskConst.CHECK_UN_SEND);
+            taskLog.setState(Quantity.STATE_1);
+        }
+        distributeTaskLogService.insert(taskLog);
     }
 
 

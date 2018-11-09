@@ -48,4 +48,7 @@ public interface ProductsMapper {
             "</script>")
     List<Products> selectProductList(@Param("productQueryParam") ProductQueryParam productQueryParam);
 
+    @Select("<script>select p.* from products p  where p.id in <foreach collection=\"ids\" item=\"item\" index=\"index\" \n" +
+            "open=\"(\" separator=\",\" close=\")\">#{item}</foreach></script>")
+    List<Products> getProductsByIds(@Param("ids") Long[] ids);
 }

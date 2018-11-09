@@ -2,6 +2,7 @@ package project.jinshang.mod_product;
 
 import org.apache.ibatis.annotations.InsertProvider;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 import project.jinshang.mod_product.bean.BillOrder;
 import project.jinshang.mod_product.bean.BillOrderExample;
 
@@ -56,4 +57,7 @@ public interface BillOrderMapper {
             return sb.toString();
         }
     }
+
+    @Select("select * from billorder where orderid=#{orderid} limit 1")
+    BillOrder getBillOrderByOrderId(@Param("orderid") Long orderid);
 }

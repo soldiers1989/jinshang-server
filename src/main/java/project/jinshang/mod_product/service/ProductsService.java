@@ -241,13 +241,7 @@ public class ProductsService {
     }
 
 
-
-
-
-
-
-
-
-
-
+    public List<Products> getProductsByIds(Long[] ids) {
+        return  productsMapper.getProductsByIds(ids);
+    }
 }

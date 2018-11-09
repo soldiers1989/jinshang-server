@@ -98,4 +98,7 @@ public class AttvalueService {
        return attvalueMapper.listByProductnameidAndName(productnameid,name);
     }
 
+    public void insertSelective(Attvalue attvalue) {
+        attvalueMapper.insertSelective(attvalue);
+    }
 }

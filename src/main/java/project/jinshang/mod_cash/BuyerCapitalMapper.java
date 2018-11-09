@@ -179,6 +179,13 @@ public interface BuyerCapitalMapper {
     List<BuyerCapitalViewDto> listForAccount(@Param("dto")BuyerCapitalAccountQueryDto dto);
 
 
+    @Select("SELECT B.*,O.deliveryno,BG.invoiceheadup,BG.id as recordid, M.username FROM buyercapital B \n"+
+            "\tLEFT JOIN member M ON B.memberid = M.id LEFT JOIN buyercompanyinfo BC ON B.memberid = BC.memberid \n"+
+            "\tLEFT JOIN orders O ON O.orderno = B.orderno LEFT JOIN billingrecord BG ON (BG.orderno LIKE concat( '', O.id, '' ) \n"+
+            "\tOR BG.orderno LIKE concat( '', o.id, ',%' ) OR BG.orderno LIKE concat( '%,', o.id, ',%' ) \n" +
+            "\tOR BG.orderno LIKE concat( '%,', o.id, '' ) ) "+
+            " where O.orderno=#{orderno} ")
+    List<BuyerCapitalViewDto> queryBuyerCapitalByOrderNo(@Param("orderno")String orderno);
     /**
      *搜索开票抬头为给定公司名称单发票对应的订单为非该公司账号的订单
      * @author xiazy

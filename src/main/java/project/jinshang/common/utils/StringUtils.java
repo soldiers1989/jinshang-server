@@ -1,5 +1,8 @@
 package project.jinshang.common.utils;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -1324,5 +1327,33 @@ public class StringUtils {
         keyword = keyword.replaceAll("\\?", " ");
         keyword = keyword.replaceAll("\\:", " ");
         return keyword;
+    }
+
+    /**
+     *判断一个字符串 是否是小数
+     * @param num
+     * @return
+     */
+    public static boolean judgeIsDecimal(String num){
+        boolean isdecimal = false;
+        if (num.contains(".")) {
+            isdecimal=true;
+        }
+        return isdecimal;
+    }
+
+    /**
+     * 判断是否是个json
+     * @param jsonInString
+     * @return
+     */
+    public final static boolean isJSON(String jsonInString) {
+        try {
+            Gson gson = new Gson();
+            gson.fromJson(jsonInString, Object.class);
+            return true;
+        } catch(JsonSyntaxException ex) {
+            return false;
+        }
     }
 }

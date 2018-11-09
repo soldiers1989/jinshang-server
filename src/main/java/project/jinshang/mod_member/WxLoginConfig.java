@@ -23,6 +23,11 @@ public class WxLoginConfig {
 
     private  String jsapiTicketUrl;
 
+    private String wxacctokUrlTinyProg;
+
+    private String tinyProgAppId;
+    private String tinyProgSecret;
+
 
     public String getAppId() {
         return appId;
@@ -86,5 +91,29 @@ public class WxLoginConfig {
 
     public void setJsapiTicketUrl(String jsapiTicketUrl) {
         this.jsapiTicketUrl = jsapiTicketUrl;
+    }
+
+    public String getWxacctokUrlTinyProg() {
+        return wxacctokUrlTinyProg;
+    }
+
+    public void setWxacctokUrlTinyProg(String wxacctokUrlTinyProg) {
+        this.wxacctokUrlTinyProg = wxacctokUrlTinyProg;
+    }
+
+    public String getTinyProgAppId() {
+        return tinyProgAppId;
+    }
+
+    public void setTinyProgAppId(String tinyProgAppId) {
+        this.tinyProgAppId = tinyProgAppId;
+    }
+
+    public String getTinyProgSecret() {
+        return tinyProgSecret;
+    }
+
+    public void setTinyProgSecret(String tinyProgSecret) {
+        this.tinyProgSecret = tinyProgSecret;
     }
 }

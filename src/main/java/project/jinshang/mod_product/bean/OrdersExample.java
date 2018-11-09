@@ -4093,6 +4093,136 @@ public class OrdersExample {
             return (Criteria) this;
         }
 
+        public Criteria andOrderfrightIsNull() {
+            addCriterion("orderfright is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andOrderfrightIsNotNull() {
+            addCriterion("orderfright is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andOrderfrightEqualTo(Short value) {
+            addCriterion("orderfright =", value, "orderfright");
+            return (Criteria) this;
+        }
+
+        public Criteria andOrderfrightNotEqualTo(Short value) {
+            addCriterion("orderfright <>", value, "orderfright");
+            return (Criteria) this;
+        }
+
+        public Criteria andOrderfrightGreaterThan(Short value) {
+            addCriterion("orderfright >", value, "orderfright");
+            return (Criteria) this;
+        }
+
+        public Criteria andOrderfrightGreaterThanOrEqualTo(Short value) {
+            addCriterion("orderfright >=", value, "orderfright");
+            return (Criteria) this;
+        }
+
+        public Criteria andOrderfrightLessThan(Short value) {
+            addCriterion("orderfright <", value, "orderfright");
+            return (Criteria) this;
+        }
+
+        public Criteria andOrderfrightLessThanOrEqualTo(Short value) {
+            addCriterion("orderfright <=", value, "orderfright");
+            return (Criteria) this;
+        }
+
+        public Criteria andOrderfrightIn(List<Short> values) {
+            addCriterion("orderfright in", values, "orderfright");
+            return (Criteria) this;
+        }
+
+        public Criteria andOrderfrightNotIn(List<Short> values) {
+            addCriterion("orderfright not in", values, "orderfright");
+            return (Criteria) this;
+        }
+
+        public Criteria andOrderfrightBetween(Short value1, Short value2) {
+            addCriterion("orderfright between", value1, value2, "orderfright");
+            return (Criteria) this;
+        }
+
+        public Criteria andOrderfrightNotBetween(Short value1, Short value2) {
+            addCriterion("orderfright not between", value1, value2, "orderfright");
+            return (Criteria) this;
+        }
+
+        public Criteria andFrighttemplateIsNull() {
+            addCriterion("frighttemplate is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFrighttemplateIsNotNull() {
+            addCriterion("frighttemplate is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andFrighttemplateEqualTo(String value) {
+            addCriterion("frighttemplate =", value, "frighttemplate");
+            return (Criteria) this;
+        }
+
+        public Criteria andFrighttemplateNotEqualTo(String value) {
+            addCriterion("frighttemplate <>", value, "frighttemplate");
+            return (Criteria) this;
+        }
+
+        public Criteria andFrighttemplateGreaterThan(String value) {
+            addCriterion("frighttemplate >", value, "frighttemplate");
+            return (Criteria) this;
+        }
+
+        public Criteria andFrighttemplateGreaterThanOrEqualTo(String value) {
+            addCriterion("frighttemplate >=", value, "frighttemplate");
+            return (Criteria) this;
+        }
+
+        public Criteria andFrighttemplateLessThan(String value) {
+            addCriterion("frighttemplate <", value, "frighttemplate");
+            return (Criteria) this;
+        }
+
+        public Criteria andFrighttemplateLessThanOrEqualTo(String value) {
+            addCriterion("frighttemplate <=", value, "frighttemplate");
+            return (Criteria) this;
+        }
+
+        public Criteria andFrighttemplateLike(String value) {
+            addCriterion("frighttemplate like", value, "frighttemplate");
+            return (Criteria) this;
+        }
+
+        public Criteria andFrighttemplateNotLike(String value) {
+            addCriterion("frighttemplate not like", value, "frighttemplate");
+            return (Criteria) this;
+        }
+
+        public Criteria andFrighttemplateIn(List<String> values) {
+            addCriterion("frighttemplate in", values, "frighttemplate");
+            return (Criteria) this;
+        }
+
+        public Criteria andFrighttemplateNotIn(List<String> values) {
+            addCriterion("frighttemplate not in", values, "frighttemplate");
+            return (Criteria) this;
+        }
+
+        public Criteria andFrighttemplateBetween(String value1, String value2) {
+            addCriterion("frighttemplate between", value1, value2, "frighttemplate");
+            return (Criteria) this;
+        }
+
+        public Criteria andFrighttemplateNotBetween(String value1, String value2) {
+            addCriterion("frighttemplate not between", value1, value2, "frighttemplate");
+            return (Criteria) this;
+        }
+
         public Criteria andPresellconfimIsNull() {
             addCriterion("presellconfim is null");
             return (Criteria) this;
@@ -4283,133 +4413,253 @@ public class OrdersExample {
             return (Criteria) this;
         }
 
-        public Criteria andOrderfrightIsNull() {
-            addCriterion("orderfright is null");
+        public Criteria andTicketnoIsNull() {
+            addCriterion("ticketno is null");
             return (Criteria) this;
         }
 
-        public Criteria andOrderfrightIsNotNull() {
-            addCriterion("orderfright is not null");
+        public Criteria andTicketnoIsNotNull() {
+            addCriterion("ticketno is not null");
             return (Criteria) this;
         }
 
-        public Criteria andOrderfrightEqualTo(Short value) {
-            addCriterion("orderfright =", value, "orderfright");
+        public Criteria andTicketnoEqualTo(String value) {
+            addCriterion("ticketno =", value, "ticketno");
             return (Criteria) this;
         }
 
-        public Criteria andOrderfrightNotEqualTo(Short value) {
-            addCriterion("orderfright <>", value, "orderfright");
+        public Criteria andTicketnoNotEqualTo(String value) {
+            addCriterion("ticketno <>", value, "ticketno");
             return (Criteria) this;
         }
 
-        public Criteria andOrderfrightGreaterThan(Short value) {
-            addCriterion("orderfright >", value, "orderfright");
+        public Criteria andTicketnoGreaterThan(String value) {
+            addCriterion("ticketno >", value, "ticketno");
             return (Criteria) this;
         }
 
-        public Criteria andOrderfrightGreaterThanOrEqualTo(Short value) {
-            addCriterion("orderfright >=", value, "orderfright");
+        public Criteria andTicketnoGreaterThanOrEqualTo(String value) {
+            addCriterion("ticketno >=", value, "ticketno");
             return (Criteria) this;
         }
 
-        public Criteria andOrderfrightLessThan(Short value) {
-            addCriterion("orderfright <", value, "orderfright");
+        public Criteria andTicketnoLessThan(String value) {
+            addCriterion("ticketno <", value, "ticketno");
             return (Criteria) this;
         }
 
-        public Criteria andOrderfrightLessThanOrEqualTo(Short value) {
-            addCriterion("orderfright <=", value, "orderfright");
+        public Criteria andTicketnoLessThanOrEqualTo(String value) {
+            addCriterion("ticketno <=", value, "ticketno");
             return (Criteria) this;
         }
 
-        public Criteria andOrderfrightIn(List<Short> values) {
-            addCriterion("orderfright in", values, "orderfright");
+        public Criteria andTicketnoLike(String value) {
+            addCriterion("ticketno like", value, "ticketno");
             return (Criteria) this;
         }
 
-        public Criteria andOrderfrightNotIn(List<Short> values) {
-            addCriterion("orderfright not in", values, "orderfright");
+        public Criteria andTicketnoNotLike(String value) {
+            addCriterion("ticketno not like", value, "ticketno");
             return (Criteria) this;
         }
 
-        public Criteria andOrderfrightBetween(Short value1, Short value2) {
-            addCriterion("orderfright between", value1, value2, "orderfright");
+        public Criteria andTicketnoIn(List<String> values) {
+            addCriterion("ticketno in", values, "ticketno");
             return (Criteria) this;
         }
 
-        public Criteria andOrderfrightNotBetween(Short value1, Short value2) {
-            addCriterion("orderfright not between", value1, value2, "orderfright");
+        public Criteria andTicketnoNotIn(List<String> values) {
+            addCriterion("ticketno not in", values, "ticketno");
             return (Criteria) this;
         }
 
-        public Criteria andFrighttemplateIsNull() {
-            addCriterion("frighttemplate is null");
+        public Criteria andTicketnoBetween(String value1, String value2) {
+            addCriterion("ticketno between", value1, value2, "ticketno");
             return (Criteria) this;
         }
 
-        public Criteria andFrighttemplateIsNotNull() {
-            addCriterion("frighttemplate is not null");
+        public Criteria andTicketnoNotBetween(String value1, String value2) {
+            addCriterion("ticketno not between", value1, value2, "ticketno");
             return (Criteria) this;
         }
 
-        public Criteria andFrighttemplateEqualTo(String value) {
-            addCriterion("frighttemplate =", value, "frighttemplate");
+        public Criteria andIsticketIsNull() {
+            addCriterion("isticket is null");
             return (Criteria) this;
         }
 
-        public Criteria andFrighttemplateNotEqualTo(String value) {
-            addCriterion("frighttemplate <>", value, "frighttemplate");
+        public Criteria andIsticketIsNotNull() {
+            addCriterion("isticket is not null");
             return (Criteria) this;
         }
 
-        public Criteria andFrighttemplateGreaterThan(String value) {
-            addCriterion("frighttemplate >", value, "frighttemplate");
+        public Criteria andIsticketEqualTo(Short value) {
+            addCriterion("isticket =", value, "isticket");
             return (Criteria) this;
         }
 
-        public Criteria andFrighttemplateGreaterThanOrEqualTo(String value) {
-            addCriterion("frighttemplate >=", value, "frighttemplate");
+        public Criteria andIsticketNotEqualTo(Short value) {
+            addCriterion("isticket <>", value, "isticket");
             return (Criteria) this;
         }
 
-        public Criteria andFrighttemplateLessThan(String value) {
-            addCriterion("frighttemplate <", value, "frighttemplate");
+        public Criteria andIsticketGreaterThan(Short value) {
+            addCriterion("isticket >", value, "isticket");
             return (Criteria) this;
         }
 
-        public Criteria andFrighttemplateLessThanOrEqualTo(String value) {
-            addCriterion("frighttemplate <=", value, "frighttemplate");
+        public Criteria andIsticketGreaterThanOrEqualTo(Short value) {
+            addCriterion("isticket >=", value, "isticket");
             return (Criteria) this;
         }
 
-        public Criteria andFrighttemplateLike(String value) {
-            addCriterion("frighttemplate like", value, "frighttemplate");
+        public Criteria andIsticketLessThan(Short value) {
+            addCriterion("isticket <", value, "isticket");
             return (Criteria) this;
         }
 
-        public Criteria andFrighttemplateNotLike(String value) {
-            addCriterion("frighttemplate not like", value, "frighttemplate");
+        public Criteria andIsticketLessThanOrEqualTo(Short value) {
+            addCriterion("isticket <=", value, "isticket");
             return (Criteria) this;
         }
 
-        public Criteria andFrighttemplateIn(List<String> values) {
-            addCriterion("frighttemplate in", values, "frighttemplate");
+        public Criteria andIsticketIn(List<Short> values) {
+            addCriterion("isticket in", values, "isticket");
             return (Criteria) this;
         }
 
-        public Criteria andFrighttemplateNotIn(List<String> values) {
-            addCriterion("frighttemplate not in", values, "frighttemplate");
+        public Criteria andIsticketNotIn(List<Short> values) {
+            addCriterion("isticket not in", values, "isticket");
             return (Criteria) this;
         }
 
-        public Criteria andFrighttemplateBetween(String value1, String value2) {
-            addCriterion("frighttemplate between", value1, value2, "frighttemplate");
+        public Criteria andIsticketBetween(Short value1, Short value2) {
+            addCriterion("isticket between", value1, value2, "isticket");
             return (Criteria) this;
         }
 
-        public Criteria andFrighttemplateNotBetween(String value1, String value2) {
-            addCriterion("frighttemplate not between", value1, value2, "frighttemplate");
+        public Criteria andIsticketNotBetween(Short value1, Short value2) {
+            addCriterion("isticket not between", value1, value2, "isticket");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscountpriceIsNull() {
+            addCriterion("discountprice is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscountpriceIsNotNull() {
+            addCriterion("discountprice is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscountpriceEqualTo(BigDecimal value) {
+            addCriterion("discountprice =", value, "discountprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscountpriceNotEqualTo(BigDecimal value) {
+            addCriterion("discountprice <>", value, "discountprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscountpriceGreaterThan(BigDecimal value) {
+            addCriterion("discountprice >", value, "discountprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscountpriceGreaterThanOrEqualTo(BigDecimal value) {
+            addCriterion("discountprice >=", value, "discountprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscountpriceLessThan(BigDecimal value) {
+            addCriterion("discountprice <", value, "discountprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscountpriceLessThanOrEqualTo(BigDecimal value) {
+            addCriterion("discountprice <=", value, "discountprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscountpriceIn(List<BigDecimal> values) {
+            addCriterion("discountprice in", values, "discountprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscountpriceNotIn(List<BigDecimal> values) {
+            addCriterion("discountprice not in", values, "discountprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscountpriceBetween(BigDecimal value1, BigDecimal value2) {
+            addCriterion("discountprice between", value1, value2, "discountprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscountpriceNotBetween(BigDecimal value1, BigDecimal value2) {
+            addCriterion("discountprice not between", value1, value2, "discountprice");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsmodifyfreightIsNull() {
+            addCriterion("ismodifyfreight is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsmodifyfreightIsNotNull() {
+            addCriterion("ismodifyfreight is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsmodifyfreightEqualTo(Short value) {
+            addCriterion("ismodifyfreight =", value, "ismodifyfreight");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsmodifyfreightNotEqualTo(Short value) {
+            addCriterion("ismodifyfreight <>", value, "ismodifyfreight");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsmodifyfreightGreaterThan(Short value) {
+            addCriterion("ismodifyfreight >", value, "ismodifyfreight");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsmodifyfreightGreaterThanOrEqualTo(Short value) {
+            addCriterion("ismodifyfreight >=", value, "ismodifyfreight");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsmodifyfreightLessThan(Short value) {
+            addCriterion("ismodifyfreight <", value, "ismodifyfreight");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsmodifyfreightLessThanOrEqualTo(Short value) {
+            addCriterion("ismodifyfreight <=", value, "ismodifyfreight");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsmodifyfreightIn(List<Short> values) {
+            addCriterion("ismodifyfreight in", values, "ismodifyfreight");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsmodifyfreightNotIn(List<Short> values) {
+            addCriterion("ismodifyfreight not in", values, "ismodifyfreight");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsmodifyfreightBetween(Short value1, Short value2) {
+            addCriterion("ismodifyfreight between", value1, value2, "ismodifyfreight");
+            return (Criteria) this;
+        }
+
+        public Criteria andIsmodifyfreightNotBetween(Short value1, Short value2) {
+            addCriterion("ismodifyfreight not between", value1, value2, "ismodifyfreight");
             return (Criteria) this;
         }
     }

@@ -82,4 +82,30 @@ public class FavoriteService {
     }
 
 
+    public PageInfo listByType(int pageNo, int pageSize, long memberid,int type) {
+        PageHelper.startPage(pageNo, pageSize);
+
+//        List<FavoriteProductDto> list = favoriteMapper.list(memberid);
+        List<FavoriteProductDto> list = favoriteMapper.listByMemberIdAndType(memberid,type);
+        PageInfo pageInfo = new PageInfo(list);
+        List<FavoriteProductDto> favoriteProductDtos = pageInfo.getList();
+        favoriteProductDtos.forEach(favoriteProductDto -> {
+            String[] pdPic = (String[]) favoriteProductDto.getPdpicture();
+            if (pdPic == null || pdPic.length == 0) {
+                favoriteProductDto.setPdpicture(null);
+            } else {
+                favoriteProductDto.setPdpicture(pdPic[0]);
+            }
+            if (favoriteProductDto.getPdstorenum() == null) {
+                favoriteProductDto.setPdstorenum(new BigDecimal(0));
+            } else {
+                favoriteProductDto.setPdstorenum(favoriteProductDto.getPdstorenum().abs());
+            }
+        });
+        return pageInfo;
+    }
+
+
+
+
 }

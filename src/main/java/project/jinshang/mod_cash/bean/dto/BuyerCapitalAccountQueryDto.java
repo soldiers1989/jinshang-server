@@ -27,6 +27,8 @@ public class BuyerCapitalAccountQueryDto {
     private String mobile;
     @ApiModelProperty(notes = "会员名称")
     private String username;
+    @ApiModelProperty(notes = "订单表id")
+    private Long orderid;
 
     public Date getTradetimeStart() {
         return tradetimeStart;
@@ -90,5 +92,13 @@ public class BuyerCapitalAccountQueryDto {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    public Long getOrderid() {
+        return orderid;
+    }
+
+    public void setOrderid(Long orderid) {
+        this.orderid = orderid;
     }
 }

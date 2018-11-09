@@ -113,12 +113,16 @@ public class OrderProductBack {
     @ApiModelProperty(notes = "活动id")
     private Long limitid;
 
+
     //===============================================================================
     private Object pdPic;//商品图片
 
 
     @ApiModelProperty(notes = "商品总价")
     private  BigDecimal actualpayment;
+
+
+    private BigDecimal discountpay;
 
 
 
@@ -432,5 +436,13 @@ public class OrderProductBack {
 
     public void setActualpayment(BigDecimal actualpayment) {
         this.actualpayment = actualpayment;
+    }
+
+    public BigDecimal getDiscountpay() {
+        return discountpay;
+    }
+
+    public void setDiscountpay(BigDecimal discountpay) {
+        this.discountpay = discountpay;
     }
 }

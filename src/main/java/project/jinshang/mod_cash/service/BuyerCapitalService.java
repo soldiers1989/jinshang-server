@@ -5,14 +5,18 @@ import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import project.jinshang.common.constant.BuyerCapitalConst;
-import project.jinshang.common.utils.DateUtils;
-import project.jinshang.common.utils.JinshangUtils;
-import project.jinshang.common.utils.StringUtils;
+import project.jinshang.common.constant.Quantity;
+import project.jinshang.common.utils.*;
 import project.jinshang.mod_admin.mod_cash.dto.AdvanceCapitalQueryDto;
+import project.jinshang.mod_admin.mod_statement.bean.BuyerStatement;
+import project.jinshang.mod_admin.mod_statement.service.StatementService;
 import project.jinshang.mod_cash.BuyerCapitalMapper;
 import project.jinshang.mod_cash.bean.BuyerCapital;
 import project.jinshang.mod_cash.bean.BuyerCapitalExample;
 import project.jinshang.mod_cash.bean.dto.*;
+import project.jinshang.mod_company.BuyerCompanyInfoMapper;
+import project.jinshang.mod_company.bean.BuyerCompanyInfo;
+import project.jinshang.mod_member.bean.Member;
 import project.jinshang.mod_member.service.MemberService;
 import project.jinshang.mod_product.bean.OrderProductBackInfo;
 import project.jinshang.mod_product.mapper.OrderProductBackInfoMapper;
@@ -31,7 +35,10 @@ public class BuyerCapitalService {
 
     @Autowired
     private MemberService memberService;
-
+    @Autowired
+    private StatementService statementService;
+    @Autowired
+    private BuyerCompanyInfoMapper buyerCompanyInfoMapper;
 
 
     public  BuyerCapital getById(long id){
@@ -389,6 +396,78 @@ public class BuyerCapitalService {
     }
 
 
+    public void insertStateSelective(BuyerCapital buyerCapital,Boolean canuse){
+        if (canuse){
+            short capitaltype=buyerCapital.getCapitaltype();
+            BuyerStatement buyerStatement=new BuyerStatement();
+            BuyerCompanyInfo buyerCompanyInfo=buyerCompanyInfoMapper.getBuyerCompanyInfoByMemberId(buyerCapital.getMemberid());
+            switch (capitaltype){
+                case 1:{
+                    buyerStatement.setMemberid(buyerCapital.getMemberid());
+                    buyerStatement.setContractno(buyerCapital.getRechargenumber());
+                    buyerStatement.setType((short) StatementType.StType6.getTyep());
+                    buyerStatement.setDeliveryamount(Quantity.BIG_DECIMAL_0);
+                    buyerStatement.setReceiptamount(buyerCapital.getCapital());
+                    buyerStatement.setInvoiceamount(Quantity.BIG_DECIMAL_0);
+                    buyerStatement.setPaytype(buyerCapital.getPaytype());
+                    buyerStatement.setCreatetime(new Date());
+                    buyerStatement.setPayno(buyerCapital.getTransactionid());
+                    if ((buyerCapital.getRemark()).contains("充值")&&buyerCompanyInfo!=null){
+                        buyerStatement.setRemark(buyerCapital.getMemberid()+"\t\n"+buyerCompanyInfo.getCompanyname());
+                    }else if (buyerCompanyInfo!=null){
+                        buyerStatement.setRemark(buyerCapital.getOperation()+"\t\n"+buyerCapital.getVerify()+"\t\n"+buyerCapital.getMemberid()+"\t\n"+buyerCompanyInfo.getCompanyname());
+                    }else {
+                        buyerStatement.setRemark(buyerCapital.getMemberid()+"");
+                    }
+                    break;
+                }
+                case 0:
+                case 7:
+                case 8:
+                case 9:{
+                    buyerStatement.setMemberid(buyerCapital.getMemberid());
+                    buyerStatement.setContractno(buyerCapital.getOrderno());
+                    buyerStatement.setType((short) StatementType.StType1.getTyep());
+                    buyerStatement.setDeliveryamount(Quantity.BIG_DECIMAL_0);
+                    buyerStatement.setReceiptamount(buyerCapital.getCapital());
+                    buyerStatement.setInvoiceamount(Quantity.BIG_DECIMAL_0);
+                    short paytype=buyerCapital.getPaytype();
+                    buyerStatement.setPaytype(buyerCapital.getPaytype());
+                    buyerStatement.setCreatetime(new Date());
+                    if (paytype==Quantity.STATE_0 ||paytype==Quantity.STATE_1 ||paytype==Quantity.STATE_2){
+                        buyerStatement.setPayno(buyerCapital.getTransactionid());
+                    }else {
+                        buyerStatement.setPayno("");
+                    }
+                    List<BuyerCapitalViewDto> buyerCapitalViewDtos=this.queryBuyerCapitalByOrderNo(buyerCapital.getOrderno());
+                    if(buyerCapitalViewDtos.size()>0&&buyerCapitalViewDtos.get(0).getInvoiceheadup()!=null){
+                        BuyerCapitalViewDto buyerCapitalViewDto=buyerCapitalViewDtos.get(0);
+
+                        if (buyerCompanyInfo!=null&&buyerCapitalViewDto.getInvoiceheadup().equals(buyerCompanyInfo.getCompanyname())){
+                            buyerStatement.setRemark(buyerCapital.getMemberid()+"\t\n"+buyerCompanyInfo.getCompanyname());
+                        }else{
+                            buyerStatement.setRemark(buyerCapitalViewDto.getInvoiceheadup());
+                        }
+                    }else{
+                        if (buyerCompanyInfo!=null){
+                            buyerStatement.setRemark(buyerCapital.getMemberid()+"\t\n"+buyerCompanyInfo.getCompanyname());
+                        }else{
+                            buyerStatement.setRemark(buyerCapital.getMemberid()+"");
+                        }
+
+                    }
+                    break;
+                }
+//            case :{
+//
+//            }
+            }
+            if (buyerStatement.getMemberid()!=null){
+                statementService.insertStatement(buyerStatement);
+            }
+        }
+    }
+
     /**
      * 根据充值单号查询
      * @param rechagernumber
@@ -401,6 +480,18 @@ public class BuyerCapitalService {
 
     public  void  updateByPrimaryKeySelective(BuyerCapital buyerCapital){
         buyerCapitalMapper.updateByPrimaryKeySelective(buyerCapital);
+    }
+
+
+    /**
+     *根据订单编号查询订单的资金明细以及开票记录信息
+     * @author xiazy
+     * @date  2018/9/27 14:44
+     * @param orderno
+     * @return java.util.List<project.jinshang.mod_cash.bean.dto.BuyerCapitalViewDto>
+     */
+    public List<BuyerCapitalViewDto> queryBuyerCapitalByOrderNo(String orderno){
+        return buyerCapitalMapper.queryBuyerCapitalByOrderNo(orderno);
     }
 
     /**
@@ -655,8 +746,10 @@ public class BuyerCapitalService {
                             sumOtherAmount[0] = buyerCapitalAccountDto.getOtheramount() == null ? sumOtherAmount[0] : sumOtherAmount[0].add(buyerCapitalAccountDto.getOtheramount());
                         }
                 );
-                sumReceivableAccount=buyerCapitalAccountDtos.get(buyerCapitalAccountDtos.size()-1).getReceivableaccount();
-                sumInvoiceBalance=buyerCapitalAccountDtos.get(buyerCapitalAccountDtos.size()-1).getInvoicebalance();
+                if (buyerCapitalAccountDtos.size()>0){
+                    sumReceivableAccount=buyerCapitalAccountDtos.get(buyerCapitalAccountDtos.size()-1).getReceivableaccount();
+                    sumInvoiceBalance=buyerCapitalAccountDtos.get(buyerCapitalAccountDtos.size()-1).getInvoicebalance();
+                }
                 //当期结算的金额统计数据,最后一个Dto
                 BuyerCapitalAccountDto buyerCapitalAccountDto1=new BuyerCapitalAccountDto();
                 buyerCapitalAccountDto1.setDeliveryamount(sumDeliveryAmount[0]);
@@ -1193,5 +1286,16 @@ public class BuyerCapitalService {
             }
         }
         return data;
+    }
+
+    /**
+     *批量插入资金明细
+     * @author xiazy
+     * @date  2018/9/25 14:42
+     * @param
+     * @return void
+     */
+    public void insertAll(List<BuyerCapital> list){
+        buyerCapitalMapper.insertAll(list);
     }
 }

@@ -44,4 +44,23 @@ public interface OrderProductBackMapper {
     @Select("select * from orderProductBack where orderno=#{orderno} order by id desc")
     List<OrderProductBack> getByOrderNo(@Param("orderno") String orderno );
 
+
+    @Select("<script> select ob.*,op.classifyid,op.pdpic as \"pdPic\",op.standard,op.unit from orderProductBack ob inner join orderproduct op  on ob.orderpdid=op.id " +
+            " where 1=1 "+
+            "<if test=\"param.memberId!=null and param.memberId!=''\"> and ob.memberid=#{param.memberId} </if>"+
+            "<if test=\"param.sellerid!=null and param.sellerid!=''\"> and ob.sellerid=#{param.sellerid} </if>"+
+            "<if test=\"param.sellerName!=null and param.sellerName!=''\"> and ob.sellername like CONCAT(\"%\",#{param.sellerName},\"%\") </if>"+
+            "<if test=\"param.memberName!=null and param.memberName!=''\"> and ob.membername like CONCAT(\"%\",#{param.memberName},\"%\") </if>"+
+            "<if test=\"param.pdName!=null and param.pdName!=''\"> and ob.pdname LIKE CONCAT(\"%\",#{param.pdName},\"%\") </if>"+
+            "<if test=\"param.orderNo!=null and param.orderNo!=''\"> and ob.orderno LIKE CONCAT(\"%\",#{param.orderNo},\"%\") </if>"+
+            "<if test=\"param.code!=null and param.code!=''\"> and ob.code LIKE CONCAT(\"%\",#{param.code},\"%\") </if>"+
+            "<if test=\"param.backNo!=null and param.backNo!=''\"> and ob.backNo LIKE CONCAT(\"%\",#{param.backNo},\"%\") </if>"+
+            "<if test=\"param.startTime!=null and param.startTime!=''\"> and ob.createtime &gt; #{param.startTime} </if>"+
+            "<if test=\"param.endTime!=null and param.endTime!=''\"> and ob.createtime &lt; #{param.endTime} </if>"+
+            "<if test=\"param.multiBackStates!=null and param.multiBackStates!=''\"> and ob.state in (${param.multiBackStates}) </if>"+
+            "<if test=\"param.prodNamAndOrderNo!=null and param.prodNamAndOrderNo!=''\"> and (ob.orderno like '%${param.prodNamAndOrderNo}%' or ob.pdname LIKE '%${param.prodNamAndOrderNo}%' ) </if>"+
+            " order by orders.id desc "+
+            "</script>")
+    List<OrderProductBackView> getOrderProductBackListForMp(@Param("param") BackQueryParam backQueryParam);
+
 }

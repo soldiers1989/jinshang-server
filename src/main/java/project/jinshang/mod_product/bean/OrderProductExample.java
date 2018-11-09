@@ -67,9 +67,9 @@ public class OrderProductExample {
 
     /**
      * null
-     * 
+     *
      * @author wcyong
-     * 
+     *
      * @date 2018-08-16
      */
     protected abstract static class GeneratedCriteria {
@@ -3372,6 +3372,66 @@ public class OrderProductExample {
             addCriterion("deliveryid not between", value1, value2, "deliveryid");
             return (Criteria) this;
         }
+
+        public Criteria andDiscountpayIsNull() {
+            addCriterion("discountpay is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscountpayIsNotNull() {
+            addCriterion("discountpay is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscountpayEqualTo(BigDecimal value) {
+            addCriterion("discountpay =", value, "discountpay");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscountpayNotEqualTo(BigDecimal value) {
+            addCriterion("discountpay <>", value, "discountpay");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscountpayGreaterThan(BigDecimal value) {
+            addCriterion("discountpay >", value, "discountpay");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscountpayGreaterThanOrEqualTo(BigDecimal value) {
+            addCriterion("discountpay >=", value, "discountpay");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscountpayLessThan(BigDecimal value) {
+            addCriterion("discountpay <", value, "discountpay");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscountpayLessThanOrEqualTo(BigDecimal value) {
+            addCriterion("discountpay <=", value, "discountpay");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscountpayIn(List<BigDecimal> values) {
+            addCriterion("discountpay in", values, "discountpay");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscountpayNotIn(List<BigDecimal> values) {
+            addCriterion("discountpay not in", values, "discountpay");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscountpayBetween(BigDecimal value1, BigDecimal value2) {
+            addCriterion("discountpay between", value1, value2, "discountpay");
+            return (Criteria) this;
+        }
+
+        public Criteria andDiscountpayNotBetween(BigDecimal value1, BigDecimal value2) {
+            addCriterion("discountpay not between", value1, value2, "discountpay");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {
@@ -3383,9 +3443,9 @@ public class OrderProductExample {
 
     /**
      * null
-     * 
+     *
      * @author wcyong
-     * 
+     *
      * @date 2018-08-16
      */
     public static class Criterion {

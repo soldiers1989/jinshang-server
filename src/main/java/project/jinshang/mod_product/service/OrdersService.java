@@ -13,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import project.jinshang.common.bean.MemberLogOperator;
 import project.jinshang.common.constant.AppConstant;
@@ -29,6 +28,11 @@ import project.jinshang.mod_admin.mod_inte.IntegralSetMapper;
 import project.jinshang.mod_admin.mod_inte.bean.IntegralRecord;
 import project.jinshang.mod_admin.mod_inte.bean.IntegralSet;
 import project.jinshang.mod_admin.mod_inte.bean.IntegralSetExample;
+import project.jinshang.mod_admin.mod_returnreason.bean.ReturnReason;
+import project.jinshang.mod_admin.mod_statement.bean.BuyerStatement;
+import project.jinshang.mod_admin.mod_statement.bean.BuyerStatementExample;
+import project.jinshang.mod_admin.mod_statement.service.StatementService;
+import project.jinshang.mod_admin.mod_overtimeorders.dto.OverTimeView;
 import project.jinshang.mod_admin.mod_transet.bean.TransactionSetting;
 import project.jinshang.mod_admin.mod_transet.service.TransactionSettingService;
 import project.jinshang.mod_cash.BuyerCapitalMapper;
@@ -36,6 +40,8 @@ import project.jinshang.mod_cash.SalerCapitalMapper;
 import project.jinshang.mod_cash.bean.BuyerCapital;
 import project.jinshang.mod_cash.bean.BuyerCapitalExample;
 import project.jinshang.mod_cash.bean.SalerCapital;
+import project.jinshang.mod_cash.bean.dto.BuyerCapitalViewDto;
+import project.jinshang.mod_cash.service.BuyerCapitalService;
 import project.jinshang.mod_common.SmsLogMapper;
 import project.jinshang.mod_common.bean.SmsLog;
 import project.jinshang.mod_common.bean.SmsTemplate;
@@ -71,6 +77,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -165,8 +172,11 @@ public class OrdersService {
 
     @Autowired
     private SellerCategoryMapper sellerCategoryMapper;
+
     @Autowired
     private ProductAttrMapper productAttrMapper;
+
+
     @Autowired
     private WMSService wmsService;
 
@@ -224,6 +234,11 @@ public class OrdersService {
 
     @Autowired
     private SmsLogMapper smsLogMapper;
+    @Autowired
+    private BuyerCapitalService buyerCapitalService;
+
+    @Autowired
+    private StatementService statementService;
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -231,7 +246,7 @@ public class OrdersService {
     private String profile;
 
     public void saveBuyerCapital(BuyerCapital buyerCapital) {
-        buyerCapitalMapper.insertSelective(buyerCapital);
+        buyerCapitalService.insertSelective(buyerCapital);
     }
 
     public void saveSellerCapital(SalerCapital salerCapital) {
@@ -240,6 +255,7 @@ public class OrdersService {
 
 
     public List<Orders> getOrdersByUUID(String outTradeNo) {
+        if(!StringUtils.hasText(outTradeNo)) return null;
         OrdersExample ordersExample = new OrdersExample();
         ordersExample.createCriteria().andUuidEqualTo(outTradeNo);
         return ordersMapper.selectByExample(ordersExample);
@@ -271,6 +287,10 @@ public class OrdersService {
 
     public void saveBillOrder(BillOrder billOrder) {
         billOrderMapper.insertSelective(billOrder);
+    }
+
+    public BillOrder getBillOrderByOrderId(Long orderid){
+        return billOrderMapper.getBillOrderByOrderId(orderid);
     }
 
     /**
@@ -1140,6 +1160,20 @@ public class OrdersService {
         return pageInfo;
     }
 
+    public PageInfo getOrderProductBackListForUserMp(int pageNo, int pageSize, BackQueryParam backQueryParam) {
+        PageHelper.startPage(pageNo, pageSize).setOrderBy("id desc");
+        List<OrderProductBackView> list = orderProductBackMapper.getOrderProductBackListForMp(backQueryParam);
+        list.forEach(orderProductBackView -> {
+            if (orderProductBackView.getClassifyid() != null) {
+                Categories categories = this.getCategories(orderProductBackView.getClassifyid());
+                orderProductBackView.setLevel3(categories.getName());
+            }
+        });
+
+        PageInfo<OrderProductBackView> pageInfo = new PageInfo(list);
+        return pageInfo;
+    }
+
 
     /**
      * 获取excel退货列表
@@ -1546,6 +1580,12 @@ public class OrdersService {
         return info;
     }
 
+    public PageInfo getMemberOrdersListForUserMp(OrderQueryParam param) {
+        PageHelper.startPage(param.getPageNo(), param.getPageSize()).setOrderBy("id desc");
+        PageInfo info = new PageInfo(ordersMapper.getMemberOrdersListForUserMp(param));
+        return info;
+    }
+
 
     /**
      * 商家待发货列表导出Excel
@@ -1621,7 +1661,7 @@ public class OrdersService {
      */
     public List<Map<String, Object>> getSellerExcelOrders(OrderQueryParam param) {
         //PageHelper.startPage(param.getPageNo(), param.getPageSize()).setOrderBy("id desc");
-        List<Orders> list = ordersMapper.getMemberOrdersList(param);
+        List<Orders> list = ordersMapper.getMemberOrdersListForUser(param);
         List<Map<String, Object>> memberOrderses = new ArrayList<Map<String, Object>>();
         Map orderStatus = new HashMap();
         orderStatus.put("0", "待付款");
@@ -1760,9 +1800,18 @@ try {
             maptemp.put("表面处理", map.get("surfacetreatment"));
             maptemp.put("包装方式", map.get("packagetype"));
             maptemp.put("单位", map.get("unit"));
-            maptemp.put("单价", map.get("price"));
+            BigDecimal oldPrice = (BigDecimal) map.get("price");
+            BigDecimal oldSinglebrokepay = (BigDecimal)map.get("singlebrokepay");
+            BigDecimal oldNum = (BigDecimal)map.get("num");
+            BigDecimal priceAccounts = oldPrice.subtract(oldSinglebrokepay);
+            maptemp.put("结算单价", priceAccounts);
+            maptemp.put("销售单价", map.get("price"));
             maptemp.put("订购量", map.get("num"));
-            maptemp.put("货款金额", map.get("actualpayment"));
+            BigDecimal  balanceAccounts = ((oldPrice.subtract(oldSinglebrokepay)).multiply(oldNum));
+            maptemp.put("结算金额", balanceAccounts.setScale(2,BigDecimal.ROUND_HALF_UP));
+            maptemp.put("销售总价", new BigDecimal(map.get("actualpayment").toString()).add(new BigDecimal(map.get("discountpay").toString())).setScale(2,BigDecimal.ROUND_HALF_UP));
+            //取订单里的运费
+            maptemp.put("运费", map.get("newfreight"));
             maptemp.put("订单状态", map.get("orderstatus"));
             maptemp.put("付款方式", map.get("paytype"));
 
@@ -2206,7 +2255,23 @@ try {
      * @param list
      */
     public void insertBuyerCapital(List<BuyerCapital> list) {
-        buyerCapitalMapper.insertAll(list);
+//        List<BuyerStatement> list1=new ArrayList<>();
+//        list.stream().forEach(buyerCapital -> {
+//            short capitaltype=buyerCapital.getCapitaltype();
+//            BuyerStatement buyerStatement=new BuyerStatement();
+//            switch (capitaltype){
+//                case 1:{
+//                    buyerStatement.setMemberid(buyerCapital.getMemberid());
+//                    buyerStatement.setContractno(buyerCapital.getRechargenumber());
+//                    buyerStatement.setType((short) StatementType.StType6.getTyep());
+//                    buyerStatement.setDeliveryamount(Quantity.BIG_DECIMAL_0);
+//                    buyerStatement.setReceiptamount(buyerCapital.getCapital());
+//                    buyerStatement.setInvoiceamount(Quantity.BIG_DECIMAL_0);
+//                    buyerStatement.setPaytype();
+//                }
+//            }
+//        });
+        buyerCapitalService.insertAll(list);
     }
 
     /**
@@ -2246,6 +2311,12 @@ try {
         return ordersMapper.updateByPrimaryKeySelective(orders);
     }
 
+
+    public int sendOutGoodsUpdateOrder(Orders orders,OrdersExample example){
+        return ordersMapper.updateByExampleSelective(orders,example);
+    }
+
+
     /**
      * 根据订单编号和类型获取买家资金明细
      *
@@ -2256,7 +2327,7 @@ try {
     public BuyerCapital getBuyerCapitalByNoType(String orderNo, Short type) {
         BuyerCapitalExample buyerCapitalExample = new BuyerCapitalExample();
         buyerCapitalExample.createCriteria().andOrdernoEqualTo(orderNo).andCapitaltypeEqualTo(type);
-        List<BuyerCapital> buyerCapitals = buyerCapitalMapper.selectByExample(buyerCapitalExample);
+        List<BuyerCapital> buyerCapitals = buyerCapitalService.selectByExample(buyerCapitalExample);
         if (buyerCapitals.size() > 0) {
             return buyerCapitals.get(0);
         } else {
@@ -2811,7 +2882,7 @@ try {
             newlogisticsInfo.setDeliveryno(GenerateNo.getInvoiceNo());
             orders.setOrderstatus(Quantity.STATE_3);
 
-            //orders.setSellerdeliverytime(new Date());
+            orders.setSellerdeliverytime(new Date());
             newlogisticsInfo.setTime(new Date());
             logisticsInfoService.insertLogisticsInfo(newlogisticsInfo);
             //回写deliveryid
@@ -2824,6 +2895,10 @@ try {
                     orderProductServices.updateByPrimaryKeySelective(newOrderProduct);
                 }
             }
+            //进行对账单的插入
+            Member buyer=memberService.getMemberById(orders.getMemberid());
+            BuyerStatement buyerStatement=createBuyerStateForSend(orders,orders.getActualpayment(),new Date(),buyer);
+            statementService.insertStatement(buyerStatement);
             return ordersMapper.updateByPrimaryKeySelective(orders);
         }catch (Exception e){
             throw new MyException("发货出差",e);
@@ -3107,11 +3182,11 @@ try {
         }
 
         list.forEach(orders -> {
-            //cachedThreadPool.execute(() -> {
+            cachedThreadPool.execute(() -> {
                 Member member = memberService.getMemberById(orders.getSaleid());
 
                 SellerCompanyInfo sellerCompanyInfo = sellerCompanyInfoMapper.getSellerCompanyByMemberid(member.getId());
-                String mobile = member.getMobile();
+                String mobile=sellerCompanyInfo.getLinkmantel();
                 // mobile = "18663868251";
                 if (sellerCompanyInfo.getSmsnotify() == Quantity.STATE_1 && StringUtils.hasText(mobile)) {
 
@@ -3133,7 +3208,7 @@ try {
 
                     smsLogMapper.insert(smsLog);
                 }
-            //});
+            });
         });
     }
 
@@ -3152,8 +3227,8 @@ try {
                 Member member = memberService.getMemberById(orders.getSaleid());
 
                 SellerCompanyInfo sellerCompanyInfo = sellerCompanyInfoMapper.getSellerCompanyByMemberid(member.getId());
+                String mobile=sellerCompanyInfo.getLinkmantel();
 
-                String mobile = member.getMobile();
                 // mobile = "18663868251";
                 if (sellerCompanyInfo.getSmsnotify() == Quantity.STATE_1 && StringUtils.hasText(mobile)) {
 
@@ -3198,7 +3273,7 @@ try {
                 Member member = memberService.getMemberById(orders.getSaleid());
 
                 SellerCompanyInfo sellerCompanyInfo = sellerCompanyInfoMapper.getSellerCompanyByMemberid(member.getId());
-                String mobile = member.getMobile();
+                String mobile=sellerCompanyInfo.getLinkmantel();
                 // mobile = "18663868251";
                 if (sellerCompanyInfo.getSmsnotify() == Quantity.STATE_1 && StringUtils.hasText(mobile)) {
 
@@ -3242,7 +3317,7 @@ try {
                 Member member = memberService.getMemberById(futureOrders.getSaleid());
 
                 SellerCompanyInfo sellerCompanyInfo = sellerCompanyInfoMapper.getSellerCompanyByMemberid(member.getId());
-                String mobile = member.getMobile();
+                String mobile=sellerCompanyInfo.getLinkmantel();
                 // mobile = "18663868251";
                 if (sellerCompanyInfo.getSmsnotify() == Quantity.STATE_1 && StringUtils.hasText(mobile)) {
 
@@ -4945,7 +5020,7 @@ try {
     }
 
     /**
-     * 根据用户id获取用户所有订单 且为已支付 即orderstatus不等于0
+     * 根据用户id获取用户所有订单 且为已支付 即orderstatus不等于0和7
      * @param memberid
      * @return
      */
@@ -5042,4 +5117,431 @@ try {
         List<OrdersLogisticsInfoDto> list = ordersMapper.getDeliveryNewRecord(param);
         return  new PageInfo(list);
     }
+    /**
+     * 查询除奥展，紧商外的所有店铺超时订单统计 forexcel导出
+     * @param time
+     * @param time1
+     * @param pageNo
+     * @param pageSize
+     * @return
+     */
+    public List<OverTimeView> getAllOverTimeOrdersListForExcel(String time,Date time1,int pageNo, int pageSize) {
+        //为了计算分页total用
+        List<SellerCompanyInfo> sellerCompanyInfoList = sellerCompanyInfoMapper.selectAllSellerCompanyInfo();
+        int totalsize = sellerCompanyInfoList.size();
+
+        Date time1temp = time1;
+        Date time1temp2 = time1;
+
+        //前端传进来选的时间的0点
+        String starttime = time+ " 00:00:00" ;
+        Timestamp starttime1 = Timestamp.valueOf(starttime);
+        //16点
+        String endtime = time + " 16:00:00";
+        Timestamp endtime1 = Timestamp.valueOf(endtime);
+        //昨天16点
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(time1);
+        calendar.add(Calendar.DAY_OF_MONTH, -1);
+        time1 = calendar.getTime();
+        String newdate = sdf.format(time1);
+        String yesterdaytime = newdate + " 16:00:00";
+        Timestamp yesterdaytime1 = Timestamp.valueOf(yesterdaytime);
+
+
+        //前天16点
+
+        SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar calendar1 = Calendar.getInstance();
+        calendar1.setTime(time1temp);
+        calendar1.add(Calendar.DAY_OF_MONTH, -2);
+        time1temp = calendar1.getTime();
+        String newdate1 = sdf.format(time1temp);
+        String beforeyesterdaytime = newdate1 + " 16:00:00";
+        Timestamp beforeyesterdaytime1 = Timestamp.valueOf(beforeyesterdaytime);
+
+
+        //大前天16点
+        SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar calendar2 = Calendar.getInstance();
+        calendar2.setTime(time1temp2);
+        calendar2.add(Calendar.DAY_OF_MONTH, -3);
+        time1temp2 = calendar2.getTime();
+        String newdate2 = sdf.format(time1temp2);
+        String threedaysagotime = newdate2 + " 16:00:00";
+        Timestamp threedaysagotime1 = Timestamp.valueOf(threedaysagotime);
+
+        Short orderstatus1  = Quantity.STATE_1;
+        Short orderstatus3  = Quantity.STATE_3;
+
+        List<OverTimeView> tempoverTimeViewList= new ArrayList<>();
+
+        //查询出全部店铺的的超时订单数量
+        for (SellerCompanyInfo sellerCompanyInfo:sellerCompanyInfoList) {
+            //超时发货总数
+            int overtimenum = ordersMapper.getOverTimeSendOrderNum(yesterdaytime1,sellerCompanyInfo.getMemberid(),orderstatus1);
+            //超时1天订单数量
+            int overtime1daynum = ordersMapper.getOverTime1DaySendOrderNum(beforeyesterdaytime1,yesterdaytime1,sellerCompanyInfo.getMemberid(),orderstatus1);
+            //超时2天订单数量
+            int overtime2daynum = ordersMapper.getOverTime2DaySendOrderNum(threedaysagotime1,beforeyesterdaytime1,sellerCompanyInfo.getMemberid(),orderstatus1);
+            //超时3天及以上订单数量
+            int overtime3daynum = ordersMapper.getOverTime3DaySendOrderNum(threedaysagotime1,sellerCompanyInfo.getMemberid(),orderstatus1);
+            OverTimeView overTimeView = new OverTimeView();
+            overTimeView.setOvertimenum(overtimenum);
+            overTimeView.setOvertime1daynum(overtime1daynum);
+            overTimeView.setOvertime2daynum(overtime2daynum);
+            overTimeView.setOvertime3daynum(overtime3daynum);
+            overTimeView.setCompanyname(sellerCompanyInfo.getCompanyname());
+            tempoverTimeViewList.add(overTimeView);
+        }
+        //对全部店铺的超时订单进行排序
+        List<OverTimeView> sortOverTimeViewList = getNewsList(tempoverTimeViewList);
+
+        //全部店铺的超时订单排序后的 根据前端传的页数和来取对应的值
+        //不进行分页 excel要求导出全部
+       /* List<OverTimeView> newOverTimeViewList  = new ArrayList<>();
+        List<Map<String,Object>> list = new ArrayList<>();
+        if(pageNo==1) {
+            newOverTimeViewList = sortOverTimeViewList.subList(0, pageNo * pageSize);
+        }else{
+            //判断最后一页的size情况(不满足10条时候)
+            if(pageNo * pageSize-totalsize>0){
+                newOverTimeViewList = sortOverTimeViewList.subList((pageNo - 1) * pageSize, totalsize);
+            }else {
+                newOverTimeViewList = sortOverTimeViewList.subList((pageNo - 1) * pageSize, pageNo * pageSize);
+            }
+        }*/
+        return sortOverTimeViewList;
+    }
+
+    /**
+     * 查询所有店铺超时订单统计
+     * @param time
+     * @param time1
+     * @param pageNo
+     * @param pageSize
+     * @return
+     */
+    public PageInfo getAllOverTimeOrdersList(String time,Date time1,int pageNo, int pageSize) {
+        //为了计算分页total用
+        List<SellerCompanyInfo> sellerCompanyInfoList = sellerCompanyInfoMapper.selectAllSellerCompanyInfo();
+        int totalsize = sellerCompanyInfoList.size();
+
+        Date time1temp = time1;
+        Date time1temp2 = time1;
+
+        //前端传进来选的时间的0点
+        String starttime = time+ " 00:00:00" ;
+        Timestamp starttime1 = Timestamp.valueOf(starttime);
+        //16点
+        String endtime = time + " 16:00:00";
+        Timestamp endtime1 = Timestamp.valueOf(endtime);
+        //昨天16点
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(time1);
+        calendar.add(Calendar.DAY_OF_MONTH, -1);
+        time1 = calendar.getTime();
+        String newdate = sdf.format(time1);
+        String yesterdaytime = newdate + " 16:00:00";
+        Timestamp yesterdaytime1 = Timestamp.valueOf(yesterdaytime);
+
+
+        //前天16点
+
+        SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar calendar1 = Calendar.getInstance();
+        calendar1.setTime(time1temp);
+        calendar1.add(Calendar.DAY_OF_MONTH, -2);
+        time1temp = calendar1.getTime();
+        String newdate1 = sdf.format(time1temp);
+        String beforeyesterdaytime = newdate1 + " 16:00:00";
+        Timestamp beforeyesterdaytime1 = Timestamp.valueOf(beforeyesterdaytime);
+
+
+        //大前天16点
+        SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar calendar2 = Calendar.getInstance();
+        calendar2.setTime(time1temp2);
+        calendar2.add(Calendar.DAY_OF_MONTH, -3);
+        time1temp2 = calendar2.getTime();
+        String newdate2 = sdf.format(time1temp2);
+        String threedaysagotime = newdate2 + " 16:00:00";
+        Timestamp threedaysagotime1 = Timestamp.valueOf(threedaysagotime);
+
+        Short orderstatus1  = Quantity.STATE_1;
+        Short orderstatus3  = Quantity.STATE_3;
+
+        List<OverTimeView> tempoverTimeViewList= new ArrayList<>();
+
+        //查询出全部店铺的的超时订单数量
+        for (SellerCompanyInfo sellerCompanyInfo:sellerCompanyInfoList) {
+            //超时发货总数
+            int overtimenum = ordersMapper.getOverTimeSendOrderNum(yesterdaytime1,sellerCompanyInfo.getMemberid(),orderstatus1);
+            //超时1天订单数量
+            int overtime1daynum = ordersMapper.getOverTime1DaySendOrderNum(beforeyesterdaytime1,yesterdaytime1,sellerCompanyInfo.getMemberid(),orderstatus1);
+            //超时2天订单数量
+            int overtime2daynum = ordersMapper.getOverTime2DaySendOrderNum(threedaysagotime1,beforeyesterdaytime1,sellerCompanyInfo.getMemberid(),orderstatus1);
+            //超时3天及以上订单数量
+            int overtime3daynum = ordersMapper.getOverTime3DaySendOrderNum(threedaysagotime1,sellerCompanyInfo.getMemberid(),orderstatus1);
+            OverTimeView overTimeView = new OverTimeView();
+            overTimeView.setOvertimenum(overtimenum);
+            overTimeView.setOvertime1daynum(overtime1daynum);
+            overTimeView.setOvertime2daynum(overtime2daynum);
+            overTimeView.setOvertime3daynum(overtime3daynum);
+            overTimeView.setCompanyname(sellerCompanyInfo.getCompanyname());
+            tempoverTimeViewList.add(overTimeView);
+        }
+        //对全部店铺的超时订单进行排序
+        List<OverTimeView> sortOverTimeViewList = getNewsList(tempoverTimeViewList);
+
+
+        //全部店铺的超时订单排序后的 根据前端传的页数和来取对应的值
+        List<OverTimeView> newOverTimeViewList  = new ArrayList<>();
+        if(pageNo==1) {
+            newOverTimeViewList = sortOverTimeViewList.subList(0, pageNo * pageSize);
+        }else{
+            //判断最后一页的size情况(不满足10条时候)
+            if(pageNo * pageSize-totalsize>0){
+                newOverTimeViewList = sortOverTimeViewList.subList((pageNo - 1) * pageSize, totalsize);
+            }else {
+                newOverTimeViewList = sortOverTimeViewList.subList((pageNo - 1) * pageSize, pageNo * pageSize);
+            }
+        }
+        PageInfo pageInfo = new PageInfo(newOverTimeViewList);
+        pageInfo.setTotal(totalsize);
+        return pageInfo;
+    }
+
+    /**
+     * 重新排序
+     * @param list
+     * @return
+     */
+    public  List getNewsList(List<OverTimeView> list)
+    {
+        // 按超时发货总数排序
+        Collections.sort(list, new Comparator<OverTimeView>(){
+            public int compare(OverTimeView arg0, OverTimeView arg1) {
+                int overtimenum0 = arg0.getOvertimenum();
+                int overtimenum1 = arg1.getOvertimenum();
+                if (overtimenum1 > overtimenum0) {
+                    return 1;
+                } else if (overtimenum1 == overtimenum0) {
+                    return 0;
+                } else {
+                    return -1;
+                }
+            }
+        });
+
+        return list;
+    }
+
+    /**
+     * 只查奥展和紧商的超时订单统计
+     * @param sellerCompanyInfoList
+     * @param time
+     * @param time1
+     * @param pageNo
+     * @param pageSize
+     * @return
+     */
+    public List<OverTimeView> getAoZhangJinShangOverTimeDeliveryList(List<SellerCompanyInfo> sellerCompanyInfoList, String time, Date time1, int pageNo, int pageSize) {
+        Date time1temp = time1;
+        Date time1temp2 = time1;
+        //前端传进来选的时间的0点
+        String starttime = time+ " 00:00:00" ;
+        Timestamp starttime1 = Timestamp.valueOf(starttime);
+        //16点
+        String endtime = time + " 16:00:00";
+        Timestamp endtime1 = Timestamp.valueOf(endtime);
+        //昨天16点
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(time1);
+        calendar.add(Calendar.DAY_OF_MONTH, -1);
+        time1 = calendar.getTime();
+        String newdate = sdf.format(time1);
+        String yesterdaytime = newdate + " 16:00:00";
+        Timestamp yesterdaytime1 = Timestamp.valueOf(yesterdaytime);
+
+
+        //前天16点
+
+        SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar calendar1 = Calendar.getInstance();
+        calendar1.setTime(time1temp);
+        calendar1.add(Calendar.DAY_OF_MONTH, -2);
+        time1temp = calendar1.getTime();
+        String newdate1 = sdf.format(time1temp);
+        String beforeyesterdaytime = newdate1 + " 16:00:00";
+        Timestamp beforeyesterdaytime1 = Timestamp.valueOf(beforeyesterdaytime);
+
+
+        //大前天16点
+        SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar calendar2 = Calendar.getInstance();
+        calendar2.setTime(time1temp2);
+        calendar2.add(Calendar.DAY_OF_MONTH, -3);
+        time1temp2 = calendar2.getTime();
+        String newdate2 = sdf.format(time1temp2);
+        String threedaysagotime = newdate2 + " 16:00:00";
+        Timestamp threedaysagotime1 = Timestamp.valueOf(threedaysagotime);
+
+        Short orderstatus1  = Quantity.STATE_1;
+        Short orderstatus3  = Quantity.STATE_3;
+
+        List<OverTimeView> jinShangAozhangList= new ArrayList<>();
+
+        for (SellerCompanyInfo sellerCompanyInfo:sellerCompanyInfoList) {
+            //超时发货总数
+            int overtimenum = ordersMapper.getOverTimeSendOrderNum(yesterdaytime1,sellerCompanyInfo.getMemberid(),orderstatus1);
+            //超时1天订单数量
+            int overtime1daynum = ordersMapper.getOverTime1DaySendOrderNum(beforeyesterdaytime1,yesterdaytime1,sellerCompanyInfo.getMemberid(),orderstatus1);
+            //超时2天订单数量
+            int overtime2daynum = ordersMapper.getOverTime2DaySendOrderNum(threedaysagotime1,beforeyesterdaytime1,sellerCompanyInfo.getMemberid(),orderstatus1);
+            //超时3天及以上订单数量
+            int overtime3daynum = ordersMapper.getOverTime3DaySendOrderNum(threedaysagotime1,sellerCompanyInfo.getMemberid(),orderstatus1);
+            OverTimeView overTimeView = new OverTimeView();
+            overTimeView.setOvertimenum(overtimenum);
+            overTimeView.setOvertime1daynum(overtime1daynum);
+            overTimeView.setOvertime2daynum(overtime2daynum);
+            overTimeView.setOvertime3daynum(overtime3daynum);
+            overTimeView.setCompanyname(sellerCompanyInfo.getCompanyname());
+            jinShangAozhangList.add(overTimeView);
+        }
+
+        return jinShangAozhangList;
+
+    }
+
+    /**
+     *退货成功创建退货记录
+     * @author xiazy
+     * @date  2018/9/27 18:34
+     * @param order
+     * @param amount
+     * @param tranTime
+     * @param payType
+     * @param type
+     * @param member
+     * @param returnReason
+     * @param isBuyer
+     * @return project.jinshang.mod_admin.mod_statement.bean.BuyerStatement
+     */
+    public   BuyerStatement createBuyerStateForBack(Orders order, BigDecimal amount, Date tranTime, Short payType, Short type, Member member, ReturnReason returnReason, Boolean isBuyer){
+        BuyerStatement buyerStatement=new BuyerStatement();
+        BigDecimal deliveryamount=Quantity.BIG_DECIMAL_0;
+        BigDecimal receiptamount=Quantity.BIG_DECIMAL_0;
+        buyerStatement.setMemberid(member.getId());
+        buyerStatement.setContractno(order.getOrderno());
+        buyerStatement.setType(type);
+        if ((type==StatementType.StType4.getTyep())){
+            if (returnReason!=null&&returnReason.getResponsibility()==2){
+                //卖家责任
+                amount=amount.multiply(new BigDecimal("-1"));
+                deliveryamount=amount;
+            }else if (!isBuyer){
+                amount=amount.multiply(new BigDecimal("-1"));
+            }
+            else {
+                deliveryamount=amount;
+            }
+        }
+        if (type==StatementType.StType3.getTyep()){
+            amount=amount.multiply(new BigDecimal("-1"));
+            deliveryamount=amount;
+        }
+        if (type==StatementType.StType5.getTyep()){
+            amount=amount.multiply(new BigDecimal("-1"));
+            receiptamount=amount;
+        }
+        buyerStatement.setDeliveryamount(deliveryamount);
+        buyerStatement.setReceiptamount(receiptamount);
+        buyerStatement.setInvoiceamount(Quantity.BIG_DECIMAL_0);
+        buyerStatement.setPaytype(payType);
+        buyerStatement.setCreatetime(tranTime);
+
+        List<BuyerCapitalViewDto> buyerCapitalViewDtos=buyerCapitalService.queryBuyerCapitalByOrderNo(order.getOrderno());
+        if(buyerCapitalViewDtos.size()>0&&buyerCapitalViewDtos.get(0).getInvoiceheadup()!=null){
+            buyerStatement.setBillrecoid(buyerCapitalViewDtos.get(0).getRecordid());
+        }
+        if (type==StatementType.StType3.getTyep() || type==StatementType.StType5.getTyep()){
+            BuyerStatementExample example=new BuyerStatementExample();
+            BuyerStatementExample.Criteria criteria=example.createCriteria();
+            criteria.andContractnoEqualTo(order.getOrderno());
+            criteria.andTypeEqualTo((short) StatementType.StType1.getTyep());
+            List<BuyerStatement> list=statementService.queryByExample(example);
+            if (list!=null&&list.size()>0){
+                buyerStatement.setRemark(list.get(0).getRemark());
+            }
+        }
+        if (type==StatementType.StType4.getTyep()){
+            if(isBuyer){
+                buyerStatement.setRemark(Quantity.BUYER_DEFAULT);
+            }else{
+                buyerStatement.setRemark(Quantity.SELLER_DEFAULT);
+            }
+
+        }
+        buyerStatement.setPayno(order.getUuid());
+        return buyerStatement;
+    }
+
+    /**
+     *发货时创建对账单明细(包括全部发货已基本部分发货)
+     * @author xiazy
+     * @date  2018/9/27 16:16
+     * @param order
+     * @param tranTime
+     * @param member
+     * @return project.jinshang.mod_admin.mod_statement.bean.BuyerStatement
+     */
+    public   BuyerStatement createBuyerStateForSend(Orders order, BigDecimal amount, Date tranTime,Member member){
+        BuyerStatement buyerStatement=new BuyerStatement();
+        buyerStatement.setMemberid(member.getId());
+        buyerStatement.setContractno(order.getOrderno());
+        buyerStatement.setType((short) StatementType.StType2.getTyep());
+        buyerStatement.setDeliveryamount(amount);
+        buyerStatement.setReceiptamount(Quantity.BIG_DECIMAL_0);
+        buyerStatement.setInvoiceamount(Quantity.BIG_DECIMAL_0);
+        buyerStatement.setCreatetime(tranTime);
+        String remarks=null;
+        List<BuyerCapitalViewDto> buyerCapitalViewDtos=buyerCapitalService.queryBuyerCapitalByOrderNo(order.getOrderno());
+        if(buyerCapitalViewDtos.size()>0&&buyerCapitalViewDtos.get(0).getInvoiceheadup()!=null){
+            buyerStatement.setBillrecoid(buyerCapitalViewDtos.get(0).getRecordid());
+            BuyerCapitalViewDto buyerCapitalViewDto=buyerCapitalViewDtos.get(0);
+
+            if (buyerCapitalViewDto.getInvoiceheadup().equals(member.getUsername())){
+                remarks=member.getId()+"\r\n"+member.getUsername();
+            }else{
+                remarks=buyerCapitalViewDto.getInvoiceheadup();
+            }
+        }else {
+            remarks=member.getId()+"\r\n"+member.getUsername();
+        }
+        BuyerStatementExample example1=new BuyerStatementExample();
+        BuyerStatementExample.Criteria criteria1=example1.createCriteria();
+        criteria1.andContractnoEqualTo(order.getOrderno());
+        criteria1.andTypeEqualTo(Quantity.STATE_1);
+        List<BuyerStatement> list1=statementService.queryByExample(example1);
+        if (list1!=null&&list1.size()>0){
+            buyerStatement.setRemark(list1.get(0).getRemark());
+        }else {
+            buyerStatement.setRemark(remarks);
+        }
+        BuyerCapitalExample example=new BuyerCapitalExample();
+        BuyerCapitalExample.Criteria criteria=example.createCriteria();
+        criteria.andOrdernoEqualTo(order.getOrderno());
+        criteria.andCapitaltypeEqualTo(Quantity.STATE_0);
+        List<BuyerCapital> list=buyerCapitalService.selectByExample(example);
+        if (list!=null&&list.size()>0){
+            buyerStatement.setPaytype(list.get(0).getPaytype());
+        }
+//        buyerStatement.setPayno(order.getUuid());
+        return buyerStatement;
+    }
+
 }

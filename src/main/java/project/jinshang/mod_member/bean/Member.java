@@ -247,6 +247,9 @@ public class Member implements Serializable{
     @ApiModelProperty(notes = "关联业务员时间")
     private Date waysalesmansetdate;
 
+    @ApiModelProperty(notes = "授信是否可透支0-不可1-可以")
+    private Short iscreditoverdraft;
+
     public Short getIsbuy() {
         return isbuy;
     }
@@ -896,5 +899,13 @@ public class Member implements Serializable{
 
     public void setWaysalesmansetdate(Date waysalesmansetdate) {
         this.waysalesmansetdate = waysalesmansetdate;
+    }
+
+    public Short getIscreditoverdraft() {
+        return iscreditoverdraft;
+    }
+
+    public void setIscreditoverdraft(Short iscreditoverdraft) {
+        this.iscreditoverdraft = iscreditoverdraft;
     }
 }

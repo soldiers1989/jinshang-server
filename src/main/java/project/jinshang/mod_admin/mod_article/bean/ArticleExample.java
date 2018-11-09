@@ -874,6 +874,126 @@ public class ArticleExample {
             addCriterion("pic not between", value1, value2, "pic");
             return (Criteria) this;
         }
+
+        public Criteria andTypeIsNull() {
+            addCriterion("type is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeIsNotNull() {
+            addCriterion("type is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeEqualTo(Short value) {
+            addCriterion("type =", value, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeNotEqualTo(Short value) {
+            addCriterion("type <>", value, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeGreaterThan(Short value) {
+            addCriterion("type >", value, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeGreaterThanOrEqualTo(Short value) {
+            addCriterion("type >=", value, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeLessThan(Short value) {
+            addCriterion("type <", value, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeLessThanOrEqualTo(Short value) {
+            addCriterion("type <=", value, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeIn(List<Short> values) {
+            addCriterion("type in", values, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeNotIn(List<Short> values) {
+            addCriterion("type not in", values, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeBetween(Short value1, Short value2) {
+            addCriterion("type between", value1, value2, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andTypeNotBetween(Short value1, Short value2) {
+            addCriterion("type not between", value1, value2, "type");
+            return (Criteria) this;
+        }
+
+        public Criteria andIscarouselIsNull() {
+            addCriterion("iscarousel is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIscarouselIsNotNull() {
+            addCriterion("iscarousel is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andIscarouselEqualTo(Short value) {
+            addCriterion("iscarousel =", value, "iscarousel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIscarouselNotEqualTo(Short value) {
+            addCriterion("iscarousel <>", value, "iscarousel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIscarouselGreaterThan(Short value) {
+            addCriterion("iscarousel >", value, "iscarousel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIscarouselGreaterThanOrEqualTo(Short value) {
+            addCriterion("iscarousel >=", value, "iscarousel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIscarouselLessThan(Short value) {
+            addCriterion("iscarousel <", value, "iscarousel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIscarouselLessThanOrEqualTo(Short value) {
+            addCriterion("iscarousel <=", value, "iscarousel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIscarouselIn(List<Short> values) {
+            addCriterion("iscarousel in", values, "iscarousel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIscarouselNotIn(List<Short> values) {
+            addCriterion("iscarousel not in", values, "iscarousel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIscarouselBetween(Short value1, Short value2) {
+            addCriterion("iscarousel between", value1, value2, "iscarousel");
+            return (Criteria) this;
+        }
+
+        public Criteria andIscarouselNotBetween(Short value1, Short value2) {
+            addCriterion("iscarousel not between", value1, value2, "iscarousel");
+            return (Criteria) this;
+        }
     }
 
     public static class Criteria extends GeneratedCriteria {

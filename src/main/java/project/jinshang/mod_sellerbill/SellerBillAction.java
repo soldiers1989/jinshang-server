@@ -25,10 +25,7 @@ import project.jinshang.common.constant.AdminAuthorityConst;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.constant.SellerAuthorityConst;
-import project.jinshang.common.utils.ExcelGen;
-import project.jinshang.common.utils.GenerateNo;
-import project.jinshang.common.utils.GsonUtils;
-import project.jinshang.common.utils.StringUtils;
+import project.jinshang.common.utils.*;
 import project.jinshang.mod_cash.bean.SalerCapital;
 import project.jinshang.mod_cash.bean.dto.SalerCapitalQueryDto;
 import project.jinshang.mod_cash.service.SalerCapitalService;
@@ -446,8 +443,9 @@ public class SellerBillAction {
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
         XSSFWorkbook workbook = null;
         try {
-            String[] rowTitles = new String[]{"订单号","下单时间", "合同号",  "交易号", "订单类型", "订单来源", "商品名称", "规格","商品分类", "材质", "牌号", "品牌", "印记", "表面处理", "包装方式", "单位", "单价", "订购量", "货款金额", "订单状态","付款方式"};
-            String[] sumCols = new String[]{"订购量","货款金额"};
+            String[] rowTitles = new String[]{"订单号","下单时间", "合同号",  "交易号", "订单类型", "订单来源", "商品名称", "规格","商品分类", "材质", "牌号", "品牌", "印记", "表面处理", "包装方式", "单位","结算单价","销售单价", "订购量", "结算金额","销售总价","运费", "订单状态","付款方式"};
+            String[] sumCols = new String[]{"订购量","销售总价","结算金额"};
+
 
             String orderid = "";
             for(int i=0;i<ordersid.length;i++){
@@ -460,9 +458,11 @@ public class SellerBillAction {
             List<Map<String, Object>> list = ordersService.getExcelSellerBillOrders(member.getId(),orderid);
 
             //workbook = ExcelUtils.poiSteColumnMergCeellExcel("订单列表",rowTitles,list,0,sumCols);
-            workbook = ExcelGen.common("开票记录订单列表", rowTitles, list, sumCols);
+            workbook = ExcelGen.commonSellBill("开票记录订单列表", rowTitles, list, sumCols);
             if (workbook != null) {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                //sheet.addMergedRegion(new CellRangeAddress(firstRow, lastRow, firstCol, lastCol));
+
                 workbook.write(baos);
                 System.out.println(baos.toByteArray().length);
                 HttpHeaders headers = new HttpHeaders();

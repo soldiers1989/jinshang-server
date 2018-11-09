@@ -319,4 +319,14 @@ public class ProductStoreService {
        return   productStoreMapper.getPdidByStoreidAndPdno(storeid,pdno);
     }
 
+    /**
+     * 紧固件产品库修改重量后，商品信息也要修改
+     * @param weight
+     * @param productid
+     * @return
+     */
+    public int updateWeightByProductsid(BigDecimal weight,  Long productid){
+        return productStoreMapper.updateWeightByProductsid(weight,productid);
+    }
+
 }

@@ -1,9 +1,17 @@
 
 var:
   server: 120.27.226.95
+  server-test: 47.98.222.182
+
   server-db: 121.196.200.218  #正式 数据库ip 主
   server-db-inner: 172.16.27.254 #正式 数据库ip 主（内网）
-  server-test: 47.98.222.182
+
+  elas-server: 121.196.200.218 #搜索引擎
+  elas-server-inner: 172.16.27.254
+
+  redis-server: 47.99.113.43
+  redis-server-inner: 172.16.28.1
+
   appName: jinshang-server
 
 server:
@@ -20,7 +28,7 @@ spring:
     multipart:
       enabled: false
   redis:
-    host: ${var.server}
+    host: ${var.redis-server-inner}
     port: 6379
     password: 503149
     database: 1
@@ -64,7 +72,7 @@ logging:
 project:
   projectStaticPre: http://
   staticResVersion: 1.0.0
-  projectDomain: http://120.27.226.95/jinshang-server
+  projectDomain: http://www.jinshang9.com/jinshang-server
   projectDomainMain: http://www.jinshang9.com
   projectPath: /root/${var.appName}
   iconfontPath: http://
@@ -77,16 +85,22 @@ mybatis:
 
 mod:
   sms_dayu:
-    accessKey: LTAIJkBUMwwBJ5ur
-    accessKeySecret: mvFFxILHpMj62iEcuU6B4tahXykV9q
+    accessKey: LTAI2FyqdxYpcBvF
+    accessKeySecret: J41OqO0qj9s7a8rSiHMElkuXg9Hoau
     signName: 紧商网
-    templateCode: SMS_133972264
+    templateCode: SMS_150173096
   oss_ali:
-    accessKey: LTAIJkBUMwwBJ5ur
-    accessKeySecret: mvFFxILHpMj62iEcuU6B4tahXykV9q
+#    accessKey: LTAIJkBUMwwBJ5ur
+#    accessKeySecret: mvFFxILHpMj62iEcuU6B4tahXykV9q
+#    endpoint: http://oss-cn-hangzhou.aliyuncs.com
+#    bucketName: jinshang-hz
+#    arn: acs:ram::1700049709813846:role/ossapp
+#    region: oss-cn-hangzhou
+    accessKey: LTAI2FyqdxYpcBvF
+    accessKeySecret: J41OqO0qj9s7a8rSiHMElkuXg9Hoau
     endpoint: http://oss-cn-hangzhou.aliyuncs.com
-    bucketName: jinshang-hz
-    arn: acs:ram::1700049709813846:role/ossapp
+    bucketName: jinshang9-hz
+    arn: acs:ram::1330924279368455:role/ossapp
     region: oss-cn-hangzhou
   wechat:
     pay:
@@ -96,22 +110,27 @@ mod:
       subAppId:
       subMchId:
       keyPath: /root/jinshang-server/wx/apiclient_cert.p12
+      mpAppId: wx83a0454391fc2d5f
+
 #      keyPath: /Users/ycj/Downloads/WEIXINcert/apiclient_cert.p12
     login:  #微信登录web端
       appId: wx3e4de0fae28317d3
       appSecret: d9515d90025aac05da85c8e05acd9652
       accsstokenUrl: https://api.weixin.qq.com/sns/oauth2/access_token?appid=APPID&secret=SECRET&code=CODE&grant_type=authorization_code
       globalAccsstokenUrl: https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=APPID&secret=APPSECRET
+      wxacctokUrlTinyProg: https://api.weixin.qq.com/sns/jscode2session?appid=APPID&secret=SECRET&js_code=JSCODE&grant_type=authorization_code
       jsapiTicketUrl: https://api.weixin.qq.com/cgi-bin/ticket/getticket?access_token=ACCESS_TOKEN&type=jsapi
       wxinfoUrl: https://api.weixin.qq.com/sns/userinfo?access_token=ACCESS_TOKEN&openid=OPENID
       wapAppId: wx6eb2a1213254a1df #微信公众号
       wapAppSecret: e349883ee40b7521390f07f5158c164f
+      tinyProgAppId: wx83a0454391fc2d5f
+      tinyProgSecret: 3b03e15f4d2739aa5e20861018da9302
   middleware:
 #    serverurl: http://new.jinshang9.com/jinshang-middleware-test
     serverurl: http://jinshang-middleware.jinshang9.com:8081/jinshang-middleware
     aozhanurl: http://aozhan-middleware.jinshang9.com:8082/aozhan-middleware
   es:
-    ip: ${var.server}
+    ip: ${var.elas-server-inner}
     port: 12040
 
 pagehelper:
@@ -126,7 +145,7 @@ shop:
   self-support:
     id: 8095|5623|109|107  #自营店id
   productstore-check:
-    id: 109|4964|5854|5659|13780|17365    #推送紧商中间件店铺id  #库存盘点卖家id
+    id: 109|4964|5854|5659|13780|17365|5996|107|8282    #推送紧商中间件店铺id  #库存盘点卖家id
   orders-syn:
     id: 107|108|109|8095|5623 #订单推送商家id
   aozhan-syn:
@@ -148,7 +167,7 @@ spring:
   application:
     name: ${var.appName}-dev
   redis:
-      host: ${var.server}
+      host: ${var.redis-server}
       port: 6379
       password: 503149
       database: 9
@@ -186,7 +205,7 @@ shop:
   self-support:
     id: 8095|5623|109|107  #自营店id
   productstore-check:
-    id: 109   #库存盘点卖家id
+    id: 109|4964|5854|5659|13780|17365|5996|107|8282   #库存盘点卖家id
   orders-syn:
     id: 107|108|109|8095|5623 #订单推送商家id
   aozhan-syn:
@@ -210,7 +229,7 @@ spring:
   application:
     name: ${var.appName}-test
   redis:
-    host: ${var.server}
+    host: ${var.redis-server}
     port: 6379
     password: 503149
     database: 5
@@ -227,7 +246,7 @@ shop:
   self-support:
     id: 8095|5623|109|107  #自营店id
   productstore-check:
-    id: 109   #库存盘点卖家id
+    id: 109|4964|5854|5659|13780|17365|5996|107|8282   #库存盘点卖家id
   orders-syn:
     id: 107|108|109|8095|5623 #订单推送商家id
   aozhan-syn:

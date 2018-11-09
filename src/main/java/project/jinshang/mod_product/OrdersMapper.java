@@ -3,6 +3,7 @@ package project.jinshang.mod_product;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.jdbc.SQL;
 import project.jinshang.common.constant.Quantity;
+import project.jinshang.common.utils.DateUtils;
 import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_admin.mod_count.bean.OrderStatisticModel;
 import project.jinshang.mod_cash.bean.SalerCapital;
@@ -12,7 +13,9 @@ import project.jinshang.mod_product.bean.dto.OrdersView;
 import project.jinshang.mod_product.provider.OrdersProvider;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.text.MessageFormat;
+import java.time.LocalTime;
 import java.util.*;
 
 public interface OrdersMapper {
@@ -168,6 +171,85 @@ public interface OrdersMapper {
      */
     @SelectProvider(type = OrdersSumBrokerProvider.class, method = "queryByParam")
     public BigDecimal getOrdersSumBroker(OrderQueryParam param);
+
+
+
+
+    /**
+     * 某个卖家超时发货总数
+     * @param endtime
+     * @param saleid
+     * @param orderstatus
+     * @return
+     */
+    @Select("<script>SELECT count(0) " +
+            " from orders o " +
+            "<where> 1=1 " +
+            "<if test=\"endtime != null\">and o.paymenttime &lt;= #{endtime} </if>" +
+            "<if test=\"saleid != null and saleid!='' \">and o.saleid = #{saleid} </if>" +
+            "<if test=\"orderstatus != null and orderstatus!='' \">and o.orderstatus = #{orderstatus} </if>" +
+            "and o.sellerdeliverytime is null "+
+            "</where>" +
+            "</script>")
+    int getOverTimeSendOrderNum(@Param("endtime")Date endtime,@Param("saleid") Long saleid,@Param("orderstatus")Short orderstatus);
+
+    /**
+     * 某个卖家超时1天订单数量
+     * @param starttime
+     * @param endtime
+     * @param saleid
+     * @param orderstatus
+     * @return
+     */
+    @Select("<script>SELECT count(0) " +
+            " from orders o " +
+            "<where> 1=1 " +
+            "<if test=\"starttime != null\">and o.paymenttime &gt;= #{starttime} </if>" +
+            "<if test=\"endtime != null\">and o.paymenttime &lt;= #{endtime} </if>" +
+            "<if test=\"saleid != null and saleid!='' \">and o.saleid = #{saleid} </if>" +
+            "<if test=\"orderstatus != null and orderstatus!='' \">and o.orderstatus = #{orderstatus} </if>" +
+            "and o.sellerdeliverytime is null "+
+            "</where>" +
+            "</script>")
+    int getOverTime1DaySendOrderNum(@Param("starttime")Date starttime,@Param("endtime") Date endtime,@Param("saleid") Long saleid,@Param("orderstatus")Short orderstatus);
+
+    /**
+     * 某个卖家超时2天订单数量
+     * @param starttime
+     * @param endtime
+     * @param saleid
+     * @param orderstatus
+     * @return
+     */
+    @Select("<script>SELECT count(0) " +
+            " from orders o " +
+            "<where> 1=1 " +
+            "<if test=\"starttime != null\">and o.paymenttime &gt;= #{starttime} </if>" +
+            "<if test=\"endtime != null\">and o.paymenttime &lt;= #{endtime} </if>" +
+            "<if test=\"saleid != null and saleid!='' \">and o.saleid = #{saleid} </if>" +
+            "<if test=\"orderstatus != null and orderstatus!='' \">and o.orderstatus = #{orderstatus} </if>" +
+            "and o.sellerdeliverytime is null "+
+            "</where>" +
+            "</script>")
+    int getOverTime2DaySendOrderNum(@Param("starttime")Date starttime,@Param("endtime") Date endtime,@Param("saleid") Long saleid,@Param("orderstatus")Short orderstatus);
+
+    /**
+     * 某个卖家超时3天订单数量
+     * @param endtime
+     * @param saleid
+     * @param orderstatus
+     * @return
+     */
+    @Select("<script>SELECT count(0) " +
+            " from orders o " +
+            "<where> 1=1 " +
+            "<if test=\"endtime != null\">and o.paymenttime &lt;= #{endtime} </if>" +
+            "<if test=\"saleid != null and saleid!='' \">and o.saleid = #{saleid} </if>" +
+            "<if test=\"orderstatus != null and orderstatus!='' \">and o.orderstatus = #{orderstatus} </if>" +
+            "and o.sellerdeliverytime is null "+
+            "</where>" +
+            "</script>")
+    int getOverTime3DaySendOrderNum(@Param("endtime") Date endtime,@Param("saleid") Long saleid,@Param("orderstatus")Short orderstatus);
 
 
     public class OrdersSumBrokerProvider {
@@ -1081,7 +1163,7 @@ public interface OrdersMapper {
      * @param ids
      * @return
      */
-    @Select("SELECT id,orderno,totalprice,actualpayment,freight,allpay,deposit,balance,ordertype,orderstatus,saleid,paytype,memberid,uuid,yuuuid from orders where id in (${ids})")
+    @Select("SELECT id,orderno,totalprice,actualpayment,freight,allpay,deposit,balance,ordertype,orderstatus,saleid,paytype,memberid,uuid,yuuuid,discountprice from orders where id in (${ids})")
     public List<Orders> getOrdersByInIds(@Param("ids") String ids);
 
 
@@ -1289,6 +1371,44 @@ public interface OrdersMapper {
                 param.setRegisterTimeEnd(tomorrow);
                 sql.WHERE("m.createdate <=#{registerTimeEnd}");
             }
+            //超时时间
+            if(param.getOvertime() != null) {
+                //获取当前系统时间
+                LocalTime time = LocalTime.now();
+                int h = time.getHour();
+                //获取今天时间16点
+                String todaytime = DateUtils.LastOrNextDate(0) + " 16:00:00";
+                Timestamp todaytime1 = Timestamp.valueOf(todaytime);
+                param.setTodaytime(todaytime1);
+                //获取昨天时间16点
+                String yesterday = DateUtils.LastOrNextDate(-1) + " 16:00:00";
+                Timestamp yesterday1 = Timestamp.valueOf(yesterday);
+                param.setYesterdaytime(yesterday1);
+                //获取前天时间16点
+                String beforeyesterday = DateUtils.LastOrNextDate(-2) + " 16:00:00";
+                Timestamp beforeyesterday1 = Timestamp.valueOf(beforeyesterday);
+                param.setBeforeyesterdaytime(beforeyesterday1);
+                //获取大前天时间16点
+                String threedaysago = DateUtils.LastOrNextDate(-3) + " 16:00:00";
+                Timestamp threedaysago1 = Timestamp.valueOf(beforeyesterday);
+                param.setThreedaysagotime(threedaysago1);
+                if (param.getOvertime() == 0) {
+                    //昨天16点之前生成的未发货订单。
+                    sql.WHERE("od.paymenttime < #{yesterdaytime} AND od.orderstatus = '1' AND sellerdeliverytime IS NULL");
+                }
+                if (param.getOvertime() == 1) {
+                    //昨天16点之前(00:00 - 15:59)生成的未发货订单 + 前天16点及以后(16:00 - 24:00)生成的未发货订单
+                    sql.WHERE("od.paymenttime > #{beforeyesterdaytime}  AND od.paymenttime < #{yesterdaytime} AND od.orderstatus = '1' AND od.sellerdeliverytime IS NULL");
+                }
+                if (param.getOvertime() == 2) {
+                    //前天16点之前(00:00 - 15:59)生成的未发货订单 + 大前天16点及以后(16:00 - 24:00)生成的未发货订单
+                    sql.WHERE("od.paymenttime > #{threedaysagotime}  AND od.paymenttime < #{beforeyesterdaytime} AND od.orderstatus = '1' AND od.sellerdeliverytime IS NULL");
+                }
+                if (param.getOvertime() == 3) {
+                    //大前天16点之前生成的所有未发货订单
+                    sql.WHERE("od.paymenttime < #{threedaysagotime} AND od.orderstatus = '1' AND od.sellerdeliverytime IS NULL");
+                }
+            }
 
             sql.ORDER_BY("od.createtime desc");
 
@@ -1309,12 +1429,12 @@ public interface OrdersMapper {
 
         public String queryOrderByParam(@Param("saleid") Long saleid,@Param("orderid") String orderid) {
             StringBuffer sb = new StringBuffer();
-            sb.append("od.createtime,od.code,od.orderno,od.transactionnumber,od.frozepay,");
+            sb.append("od.createtime,od.code,od.orderno,od.transactionnumber,od.frozepay,od.freight as newfreight,");
             sb.append("case od.paytype when 0 then '支付宝' when 1 then '微信' when 2 then '银行卡' when 3 then '余额' when 4 then '授信' end as paytype, ");//支付方式0=支付宝1=微信2=银行卡3=余额4=授信
             sb.append("case when od.ordertype=0 then '现货' else '远期' END as ordertype,");
             sb.append("case when od.isonline=1 then '线下' ELSE '线上' end as inonline,");
-            sb.append("op.pdname,op.attrjson,op.standard,op.material,op.gradeno,op.brand,info.mark,");
-            sb.append("info.surfacetreatment,info.packagetype,op.unit,op.price,op.num,op.actualpayment,info.level1,info.level2,info.level3,");
+            sb.append("op.pdname,op.attrjson,op.standard,op.material,op.gradeno,op.brand,op.singlebrokepay,info.mark,");
+            sb.append("info.surfacetreatment,info.packagetype,op.unit,op.price,op.num,op.actualpayment,op.discountpay,info.level1,info.level2,info.level3,");
             sb.append("case od.orderstatus when 0 then '待付款' when 1 then '待发货'");
             sb.append("when 3 then '待收货' when 4 then '待验货' when 5 then '已完成'");
             sb.append("when 7 then '已关闭' when 8 then '备货中' when 9 then '备货完成'");
@@ -1328,6 +1448,8 @@ public interface OrdersMapper {
             if (orderid != null && orderid != "") {
                 sql.WHERE("od.id in ("+orderid+")");
             }
+            //过滤掉 退货的
+            sql.WHERE("op.backstate = 0");
             sql.ORDER_BY("od.createtime desc");
 
             return sql.toString();
@@ -1534,6 +1656,36 @@ public interface OrdersMapper {
 
     @SelectProvider(type = OrdersProvider.class, method = "queryOrderByParamForUser")
     List<Orders> getMemberOrdersListForUser(OrderQueryParam param);
+
+    @Select("<script> select DISTINCT orders.* from orders " +
+            "<if test=\"param.brand !=null or param.pdName!=null or param.mark!=null or param.backstate!=null or param.evaState!=null or param.stand!=null or param.prodNamAndOrderNo !=null\">left join orderproduct op on orders.id=op.orderid </if>"+
+            " where 1=1 "+
+            "<if test=\"param.memberid!=null and param.memberid!=''\"> and orders.memberid=#{param.memberid} </if>"+
+            "<if test=\"param.sellerid!=null and param.sellerid!=''\"> and orders.saleid=#{param.sellerid} </if>"+
+            "<if test=\"param.sellerName!=null and param.sellerName!=''\"> and (orders.membercompany like CONCAT(\"%\",#{param.sellerName},\"%\") or orders.shopname like CONCAT(\"%\",#{param.sellerName},\"%\")) </if>"+
+            "<if test=\"param.memberName!=null and param.memberName!=''\"> and (orders.membercompany like CONCAT(\"%\",#{param.memberName},\"%\") or m.realname like CONCAT(\"%\",#{param.memberName},\"%\")) </if>"+
+            "<if test=\"param.pdName!=null and param.pdName!=''\"> and op.pdname LIKE CONCAT(\"%\",#{param.pdName},\"%\") </if>"+
+            "<if test=\"param.orderNo!=null and param.orderNo!=''\"> and orders.orderno LIKE CONCAT(\"%\",#{param.orderNo},\"%\") </if>"+
+            "<if test=\"param.code!=null and param.code!=''\"> and orders.code LIKE CONCAT(\"%\",#{param.code},\"%\") </if>"+
+            "<if test=\"param.tranNo!=null and param.tranNo!=''\"> and orders.transactionnumber LIKE CONCAT(\"%\",#{param.tranNo},\"%\") </if>"+
+            "<if test=\"param.startTime!=null and param.startTime!=''\"> and orders.createtime &gt; #{param.startTime} </if>"+
+            "<if test=\"param.endTime!=null and param.endTime!=''\"> and orders.createtime &lt; #{param.endTime} </if>"+
+            "<if test=\"param.presellconfim!=null and param.presellconfim!='' and param.presellconfim!=-1\"> and orders.presellconfim=#{param.presellconfim} </if>"+
+            "<if test=\"param.prestocktimeStart!=null and param.prestocktimeStart!=''\"> and orders.prestocktime &gt; #{param.prestocktimeStart} </if>"+
+            "<if test=\"param.prestocktimeEnd!=null and param.prestocktimeEnd!=''\"> and orders.prestocktime &lt; #{param.prestocktimeEnd} </if>"+
+            "<if test=\"param.startPayTime!=null and param.startPayTime!=''\"> and orders.paymenttime &gt; #{param.startPayTime} </if>"+
+            "<if test=\"param.endPayTime!=null and param.endPayTime!=''\"> and orders.paymenttime &lt; #{param.endPayTime} </if>"+
+            "<if test=\"param.brand!=null and param.brand!=''\"> and op.brand LIKE CONCAT(\"%\",#{param.brand},\"%\") </if>"+
+            "<if test=\"param.mark!=null and param.mark!=''\"> and op.mark LIKE CONCAT(\"%\",#{param.mark},\"%\") </if>"+
+            "<if test=\"param.stand!=null and param.stand!=''\"> and op.standard LIKE CONCAT(\"%\",#{param.stand},\"%\") </if>"+
+            "<if test=\"param.orderState!=null and param.orderState!=''\"> and orders.orderstatus=#{param.orderState} </if>"+
+            "<if test=\"param.multiOrderStates!=null and param.multiOrderStates!=''\"> and orders.orderstatus in (${param.multiOrderStates}) </if>"+
+            "<if test=\"param.evaState!=null and param.evaState!=''\"> and op.evaluatestate=#{param.evaState} </if>"+
+            "<if test=\"param.backstate!=null and param.backstate!=''\"> and op.backstate=#{param.backstate} </if>"+
+            "<if test=\"param.prodNamAndOrderNo!=null and param.prodNamAndOrderNo!=''\"> and (orders.orderno like '%${param.prodNamAndOrderNo}%' or op.pdname LIKE '%${param.prodNamAndOrderNo}%' ) </if>"+
+            " order by orders.id desc "+
+            "</script>")
+    List<Orders> getMemberOrdersListForUserMp(@Param("param") OrderQueryParam param);
 
 
 
@@ -1767,7 +1919,7 @@ public interface OrdersMapper {
      * @param orders
      * @return
      */
-    @Update("update orders set brokepay=#{brokepay},frozepay=#{frozepay},serverpay=#{serverpay},orderstatus=5,buyerinspectiontime=now() where id=#{id} and orderstatus=4 ")
+    @Update("update orders set brokepay=#{brokepay},frozepay=#{frozepay},serverpay=#{serverpay},orderstatus=5,totalprice=#{totalprice},actualpayment=#{actualpayment},discountprice=#{discountprice},buyerinspectiontime=now() where id=#{id} and orderstatus=4 ")
     int updateOrdersConfirmgoods(Orders orders);
 
     /**
@@ -1803,11 +1955,11 @@ public interface OrdersMapper {
     List<Orders> findOrdersByuserid(@Param("memberid") Long memberid);
 
     /**
-     * 根据用户id获取用户所有订单 且为已支付 即orderstatus不等于0
+     * 根据用户id获取用户所有订单 且为已支付 即orderstatus不等于0和7
      * @param memberid
      * @return
      */
-    @Select("select o.*  from orders o WHERE o.memberid=#{memberid} and o.orderstatus !=0")
+    @Select("select o.*  from orders o WHERE o.memberid=#{memberid} and o.orderstatus !=0 and o.orderstatus !=7 ")
     List<Orders> findOrdersByuseridAndOrderStatus(@Param("memberid") Long memberid);
 
 

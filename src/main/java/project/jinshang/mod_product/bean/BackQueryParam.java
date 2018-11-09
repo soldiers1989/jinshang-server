@@ -30,6 +30,10 @@ public class BackQueryParam {
     private String backNo;
     @ApiModelProperty(notes = "退货状态")
     private Short state;
+    @ApiModelProperty("可传入多个订单状态，适用于小程序的订单列表的获取")
+    private String multiBackStates;
+    @ApiModelProperty("小程序的订单搜索，可以代表商品名称以及订单号")
+    private String prodNamAndOrderNo;
 
     public Long getMemberId() {
         return memberId;
@@ -117,5 +121,21 @@ public class BackQueryParam {
 
     public void setBackNo(String backNo) {
         this.backNo = backNo;
+    }
+
+    public String getMultiBackStates() {
+        return multiBackStates;
+    }
+
+    public void setMultiBackStates(String multiBackStates) {
+        this.multiBackStates = multiBackStates;
+    }
+
+    public String getProdNamAndOrderNo() {
+        return prodNamAndOrderNo;
+    }
+
+    public void setProdNamAndOrderNo(String prodNamAndOrderNo) {
+        this.prodNamAndOrderNo = prodNamAndOrderNo;
     }
 }

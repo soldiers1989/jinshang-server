@@ -6,16 +6,15 @@ import com.github.pagehelper.PageInfo;
 import com.github.pagehelper.util.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import project.jinshang.common.constant.Quantity;
+import project.jinshang.common.utils.GsonUtils;
+import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_admin.mod_article.ArticleCategoryMapper;
 import project.jinshang.mod_admin.mod_article.ArticleMapper;
-import project.jinshang.mod_admin.mod_article.bean.Article;
-import project.jinshang.mod_admin.mod_article.bean.ArticleCategory;
-import project.jinshang.mod_admin.mod_article.bean.ArticleExample;
+import project.jinshang.mod_admin.mod_article.ArticlePicMapper;
+import project.jinshang.mod_admin.mod_article.bean.*;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class ArticleService {
@@ -25,13 +24,25 @@ public class ArticleService {
     @Autowired
     private ArticleCategoryMapper articleCategoryMapper;
 
+    @Autowired
+    private ArticlePicMapper articlePicMapper;
     public void addArticle(Article article) {
         article.setCreattime(new Date());
         article.setUpdatetime(new Date());
         if (article.getDocshow() == null) {
             article.setDocshow((short) 1);
         }
+        article.setIscarousel(Quantity.STATE_1);
         articleMapper.insert(article);
+    }
+
+    public int addArticlePic(ArticlePic articlePic){
+        articlePic.setCreatetime(new Date());
+        return articlePicMapper.insertSelective(articlePic);
+    }
+
+    public int deleteArticlePic(long articleid){
+        return articlePicMapper.deleteByArticlePicId(articleid);
     }
 
     public void deleteArticle(long id) {
@@ -44,6 +55,14 @@ public class ArticleService {
     public void updateArticle(Article article) {
         article.setUpdatetime(new Date());
         articleMapper.updateByPrimaryKeySelective(article);
+    }
+    public void updateArticlePic(ArticlePic articlePic) {
+        articlePicMapper.updateByPrimaryKeySelective(articlePic);
+    }
+
+    public void updateArticleNew(Article article){
+        article.setUpdatetime(new Date());
+        articleMapper.updateByPrimaryKey(article);
     }
   /*  public  List<Article>listAllArticle(){
         ArticleExample articleExample=new ArticleExample();
@@ -99,6 +118,7 @@ public class ArticleService {
             }
         }
         articleExample.setOrderByClause("docorder asc");
+        articleExample.setOrderByClause("creattime desc");
 
         List<Article> articles = articleMapper.selectByExample(articleExample);
 
@@ -115,6 +135,51 @@ public class ArticleService {
         return pageInfo;
     }
 
+    public PageInfo getNewArticleList(int pageNo, int pageSize, String titleName, Long articleCategoryId) {
+        String picjson="";
+        ArticleExample articleExample = new ArticleExample();
+        ArticleExample.Criteria criteria = articleExample.createCriteria();
+
+        if (StringUtil.isNotEmpty(titleName)) {
+            criteria.andDoctitleLike("%" + titleName + "%");
+        }
+
+        if (articleCategoryId != null) {
+            ArticleCategory articleCategory = articleCategoryMapper.selectByPrimaryKey(articleCategoryId);
+            if (articleCategory.getPraentid() == 0) {
+                List<Long> articleCategorieIds = articleCategoryMapper.selectIdsByParentId(articleCategory.getId());
+                criteria.andDocidIn(articleCategorieIds);
+            } else {
+                criteria.andDocidEqualTo(articleCategoryId);
+            }
+        }
+        articleExample.setOrderByClause("docorder asc");
+        articleExample.setOrderByClause("creattime desc");
+
+        PageHelper.startPage(pageNo, pageSize);
+        List<Article> articles = articleMapper.selectByExample(articleExample);
+
+        PageInfo pageInfo = new PageInfo(articles);
+        for (Object o : pageInfo.getList()) {
+            Article article = (Article) o;
+            if (article.getDocid() != null) {
+                ArticleCategory articleCategory = articleCategoryMapper.selectByPrimaryKey(article.getDocid());
+                if (articleCategory != null) {
+                    article.setDocName(articleCategory.getDocname());
+                }
+            }
+            if (article.getType().compareTo(Quantity.STATE_1)==0){
+                List<ArticlePic> articlePicList=articlePicMapper.selectByArticleId(article.getId());
+//                picjson= GsonUtils.toJson(articlePicList);
+//                article.setPicjson(picjson);
+                article.setPicList(articlePicList);
+            }
+        }
+        return pageInfo;
+    }
+
+
+
     public int getArticleCountByArticleCategoryId(Long articleCategoryId) {
         ArticleExample articleExample = new ArticleExample();
         ArticleExample.Criteria criteria = articleExample.createCriteria();
@@ -124,6 +189,10 @@ public class ArticleService {
 
     public List<Article> getHomePageArticleList(String articleCategoryName, int num) {
         return articleMapper.searchListByArticleCategoryName(articleCategoryName, num);
+    }
+
+    public List<Article> searchArticleByDocIdSortBySort(int count,long docid){
+        return articleMapper.searchArticleByDocIdSortBySort( count, docid);
     }
 
     public Article selectArticleByTitleName(String titleName) {
@@ -170,6 +239,19 @@ public class ArticleService {
         return articleMapper.selectByPrimaryKey(id);
     }
 
+
+    public Article selectArticleDetail(Long id){
+        Article article=new Article();
+        article=articleMapper.selectArticleDetail(id);
+        if (article.getPicList()!=null&&article.getPicList().size()>0){
+            for (ArticlePic articlePic:article.getPicList()){
+                if (StringUtils.isEmpty(articlePic.getDescription())){
+                    articlePic.setDescription(article.getDoctitle());
+                }
+            }
+        }
+        return article;
+    }
     public PageInfo getArticleListByArticleTypeId(int pageNo, int pageSize, String titleName, Long articleCategoryId) {
         ArticleCategory articleCategory = articleCategoryMapper.selectByPrimaryKey(articleCategoryId);
         List<Long> childIds = articleCategoryMapper.selectIdsByParentId(articleCategoryId);
@@ -195,4 +277,60 @@ public class ArticleService {
         PageInfo pageInfo = new PageInfo(articles);
         return pageInfo;
     }
+
+    public PageInfo getArticleListByArticleTypeId(int pageNo, int pageSize,Long articleCategoryId) {
+        ArticleCategory articleCategory = articleCategoryMapper.selectByPrimaryKey(articleCategoryId);
+        List<Long> childIds=new ArrayList<>();
+        String ids = "";
+        childIds = articleCategoryMapper.selectIdsByParentIdNew(articleCategoryId);
+        if (articleCategory!=null&&articleCategory.getPraentid() != 0) {
+            ids = String.valueOf(articleCategoryId);
+        } else {
+            if (childIds.size() != 0) {
+                ids = "";
+                for (Long id : childIds) {
+                    ids = ids + id + ",";
+                }
+                ids = ids.substring(0, ids.length() - 1);
+            }
+        }
+        if (articleCategoryId!=null&&pageNo!=Quantity.INT_0&&pageSize!=Quantity.INT_0){
+            PageHelper.startPage(pageNo, pageSize);
+        }
+        List<Article> articles=new ArrayList<>();
+        articles = articleMapper.selectArticleListByTypeIdsnew("%", ids);
+        PageInfo pageInfo = new PageInfo(articles);
+        return pageInfo;
+    }
+
+
+
+    public PageInfo getArticlePageByDocid(int pageNo, int pageSize,Long articleCategoryId){
+        PageHelper.startPage(pageNo,pageSize);
+        List<Article> list = articleMapper.getArticleByDocid(articleCategoryId);
+        return new PageInfo(list);
+    }
+
+    public List<Article> getArticleCarousel(){
+        return articleMapper.selectArticleCarousel();
+    }
+
+    public List<Article> selectRecomendArticle(int size){
+        ArticleCategoryExample example=new ArticleCategoryExample();
+        ArticleCategoryExample.Criteria criteria=example.createCriteria();
+        criteria.andPraentidEqualTo(117L);
+        List<ArticleCategory> categoryList=articleCategoryMapper.selectByExample(example);
+        StringBuilder ids=new StringBuilder();
+        if (categoryList!=null&&categoryList.size()>0){
+            for (ArticleCategory articleCategory:categoryList){
+                ids.append(articleCategory.getId());
+                ids.append(",");
+            }
+        }
+        if (ids.length()>0){
+            ids.deleteCharAt(ids.lastIndexOf(","));
+        }
+         return articleMapper.selectRecomendArticle(ids.toString(),size);
+    }
+
 }

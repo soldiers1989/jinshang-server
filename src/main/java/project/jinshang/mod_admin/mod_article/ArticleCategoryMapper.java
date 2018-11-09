@@ -42,4 +42,10 @@ public interface ArticleCategoryMapper {
 
     @Select("select id from articlecategory where praentid = #{parentId}")
     List<Long> selectIdsByParentId(@Param("parentId") Long parentId);
+
+    @Select("<script> select id from articlecategory " +
+            "<where> 1=1" +
+            " <if test=\"parentId != null and parentId!=''\"> and praentid=#{parentId}</if>" +
+            "</where> order by docorder asc</script>")
+    List<Long> selectIdsByParentIdNew(@Param("parentId") Long parentId);
 }

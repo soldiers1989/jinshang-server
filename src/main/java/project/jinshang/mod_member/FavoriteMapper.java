@@ -48,4 +48,15 @@ public interface FavoriteMapper {
             "LEFT JOIN brand br on pi.brandid=br.id \n" +
             "where F.memberid=#{memberId} order by F.id desc")
     List<FavoriteProductDto> listByMemberId(@Param("memberId") Long memberId);
+
+    @Select("SELECT DISTINCT ON(F.id)F.id,F.createtime,F.pid,ps.storename,ps.pdstorenum,ps.startnum,pi.productname,pi.producttype,\n" +
+            "ps.prodprice,pi.material,pi.cardnum,pi.brand,pi.packagetype,pi.level3,pi.tag,pi.pdpicture,pi.stand,br.pic ,pi.selfsupport\n" +
+            "FROM favorite F \n" +
+            "LEFT JOIN productstore ps on F.pid=ps.pdid\n" +
+            "LEFT JOIN productinfo pi on pi.id=F.pid \n" +
+            "LEFT JOIN brand br on pi.brandid=br.id \n" +
+            "where F.memberid=#{memberId} and pi.type=#{type} order by F.id desc")
+    List<FavoriteProductDto> listByMemberIdAndType(@Param("memberId") Long memberId,@Param("type") int type);
+
+
 }

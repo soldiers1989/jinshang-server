@@ -416,6 +416,100 @@ end;
 $$ LANGUAGE plpgsql;
 ```
 
+## es product doc mapping
+
+```json
+{
+    "info": {
+        "properties": {
+            "id": { "type":  "long" },
+            "level1": {"type":  "keyword"},
+            "level1id": {"type":  "long"},
+            "level2": {"type":  "keyword"},
+            "level2id": {"type":  "long"},
+            "level3": {"type":  "keyword"},
+            "level3id": {"type":  "long"},
+            "productsno": {"type":  "keyword"},
+            "productnameid": {"type":  "long"},
+            "productname": {"type":  "keyword"},
+            "productalias": {"type":  "text"},
+            "subtitle": {"type":  "text"},
+            "brand": {"type":  "keyword"},
+            "brandid": {"type":  "long"},
+            "materialid": {"type":  "long"},
+            "material": {"type":  "keyword"},
+            "mark": {"type":  "text"},
+            "producttype": {"type":  "keyword"},
+            "unit": {"type":  "keyword"},
+            "surfacetreatment": {"type":  "keyword"},
+            "weight": {"type":  "double"},
+            "packagetype": {"type":  "keyword"},
+            "recommended": {"type":  "boolean"},
+            "pdstate": {"type":  "long"},
+            "pddrawing": {"type":  "keyword"},
+            "pdpicture": {"type":  "text"},
+            "pddes": {"type":  "keyword"},
+            "specificationparam": {"type":  "keyword"},
+            "seokey": {"type":  "text"},
+            "seovalue": {"type":  "text"},
+            "createtime": {"type":  "date"},
+            "audittime": {"type":  "date"},
+            "auditname": {"type":  "keyword"},
+            "reason": {"type":  "text"},
+            "uptime": {"type":  "date"},
+            "downtime": {"type":  "date"},
+            "salesnum": {"type":  "long"},
+            "cardnumid": {"type":  "long"},
+            "cardnum": {"type":  "keyword"},
+            "stand": {"type":  "keyword"},
+            "seotitle": {"type":  "text"},
+            "updatetime": {"type":  "date"},
+            "productid": {"type":  "long"},
+            "prodstoreunit": {"type":  "keyword"},
+            "unitrate": {"type":  "double"},
+            "minprice": {"type":  "double"},
+            "heightprice": {"type":  "double"},
+            "selfsupport": {"type":  "boolean"},
+            "type": {"type":  "long"},
+            "indexes":{"type": "text", "analyzer": "whitespace"},
+            "membersettingstate":{"type":  "long"},
+            "pic":{"type":"keyword"},
+            "stores":{
+                "type": "nested",
+                "properties":{
+                    "storeid": {"type":  "long"},
+                    "storename": {"type":  "keyword"},
+                    "stepwiseprice": {"type":  "boolean"},
+                    "startnum": {"type":  "double"},
+                    "prodprice": {"type":  "double"},
+                    "threeprice": {"type":  "double"},
+                    "ninetyprice": {"type":  "double"},
+                    "thirtyprice": {"type":  "double"},
+                    "sixtyprice": {"type":  "double"},
+                    "intervalprice": {"type":  "keyword"},
+                    "marketprice": {"type":  "double"},
+                    "costprice": {"type":  "double"},
+                    "pdstorenum": {"type":  "double"},
+                    "storeunit": {"type":  "keyword"},
+                    "aftersale": {"type":  "keyword"},
+                    "location": {"type":  "text"},
+                    "freightmode":{"type":"long"},
+                    "minplus": {"type":  "double"},
+                    "pdno": {"type":  "keyword"},
+                    "attrlist":{
+                        "type": "nested",
+                        "properties":{
+                            "attribute":{"type":"keyword"},
+                            "value":{"type":"keyword"}
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
 
 
 #table 短信日志
@@ -448,3 +542,22 @@ available smallint default 0 not null,-- 企业级发票 0：不是 1：是
 createDate timestamp, --添加时间
 updateDate timestamp --修改时间
 )
+
+
+
+# 分单相关
+
+## 母单
+
+```sql
+create table ordermain(
+    id bigserial primary key,
+    ordermoney decimal(12,2), --- 订单总金额
+    freight decimal(12,2), -- 运费
+    couponid int,	-- 优惠券id
+    couponmoney decimal(12,2),
+    type int,  --- 1-普通，2-商家合单
+    createDt timestamp
+);
+```
+

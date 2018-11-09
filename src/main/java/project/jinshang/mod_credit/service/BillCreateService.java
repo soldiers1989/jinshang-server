@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import project.jinshang.mod_credit.BillCreateMapper;
 import project.jinshang.mod_credit.bean.BillCreate;
+import project.jinshang.mod_credit.bean.BillCreateExample;
 
 import java.util.List;
 
@@ -58,5 +59,10 @@ public class BillCreateService {
      */
     public  void  fillIllegalData(){
         billCreateMapper.fillIllegalData();
+    }
+
+
+    public List<BillCreate> selectByExample(BillCreateExample example){
+        return billCreateMapper.selectByExample(example);
     }
 }

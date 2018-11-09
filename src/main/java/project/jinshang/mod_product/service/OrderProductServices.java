@@ -106,6 +106,10 @@ public class OrderProductServices {
         orderProductMapper.updateByPrimaryKeySelective(orderProduct);
     }
 
+    public int sendSplitOutGoodsUpdateOrderProduct(OrderProduct updateOrderProduct, OrderProductExample updateOrderProductExample) {
+        return orderProductMapper.updateByExampleSelective(updateOrderProduct,updateOrderProductExample);
+    }
+
     public List<OrderProduct> getByOrderNoAndDeliveryidIsNull(String orderno) {
         OrderProductExample orderProductExample = new OrderProductExample();
         orderProductExample.createCriteria().andOrdernoEqualTo(orderno).andDeliveryidIsNull();
@@ -140,23 +144,29 @@ public class OrderProductServices {
      */
     public List<OrderProduct> margeOrderProduct(List<OrderProduct> list){
         List<OrderProduct> resultList = new ArrayList<>();
-        Set<Long> pdIdSet = new HashSet<>();
+        Set<String> pdIdSet = new HashSet<>();
 
         for(OrderProduct op : list){
-            if(pdIdSet.contains(op.getPdid())){
+            if(pdIdSet.contains(op.getPdid()+op.getPdno())){
                 for(OrderProduct resOP : resultList){
-                    if(resOP.getPdid().equals(op.getPdid())){
+                    if((resOP.getPdid()+op.getPdno()).equals(op.getPdid()+op.getPdno())){
                         resOP.setNum(resOP.getNum().add(op.getNum()));
                         resOP.setActualpayment(resOP.getActualpayment().add(op.getActualpayment()));
+                        resOP.setDiscountpay(resOP.getDiscountpay().add(op.getDiscountpay()));
                     }
                 }
             }else{
                 resultList.add(op);
-                pdIdSet.add(op.getPdid());
+                pdIdSet.add(op.getPdid()+op.getPdno());
             }
         }
 
         return resultList;
+    }
+
+
+    public List<OrderProduct> selectOrderProductByMultiId(String orderPoductIds){
+        return orderProductMapper.selectOrderProductByMultiId(orderPoductIds);
     }
 
 }

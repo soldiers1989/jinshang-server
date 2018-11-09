@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="project.jinshang.mod_admin.mod_statement.BuyerStatementMapper" >
+  <resultMap id="BaseResultMap" type="project.jinshang.mod_admin.mod_statement.bean.BuyerStatement" >
+    <id column="id" property="id" jdbcType="BIGINT" />
+    <result column="memberid" property="memberid" jdbcType="BIGINT" />
+    <result column="billrecoid" property="billrecoid" jdbcType="BIGINT" />
+    <result column="contractno" property="contractno" jdbcType="VARCHAR" />
+    <result column="type" property="type" jdbcType="SMALLINT" />
+    <result column="deliveryamount" property="deliveryamount" jdbcType="NUMERIC" />
+    <result column="receiptamount" property="receiptamount" jdbcType="NUMERIC" />
+    <result column="receivableamount" property="receivableamount" jdbcType="NUMERIC" />
+    <result column="invoiceamount" property="invoiceamount" jdbcType="NUMERIC" />
+    <result column="invoicebalance" property="invoicebalance" jdbcType="NUMERIC" />
+    <result column="paytype" property="paytype" jdbcType="SMALLINT" />
+    <result column="payno" property="payno" jdbcType="VARCHAR" />
+    <result column="remark" property="remark" jdbcType="VARCHAR" />
+    <result column="createtime" property="createtime" jdbcType="TIMESTAMP" />
+  </resultMap>
+  <sql id="Example_Where_Clause" >
+    <where >
+      <foreach collection="oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Update_By_Example_Where_Clause" >
+    <where >
+      <foreach collection="example.oredCriteria" item="criteria" separator="or" >
+        <if test="criteria.valid" >
+          <trim prefix="(" suffix=")" prefixOverrides="and" >
+            <foreach collection="criteria.criteria" item="criterion" >
+              <choose >
+                <when test="criterion.noValue" >
+                  and ${criterion.condition}
+                </when>
+                <when test="criterion.singleValue" >
+                  and ${criterion.condition} #{criterion.value}
+                </when>
+                <when test="criterion.betweenValue" >
+                  and ${criterion.condition} #{criterion.value} and #{criterion.secondValue}
+                </when>
+                <when test="criterion.listValue" >
+                  and ${criterion.condition}
+                  <foreach collection="criterion.value" item="listItem" open="(" close=")" separator="," >
+                    #{listItem}
+                  </foreach>
+                </when>
+              </choose>
+            </foreach>
+          </trim>
+        </if>
+      </foreach>
+    </where>
+  </sql>
+  <sql id="Base_Column_List" >
+    id, memberid, billrecoid, contractno, type, deliveryamount, receiptamount, receivableamount, 
+    invoiceamount, invoicebalance, paytype, payno, remark, createtime
+  </sql>
+  <select id="selectByExample" resultMap="BaseResultMap" parameterType="project.jinshang.mod_admin.mod_statement.bean.BuyerStatementExample" >
+    select
+    <if test="distinct" >
+      distinct
+    </if>
+    'true' as QUERYID,
+    <include refid="Base_Column_List" />
+    from buyerstatement
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+    <if test="orderByClause != null" >
+      order by ${orderByClause}
+    </if>
+  </select>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long" >
+    select 
+    <include refid="Base_Column_List" />
+    from buyerstatement
+    where id = #{id,jdbcType=BIGINT}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from buyerstatement
+    where id = #{id,jdbcType=BIGINT}
+  </delete>
+  <delete id="deleteByExample" parameterType="project.jinshang.mod_admin.mod_statement.bean.BuyerStatementExample" >
+    delete from buyerstatement
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </delete>
+  <insert id="insert" parameterType="project.jinshang.mod_admin.mod_statement.bean.BuyerStatement" useGeneratedKeys="true" keyProperty="id">
+    insert into buyerstatement (id, memberid, billrecoid, 
+      contractno, type, deliveryamount, 
+      receiptamount, receivableamount, invoiceamount, 
+      invoicebalance, paytype, payno, 
+      remark, createtime)
+    values (#{id,jdbcType=BIGINT}, #{memberid,jdbcType=BIGINT}, #{billrecoid,jdbcType=BIGINT}, 
+      #{contractno,jdbcType=VARCHAR}, #{type,jdbcType=SMALLINT}, #{deliveryamount,jdbcType=NUMERIC}, 
+      #{receiptamount,jdbcType=NUMERIC}, #{receivableamount,jdbcType=NUMERIC}, #{invoiceamount,jdbcType=NUMERIC}, 
+      #{invoicebalance,jdbcType=NUMERIC}, #{paytype,jdbcType=SMALLINT}, #{payno,jdbcType=VARCHAR}, 
+      #{remark,jdbcType=VARCHAR}, #{createtime,jdbcType=TIMESTAMP})
+  </insert>
+  <insert id="insertSelective" parameterType="project.jinshang.mod_admin.mod_statement.bean.BuyerStatement" >
+    insert into buyerstatement
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="memberid != null" >
+        memberid,
+      </if>
+      <if test="billrecoid != null" >
+        billrecoid,
+      </if>
+      <if test="contractno != null" >
+        contractno,
+      </if>
+      <if test="type != null" >
+        type,
+      </if>
+      <if test="deliveryamount != null" >
+        deliveryamount,
+      </if>
+      <if test="receiptamount != null" >
+        receiptamount,
+      </if>
+      <if test="receivableamount != null" >
+        receivableamount,
+      </if>
+      <if test="invoiceamount != null" >
+        invoiceamount,
+      </if>
+      <if test="invoicebalance != null" >
+        invoicebalance,
+      </if>
+      <if test="paytype != null" >
+        paytype,
+      </if>
+      <if test="payno != null" >
+        payno,
+      </if>
+      <if test="remark != null" >
+        remark,
+      </if>
+      <if test="createtime != null" >
+        createtime,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="memberid != null" >
+        #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="billrecoid != null" >
+        #{billrecoid,jdbcType=BIGINT},
+      </if>
+      <if test="contractno != null" >
+        #{contractno,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        #{type,jdbcType=SMALLINT},
+      </if>
+      <if test="deliveryamount != null" >
+        #{deliveryamount,jdbcType=NUMERIC},
+      </if>
+      <if test="receiptamount != null" >
+        #{receiptamount,jdbcType=NUMERIC},
+      </if>
+      <if test="receivableamount != null" >
+        #{receivableamount,jdbcType=NUMERIC},
+      </if>
+      <if test="invoiceamount != null" >
+        #{invoiceamount,jdbcType=NUMERIC},
+      </if>
+      <if test="invoicebalance != null" >
+        #{invoicebalance,jdbcType=NUMERIC},
+      </if>
+      <if test="paytype != null" >
+        #{paytype,jdbcType=SMALLINT},
+      </if>
+      <if test="payno != null" >
+        #{payno,jdbcType=VARCHAR},
+      </if>
+      <if test="remark != null" >
+        #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="createtime != null" >
+        #{createtime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <select id="countByExample" parameterType="project.jinshang.mod_admin.mod_statement.bean.BuyerStatementExample" resultType="java.lang.Integer" >
+    select count(*) from buyerstatement
+    <if test="_parameter != null" >
+      <include refid="Example_Where_Clause" />
+    </if>
+  </select>
+  <update id="updateByExampleSelective" parameterType="map" >
+    update buyerstatement
+    <set >
+      <if test="record.id != null" >
+        id = #{record.id,jdbcType=BIGINT},
+      </if>
+      <if test="record.memberid != null" >
+        memberid = #{record.memberid,jdbcType=BIGINT},
+      </if>
+      <if test="record.billrecoid != null" >
+        billrecoid = #{record.billrecoid,jdbcType=BIGINT},
+      </if>
+      <if test="record.contractno != null" >
+        contractno = #{record.contractno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.type != null" >
+        type = #{record.type,jdbcType=SMALLINT},
+      </if>
+      <if test="record.deliveryamount != null" >
+        deliveryamount = #{record.deliveryamount,jdbcType=NUMERIC},
+      </if>
+      <if test="record.receiptamount != null" >
+        receiptamount = #{record.receiptamount,jdbcType=NUMERIC},
+      </if>
+      <if test="record.receivableamount != null" >
+        receivableamount = #{record.receivableamount,jdbcType=NUMERIC},
+      </if>
+      <if test="record.invoiceamount != null" >
+        invoiceamount = #{record.invoiceamount,jdbcType=NUMERIC},
+      </if>
+      <if test="record.invoicebalance != null" >
+        invoicebalance = #{record.invoicebalance,jdbcType=NUMERIC},
+      </if>
+      <if test="record.paytype != null" >
+        paytype = #{record.paytype,jdbcType=SMALLINT},
+      </if>
+      <if test="record.payno != null" >
+        payno = #{record.payno,jdbcType=VARCHAR},
+      </if>
+      <if test="record.remark != null" >
+        remark = #{record.remark,jdbcType=VARCHAR},
+      </if>
+      <if test="record.createtime != null" >
+        createtime = #{record.createtime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByExample" parameterType="map" >
+    update buyerstatement
+    set id = #{record.id,jdbcType=BIGINT},
+      memberid = #{record.memberid,jdbcType=BIGINT},
+      billrecoid = #{record.billrecoid,jdbcType=BIGINT},
+      contractno = #{record.contractno,jdbcType=VARCHAR},
+      type = #{record.type,jdbcType=SMALLINT},
+      deliveryamount = #{record.deliveryamount,jdbcType=NUMERIC},
+      receiptamount = #{record.receiptamount,jdbcType=NUMERIC},
+      receivableamount = #{record.receivableamount,jdbcType=NUMERIC},
+      invoiceamount = #{record.invoiceamount,jdbcType=NUMERIC},
+      invoicebalance = #{record.invoicebalance,jdbcType=NUMERIC},
+      paytype = #{record.paytype,jdbcType=SMALLINT},
+      payno = #{record.payno,jdbcType=VARCHAR},
+      remark = #{record.remark,jdbcType=VARCHAR},
+      createtime = #{record.createtime,jdbcType=TIMESTAMP}
+    <if test="_parameter != null" >
+      <include refid="Update_By_Example_Where_Clause" />
+    </if>
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="project.jinshang.mod_admin.mod_statement.bean.BuyerStatement" >
+    update buyerstatement
+    <set >
+      <if test="memberid != null" >
+        memberid = #{memberid,jdbcType=BIGINT},
+      </if>
+      <if test="billrecoid != null" >
+        billrecoid = #{billrecoid,jdbcType=BIGINT},
+      </if>
+      <if test="contractno != null" >
+        contractno = #{contractno,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null" >
+        type = #{type,jdbcType=SMALLINT},
+      </if>
+      <if test="deliveryamount != null" >
+        deliveryamount = #{deliveryamount,jdbcType=NUMERIC},
+      </if>
+      <if test="receiptamount != null" >
+        receiptamount = #{receiptamount,jdbcType=NUMERIC},
+      </if>
+      <if test="receivableamount != null" >
+        receivableamount = #{receivableamount,jdbcType=NUMERIC},
+      </if>
+      <if test="invoiceamount != null" >
+        invoiceamount = #{invoiceamount,jdbcType=NUMERIC},
+      </if>
+      <if test="invoicebalance != null" >
+        invoicebalance = #{invoicebalance,jdbcType=NUMERIC},
+      </if>
+      <if test="paytype != null" >
+        paytype = #{paytype,jdbcType=SMALLINT},
+      </if>
+      <if test="payno != null" >
+        payno = #{payno,jdbcType=VARCHAR},
+      </if>
+      <if test="remark != null" >
+        remark = #{remark,jdbcType=VARCHAR},
+      </if>
+      <if test="createtime != null" >
+        createtime = #{createtime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="project.jinshang.mod_admin.mod_statement.bean.BuyerStatement" >
+    update buyerstatement
+    set memberid = #{memberid,jdbcType=BIGINT},
+      billrecoid = #{billrecoid,jdbcType=BIGINT},
+      contractno = #{contractno,jdbcType=VARCHAR},
+      type = #{type,jdbcType=SMALLINT},
+      deliveryamount = #{deliveryamount,jdbcType=NUMERIC},
+      receiptamount = #{receiptamount,jdbcType=NUMERIC},
+      receivableamount = #{receivableamount,jdbcType=NUMERIC},
+      invoiceamount = #{invoiceamount,jdbcType=NUMERIC},
+      invoicebalance = #{invoicebalance,jdbcType=NUMERIC},
+      paytype = #{paytype,jdbcType=SMALLINT},
+      payno = #{payno,jdbcType=VARCHAR},
+      remark = #{remark,jdbcType=VARCHAR},
+      createtime = #{createtime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=BIGINT}
+  </update>
+</mapper>

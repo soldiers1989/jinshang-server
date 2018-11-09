@@ -16,11 +16,13 @@ public interface SynonymMapper {
     @UpdateProvider(type = PGBaseSqlProvider.class,method = "updateAll")
     void update(Synonym synonym);
 
-    @Select("select * from synonym order by id desc")
+    @Select("<script>select * from synonym " +
+            "<if test=\"search != null and search!='' \"> where to_tsvector(array_to_string(words, ' '))  @@ to_tsquery(#{search})</if>" +
+            " order by id desc</script>")
     @Results({
             @Result(property = "words",column = "words",typeHandler = StringArrayHandler.class)
     })
-    List<Synonym> listAll();
+    List<Synonym> listAll(@Param("search") String search);
 
     @Delete("delete from synonym where id=#{param1}")
     void del(int id);
@@ -34,7 +36,7 @@ public interface SynonymMapper {
 
     //@Cacheable(value = "Synonym",key = "'searchForQuery:'+#p0")
     @Select("select * from synonym where to_tsvector(array_to_string(words, ' '))" +
-            " @@ to_tsquery('${params}')")
+            " @@ to_tsquery(#{params})")
     @Results({
             @Result(property = "words",column = "words",typeHandler = StringArrayHandler.class)
     })

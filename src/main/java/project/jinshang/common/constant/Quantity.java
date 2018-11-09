@@ -49,5 +49,24 @@ public class Quantity {
     public  static  final BigDecimal BIG_DECIMAL_0 = new BigDecimal(0);
 
     public  static  final  BigDecimal BIG_DECIMAL_MINUS_1 = new BigDecimal(-1);
+    
 
+    //优惠券状态列表
+    //待领取
+    public
+    static final Long  YH_UNCLAIMED=0L;
+    //已领用
+    public static final Long  YH_CLAIMED=2L;
+    //禁用
+    public static final Long  YH_FORBIDDEN=97L;
+    //已失效
+    public static final Long  YH_INVALID=98L;
+    //已使用
+    public static final Long  YH_USED=99L;
+
+    public static  final String BUYER_DEFAULT="买家违约";
+    public static  final String SELLER_DEFAULT="卖家违约";
+
+    public static  final String VIDEO="视频";
+    public static  final String PICTURE="图片";
 }

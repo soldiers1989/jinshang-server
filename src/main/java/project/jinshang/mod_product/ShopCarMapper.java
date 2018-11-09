@@ -74,7 +74,7 @@ public interface ShopCarMapper {
      * @param list
      */
     @DeleteProvider(type = ShopCarMapper.ShopCarProvider.class, method = "deleteAll")
-    void deleteAll(List<Long> list);
+    int deleteAll(List<Long> list);
 
     public class ShopCarProvider {
         public String deleteAll(Map map) {

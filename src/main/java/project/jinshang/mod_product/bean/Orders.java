@@ -186,6 +186,16 @@ public class Orders {
     @ApiModelProperty(notes = "卖家是否已向平台开票 0-未开，1-已开")
     private Short billtoserver;
 
+    @ApiModelProperty(notes ="是否使用优惠券 0=否,1=是")
+    private Short isticket;
+    @ApiModelProperty(notes ="优惠金额")
+    private BigDecimal discountprice;
+    @ApiModelProperty(notes ="优惠券编码")
+    private String ticketno;
+
+    @ApiModelProperty(notes = "默认值为0 0=没有修改过运费 1=修改过运费")
+    private Short ismodifyfreight;
+
     //---
 
     private boolean selfsupport;
@@ -201,7 +211,7 @@ public class Orders {
 
 
     ///介绍人 添加时间:2018年6月8日
-    @ApiModelProperty(notes = "介绍人")
+    @ApiModelProperty(notes = "介绍人/业务员")
     private String waysalesman;
 
     //添加卖家确认远期预售：0=卖家未确认该远期订单，1=卖家已确认接收该远期订单，2=卖家已确认不接收该远期订单
@@ -838,5 +848,37 @@ public class Orders {
 
     public void setFrighttemplate(String frighttemplate) {
         this.frighttemplate = frighttemplate;
+    }
+
+    public Short getIsticket() {
+        return isticket;
+    }
+
+    public void setIsticket(Short isticket) {
+        this.isticket = isticket;
+    }
+
+    public BigDecimal getDiscountprice() {
+        return discountprice;
+    }
+
+    public void setDiscountprice(BigDecimal discountprice) {
+        this.discountprice = discountprice;
+    }
+
+    public String getTicketno() {
+        return ticketno;
+    }
+
+    public void setTicketno(String ticketno) {
+        this.ticketno = ticketno;
+    }
+
+    public Short getIsmodifyfreight() {
+        return ismodifyfreight;
+    }
+
+    public void setIsmodifyfreight(Short ismodifyfreight) {
+        this.ismodifyfreight = ismodifyfreight;
     }
 }

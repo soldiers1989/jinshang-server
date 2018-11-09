@@ -4,6 +4,7 @@ import com.github.binarywang.wxpay.bean.notify.WxPayOrderNotifyResult;
 import com.github.binarywang.wxpay.bean.order.WxPayMpOrderResult;
 import com.github.binarywang.wxpay.bean.order.WxPayNativeOrderResult;
 import com.github.binarywang.wxpay.bean.request.WxPayUnifiedOrderRequest;
+import com.github.binarywang.wxpay.config.WxPayConfig;
 import com.github.binarywang.wxpay.exception.WxPayException;
 import com.github.binarywang.wxpay.service.WxPayService;
 import io.swagger.annotations.*;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.*;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.exception.CashException;
 import project.jinshang.common.exception.MyException;
+import project.jinshang.common.utils.CommonUtils;
 import project.jinshang.common.utils.GenerateNo;
 import project.jinshang.common.utils.GsonUtils;
 import project.jinshang.mod_pay.bean.PayLogs;
@@ -49,6 +51,10 @@ public class WxPayAction {
     private WxPayService wxService;
     @Autowired
     private TradeService tradeService;
+    @Autowired
+    private WxPayConfiguration wxPayConfiguration;
+    @Autowired
+    private WxPayConfig config;
     @Autowired
     private WebConfBean webConfBean;
 
@@ -183,6 +189,74 @@ public class WxPayAction {
         }
     }
 
+
+    @RequestMapping(value="/toMpPay4Js",method= {RequestMethod.POST})
+    @ApiOperation(value = "小程序去支付. 用于jssdk")
+    @ApiImplicitParams({
+            @ApiImplicitParam(value = "类型 1=订单，2=买家余额充值，3=卖家余额充值",name = "type",paramType = "query")
+    })
+    public BasicMapDataRet toMpPay4Js(
+            Model model,
+            @ApiParam(required = true,value = "订单id")
+            @RequestParam String orders,
+            HttpServletRequest request,Short type,
+            @RequestParam String openid
+    ) throws RestMainException {
+        try {
+            BasicMapDataRet ret = new BasicMapDataRet();
+            Trade trade = null;
+            if(type== Quantity.STATE_1){
+                String uuid = "order-"+GenerateNo.getOrderIdByUUId();
+                trade = tradeService.buildFromOrderId(orders,Quantity.STATE_1,uuid);
+            }else if(type == Quantity.STATE_2){
+                trade = tradeService.buildFromBuyerRecharge(orders,Quantity.STATE_0);
+            }else if(type == Quantity.STATE_3){
+                trade = tradeService.buildFromSellerRecharge(orders,Quantity.STATE_0);
+            }
+            if(trade==null){
+                ret.setResult(BasicRet.ERR).setMessage("订单状态错误");
+                return ret;
+            }
+            if(trade.getPayUrlRet()!=null && trade.getPayUrlRet().getResult()==BasicRet.ERR){
+                ret.setResult(BasicRet.ERR).setMessage(trade.getPayUrlRet().getMessage());
+                return ret;
+            }
+            //充值WxConfig的配置，改为小程序的
+            config.setMchId(wxPayConfiguration.getMchId());
+            config.setMchKey(wxPayConfiguration.getMchKey());
+            config.setAppId(wxPayConfiguration.getMpAppId());
+            config.setKeyPath(wxPayConfiguration.getKeyPath());
+            wxService.setConfig(config);
+
+//            WxJsapiSignature js = wxService.createJsapiSignature(request.getRequestURL().toString());
+//            data.put("jsapi",js);
+            WxPayUnifiedOrderRequest orderRequest = new WxPayUnifiedOrderRequest();
+            // 商品描述
+            orderRequest.setBody(trade.getBody());
+            // 订单号
+            orderRequest.setOutTradeNo(trade.getOutTradeNo());
+            // 金额 分
+            orderRequest.setTotalFee((int) trade.getAmount());
+            // native时需要
+            orderRequest.setProductId(trade.getProductId());
+            logger.info(request.getRemoteAddr());
+            orderRequest.setSpbillCreateIp(request.getRemoteAddr());
+            orderRequest.setNotifyURL(webConfBean.getProjectDomain()+"/rest/wxpay/notify");
+            orderRequest.setTradeType("JSAPI");
+            orderRequest.setOpenid(openid);
+            WxPayMpOrderResult result = wxService.createOrder(orderRequest);
+            ret.setResult(BasicRet.SUCCESS);
+            ret.getData().put("result",result);
+
+            logger.error("微信订单返回："+ret.getData());
+
+            return ret;
+        }catch (Exception e){
+            throw new RestMainException(e);
+        }
+    }
+
+
 //
 //    public static void main(String[] args) {
 //        BasicMapDataRet ret = new BasicMapDataRet();
@@ -201,52 +275,60 @@ public class WxPayAction {
 
     @RequestMapping(value="/notify",method= {RequestMethod.POST, RequestMethod.GET})
     public String notify2(@RequestBody String xmlData) throws CashException, MyException, WxPayException {
-        boolean b = false;
-        WxPayOrderNotifyResult result = wxService.parseOrderNotifyResult(xmlData);
-        if("SUCCESS".equals(result.getReturnCode()) && "SUCCESS".equals(result.getResultCode())) {
-            String orderNo = result.getOutTradeNo();
-            String[] orderNo_array = orderNo.split("-");
+        logger.info("微信支付回调数据："+xmlData);
 
-            //支付金额
-            Integer total_amount = result.getTotalFee();
+        try {
+            boolean b = false;
+            WxPayOrderNotifyResult result = wxService.parseOrderNotifyResult(xmlData);
+            if("SUCCESS".equals(result.getReturnCode()) && "SUCCESS".equals(result.getResultCode())) {
+                String orderNo = result.getOutTradeNo();
+                String[] orderNo_array = orderNo.split("-");
 
-            PayLogs payLogs =  payLogsService.getByOuttradeno(orderNo);
-            if(payLogs != null){
-                logger.error("微信重复推送支付成功数据 out_trade_no："+orderNo);
-                return returnXml(true);
-            }
+                //支付金额
+                Integer total_amount = result.getTotalFee();
 
-            payLogs = new PayLogs();
-            payLogs.setTransactionid(result.getTransactionId());
-            payLogs.setOuttradeno(orderNo);
-            payLogs.setMoney(new BigDecimal(total_amount).divide(new BigDecimal(100)).setScale(2,BigDecimal.ROUND_HALF_UP));
-            payLogs.setCreatetime(new Date());
-            payLogs.setChannel("wxpay");
-            payLogsService.insertSelective(payLogs);
+                PayLogs payLogs =  payLogsService.getByOuttradeno(orderNo);
+                if(payLogs != null){
+                    logger.error("微信重复推送支付成功数据 out_trade_no："+orderNo);
+                    return returnXml(true);
+                }
 
-            boolean res = false;
-            if(orderNo_array.length==2){
-                if(orderNo_array[0].equals("order")){
-                    res = tradeService.notify(orderNo, "wxpay",result.getTransactionId());
-                }else if(orderNo_array[0].equals("buy")) {
-                    res = tradeService.notifyBuyerRecharge(orderNo_array[1],result.getTransactionId());
-                }else if(orderNo_array[0].equals("sell")){
-                    res = tradeService.notifySellerRecharge(orderNo_array[1],result.getTransactionId());
+                payLogs = new PayLogs();
+                payLogs.setTransactionid(result.getTransactionId());
+                payLogs.setOuttradeno(orderNo);
+                payLogs.setMoney(new BigDecimal(total_amount).divide(new BigDecimal(100)).setScale(2,BigDecimal.ROUND_HALF_UP));
+                payLogs.setCreatetime(new Date());
+                payLogs.setChannel("wxpay");
+                payLogsService.insertSelective(payLogs);
+
+                boolean res = false;
+                if(orderNo_array.length==2){
+                    if(orderNo_array[0].equals("order")){
+                        res = tradeService.notify(orderNo, "wxpay",result.getTransactionId());
+                    }else if(orderNo_array[0].equals("buy")) {
+                        res = tradeService.notifyBuyerRecharge(orderNo_array[1],result.getTransactionId(),Quantity.STATE_1);
+                    }else if(orderNo_array[0].equals("sell")){
+                        res = tradeService.notifySellerRecharge(orderNo_array[1],result.getTransactionId());
+                    }
+                }
+
+                if(res) {
+                    b = true;
+                    logger.info("trade success :" + orderNo);
+                }else{
+                  b = false;
                 }
             }
 
-            if(res) {
-                b = true;
-                logger.info("trade success :" + orderNo);
+            if(b){
+               return returnXml(b);
             }else{
-              b = false;
+                throw new MyException("trade err:");
             }
-        }
-
-        if(b){
-           return returnXml(b);
-        }else{
-            throw new MyException("trade err:");
+        } catch (Exception e) {
+            logger.info("微信支付回调错误："+e.getMessage());
+            logger.error("微信支付回调错误："+e.getMessage());
+            throw new MyException("微信支付回调错误",e);
         }
     }
 

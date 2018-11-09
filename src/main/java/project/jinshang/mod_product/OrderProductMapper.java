@@ -144,4 +144,9 @@ public interface OrderProductMapper {
             "</where> order by o.id desc" +
             "</script>")
     List<Map<String,Object>> selectByObject(@Param("orderProduct") OrderProduct orderProduct);
+
+
+
+    @Select("select * from orderproduct where id in (${orderPoductIds})")
+    List<OrderProduct> selectOrderProductByMultiId(@Param("orderPoductIds") String orderPoductIds);
 }

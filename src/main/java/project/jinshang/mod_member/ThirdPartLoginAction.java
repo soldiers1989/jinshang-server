@@ -80,6 +80,26 @@ public class ThirdPartLoginAction {
     }
 
 
+    @PostMapping("/getWxAccTokForTinyProg")
+    @ApiOperation(value = "微信小程序登录")
+    public WxAccessTokenRet getWxAccTokForTinyProg(@RequestParam(required = true) String code, Model model,HttpSession session) {
+        WxAccessTokenRet wxAccessTokenRet = new WxAccessTokenRet();
+
+        WxAccessToken wxAccessToken = thirdPartLoginService.getWxAccTokForTinyProg(code);
+        if(wxAccessToken == null || wxAccessToken.getUnionid() == null || "".equals(wxAccessToken.getUnionid())){
+            wxAccessTokenRet.setResult(BasicRet.ERR);
+            wxAccessTokenRet.setMessage("获取登录token失败，请稍后再试");
+            return  wxAccessTokenRet;
+        }
+
+
+
+        wxAccessTokenRet.data.wxAccessToken = wxAccessToken;
+        wxAccessTokenRet.setResult(BasicRet.SUCCESS);
+        return  wxAccessTokenRet;
+    }
+
+
     private class WxAccessTokenRet extends  BasicRet{
         private class WxAccessTokenData implements Serializable {
             private  WxAccessToken wxAccessToken;
@@ -176,6 +196,79 @@ public class ThirdPartLoginAction {
             return  thirdPartLoginRet;
         }
     }
+
+
+
+    @PostMapping("/wxLoginForTinyProg")
+    @ApiOperation(value = "微信小程序登录")
+    public ThirdPartLoginRet wxLoginForTinyProg(@RequestParam(required = true) String code, Model model,HttpSession session){
+        ThirdPartLoginRet thirdPartLoginRet = new ThirdPartLoginRet();
+
+        WxAccessToken wxAccessToken = thirdPartLoginService.getWxAccTokForTinyProg(code);
+        if(wxAccessToken == null || wxAccessToken.getUnionid() == null || "".equals(wxAccessToken.getUnionid())){
+            thirdPartLoginRet.setResult(BasicRet.ERR);
+            thirdPartLoginRet.setMessage("获取登录token失败，请稍后再试");
+            return  thirdPartLoginRet;
+        }
+
+        thirdPartLoginRet.data.setRealopenid(wxAccessToken.getOpenid());
+
+        UserBinding userBinding = userBindService.getByOpenid(wxAccessToken.getUnionid(), ThirdPartLoginType.wxLogin);
+
+        if(userBinding != null && userBinding.getMemberid() != null){ //已经绑定了
+            Member member = memberService.getMemberById(userBinding.getMemberid());
+            if(member != null) {
+                member.setFrom("buyer");
+                member.setLoginType("main");
+                if (member.getDisabled() == true) {
+                    thirdPartLoginRet.setResult(BasicRet.ERR);
+                    thirdPartLoginRet.setMessage("帐号被禁用");
+                    return thirdPartLoginRet;
+                }
+
+                memberService.fillMember(member);
+
+                model.addAttribute(AppConstant.MEMBER_SESSION_NAME, member);
+                thirdPartLoginRet.setMessage("登陆成功");
+                thirdPartLoginRet.setResult(BasicRet.SUCCESS);
+
+                Member updateDateMember = new Member();
+                updateDateMember.setId(member.getId());
+                updateDateMember.setLastlogindate(new Date());
+                memberService.updateByPrimaryKeySelective(updateDateMember);
+
+
+                //将未付款的订单改变成关闭
+                //ordersService.updateNotPayOrdersForFinish(member.getId());
+
+
+                String uuid = session.getId();
+                thirdPartLoginRet.data.webToken = uuid;
+
+                return  thirdPartLoginRet;
+            }else {
+                thirdPartLoginRet.setResult(BasicRet.ERR);
+                thirdPartLoginRet.setMessage("未查询到匹配的帐号信息");
+                return  thirdPartLoginRet;
+            }
+        }else{//没有绑定
+
+            //获取用户微信信息
+//            WeixinInfo weixinInfo = thirdPartLoginService.getWeixinInfo(wxAccessToken.getOpenid(),wxAccessToken.getAccess_token());
+//            if(weixinInfo == null){
+//                thirdPartLoginRet.setResult(BasicRet.ERR);
+//                thirdPartLoginRet.setMessage("获取用户微信信息失败！请稍后重试");
+//                return  thirdPartLoginRet;
+//            }
+            thirdPartLoginRet.setResult(BasicRet.SUCCESS);
+            thirdPartLoginRet.setMessage("没有绑定帐号");
+//            thirdPartLoginRet.data.setNickname(weixinInfo.getNickname());
+            thirdPartLoginRet.data.setType(ThirdPartLoginType.wxLogin);
+            thirdPartLoginRet.data.setOpenid(wxAccessToken.getUnionid());
+            return  thirdPartLoginRet;
+        }
+    }
+
 
 
     @PostMapping("/bind")
@@ -352,6 +445,101 @@ public class ThirdPartLoginAction {
                 //ordersService.updateNotPayOrdersForFinish(member.getId());
 
                 return basicRet;
+            }
+        }
+
+    }
+
+
+    @PostMapping("/wap/bindByMobile")
+    @ApiOperation("手机端绑定帐号")
+    public  BasicRet wapBbindByMobile(
+            @RequestParam(required = true) String code,
+            @RequestParam(required = true) String nickname,
+            @RequestParam(required = true) String mobile,
+            @RequestParam(required = true) String mobileCode,
+            Model model, HttpSession session
+    ){
+        BasicRet basicRet = new BasicRet();
+
+        MemberExample example=new MemberExample();
+        MemberExample.Criteria criteria=example.createCriteria();
+        criteria.andMobileEqualTo(mobile);
+        java.util.List<Member> memberList =memberService.selectByExample(example);
+//        Member member = memberService.getMemberByUsername(username);
+        if (memberList == null || memberList.size()==0) {
+            basicRet.setMessage("用户名密码不正确");
+            basicRet.setResult(BasicRet.ERR);
+            return basicRet;
+        } else {
+            Member member=memberList.get(0);
+            //判断手机验证码是否正确
+            SmsLog smsLog = mobileService.getLastLog(mobile, SmsType.verification, 5);
+            if (smsLog == null || !mobileCode.equalsIgnoreCase(smsLog.getVerifycode())) {
+                basicRet.setResult(BasicRet.ERR);
+                basicRet.setMessage("手机验证码不正确");
+                return basicRet;
+            } else { //手机验证码正确
+
+                WxAccessToken wxAccessToken = thirdPartLoginService.getWxAccTokForTinyProg(code);
+                if(wxAccessToken == null || wxAccessToken.getUnionid() == null || "".equals(wxAccessToken.getUnionid())){
+                    basicRet.setResult(BasicRet.ERR);
+                    basicRet.setMessage("获取登录token失败，请稍后再试");
+                    return  basicRet;
+                }else{
+                    String unionid=wxAccessToken.getUnionid();
+                    //判断该微信号是否已经绑定了其他的帐号
+                    int bindingCount = userBindService.getBindingCount(unionid,ThirdPartLoginType.wxLogin);
+                    if(bindingCount>0){
+                        basicRet.setResult(BasicRet.ERR);
+                        basicRet.setMessage("该微信帐号已经绑定其他帐号了");
+                        return  basicRet;
+                    }
+
+                    //判断该帐号是否已经绑定了
+                    UserBinding binding = userBindService.getByMemberid(member.getId(),ThirdPartLoginType.wxLogin);
+                    if(binding != null){
+                        basicRet.setResult(BasicRet.ERR);
+                        basicRet.setMessage("该帐号已经被绑定了");
+                        return  basicRet;
+                    }
+
+                    binding = new UserBinding();
+                    binding.setMemberid(member.getId());
+                    binding.setOpenid(unionid);
+                    binding.setName(nickname);
+                    binding.setState(Quantity.STATE_1);
+                    binding.setType(ThirdPartLoginType.wxLogin);
+                    binding.setBindtime(new Date());
+                    userBindService.insertSelective(binding);
+
+
+                    member.setFrom("buyer");
+                    member.setLoginType("main");
+
+                    if (member.getDisabled() == true) {
+                        basicRet.setResult(BasicRet.ERR);
+                        basicRet.setMessage("帐号被禁用");
+                        return basicRet;
+                    }
+
+                    memberService.fillMember(member);
+
+                    model.addAttribute(AppConstant.MEMBER_SESSION_NAME, member);
+                    basicRet.setMessage("登陆成功");
+                    basicRet.setResult(BasicRet.SUCCESS);
+
+                    Member updateDateMember = new Member();
+                    updateDateMember.setId(member.getId());
+                    updateDateMember.setLastlogindate(new Date());
+                    memberService.updateByPrimaryKeySelective(updateDateMember);
+
+
+                    //将未付款的订单改变成关闭
+                    //ordersService.updateNotPayOrdersForFinish(member.getId());
+
+                    return basicRet;
+                }
             }
         }
 

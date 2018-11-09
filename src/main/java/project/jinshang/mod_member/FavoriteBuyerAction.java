@@ -1,6 +1,7 @@
 package project.jinshang.mod_member;
 
 import com.github.pagehelper.PageInfo;
+import com.google.common.primitives.Longs;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -60,6 +61,38 @@ public class FavoriteBuyerAction {
     }
 
 
+    @PostMapping("/batch/add")
+    @ApiImplicitParams({
+            @ApiImplicitParam(value = "商品id", name = "pid", required = true, paramType = "query", dataType = "int"),
+    })
+    @ApiOperation("批量添加收藏")
+    public BasicRet batchAdd(@RequestParam(required = true) long[] pIds, Model model) {
+        BasicRet basicRet = new BasicRet();
+
+        Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
+        List<Long> list = Longs.asList(pIds);
+        for (long pid:list){
+            if (favoriteService.getGoodsFavoriteByMemberId(member.getId(),Long.valueOf(pid))) {
+                basicRet.setResult(BasicRet.SUCCESS);
+                basicRet.setMessage("添加成功");
+                return basicRet;
+            }
+            Favorite favorite = new Favorite();
+            favorite.setMemberid(member.getId());
+            favorite.setPid(pid);
+            favorite.setCreatetime(new Date());
+
+            favoriteService.add(favorite);
+
+        }
+
+        basicRet.setResult(BasicRet.SUCCESS);
+        basicRet.setMessage("添加成功");
+        return basicRet;
+    }
+
+
+
     @PostMapping("/delete")
     @ApiImplicitParams({
             @ApiImplicitParam(value = "收藏id", name = "pid", required = true, paramType = "query", dataType = "int"),
@@ -117,6 +150,26 @@ public class FavoriteBuyerAction {
         pageRet.setResult(BasicRet.SUCCESS);
         return pageRet;
     }
+
+
+    @PostMapping("/listByType")
+    @ApiOperation("根据产品分类获取收藏列表")
+    public PageRet listByType(@RequestParam(required = true, defaultValue = "1") int pageNo,
+                        @RequestParam(required = true, defaultValue = "10") int pageSize,
+                        @RequestParam(required =true,defaultValue ="0") int type,
+                              Model model) {
+        PageRet pageRet = new PageRet();
+
+        Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
+
+        PageInfo pageInfo = favoriteService.listByType(pageNo, pageSize, member.getId(),type);
+
+        pageRet.data.setPageInfo(pageInfo);
+        pageRet.setMessage("查询成功");
+        pageRet.setResult(BasicRet.SUCCESS);
+        return pageRet;
+    }
+
 
 
     @PostMapping("/state")

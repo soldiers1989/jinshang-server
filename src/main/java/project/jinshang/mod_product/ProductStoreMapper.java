@@ -311,7 +311,13 @@ public interface ProductStoreMapper {
     void updateProductStore(@Param("psid") long psid,@Param("jsonList") String jsonList);
 
 
-    @Cacheable(value = "ProductStore",key = "'getPdidByStoreidAndPdno:'+#p0+'#'+#p1")
+//    @Cacheable(value = "ProductStore",key = "'getPdidByStoreidAndPdno:'+#p0+'#'+#p1")
     @Select("select pdid from productstore where storeid=#{storeid} and pdno=#{pdno}")
     Long getPdidByStoreidAndPdno(@Param("storeid") Long storeid,@Param("pdno") String pdno);
+
+    @Update("update  productstore set weight=#{weight} where pdid in (" +
+            "select id from productinfo where productid=#{productid}" +
+            ")")
+    int updateWeightByProductsid(@Param("weight") BigDecimal weight, @Param("productid") Long productid);
+
 }

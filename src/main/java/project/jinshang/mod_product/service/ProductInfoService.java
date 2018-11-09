@@ -4,6 +4,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import project.jinshang.common.utils.ErrorMes;
@@ -479,7 +480,18 @@ public class ProductInfoService {
     }
 
 
-    public List<ProductInfo> getProductInfoByProductId(long productid) {
-        return productInfoMapper.getProductInfoByProductId(productid);
+    /**
+     * 紧固件产品库修改重量后，商品信息也要修改
+     * @param weight
+     * @param productid
+     * @return
+     */
+    public  int updateWeightByProductsid( BigDecimal weight,  Long productid){
+        return productInfoMapper.updateWeightByProductsid(weight,productid);
     }
+
+
+//    public List<ProductInfo> getProductInfoByProductId(long productid) {
+//        return productInfoMapper.getProductInfoByProductId(productid);
+//    }
 }

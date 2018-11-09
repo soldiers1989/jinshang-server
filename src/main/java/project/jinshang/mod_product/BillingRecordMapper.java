@@ -67,8 +67,11 @@ public interface BillingRecordMapper {
     int  updateBillcashByMemberAndOrderid(@Param("orderid") String orderid,@Param("memberid") Long memberid,@Param("billcash") BigDecimal billcash);
 
 
-    @Select("select * from billingrecord WHERE (orderno=#{orderno} or orderno like '${orderno},%' or " +
-            " orderno like '%,${orderno}' or orderno like ',%${orderno}%,') order by id desc limit 1")
+//    @Select("select * from billingrecord WHERE (orderno=#{orderno} or orderno like '${orderno},%' or " +
+//            " orderno like '%,${orderno}' or orderno like ',%${orderno}%,') order by id desc limit 1")
+//    BillingRecord getBillingRecordByOrderno(@Param("orderno") String orderno);
+
+    @Select("select bg.* from billingrecord bg left join billorder bo on bg.id=bo.billrecordid left join orders os on bo.orderid=os.id where os.id=${orderno}")
     BillingRecord getBillingRecordByOrderno(@Param("orderno") String orderno);
 
 }

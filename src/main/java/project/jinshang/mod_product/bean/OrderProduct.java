@@ -151,6 +151,10 @@ public class OrderProduct {
     @ApiModelProperty(notes = "商品单位佣金=销售单价*商品佣金比例")
     private BigDecimal singlebrokepay;
 
+
+
+    @ApiModelProperty(notes = "优惠金额")
+    private BigDecimal discountpay;
     @ApiModelProperty(notes = "分批发货ID")
     private Long deliveryid;
 
@@ -170,6 +174,8 @@ public class OrderProduct {
     private String productTypeName;
 
 
+    @ApiModelProperty(notes = "用于销售合同打印时的产品总价计算")
+    private BigDecimal actualpayforcontract;
 
     @Transient
     private Map<String,Object> extend;
@@ -632,5 +638,22 @@ public class OrderProduct {
 
     public void setDeliveryid(Long deliveryid) {
         this.deliveryid = deliveryid;
+    }
+
+
+    public BigDecimal getDiscountpay() {
+        return discountpay;
+    }
+
+    public void setDiscountpay(BigDecimal discountpay) {
+        this.discountpay = discountpay;
+    }
+
+    public BigDecimal getActualpayforcontract() {
+        return actualpayforcontract;
+    }
+
+    public void setActualpayforcontract(BigDecimal actualpayforcontract) {
+        this.actualpayforcontract = actualpayforcontract;
     }
 }

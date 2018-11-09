@@ -16,7 +16,7 @@ public interface AppTaskMapper {
     @Select("select p.* from productname p,categories c where p.typeid=c.id and  c.name=#{level3} ")
     public List<ProductName> getProductnameByLevel3(@Param("level3") String level3);
 
-    @Select("select * from member")
+    @Select("select * from member order by id asc")
     List<Member> getAllMember();
 
     @Select("select ps.id psid,ps.pdid,ps.storeid,ps.intervalprice,pi.id piid,pi.memberid,pi.packagetype from productstore ps LEFT JOIN productinfo pi on ps.pdid=pi.id \n" +

@@ -4,6 +4,8 @@ import com.abc.pay.client.JSON;
 import com.abc.pay.client.TrxException;
 import com.abc.pay.client.ebus.PaymentRequest;
 import com.abc.pay.client.ebus.PaymentResult;
+import com.abc.pay.client.ebus.QueryOrderRequest;
+import com.abc.pay.client.ebus.QueryTrnxRecords;
 import io.swagger.annotations.*;
 import mizuki.project.core.restserver.config.BasicRet;
 import mizuki.project.core.restserver.config.WebConfBean;
@@ -19,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.exception.CashException;
 import project.jinshang.common.exception.MyException;
+import project.jinshang.common.utils.CommonUtils;
 import project.jinshang.common.utils.GenerateNo;
 import project.jinshang.common.utils.StringUtils;
 import project.jinshang.mod_pay.bean.PayLogs;
@@ -31,6 +34,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.Date;
 import java.util.LinkedHashMap;
 
@@ -140,13 +144,15 @@ public class BankPayAction {
 
     @RequestMapping(value="/notify",method= {RequestMethod.POST, RequestMethod.GET})
     public String notify(HttpServletRequest request) throws TrxException, CashException, MyException {
+        logger.info("银联支付回调数据："+CommonUtils.getRequestParamStr(request));
 
-        String msg = request.getParameter("MSG");
-        PaymentResult tResult = new PaymentResult(msg);
-        //2、判断支付结果处理状态，进行后续操作
-        // 展示给用户的结果url todo ??
-        String tMerchantPage = webConfBean.getProjectDomainMain();
-        logger.error("abc: "+tResult.isSuccess());
+        try {
+            String msg = request.getParameter("MSG");
+            PaymentResult tResult = new PaymentResult(msg);
+            //2、判断支付结果处理状态，进行后续操作
+            // 展示给用户的结果url todo ??
+            String tMerchantPage = webConfBean.getProjectDomainMain();
+            logger.error("abc: "+tResult.isSuccess());
 
 //        if (tResult.isSuccess()) {
 //            //3、支付成功并且验签、解析成功
@@ -158,38 +164,137 @@ public class BankPayAction {
 //        }
 
 
-        String orderNo = tResult.getValue("OrderNo");
-        String[] orderNo_array = orderNo.split("-");
+            String orderNo = tResult.getValue("OrderNo");
+            String[] orderNo_array = orderNo.split("-");
 
-        String total_amount = tResult.getValue("OrderAmount");
-        if(StringUtils.hasText(total_amount) && StringUtils.isNumeric(total_amount)){
-            PayLogs payLogs = new PayLogs();
-            payLogs.setTransactionid("");
-            payLogs.setOuttradeno(orderNo);
-            payLogs.setMoney(new BigDecimal(total_amount).setScale(2,BigDecimal.ROUND_HALF_UP));
-            payLogs.setCreatetime(new Date());
-            payLogs.setChannel("bank");
-            payLogsService.insertSelective(payLogs);
-        }
+            String total_amount = tResult.getValue("OrderAmount");
+            //if(StringUtils.hasText(total_amount) && StringUtils.isNumeric(total_amount)){
+                PayLogs payLogs = new PayLogs();
+                payLogs.setTransactionid("");
+                payLogs.setOuttradeno(orderNo);
+                payLogs.setMoney(new BigDecimal(total_amount == null ? "0" : total_amount).setScale(2,BigDecimal.ROUND_HALF_UP));
+                payLogs.setCreatetime(new Date());
+                payLogs.setChannel("bank");
+                payLogsService.insertSelective(payLogs);
+           // }
 
 
-        boolean res = false;
-        if(orderNo_array.length==2){
-            if(orderNo_array[0].equals("order")){
-                res = tradeService.notify(orderNo, "bank","");
-            }else if(orderNo_array[0].equals("buy")) {
-                res = tradeService.notifyBuyerRecharge(orderNo_array[1],"");
-            }else if(orderNo_array[0].equals("sell")){
-                res = tradeService.notifySellerRecharge(orderNo_array[1],"");
+            boolean res = false;
+            if(orderNo_array.length==2){
+                if(orderNo_array[0].equals("order")){
+                    res = tradeService.notify(orderNo, "bank","");
+                }else if(orderNo_array[0].equals("buy")) {
+                    res = tradeService.notifyBuyerRecharge(orderNo_array[1],"",Quantity.STATE_2);
+                }else if(orderNo_array[0].equals("sell")){
+                    res = tradeService.notifySellerRecharge(orderNo_array[1],"");
+                }
             }
+            return "<URL>"+tMerchantPage+"</URL>\n" +
+                    "\n" +
+                    "<HTML>\n" +
+                    "<HEAD>\n" +
+                    "<meta http-equiv=\"refresh\" content=\"0; url='"+tMerchantPage+"'\">\n" +
+                    "</HEAD>\n" +
+                    "</HTML>";
+        } catch (Exception e) {
+           logger.info("银联支付回调错误："+e.getMessage());
+           logger.error("银联支付回调错误："+e.getMessage());
+           throw new MyException("银联支付回调错误",e);
         }
-        return "<URL>"+tMerchantPage+"</URL>\n" +
-                "\n" +
-                "<HTML>\n" +
-                "<HEAD>\n" +
-                "<meta http-equiv=\"refresh\" content=\"0; url='"+tMerchantPage+"'\">\n" +
-                "</HEAD>\n" +
-                "</HTML>";
     }
 
+    /**
+     * 交易流水查询
+     * @param payTypeID
+     * @param orderNo
+     * @return
+     * @throws TrxException
+     * @throws CashException
+     * @throws MyException
+     */
+    @RequestMapping(value="/QueryTrnxRecords1",method= {RequestMethod.POST, RequestMethod.GET})
+    public String MerchantQueryOrder1(String payTypeID,String orderNo) throws TrxException, CashException, MyException {
+        QueryTrnxRecords tRequest = new QueryTrnxRecords();
+        tRequest.dicRequest.put("SettleDate","2018/11/09");  //查询日期YYYY/MM/DD （必要信息）
+        tRequest.dicRequest.put("SettleStartHour","0");  //查询开始时间段（0-23）
+        tRequest.dicRequest.put("SettleEndHour","23");  //查询截止时间段（0-23）
+        tRequest.dicRequest.put("ZIP","0");
+
+//3、传送交易流水查询请求并取得交易流水
+        JSON json = tRequest.postRequest();
+
+//4、判断交易流水查询结果状态，进行后续操作
+        String ReturnCode = json.GetKeyValue("ReturnCode");
+        String ErrorMessage = json.GetKeyValue("ErrorMessage");
+        StringBuilder sb = new StringBuilder();
+        if (ReturnCode.equals("0000"))
+        {
+            //5、交易流水查询成功，生成交易流水对象
+            sb.append("ReturnCode      = [" + json.GetKeyValue("ReturnCode") + "]\r\n");
+            sb.append("ErrorMessage      = [" + json.GetKeyValue("ErrorMessage") + "]\r\n");
+            sb.append("TrxType      = [" + json.GetKeyValue("TrxType") + "]\r\n");
+            sb.append("DetailRecords      = [" + json.GetKeyValue("DetailRecords") + "]\r\n");
+        }else {
+            //6、交易流水查询失败
+            System.out.println("ReturnCode   = [" + ReturnCode + "]<br>");
+            System.out.println("ErrorMessage = [" + ErrorMessage + "]<br>");
+        }
+
+        return sb.toString();
+    }
+
+
+    //交易查询
+    @RequestMapping(value="/MerchantQueryOrder",method= {RequestMethod.POST, RequestMethod.GET})
+    public String MerchantQueryOrder(String payTypeID,String orderNo) throws TrxException, CashException, MyException {
+        //1、生成交易查询对象
+        String queryTpye = "0";
+        if(queryTpye.equals("0")){
+            queryTpye = "false";
+        }else if (queryTpye.equals("1")){
+            queryTpye="true";
+        }
+        StringBuilder sb = new StringBuilder();
+        QueryOrderRequest tQueryRequest = new QueryOrderRequest();
+        tQueryRequest.queryRequest.put("PayTypeID", payTypeID);    //设定交易类型
+        tQueryRequest.queryRequest.put("OrderNo",orderNo );    //设定订单编号 （必要信息）
+        tQueryRequest.queryRequest.put("QueryDetail",true );//设定查询方式
+        JSON json = tQueryRequest.postRequest();
+        String ReturnCode = json.GetKeyValue("ReturnCode");
+        String ErrorMessage = json.GetKeyValue("ErrorMessage");
+        if (ReturnCode.equals("0000"))
+        {
+            System.out.println("ReturnCode   = [" + ReturnCode + "]<br/>");
+            System.out.println("ErrorMessage = [" + ErrorMessage + "]<br/>");
+            //4、获取结果信息
+            String orderInfo = json.GetKeyValue("Order");
+            if (orderInfo.length() < 1)
+            {
+                System.out.println("查询结果为空<br/>");
+            } else{
+                //1、还原经过base64编码的信息
+                //Base64 tBase64 = new Base64();
+                String orderDetail = new String(orderInfo);
+                json.setJsonString(orderDetail);
+               // sb.append("订单明细" + orderDetail + "<br/>");
+
+                //if(queryTpye.equals("0")) {
+                    sb.append("PayTypeID      = [" + json.GetKeyValue("PayTypeID") + "]<br/>");
+                    sb.append("OrderNo      = [" + json.GetKeyValue("OrderNo") + "]<br/>");
+                    sb.append("OrderDate      = [" + json.GetKeyValue("OrderDate") + "]<br/>");
+                    sb.append("OrderTime      = [" + json.GetKeyValue("OrderTime") + "]<br/>");
+                    sb.append("OrderAmount      = [" + json.GetKeyValue("OrderAmount") + "]<br/>");
+                    sb.append("Status      = [" + json.GetKeyValue("Status") + "]<br/>");
+              //  }
+            }
+        }
+        else
+        {
+            //6、商户订单查询失败
+            sb.append("ReturnCode   = [" + ReturnCode + "]<br/>");
+            sb.append("ErrorMessage = [" + ErrorMessage + "]<br/>");
+        }
+
+        return sb.toString();
+    }
 }

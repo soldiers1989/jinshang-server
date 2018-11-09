@@ -43,6 +43,9 @@ public class OrderProductProvider {
         if(orderProductModel.getActualpayment() != null){
             sql.SET("actualpayment = #{actualpayment}");
         }
+        if (orderProductModel.getDiscountpay()!=null){
+            sql.SET("discountpay = #{discountpay}");
+        }
         sql.WHERE("id=#{id} and num=#{oldProductNum}");
         return sql.toString();
     }

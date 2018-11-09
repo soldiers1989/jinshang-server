@@ -42,7 +42,7 @@ public interface AttvalueMapper {
 
 
 
-    @Select("select * from attvalue where attid=#{attid}")
+    @Select("select * from attvalue where attid=#{attid} order by sort asc")
     List<Attvalue> getAttvalueByAttid(@Param("attid") long attid);
 
 

@@ -92,6 +92,42 @@ public class ThirdPartLoginService {
         return  null;
     }
 
+    /**
+     * 获取微信token
+     * @param code
+     * @return
+     */
+    public WxAccessToken getWxAccTokForTinyProg(String code){
+        int status = 0;
+        String url = wxLoginConfig.getWxacctokUrlTinyProg().replace("APPID",wxLoginConfig.getTinyProgAppId())
+                .replace("SECRET",wxLoginConfig.getTinyProgSecret()).replace("JSCODE",code);
+
+
+        GetMethod getMethod =  new GetMethod(url);
+        try {
+            status=httpClient.executeMethod(getMethod);
+            if(status >=200 && status<=300){
+                String result = getMethod.getResponseBodyAsString();
+
+                logger.error("微信获取token:"+result);
+
+
+                if(result != null && !result.equals("")){
+
+                    WxAccessToken at=	gson.fromJson(result, WxAccessToken.class);
+                    //logger.error(at.toString());
+
+                    return at;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return  null;
+    }
+
+
 
     /**
      * 获取微信用户信息

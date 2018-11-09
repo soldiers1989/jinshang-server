@@ -22,6 +22,8 @@ import project.jinshang.common.bean.ProductGroup;
 import project.jinshang.common.constant.AppConstant;
 import project.jinshang.common.constant.Quantity;
 import project.jinshang.common.utils.*;
+import project.jinshang.mod_admin.mod_count.bean.SearchKeyRecord;
+import project.jinshang.mod_admin.mod_count.service.SearchKeyRecordService;
 import project.jinshang.mod_common.bean.BasicExtRet;
 import project.jinshang.mod_front.service.ProductFrontService;
 import project.jinshang.mod_member.bean.Member;
@@ -88,6 +90,9 @@ public class ProductFrontAction {
 
     @Autowired
     private MemberService memberService;
+
+    @Autowired
+    private SearchKeyRecordService searchKeyRecordService;
 
 
     @RequestMapping(value = "/getProductAttrByPid", method = RequestMethod.POST)
@@ -723,6 +728,15 @@ public class ProductFrontAction {
 
         Member member = (Member) model.asMap().get(AppConstant.MEMBER_SESSION_NAME);
 
+        //存搜索记录
+        if(StringUtils.hasText(searchKey)){
+            SearchKeyRecord searchKeyRecord = new SearchKeyRecord();
+            searchKeyRecord.setSearchkey(searchKey);
+            searchKeyRecord.setCreatetime(new Date());
+            searchKeyRecord.setType(3);
+            searchKeyRecordService.insertSearchKeyRecord(searchKeyRecord);
+        }
+
         String store = storename;
 
         searchKey = searchKey.toLowerCase();
@@ -1075,6 +1089,16 @@ public class ProductFrontAction {
             member =  memberService.getMemberById(member.getId());
         }
 
+
+        //存搜索记录
+        if(StringUtils.hasText(searchKey)){
+            SearchKeyRecord searchKeyRecord = new SearchKeyRecord();
+            searchKeyRecord.setSearchkey(searchKey);
+            searchKeyRecord.setCreatetime(new Date());
+            searchKeyRecord.setType(type);
+            searchKeyRecordService.insertSearchKeyRecord(searchKeyRecord);
+        }
+
         ProductListRet productListRet = new ProductListRet();
         int start = (pageNo - 1) * pageSize;
 
@@ -1138,6 +1162,8 @@ public class ProductFrontAction {
         }
 
         keyValues.sort((KeyValue kv1,KeyValue kv2)->kv1.getSort().compareTo(kv2.getSort()));
+
+
 
 
         Page page = new Page();

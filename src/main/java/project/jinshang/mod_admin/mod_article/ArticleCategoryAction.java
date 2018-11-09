@@ -133,9 +133,11 @@ public class ArticleCategoryAction {
                 articleCategoryService.updateClsaafiy(defaultArticleCategory);
             }
         } else if (!dbArticleCategory.getDocorder().equals(articleCategory.getDocorder())) {
-            ArticleCategory defaultArticleCategory = articleCategories.get(0);
-            defaultArticleCategory.setDocorder(dbArticleCategory.getDocorder());
-            articleCategoryService.updateClsaafiy(defaultArticleCategory);
+            if (articleCategories.size()>0){
+                ArticleCategory defaultArticleCategory = articleCategories.get(0);
+                defaultArticleCategory.setDocorder(dbArticleCategory.getDocorder());
+                articleCategoryService.updateClsaafiy(defaultArticleCategory);
+            }
         }
         articleCategoryService.updateClsaafiy(articleCategory);
         basicRet.setMessage("修改成功");

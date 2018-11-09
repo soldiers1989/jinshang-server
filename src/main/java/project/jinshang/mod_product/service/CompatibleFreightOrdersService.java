@@ -268,7 +268,8 @@ public class CompatibleFreightOrdersService {
         orders.setBrokepay(totalBroke.setScale(2,BigDecimal.ROUND_HALF_UP));
         orders.setFrozepay(frozepay);
         orders.setServerpay(totalServerPay.setScale(2,BigDecimal.ROUND_HALF_UP));
-
+        orders.setTotalprice(allPdPay);
+        orders.setActualpayment(allPdPay);
         //订单验货完成需要更新的数据
         int count = ordersService.updateOrdersConfirmgoods(orders);
         if (count != 1) {
@@ -285,6 +286,7 @@ public class CompatibleFreightOrdersService {
      * @throws CashException
      * @throws MyException
      */
+
     public void clNewFinshOrders(Orders orders, List<OrderProduct> list,Member member) throws CashException, MyException {
         //订单总金额
         BigDecimal totalprice = Quantity.BIG_DECIMAL_0;
@@ -300,7 +302,10 @@ public class CompatibleFreightOrdersService {
 
         //所有商品金额（不包含退货商品）
         BigDecimal allPdPay = BigDecimal.valueOf(0);
-
+        //所有商品总金额（不包含优惠金额）
+        BigDecimal actualPayment=Quantity.BIG_DECIMAL_0;
+        //订单新的优惠金额
+        BigDecimal discountPirce=Quantity.BIG_DECIMAL_0;
         //获取紧固件积分规则
         IntegralSet integralSet1 = integralService.getIntegralSetByType(Quantity.STATE_0);
         //获取其它积分规则
@@ -328,7 +333,10 @@ public class CompatibleFreightOrdersService {
                 BigDecimal rate = BigDecimal.valueOf(0);
 
                 //商家分类
-                SellerCategory sellerCategory = ordersService.getSellerCategory(classifyid, orderProduct.getSellerid());
+                SellerCategory sellerCategory = null;
+                if(classifyid != null){
+                   sellerCategory = ordersService.getSellerCategory(classifyid, orderProduct.getSellerid());
+                }
                 if (sellerCategory != null) {
                     if (sellerCategory.getBrokeragerate().compareTo(new BigDecimal(-1)) == 0) {
                         SellerCategory sellerCategory1 = ordersService.getSellerCategory(sellerCategory.getParentid(), orderProduct.getSellerid());
@@ -382,8 +390,9 @@ public class CompatibleFreightOrdersService {
 
                 //sellerpay = sellerpay.add(orderProduct.getActualpayment());
 
-                allPdPay = allPdPay.add(orderProduct.getActualpayment());
-
+                allPdPay = allPdPay.add(orderProduct.getActualpayment().add(orderProduct.getDiscountpay()));
+                actualPayment=actualPayment.add(orderProduct.getActualpayment());
+                discountPirce=discountPirce.add(orderProduct.getDiscountpay());
             }
         }
         //保存销量
@@ -452,7 +461,9 @@ public class CompatibleFreightOrdersService {
         orders.setBrokepay(totalBroke.setScale(2,BigDecimal.ROUND_HALF_UP));
         orders.setFrozepay(frozepay);
         orders.setServerpay(totalServerPay.setScale(2,BigDecimal.ROUND_HALF_UP));
-
+        orders.setTotalprice(allPdPay.add(orders.getFreight()));
+        orders.setActualpayment(actualPayment.add(orders.getFreight()));
+        orders.setDiscountprice(discountPirce);
         //订单验货完成需要更新的数据
         int count = ordersService.updateOrdersConfirmgoods(orders);
         if (count != 1) {

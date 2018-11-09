@@ -76,6 +76,12 @@ public class SellerCompanyInfoService {
     public  void  updateByPrimaryKeySelective(SellerCompanyInfo info){
         sellerCompanyInfoMapper.updateByPrimaryKeySelective(info);
     }
+    public void updateSellerMobile(long id, String linkmantel) {
+        SellerCompanyInfo sellerCompanyInfo = new SellerCompanyInfo();
+        sellerCompanyInfo.setId(id);
+        sellerCompanyInfo.setLinkmantel(linkmantel);
+        sellerCompanyInfoMapper.updateSellerMobile(sellerCompanyInfo);
+    }
 
 
     public  SellerCompanyInfo getByCompanyName(String companyname){

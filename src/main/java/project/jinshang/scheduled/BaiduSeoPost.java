@@ -25,7 +25,7 @@ public class BaiduSeoPost {
     private BaiduSeoMapper baiduSeoMapper;
 
     //每天15：00推送
-    @Scheduled(cron = "0 0 15 * * ?")
+    //@Scheduled(cron = "0 0 15 * * ?")
     public void  postTobaidu(){
 
         int count = 0;

@@ -41,6 +41,8 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ProductSearchServiceImplEs implements ProductSearchService {
     private Logger logger = LoggerFactory.getLogger(this.getClass());
@@ -77,17 +79,41 @@ public class ProductSearchServiceImplEs implements ProductSearchService {
     @Autowired
     private BrandMapper brandMapper;
 
+
+
+
+
     private String genIndex(ProductInfo productInfo, List<ProductStore> stores){
+
         Set<String> params  = new HashSet<>();
+        Pattern pattern  =Pattern.compile("(\\d+)(\\.?)(\\d*)$");
+        Matcher matcher = null;
         for (ProductStore store:stores){
             List<ProductAttr> list = store.getAttrList();
             if(list != null) {
                 for (int i = 0; i < list.size(); i++) {
                     ProductAttr attr = list.get(i);
-                    params.add(StringUtils.nvl(attr.getValue()).toLowerCase());
+                    String attr_value = StringUtils.nvl(attr.getValue()).toLowerCase();
+                    params.add(attr_value);
+
+                    matcher = pattern.matcher(attr_value);
+                    if(matcher.find()){
+                        params.add(matcher.group());
+                    }
                 }
             }
         }
+
+//        Set<String> params  = new HashSet<>();
+//        for (ProductStore store:stores){
+//            List<ProductAttr> list = store.getAttrList();
+//            if(list != null) {
+//                for (int i = 0; i < list.size(); i++) {
+//                    ProductAttr attr = list.get(i);
+//                    params.add(StringUtils.nvl(attr.getValue()).toLowerCase());
+//                }
+//            }
+//        }
         params.add(StringUtils.nvl(productInfo.getProductname()).toLowerCase());
         params.add(StringUtils.nvl(productInfo.getMark()).toLowerCase());
         params.add(StringUtils.nvl(productInfo.getBrand()).toLowerCase());
@@ -100,36 +126,139 @@ public class ProductSearchServiceImplEs implements ProductSearchService {
         params.add(StringUtils.nvl(productInfo.getProductalias().toLowerCase()));
 //        params.add(StringUtils.nvl(productInfo.getProductsno().toLowerCase()));
 //        params.add(StringUtils.nvl(productInfo.getPddes().toLowerCase()));
-        String[] paramArr =  new String[params.size()];
-        return nlpUtils.seqForPgVector(params.toArray(paramArr));
+//        String[] paramArr =  new String[params.size()];
+      //  return nlpUtils.tranlatePGVector(nlpUtils.seqForPgVector(params));
+
+        matcher = pattern.matcher(productInfo.getLevel3());
+        if(matcher.find()){
+            params.add(matcher.group());
+        }
+
+
+        StringBuilder sb = new StringBuilder();
+
+
+        Set<String> orign = new HashSet<>();
+        for(String param : params){
+            String[] strArr = param.split(" ");
+            for(String str:strArr){
+                orign.add(str.replaceAll("\\(","\\\\(").replaceAll("\\)","\\\\)"));
+            }
+        }
+
+
+
+        nlpUtils.seqForPgVector(orign).stream().forEach(s->params.add(s));
+
+
+        nlpUtils.seq_hanlp(false,StringUtils.nvl(productInfo.getLevel2()).toLowerCase()).forEach(s->{
+            params.add(s);
+        });
+
+        nlpUtils.seq_hanlp(StringUtils.nvl(productInfo.getLevel2())).forEach(s->{
+            params.add(s);
+        });
+
+        nlpUtils.seq_hanlp(StringUtils.nvl(productInfo.getProductname())).forEach(s -> {
+            params.add(s);
+        });
+
+        nlpUtils.seq_hanlp(StringUtils.nvl(productInfo.getSubtitle())).forEach(s->{
+            params.add(s);
+        });
+
+        nlpUtils.seq_hanlp(StringUtils.nvl(productInfo.getProductalias())).forEach(s->{
+            params.add(s);
+        });
+
+
+        return nlpUtils.tranlatePGVector(params);
     }
 
     private String genIndex(ProductInfoEsDTO productInfo){
         Set<String> params  = new HashSet<>();
+        Pattern pattern  =Pattern.compile("(\\d+)(\\.?)(\\d*)$");
+        Matcher matcher = null;
         for (ProductStore store:productInfo.getStores()){
             List<ProductAttr> list = store.getAttrList();
             if(list != null) {
                 for (int i = 0; i < list.size(); i++) {
                     ProductAttr attr = list.get(i);
-                    params.add(StringUtils.nvl(attr.getValue()).toLowerCase());
+                    String attr_value = StringUtils.nvl(attr.getValue()).toLowerCase();
+                    params.add(attr_value);
+
+                    matcher = pattern.matcher(attr_value);
+                    if(matcher.find()){
+                        params.add(matcher.group());
+                        //System.out.println(attr_value+"===="+matcher.group());
+                    }
                 }
             }
         }
+
         params.add(StringUtils.nvl(productInfo.getProductname()).toLowerCase());
+
+
         params.add(StringUtils.nvl(productInfo.getMark()).toLowerCase());
         params.add(StringUtils.nvl(productInfo.getBrand()).toLowerCase());
         params.add(StringUtils.nvl(productInfo.getLevel1()).toLowerCase());
         params.add(StringUtils.nvl(productInfo.getLevel2()).toLowerCase());
-        params.add(StringUtils.nvl(productInfo.getLevel3()).toLowerCase());
+
+
+        String level3 = StringUtils.nvl(productInfo.getLevel3()).toLowerCase();
+        params.add(level3);
+        matcher = pattern.matcher(level3);
+        if(matcher.find()){
+            params.add(matcher.group());
+        }
+
         params.add(StringUtils.nvl(productInfo.getStand()).toLowerCase());
         params.add(StringUtils.nvl(productInfo.getMaterial()).toLowerCase());
         params.add(StringUtils.nvl(productInfo.getCardnum()).toLowerCase());
         params.add(StringUtils.nvl(productInfo.getProductalias().toLowerCase()));
 
-
+//        System.out.println(params+"==============");
 //        params.add(StringUtils.nvl(productInfo.getPddes().toLowerCase()));
-        String[] paramArr =  new String[params.size()];
-        return nlpUtils.seqForPgVector(params.toArray(paramArr));
+//        String[] paramArr =  new String[params.size()];
+        StringBuilder sb = new StringBuilder();
+
+        Set<String> orign = new HashSet<>();
+        for(String param : params){
+            String[] strArr = param.split(" ");
+            for(String str:strArr){
+                if(str.contains("\\(")) {
+                    str = str.replaceAll("\\(", "（").replaceAll("\\)", "）");
+                }
+                orign.add(str);
+            }
+        }
+
+        nlpUtils.seqForPgVector(orign).stream().forEach(s->params.add(s));
+
+
+
+//        System.out.println(nlpUtils.seq_hanlp(false,StringUtils.nvl(productInfo.getProductname()).toLowerCase()));
+        nlpUtils.seq_hanlp(false,StringUtils.nvl(productInfo.getLevel2()).toLowerCase()).forEach(s->{
+            params.add(s);
+        });
+
+        nlpUtils.seq_hanlp(StringUtils.nvl(productInfo.getLevel2())).forEach(s->{
+            params.add(s);
+        });
+
+        nlpUtils.seq_hanlp(StringUtils.nvl(productInfo.getProductname())).forEach(s -> {
+            params.add(s);
+        });
+
+        nlpUtils.seq_hanlp(StringUtils.nvl(productInfo.getSubtitle())).forEach(s->{
+            params.add(s);
+        });
+
+        nlpUtils.seq_hanlp(StringUtils.nvl(productInfo.getProductalias())).forEach(s->{
+            params.add(s);
+        });
+
+        return nlpUtils.tranlatePGVector(params);
     }
 
     private PageInfo listProductInfoEsDTOByPage(int pageNo, int pageSize){
@@ -141,7 +270,7 @@ public class ProductSearchServiceImplEs implements ProductSearchService {
 
     public void rebuildIndex() throws InterruptedException {
         logger.info("start elas rebuild");
-        List<Synonym> synonyms = synonymMapper.listAll();
+        List<Synonym> synonyms = synonymMapper.listAll(null);
         synonyms.forEach(synonym -> synonym.getWords().forEach(CustomDictionary::add));
         //ProductInfoExample example = new ProductInfoExample();
         //example.createCriteria().andPdstateEqualTo(Quantity.STATE_4);
@@ -294,7 +423,9 @@ public class ProductSearchServiceImplEs implements ProductSearchService {
         List<ProductStore> list = productStoreMapper.getByProductid(productInfo.getId());
         List<Map> stores = new ArrayList<>();
         int attrSort=0;
+        String storename = "";
         for(ProductStore productStore:list){
+            storename = productStore.getStorename();
             Map<String,Object> ps = new HashMap<>();
             ps.put("storeid",productStore.getStoreid());
             ps.put("storename",productStore.getStorename());
@@ -330,6 +461,18 @@ public class ProductSearchServiceImplEs implements ProductSearchService {
             ps.put("attrlist",attrs);
             stores.add(ps);
         }
+
+        info.put("level1_sort",ProductSearchSortUtils.getSortWeigth("大类",Quantity.STATE_0,productInfo.getLevel1()));
+        info.put("level2_sort",ProductSearchSortUtils.getSortWeigth("分类",Quantity.STATE_0,productInfo.getLevel2()));
+        info.put("level3_sort",ProductSearchSortUtils.getSortWeigth("标准",Quantity.STATE_0,productInfo.getLevel3()));
+        info.put("productname_sort",ProductSearchSortUtils.getSortWeigth("品名",Quantity.STATE_0,productInfo.getProductname()));
+        info.put("material_sort",ProductSearchSortUtils.getSortWeigth("材质",Quantity.STATE_0,productInfo.getMaterial()));
+        info.put("cardnum_sort",ProductSearchSortUtils.getSortWeigth("牌号",Quantity.STATE_0,productInfo.getCardnum()));
+
+        info.put("surfacetreatment_sort",ProductSearchSortUtils.getSortWeigth("表面处理",Quantity.STATE_0,productInfo.getSurfacetreatment()));
+        info.put("brand_sort",ProductSearchSortUtils.getSortWeigth("品牌",Quantity.STATE_0,productInfo.getBrand()));
+        info.put("store_sort",ProductSearchSortUtils.getSortWeigth("仓库",Quantity.STATE_0,storename));
+
         info.put("stores",stores);
         info.put("attr_sort",attrSort);
         info.put("indexes", genIndex(productInfo,list));
@@ -431,13 +574,13 @@ public class ProductSearchServiceImplEs implements ProductSearchService {
         }
         info.put("attr_sort",attrSort);
         // cat sort
-        Integer cat_sort1 = categoriesMapper.getSort(productInfo.getLevel1id());
-        Integer cat_sort2 = categoriesMapper.getSort(productInfo.getLevel2id());
-        Integer cat_sort3 = categoriesMapper.getSort(productInfo.getLevel3id());
-        if(cat_sort1==null) cat_sort1=0;
-        if(cat_sort2==null) cat_sort2=0;
-        if(cat_sort3==null) cat_sort3=0;
-        info.put("cat_sort",cat_sort1*1000000+cat_sort2*1000+cat_sort3);
+//        Integer cat_sort1 = categoriesMapper.getSort(productInfo.getLevel1id());
+//        Integer cat_sort2 = categoriesMapper.getSort(productInfo.getLevel2id());
+//        Integer cat_sort3 = categoriesMapper.getSort(productInfo.getLevel3id());
+//        if(cat_sort1==null) cat_sort1=0;
+//        if(cat_sort2==null) cat_sort2=0;
+//        if(cat_sort3==null) cat_sort3=0;
+//        info.put("cat_sort",cat_sort1*1000000+cat_sort2*1000+cat_sort3);
         info.put("stores",stores);
 
         info.put("level1_sort",ProductSearchSortUtils.getSortWeigth("大类",Quantity.STATE_0,productInfo.getLevel1()));
@@ -450,8 +593,8 @@ public class ProductSearchServiceImplEs implements ProductSearchService {
         info.put("surfacetreatment_sort",ProductSearchSortUtils.getSortWeigth("表面处理",Quantity.STATE_0,productInfo.getSurfacetreatment()));
         info.put("brand_sort",ProductSearchSortUtils.getSortWeigth("品牌",Quantity.STATE_0,productInfo.getBrand()));
         info.put("store_sort",ProductSearchSortUtils.getSortWeigth("仓库",Quantity.STATE_0,storename));
-
-        info.put("indexes", genIndex(productInfo));
+        String index = genIndex(productInfo);
+        info.put("indexes", index);
         return info;
     }
 
@@ -530,6 +673,7 @@ public class ProductSearchServiceImplEs implements ProductSearchService {
         searchSourceBuilder.sort(SortBuilders.fieldSort("surfacetreatment_sort").order(SortOrder.ASC));
         searchSourceBuilder.sort(SortBuilders.fieldSort("brand_sort").order(SortOrder.ASC));
         searchSourceBuilder.sort(SortBuilders.fieldSort("store_sort").order(SortOrder.ASC));
+
 
 
         //searchSourceBuilder.sort(SortBuilders.fieldSort("selfsupport").order(SortOrder.DESC));
@@ -735,6 +879,11 @@ public class ProductSearchServiceImplEs implements ProductSearchService {
     }
 
     public static void main(String[] args) {
-        System.out.println((int)Math.pow(10,0));
+        String s = "534ANSI B18.3";
+        Pattern pattern  =Pattern.compile("(\\d+)(\\.?)(\\d*)$");
+        Matcher matcher = pattern.matcher(s);
+
+        System.out.println(matcher.find());
+        System.out.println(matcher.group());
     }
 }
